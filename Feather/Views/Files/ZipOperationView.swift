@@ -29,34 +29,81 @@ struct ZipOperationView: View {
     
     var body: some View {
         NBNavigationView(operation == .zip ? .localized("Create Zip") : .localized("Unzip File"), displayMode: .inline) {
-            Form {
-                if operation == .zip {
-                    zipConfigSection
-                } else {
-                    unzipConfigSection
-                }
+            ZStack {
+                // Modern background
+                LinearGradient(
+                    colors: [
+                        Color.accentColor.opacity(0.05),
+                        Color.clear
+                    ],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+                .ignoresSafeArea()
                 
-                if isProcessing {
-                    Section {
-                        VStack(spacing: 12) {
-                            ProgressView(value: progress, total: 1.0)
-                            Text("\(Int(progress * 100))%")
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
+                Form {
+                    if operation == .zip {
+                        zipConfigSection
+                    } else {
+                        unzipConfigSection
+                    }
+                    
+                    if isProcessing {
+                        Section {
+                            VStack(spacing: 12) {
+                                // Modern progress indicator
+                                ZStack(alignment: .leading) {
+                                    RoundedRectangle(cornerRadius: 8)
+                                        .fill(Color.gray.opacity(0.2))
+                                        .frame(height: 8)
+                                    
+                                    RoundedRectangle(cornerRadius: 8)
+                                        .fill(
+                                            LinearGradient(
+                                                colors: [Color.accentColor, Color.accentColor.opacity(0.8)],
+                                                startPoint: .leading,
+                                                endPoint: .trailing
+                                            )
+                                        )
+                                        .frame(width: CGFloat(progress) * UIScreen.main.bounds.width * 0.8, height: 8)
+                                        .animation(.linear(duration: 0.2), value: progress)
+                                }
+                                
+                                HStack {
+                                    Image(systemName: "arrow.clockwise.circle.fill")
+                                        .foregroundStyle(Color.accentColor)
+                                    Text("\(Int(progress * 100))%")
+                                        .font(.subheadline)
+                                        .fontWeight(.semibold)
+                                        .foregroundStyle(.primary)
+                                    Spacer()
+                                    Text(operation == .zip ? .localized("Compressing...") : .localized("Extracting..."))
+                                        .font(.caption)
+                                        .foregroundStyle(.secondary)
+                                }
+                            }
+                            .padding(.vertical, 4)
+                        } header: {
+                            Label(.localized("Progress"), systemImage: "chart.bar.fill")
                         }
-                    } header: {
-                        Text(.localized("Progress"))
+                    }
+                    
+                    if let error = errorMessage {
+                        Section {
+                            HStack(spacing: 10) {
+                                Image(systemName: "exclamationmark.triangle.fill")
+                                    .foregroundStyle(.red)
+                                Text(error)
+                                    .font(.subheadline)
+                                    .foregroundStyle(.red)
+                            }
+                            .padding(.vertical, 4)
+                        } header: {
+                            Label(.localized("Error"), systemImage: "xmark.circle.fill")
+                        }
                     }
                 }
-                
-                if let error = errorMessage {
-                    Section {
-                        Text(error)
-                            .foregroundStyle(.red)
-                    } header: {
-                        Text(.localized("Error"))
-                    }
-                }
+                .scrollContentBackground(.hidden)
             }
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
@@ -66,8 +113,14 @@ struct ZipOperationView: View {
                 }
                 
                 ToolbarItem(placement: .confirmationAction) {
-                    Button(operation == .zip ? .localized("Zip") : .localized("Unzip")) {
+                    Button {
                         performOperation()
+                    } label: {
+                        HStack(spacing: 4) {
+                            Image(systemName: operation == .zip ? "archivebox.fill" : "tray.and.arrow.down.fill")
+                                .font(.caption)
+                            Text(operation == .zip ? .localized("Zip") : .localized("Unzip"))
+                        }
                     }
                     .disabled(isProcessing || (operation == .zip && zipName.isEmpty))
                 }
@@ -84,25 +137,46 @@ struct ZipOperationView: View {
     @ViewBuilder
     private var zipConfigSection: some View {
         Section {
-            TextField(.localized("Archive Name"), text: $zipName)
-                .textInputAutocapitalization(.never)
-                .autocorrectionDisabled()
+            HStack(spacing: 10) {
+                Image(systemName: "archivebox.fill")
+                    .foregroundStyle(Color.accentColor)
+                    .font(.body)
+                TextField(.localized("Archive Name"), text: $zipName)
+                    .textInputAutocapitalization(.never)
+                    .autocorrectionDisabled()
+            }
+            .padding(.vertical, 4)
         } header: {
-            Text(.localized("Archive Name"))
+            Label(.localized("Archive Name"), systemImage: "tag.fill")
         } footer: {
             Text(.localized("Name for the zip archive (without .zip extension)"))
+                .font(.caption2)
         }
         
         Section {
             ForEach(files) { file in
-                HStack {
-                    Image(systemName: file.icon)
-                        .foregroundStyle(file.iconColor)
+                HStack(spacing: 10) {
+                    ZStack {
+                        Circle()
+                            .fill(file.iconColor.opacity(0.12))
+                            .frame(width: 28, height: 28)
+                        Image(systemName: file.icon)
+                            .font(.system(size: 12))
+                            .foregroundStyle(file.iconColor)
+                    }
                     Text(file.name)
+                        .font(.subheadline)
+                    Spacer()
+                    if let size = file.size {
+                        Text(size)
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
+                    }
                 }
+                .padding(.vertical, 2)
             }
         } header: {
-            Text(.localized("Files to Zip"))
+            Label(.localized("Files to Zip (\(files.count))"), systemImage: "doc.on.doc.fill")
         }
     }
     
@@ -110,26 +184,57 @@ struct ZipOperationView: View {
     private var unzipConfigSection: some View {
         Section {
             if let zipFile = files.first {
-                HStack {
-                    Image(systemName: zipFile.icon)
-                        .foregroundStyle(zipFile.iconColor)
-                    Text(zipFile.name)
+                HStack(spacing: 10) {
+                    ZStack {
+                        Circle()
+                            .fill(zipFile.iconColor.opacity(0.12))
+                            .frame(width: 32, height: 32)
+                        Image(systemName: zipFile.icon)
+                            .font(.system(size: 14))
+                            .foregroundStyle(zipFile.iconColor)
+                    }
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(zipFile.name)
+                            .font(.subheadline)
+                            .fontWeight(.medium)
+                        if let size = zipFile.size {
+                            Text(size)
+                                .font(.caption2)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
                 }
+                .padding(.vertical, 4)
             }
         } header: {
-            Text(.localized("Archive"))
+            Label(.localized("Archive"), systemImage: "archivebox.fill")
         }
         
         Section {
             Picker(.localized("If File Exists"), selection: $conflictResolution) {
                 ForEach(ConflictResolution.allCases, id: \.self) { option in
-                    Text(option.rawValue).tag(option)
+                    HStack {
+                        Image(systemName: iconForResolution(option))
+                            .font(.caption)
+                        Text(option.rawValue)
+                    }
+                    .tag(option)
                 }
             }
+            .pickerStyle(.menu)
         } header: {
-            Text(.localized("Conflict Resolution"))
+            Label(.localized("Conflict Resolution"), systemImage: "exclamationmark.triangle.fill")
         } footer: {
             Text(.localized("Choose what to do if files already exist"))
+                .font(.caption2)
+        }
+    }
+    
+    private func iconForResolution(_ resolution: ConflictResolution) -> String {
+        switch resolution {
+        case .rename: return "doc.badge.plus"
+        case .replace: return "arrow.triangle.2.circlepath"
+        case .skip: return "forward.fill"
         }
     }
     
