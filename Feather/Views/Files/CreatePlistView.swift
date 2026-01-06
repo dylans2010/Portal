@@ -15,52 +15,85 @@ struct CreatePlistView: View {
     
     var body: some View {
         NBNavigationView(.localized("Create Plist File"), displayMode: .inline) {
-            Form {
-                Section {
-                    HStack(spacing: 12) {
-                        ZStack {
-                            Circle()
-                                .fill(Color.purple.opacity(0.15))
-                                .frame(width: 36, height: 36)
-                            
-                            Image(systemName: "doc.badge.gearshape.fill")
-                                .font(.body)
-                                .foregroundStyle(
-                                    LinearGradient(
-                                        colors: [Color.purple, Color.purple.opacity(0.7)],
-                                        startPoint: .topLeading,
-                                        endPoint: .bottomTrailing
-                                    )
-                                )
-                        }
-                        
-                        TextField(.localized("File Name"), text: $fileName)
-                            .textInputAutocapitalization(.never)
-                            .autocorrectionDisabled()
-                    }
-                } header: {
-                    Label(.localized("Name"), systemImage: "textformat")
-                } footer: {
-                    Text(.localized("Enter a name for the plist file (without .plist extension)"))
-                }
+            ZStack {
+                // Modern background
+                LinearGradient(
+                    colors: [
+                        Color.purple.opacity(0.08),
+                        Color.clear
+                    ],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+                .ignoresSafeArea()
                 
-                Section {
-                    Picker(.localized("Format"), selection: $selectedFormat) {
-                        ForEach(PlistFormat.allCases, id: \.self) { format in
-                            HStack {
-                                Image(systemName: format == .xml ? "chevron.left.forwardslash.chevron.right" : "01.square.fill")
-                                    .font(.caption)
-                                Text(format.rawValue)
+                Form {
+                    Section {
+                        HStack(spacing: 12) {
+                            ZStack {
+                                Circle()
+                                    .fill(
+                                        LinearGradient(
+                                            colors: [
+                                                Color.purple.opacity(0.15),
+                                                Color.purple.opacity(0.08)
+                                            ],
+                                            startPoint: .topLeading,
+                                            endPoint: .bottomTrailing
+                                        )
+                                    )
+                                    .frame(width: 40, height: 40)
+                                
+                                Image(systemName: "doc.badge.gearshape.fill")
+                                    .font(.title3)
+                                    .foregroundStyle(
+                                        LinearGradient(
+                                            colors: [Color.purple, Color.purple.opacity(0.7)],
+                                            startPoint: .topLeading,
+                                            endPoint: .bottomTrailing
+                                        )
+                                    )
                             }
-                            .tag(format)
+                            
+                            TextField(.localized("File Name"), text: $fileName)
+                                .textInputAutocapitalization(.never)
+                                .autocorrectionDisabled()
+                                .font(.body)
+                        }
+                        .padding(.vertical, 6)
+                    } header: {
+                        Label(.localized("Name"), systemImage: "textformat")
+                    } footer: {
+                        Text(.localized("Enter a name for the plist file (without .plist extension)"))
+                            .font(.caption2)
+                    }
+                    
+                    Section {
+                        Picker(.localized("Format"), selection: $selectedFormat) {
+                            ForEach(PlistFormat.allCases, id: \.self) { format in
+                                HStack(spacing: 8) {
+                                    Image(systemName: format == .xml ? "chevron.left.forwardslash.chevron.right" : "01.square.fill")
+                                        .font(.caption)
+                                    Text(format.rawValue)
+                                }
+                                .tag(format)
+                            }
+                        }
+                        .pickerStyle(.segmented)
+                        .padding(.vertical, 4)
+                    } header: {
+                        Label(.localized("Plist Format"), systemImage: "doc.badge.gearshape")
+                    } footer: {
+                        HStack(spacing: 6) {
+                            Image(systemName: "info.circle.fill")
+                                .font(.caption2)
+                                .foregroundStyle(Color.accentColor)
+                            Text(.localized("XML format is human-readable, Binary format is more compact"))
+                                .font(.caption2)
                         }
                     }
-                    .pickerStyle(.segmented)
-                } header: {
-                    Label(.localized("Plist Format"), systemImage: "doc.badge.gearshape")
-                } footer: {
-                    Text(.localized("XML format is human-readable, Binary format is more compact"))
                 }
+                .scrollContentBackground(.hidden)
             }
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {

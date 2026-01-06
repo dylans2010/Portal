@@ -30,31 +30,48 @@ struct TextViewerView: View {
     var body: some View {
         NBNavigationView(.localized("Text Viewer"), displayMode: .inline) {
             ZStack {
-                Color(UIColor.systemGroupedBackground)
-                    .ignoresSafeArea()
+                // Modern background
+                LinearGradient(
+                    colors: [
+                        Color.accentColor.opacity(0.05),
+                        Color.clear
+                    ],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+                .ignoresSafeArea()
                 
                 VStack(spacing: 0) {
                     // Error banner
                     if let error = errorMessage {
                         HStack(spacing: 12) {
                             Image(systemName: "exclamationmark.triangle.fill")
-                                .foregroundStyle(.red)
+                                .foregroundStyle(.white)
                                 .font(.body)
                             Text(error)
                                 .font(.subheadline)
-                                .foregroundStyle(.red)
+                                .foregroundStyle(.white)
                             Spacer()
                         }
-                        .padding(16)
+                        .padding(14)
                         .background(
                             RoundedRectangle(cornerRadius: 12)
-                                .fill(Color.red.opacity(0.1))
+                                .fill(
+                                    LinearGradient(
+                                        colors: [Color.red, Color.red.opacity(0.8)],
+                                        startPoint: .leading,
+                                        endPoint: .trailing
+                                    )
+                                )
                         )
-                        .padding()
+                        .padding(.horizontal)
+                        .padding(.top, 8)
+                        .transition(.move(edge: .top).combined(with: .opacity))
                     }
                     
                     // Loading state
                     if isLoading {
+                        Spacer()
                         VStack(spacing: 16) {
                             ProgressView()
                                 .scaleEffect(1.5)
@@ -62,39 +79,59 @@ struct TextViewerView: View {
                                 .font(.subheadline)
                                 .foregroundStyle(.secondary)
                         }
+                        Spacer()
                     } else {
                         // File info header
                         if !isEditing {
-                            VStack(spacing: 8) {
-                                HStack {
-                                    VStack(alignment: .leading, spacing: 4) {
+                            VStack(spacing: 0) {
+                                HStack(spacing: 10) {
+                                    Image(systemName: "doc.text.fill")
+                                        .foregroundStyle(Color.accentColor)
+                                        .font(.caption)
+                                    
+                                    VStack(alignment: .leading, spacing: 3) {
                                         Text(fileURL.lastPathComponent)
-                                            .font(.headline)
+                                            .font(.subheadline)
+                                            .fontWeight(.medium)
                                             .foregroundStyle(.primary)
-                                        HStack(spacing: 8) {
-                                            Text("\(textContent.split(separator: "\n").count) lines")
-                                                .font(.caption)
-                                                .foregroundStyle(.secondary)
+                                            .lineLimit(1)
+                                        
+                                        HStack(spacing: 6) {
+                                            HStack(spacing: 4) {
+                                                Image(systemName: "text.alignleft")
+                                                    .font(.caption2)
+                                                Text("\(textContent.split(separator: "\n").count)")
+                                            }
+                                            .font(.caption2)
+                                            .foregroundStyle(.secondary)
+                                            
                                             Text("•")
+                                                .font(.caption2)
                                                 .foregroundStyle(.secondary)
-                                            Text(selectedEncoding.description)
-                                                .font(.caption)
-                                                .foregroundStyle(.secondary)
+                                            
+                                            HStack(spacing: 4) {
+                                                Image(systemName: "textformat")
+                                                    .font(.caption2)
+                                                Text(selectedEncoding.description)
+                                            }
+                                            .font(.caption2)
+                                            .foregroundStyle(.secondary)
                                         }
                                     }
                                     Spacer()
                                 }
-                                .padding(.horizontal)
-                                .padding(.vertical, 12)
+                                .padding(.horizontal, 14)
+                                .padding(.vertical, 10)
+                                .background(Color(UIColor.secondarySystemGroupedBackground))
                             }
-                            .background(Color(UIColor.secondarySystemGroupedBackground))
                         }
                         
                         // Content
                         if isEditing {
                             TextEditor(text: $textContent)
                                 .font(.system(.body, design: .monospaced))
-                                .padding()
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 8)
                                 .focused($isTextEditorFocused)
                                 .onChange(of: textContent) { _ in
                                     hasUnsavedChanges = true
@@ -105,9 +142,11 @@ struct TextViewerView: View {
                                 Text(textContent)
                                     .font(.system(.body, design: .monospaced))
                                     .frame(maxWidth: .infinity, alignment: .leading)
-                                    .padding()
+                                    .padding(.horizontal, 14)
+                                    .padding(.vertical, 12)
                                     .textSelection(.enabled)
                             }
+                            .background(Color(UIColor.systemGroupedBackground))
                         }
                     }
                 }

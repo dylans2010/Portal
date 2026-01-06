@@ -26,45 +26,68 @@ struct PlistEditorView: View {
     
     var body: some View {
         NBNavigationView(.localized("Plist Editor"), displayMode: .inline) {
-            VStack(spacing: 0) {
-                if let error = validationError {
-                    HStack {
-                        Image(systemName: "exclamationmark.triangle.fill")
-                            .foregroundStyle(.red)
-                        Text(error)
-                            .font(.caption)
-                            .foregroundStyle(.red)
-                        Spacer()
-                    }
-                    .padding()
-                    .background(Color.red.opacity(0.1))
-                }
+            ZStack {
+                // Modern background
+                LinearGradient(
+                    colors: [
+                        Color.purple.opacity(0.06),
+                        Color.clear
+                    ],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+                .ignoresSafeArea()
                 
-                if isEditing {
-                    ZStack(alignment: .bottom) {
-                        TextEditor(text: $plistContent)
-                            .font(.system(.body, design: .monospaced))
-                            .padding()
-                            .padding(.bottom, 50)
-                            .focused($isTextEditorFocused)
-                            .onChange(of: plistContent) { _ in
-                                validatePlist()
-                                if validationError == nil {
-                                    hasUnsavedChanges = true
-                                    scheduleAutoSave()
-                                }
-                            }
-                        
-                        if isTextEditorFocused {
-                            plistKeyboardToolbar
+                VStack(spacing: 0) {
+                    if let error = validationError {
+                        HStack(spacing: 10) {
+                            Image(systemName: "exclamationmark.triangle.fill")
+                                .foregroundStyle(.white)
+                            Text(error)
+                                .font(.caption)
+                                .foregroundStyle(.white)
+                            Spacer()
                         }
+                        .padding(12)
+                        .background(
+                            LinearGradient(
+                                colors: [Color.red, Color.red.opacity(0.8)],
+                                startPoint: .leading,
+                                endPoint: .trailing
+                            )
+                        )
+                        .transition(.move(edge: .top).combined(with: .opacity))
                     }
-                } else {
-                    ScrollView {
-                        Text(plistContent)
-                            .font(.system(.body, design: .monospaced))
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .padding()
+                    
+                    if isEditing {
+                        ZStack(alignment: .bottom) {
+                            TextEditor(text: $plistContent)
+                                .font(.system(.body, design: .monospaced))
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 8)
+                                .padding(.bottom, 50)
+                                .focused($isTextEditorFocused)
+                                .onChange(of: plistContent) { _ in
+                                    validatePlist()
+                                    if validationError == nil {
+                                        hasUnsavedChanges = true
+                                        scheduleAutoSave()
+                                    }
+                                }
+                            
+                            if isTextEditorFocused {
+                                plistKeyboardToolbar
+                            }
+                        }
+                    } else {
+                        ScrollView {
+                            Text(plistContent)
+                                .font(.system(.body, design: .monospaced))
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .padding(.horizontal, 14)
+                                .padding(.vertical, 12)
+                        }
+                        .background(Color(UIColor.systemGroupedBackground))
                     }
                 }
             }

@@ -443,6 +443,22 @@ struct CompactLibraryRow: View {
 		.padding(.horizontal, 12)
 		.padding(.vertical, 10)
 		.contentShape(Rectangle())
+		.swipeActions(edge: .trailing, allowsFullSwipe: false) {
+			Button(role: .destructive) {
+				Storage.shared.deleteApp(for: app)
+			} label: {
+				Label(.localized("Delete"), systemImage: "trash.fill")
+			}
+			
+			if app.isSigned {
+				Button {
+					exportApp()
+				} label: {
+					Label(.localized("Export"), systemImage: "square.and.arrow.up.fill")
+				}
+				.tint(.blue)
+			}
+		}
 		.contextMenu {
 			Button {
 				selectedInfoAppPresenting = AnyApp(base: app)
@@ -477,6 +493,14 @@ struct CompactLibraryRow: View {
 				Label(.localized("Delete"), systemImage: "trash.fill")
 			}
 		}
+	}
+	
+	private func exportApp() {
+		guard app.isSigned, let archiveURL = app.archiveURL else { return }
+		
+		// Use UIActivityViewController to share the IPA file
+		UIActivityViewController.show(activityItems: [archiveURL])
+		HapticsManager.shared.success()
 	}
 }
 

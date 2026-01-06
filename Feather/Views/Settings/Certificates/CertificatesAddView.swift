@@ -49,65 +49,39 @@ struct CertificatesAddView: View {
 					} header: {
 						HStack(spacing: 8) {
 							Image(systemName: "folder.fill.badge.plus")
-								.font(.subheadline)
-								.foregroundStyle(
-									LinearGradient(
-										colors: [Color.accentColor, Color.accentColor.opacity(0.7)],
-										startPoint: .topLeading,
-										endPoint: .bottomTrailing
-									)
-								)
-							Text(.localized("Files"))
-								.fontWeight(.semibold)
-						}
-						.textCase(.none)
-					} footer: {
-						Text(.localized("You can import individual certificate and provisioning files, or a ZIP file containing both."))
-					}
-					Section {
-						HStack(spacing: 12) {
-							Image(systemName: "lock.shield.fill")
+								.font(.caption)
 								.foregroundStyle(Color.accentColor)
-							SecureField(.localized("Enter Password"), text: $_p12Password)
-						}
-					} header: {
-						HStack(spacing: 8) {
-							Image(systemName: "key.fill")
+							Text(.localized("Files"))
 								.font(.subheadline)
-								.foregroundStyle(
-									LinearGradient(
-										colors: [Color.orange, Color.orange.opacity(0.7)],
-										startPoint: .topLeading,
-										endPoint: .bottomTrailing
-									)
-								)
-							Text(.localized("Password"))
-								.fontWeight(.semibold)
+								.fontWeight(.medium)
 						}
 						.textCase(.none)
-					} footer: {
-						Text(.localized("Enter the password associated with the private key. Leave it blank if theres no password required."))
 					}
 					
 					Section {
-						HStack(spacing: 12) {
+						HStack(spacing: 10) {
+							Image(systemName: "lock.shield.fill")
+								.foregroundStyle(Color.orange)
+								.font(.body)
+							SecureField(.localized("Password (Optional)"), text: $_p12Password)
+						}
+						.padding(.vertical, 2)
+						
+						HStack(spacing: 10) {
 							Image(systemName: "tag.fill")
 								.foregroundStyle(Color.accentColor)
+								.font(.body)
 							TextField(.localized("Nickname (Optional)"), text: $_certificateName)
 						}
+						.padding(.vertical, 2)
 					} header: {
 						HStack(spacing: 8) {
 							Image(systemName: "textformat")
+								.font(.caption)
+								.foregroundStyle(Color.accentColor)
+							Text(.localized("Certificate Details"))
 								.font(.subheadline)
-								.foregroundStyle(
-									LinearGradient(
-										colors: [Color.accentColor, Color.accentColor.opacity(0.7)],
-										startPoint: .topLeading,
-										endPoint: .bottomTrailing
-									)
-								)
-							Text(.localized("Name"))
-								.fontWeight(.semibold)
+								.fontWeight(.medium)
 						}
 						.textCase(.none)
 					}
@@ -173,43 +147,35 @@ extension CertificatesAddView {
 		Button {
 			action()
 		} label: {
-			HStack(spacing: 12) {
+			HStack(spacing: 10) {
 				ZStack {
 					Circle()
 						.fill(
 							file == nil
-								? LinearGradient(
-									colors: [Color.accentColor.opacity(0.15), Color.accentColor.opacity(0.05)],
-									startPoint: .topLeading,
-									endPoint: .bottomTrailing
-								)
-								: LinearGradient(
-									colors: [Color.green.opacity(0.15), Color.green.opacity(0.05)],
-									startPoint: .topLeading,
-									endPoint: .bottomTrailing
-								)
+								? Color.accentColor.opacity(0.12)
+								: Color.green.opacity(0.12)
 						)
-						.frame(width: 36, height: 36)
+						.frame(width: 32, height: 32)
 					
 					Image(systemName: showCheckmark && file != nil ? "checkmark.circle.fill" : iconName)
-						.font(.system(size: 16))
+						.font(.system(size: 14))
 						.foregroundStyle(file == nil ? Color.accentColor : Color.green)
 				}
 				
-				VStack(alignment: .leading, spacing: 4) {
+				VStack(alignment: .leading, spacing: 2) {
 					Text(title)
-						.font(.body)
+						.font(.subheadline)
 						.fontWeight(.medium)
 						.foregroundStyle(file == nil ? .primary : .secondary)
 					
 					if let file = file {
 						Text(file.lastPathComponent)
-							.font(.caption)
+							.font(.caption2)
 							.foregroundStyle(.secondary)
 							.lineLimit(1)
 					} else {
 						Text(.localized("Tap to select"))
-							.font(.caption)
+							.font(.caption2)
 							.foregroundStyle(.secondary)
 					}
 				}
@@ -218,14 +184,14 @@ extension CertificatesAddView {
 				
 				if file == nil {
 					Image(systemName: "chevron.right")
-						.font(.caption)
+						.font(.caption2)
 						.foregroundStyle(.tertiary)
 				}
 			}
-			.padding(.vertical, 4)
+			.padding(.vertical, 2)
 		}
 		.disabled(showCheckmark && file != nil)
-		.animation(.easeInOut(duration: 0.3), value: file != nil)
+		.animation(.easeInOut(duration: 0.25), value: file != nil)
 	}
 }
 

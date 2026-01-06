@@ -10,6 +10,7 @@ struct QuickInspectView: View {
     @State private var ipaInfo: FileAnalysisEngine.IPAInformation?
     @State private var machoInfo: FileAnalysisEngine.MachOInformation?
     @State private var isLoading = true
+    @State private var hasContent = false
     
     var body: some View {
         NBNavigationView(.localized("Quick Inspect"), displayMode: .inline) {
@@ -52,6 +53,24 @@ struct QuickInspectView: View {
                     if isLoading {
                         ProgressView()
                             .padding()
+                    } else if !hasContent {
+                        // Error state when file doesn't support Quick Inspect
+                        VStack(spacing: 16) {
+                            Image(systemName: "exclamationmark.triangle.fill")
+                                .font(.system(size: 50))
+                                .foregroundStyle(.orange)
+                            
+                            Text(.localized("Quick Inspect Not Supported"))
+                                .font(.title3)
+                                .fontWeight(.semibold)
+                            
+                            Text(.localized("This file type cannot be inspected with Quick Inspect. Try opening it with a specific editor or viewer."))
+                                .font(.subheadline)
+                                .foregroundStyle(.secondary)
+                                .multilineTextAlignment(.center)
+                                .padding(.horizontal, 30)
+                        }
+                        .padding(.vertical, 40)
                     } else {
                         // Basic Info Section
                         if let info = fileInfo {
@@ -208,7 +227,12 @@ struct QuickInspectView: View {
                 self.hashInfo = hashesCopy
                 self.ipaInfo = ipaCopy
                 self.machoInfo = machoCopy
+                
+                // Determine if we have any content to show
+                self.hasContent = info != nil || hashesCopy != nil || ipaCopy != nil || machoCopy != nil
+                
                 self.isLoading = false
+            }
             }
         }.value
     }

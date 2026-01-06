@@ -15,9 +15,7 @@ struct BackupOptions {
 // MARK: - View
 struct BackupRestoreView: View {
 	@Environment(\.dismiss) var dismiss
-	@State private var isExporting = false
 	@State private var isImporting = false
-	@State private var exportURL: URL?
 	@State private var showRestoreDialog = false
 	@State private var pendingRestoreURL: URL?
 	@State private var showBackupOptions = false
@@ -166,30 +164,6 @@ struct BackupRestoreView: View {
 					createBackup(with: backupOptions)
 				}
 			)
-		}
-		.fileExporter(
-			isPresented: $isExporting,
-			document: exportURL != nil ? BackupDocument(url: exportURL!) : nil,
-			contentType: .zip,
-			defaultFilename: "Portal_Backup_\(Date().formatted(date: .numeric, time: .omitted).replacingOccurrences(of: "/", with: "-")).zip"
-		) { result in
-			switch result {
-			case .success(let url):
-				UIAlertController.showAlertWithOk(
-					title: .localized("Success"),
-					message: .localized("Backup saved successfully to \(url.lastPathComponent)")
-				)
-			case .failure(let error):
-				UIAlertController.showAlertWithOk(
-					title: .localized("Error"),
-					message: .localized("Failed to save backup: \(error.localizedDescription)")
-				)
-			}
-			// Clean up temp file
-			if let exportURL = exportURL {
-				try? FileManager.default.removeItem(at: exportURL)
-				self.exportURL = nil
-			}
 		}
 		.sheet(isPresented: $isImporting) {
 			FileImporterRepresentableView(
@@ -414,22 +388,35 @@ struct BackupRestoreView: View {
 			try (filtered as NSDictionary).write(to: settingsFile)
 			
 			// 6. Create zip file with validation marker
-			let zipURL = FileManager.default.temporaryDirectory.appendingPathComponent("Portal_Backup.zip")
-			try? FileManager.default.removeItem(at: zipURL)
+			let documentsPath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+			let backupFileName = "Portal_Backup_\(Date().formatted(date: .numeric, time: .omitted).replacingOccurrences(of: "/", with: "-")).zip"
+			let finalZipURL = documentsPath.appendingPathComponent(backupFileName)
+			
+			// Remove existing file if present
+			try? FileManager.default.removeItem(at: finalZipURL)
 			
 			// Add a backup marker file to validate later
 			let markerFile = tempDir.appendingPathComponent("FEATHER_BACKUP_MARKER.txt")
 			let markerContent = "FEATHER_BACKUP_v1.0_\(Date().timeIntervalSince1970)"
 			try markerContent.write(to: markerFile, atomically: true, encoding: .utf8)
 			
-			try FileManager.default.zipItem(at: tempDir, to: zipURL, shouldKeepParent: false)
+			try FileManager.default.zipItem(at: tempDir, to: finalZipURL, shouldKeepParent: false)
 			
 			// Clean up temp directory
 			try? FileManager.default.removeItem(at: tempDir)
 			
-			// Trigger export
-			exportURL = zipURL
-			isExporting = true
+			// Show success message with file location
+			HapticsManager.shared.success()
+			UIAlertController.showAlert(
+				title: .localized("Backup Created"),
+				message: .localized("Backup saved to Documents folder as \(backupFileName)"),
+				actions: [
+					.init(title: .localized("OK"), style: .default),
+					.init(title: .localized("Share"), style: .default) { _ in
+						UIActivityViewController.show(activityItems: [finalZipURL])
+					}
+				]
+			)
 			
 		} catch {
 			UIAlertController.showAlertWithOk(

@@ -51,7 +51,8 @@ struct CoreSignHeaderView: View {
     private var mainContent: some View {
         VStack(spacing: 0) {
             headerContent
-                .padding(16)
+                .padding(.vertical, 12)
+                .padding(.horizontal, 14)
         }
         .background(backgroundShape)
         .overlay(borderShape)
@@ -59,7 +60,7 @@ struct CoreSignHeaderView: View {
     }
     
     private var headerContent: some View {
-        HStack(spacing: 12) {
+        HStack(spacing: 10) {
             appIcon
             titleSection
             Spacer()
@@ -74,9 +75,9 @@ struct CoreSignHeaderView: View {
             Image(uiImage: icon)
                 .resizable()
                 .aspectRatio(contentMode: .fit)
-                .frame(width: 48, height: 48)
-                .clipShape(RoundedRectangle(cornerRadius: 11, style: .continuous))
-                .shadow(color: .accentColor.opacity(0.25), radius: 6, x: 0, y: 3)
+                .frame(width: 40, height: 40)
+                .clipShape(RoundedRectangle(cornerRadius: 9, style: .continuous))
+                .shadow(color: .accentColor.opacity(0.2), radius: 4, x: 0, y: 2)
         } else {
             placeholderIcon
         }
@@ -84,7 +85,7 @@ struct CoreSignHeaderView: View {
     
     private var placeholderIcon: some View {
         ZStack {
-            RoundedRectangle(cornerRadius: 11, style: .continuous)
+            RoundedRectangle(cornerRadius: 9, style: .continuous)
                 .fill(
                     LinearGradient(
                         colors: [.accentColor, .accentColor.opacity(0.7)],
@@ -92,23 +93,23 @@ struct CoreSignHeaderView: View {
                         endPoint: .bottomTrailing
                     )
                 )
-                .frame(width: 48, height: 48)
+                .frame(width: 40, height: 40)
             
             Image(systemName: "app.badge")
-                .font(.system(size: 24, weight: .semibold))
+                .font(.system(size: 20, weight: .semibold))
                 .foregroundStyle(.white)
         }
-        .shadow(color: .accentColor.opacity(0.25), radius: 6, x: 0, y: 3)
+        .shadow(color: .accentColor.opacity(0.2), radius: 4, x: 0, y: 2)
     }
     
     private var titleSection: some View {
-        VStack(alignment: .leading, spacing: 4) {
+        VStack(alignment: .leading, spacing: 2) {
             Text("Portal")
-                .font(.system(size: 22, weight: .bold, design: .rounded))
+                .font(.system(size: 18, weight: .bold, design: .rounded))
                 .foregroundStyle(.primary)
             
             Text(currentSubtitle)
-                .font(.caption)
+                .font(.caption2)
                 .foregroundStyle(.secondary)
                 .transition(.asymmetric(
                     insertion: .move(edge: .bottom).combined(with: .opacity),
@@ -119,7 +120,7 @@ struct CoreSignHeaderView: View {
     }
     
     private var actionButtons: some View {
-        VStack(alignment: .trailing, spacing: 8) {
+        VStack(alignment: .trailing, spacing: 6) {
             versionBadge
             if !hideAboutButton {
                 creditsButton
@@ -128,27 +129,27 @@ struct CoreSignHeaderView: View {
     }
     
     private var versionBadge: some View {
-        HStack(spacing: 4) {
+        HStack(spacing: 3) {
             Image(systemName: "checkmark.seal.fill")
-                .font(.system(size: 8))
+                .font(.system(size: 7))
                 .foregroundStyle(Color.accentColor)
             Text("v0.1")
-                .font(.system(size: 10))
+                .font(.system(size: 9))
                 .fontWeight(.semibold)
             Text("Beta")
-                .font(.system(size: 9))
+                .font(.system(size: 8))
                 .fontWeight(.bold)
                 .foregroundStyle(.white)
-                .padding(.horizontal, 6)
-                .padding(.vertical, 2)
+                .padding(.horizontal, 5)
+                .padding(.vertical, 1.5)
                 .background(
                     Capsule()
                         .fill(Color.orange)
                 )
         }
         .foregroundStyle(.primary)
-        .padding(.horizontal, 8)
-        .padding(.vertical, 4)
+        .padding(.horizontal, 7)
+        .padding(.vertical, 3)
         .background(
             Capsule()
                 .fill(Color.accentColor.opacity(0.12))
@@ -159,32 +160,32 @@ struct CoreSignHeaderView: View {
         Button {
             showCredits = true
         } label: {
-            HStack(spacing: 4) {
+            HStack(spacing: 3) {
                 Image(systemName: "person.3.fill")
-                    .font(.system(size: 9))
+                    .font(.system(size: 8))
                 Text(.localized("Credits"))
-                    .font(.system(size: 11))
+                    .font(.system(size: 10))
                     .fontWeight(.semibold)
             }
             .foregroundStyle(.white)
-            .padding(.horizontal, 10)
-            .padding(.vertical, 5)
+            .padding(.horizontal, 8)
+            .padding(.vertical, 4)
             .background(
                 Capsule()
                     .fill(Color.accentColor)
             )
-            .shadow(color: .accentColor.opacity(0.3), radius: 4, x: 0, y: 2)
+            .shadow(color: .accentColor.opacity(0.25), radius: 3, x: 0, y: 1.5)
         }
     }
     
     private var backgroundShape: some View {
-        RoundedRectangle(cornerRadius: 18, style: .continuous)
+        RoundedRectangle(cornerRadius: 14, style: .continuous)
             .fill(Color(uiColor: .secondarySystemGroupedBackground))
-            .shadow(color: .black.opacity(0.06), radius: 12, x: 0, y: 4)
+            .shadow(color: .black.opacity(0.05), radius: 8, x: 0, y: 3)
     }
     
     private var borderShape: some View {
-        RoundedRectangle(cornerRadius: 18, style: .continuous)
+        RoundedRectangle(cornerRadius: 14, style: .continuous)
             .stroke(Color(uiColor: .separator).opacity(0.3), lineWidth: 0.5)
     }
 
