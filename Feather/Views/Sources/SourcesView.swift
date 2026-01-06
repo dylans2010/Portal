@@ -559,24 +559,40 @@ private struct AllAppsCardView: View {
 	private var iconView: some View {
 		ZStack {
 			Circle()
-				.fill(Color.white)
-				.frame(width: 40, height: 40)
-				.shadow(color: Color.black.opacity(0.06), radius: 2, x: 0, y: 1)
+				.fill(
+					LinearGradient(
+						colors: [
+							appIconColor.opacity(0.15),
+							appIconColor.opacity(0.08)
+						],
+						startPoint: .topLeading,
+						endPoint: .bottomTrailing
+					)
+				)
+				.frame(width: 44, height: 44)
+				.shadow(color: appIconColor.opacity(0.2), radius: 4, x: 0, y: 2)
 			
 			Image(systemName: "app.badge.fill")
-				.font(.system(size: 18))
-				.foregroundStyle(appIconColor)
+				.font(.system(size: 20, weight: .semibold))
+				.foregroundStyle(
+					LinearGradient(
+						colors: [appIconColor, appIconColor.opacity(0.8)],
+						startPoint: .topLeading,
+						endPoint: .bottomTrailing
+					)
+				)
 		}
 	}
 	
 	private var textContent: some View {
-		VStack(alignment: .leading, spacing: 3) {
+		VStack(alignment: .leading, spacing: 4) {
 			Text(.localized("All Apps"))
-				.font(.headline)
+				.font(.system(size: 16, weight: .bold))
 				.foregroundStyle(.primary)
 			Text(.localized("Browse your complete app collection"))
 				.font(.caption)
 				.foregroundStyle(.secondary)
+				.lineLimit(1)
 			
 			appsBadge
 		}
@@ -585,17 +601,24 @@ private struct AllAppsCardView: View {
 	private var appsBadge: some View {
 		HStack(spacing: 4) {
 			Image(systemName: "square.stack.3d.up.fill")
-				.font(.system(size: 8))
-			Text("\(totalApps) Apps Available")
-				.font(.system(size: 9, weight: .bold))
+				.font(.system(size: 9))
+			Text("\(totalApps) \(totalApps == 1 ? "App" : "Apps")")
+				.font(.system(size: 10, weight: .bold))
 		}
-		.foregroundStyle(appIconColor)
-		.padding(.horizontal, 7)
-		.padding(.vertical, 3)
+		.foregroundStyle(.white)
+		.padding(.horizontal, 8)
+		.padding(.vertical, 3.5)
 		.background(
 			Capsule()
-				.fill(appIconColor.opacity(0.05))
+				.fill(
+					LinearGradient(
+						colors: [appIconColor, appIconColor.opacity(0.85)],
+						startPoint: .leading,
+						endPoint: .trailing
+					)
+				)
 		)
+		.shadow(color: appIconColor.opacity(0.3), radius: 3, x: 0, y: 1.5)
 	}
 	
 	private var cardBackground: some View {

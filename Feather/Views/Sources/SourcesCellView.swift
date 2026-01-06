@@ -18,8 +18,9 @@ struct SourcesCellView: View {
 						image
 							.resizable()
 							.aspectRatio(contentMode: .fill)
-							.frame(width: 36, height: 36)
-							.clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+							.frame(width: 40, height: 40)
+							.clipShape(RoundedRectangle(cornerRadius: 9, style: .continuous))
+							.shadow(color: .black.opacity(0.15), radius: 2, x: 0, y: 1)
 							.onAppear {
 								if let uiImage = state.imageContainer?.image {
 									extractDominantColor(from: uiImage)
@@ -37,14 +38,24 @@ struct SourcesCellView: View {
 	
 	private var placeholderIcon: some View {
 		ZStack {
-			RoundedRectangle(cornerRadius: 8, style: .continuous)
-				.fill(Color.accentColor.opacity(0.15))
-				.frame(width: 36, height: 36)
+			RoundedRectangle(cornerRadius: 9, style: .continuous)
+				.fill(
+					LinearGradient(
+						colors: [
+							Color.accentColor.opacity(0.15),
+							Color.accentColor.opacity(0.08)
+						],
+						startPoint: .topLeading,
+						endPoint: .bottomTrailing
+					)
+				)
+				.frame(width: 40, height: 40)
 			
 			Image(systemName: "globe")
-				.font(.system(size: 18))
+				.font(.system(size: 20))
 				.foregroundStyle(Color.accentColor)
 		}
+		.shadow(color: Color.accentColor.opacity(0.15), radius: 2, x: 0, y: 1)
 	}
 	
 	private func extractDominantColor(from image: UIImage) {
@@ -66,15 +77,26 @@ struct SourcesCellView: View {
 		let isPinned = viewModel.isPinned(source)
 		
 		HStack(spacing: 12) {
-			// Icon only - smaller and more compact
+			// Icon - slightly larger and more prominent
 			iconView
 			
-			// Title only - no subtitle
-			Text(source.name ?? .localized("Unknown"))
-				.font(.body)
-				.fontWeight(.medium)
-				.foregroundStyle(.primary)
-				.lineLimit(1)
+			// Title with app count
+			VStack(alignment: .leading, spacing: 3) {
+				Text(source.name ?? .localized("Unknown"))
+					.font(.system(size: 15, weight: .semibold))
+					.foregroundStyle(.primary)
+					.lineLimit(1)
+				
+				if let appCount = viewModel.sources[source]?.apps.count, appCount > 0 {
+					HStack(spacing: 4) {
+						Image(systemName: "app.fill")
+							.font(.system(size: 8))
+						Text("\(appCount) \(appCount == 1 ? "app" : "apps")")
+							.font(.system(size: 10, weight: .medium))
+					}
+					.foregroundStyle(.secondary)
+				}
+			}
 			
 			Spacer()
 			
@@ -82,12 +104,17 @@ struct SourcesCellView: View {
 				Image(systemName: "pin.fill")
 					.font(.caption)
 					.foregroundStyle(dominantColor)
+					.padding(6)
+					.background(
+						Circle()
+							.fill(dominantColor.opacity(0.12))
+					)
 			}
 		}
-		.padding(.horizontal, 12)
-		.padding(.vertical, 8)
+		.padding(.horizontal, 14)
+		.padding(.vertical, 10)
 		.background(
-			RoundedRectangle(cornerRadius: 10, style: .continuous)
+			RoundedRectangle(cornerRadius: 12, style: .continuous)
 				.fill(
 					LinearGradient(
 						colors: [
@@ -100,10 +127,10 @@ struct SourcesCellView: View {
 				)
 		)
 		.overlay(
-			RoundedRectangle(cornerRadius: 10, style: .continuous)
-				.stroke(dominantColor.opacity(0.2), lineWidth: 0.5)
+			RoundedRectangle(cornerRadius: 12, style: .continuous)
+				.stroke(dominantColor.opacity(0.15), lineWidth: 0.5)
 		)
-		.shadow(color: dominantColor.opacity(0.1), radius: 2, x: 0, y: 1)
+		.shadow(color: dominantColor.opacity(0.12), radius: 3, x: 0, y: 1.5)
 		.swipeActions(edge: .leading) {
 			Button {
 				viewModel.togglePin(for: source)
