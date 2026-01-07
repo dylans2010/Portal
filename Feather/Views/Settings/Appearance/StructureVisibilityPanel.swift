@@ -20,7 +20,7 @@ struct StructureVisibilityPanel: View {
     
     var body: some View {
         List {
-            Section(header: Text("Visibility")) {
+            Section {
                 Toggle("Show Custom Text", isOn: Binding(
                     get: { viewModel.showCustomText },
                     set: { newValue in
@@ -76,6 +76,8 @@ struct StructureVisibilityPanel: View {
                         }
                     }
                 ))
+            } header: {
+                Text("Visibility")
             } footer: {
                 Text("You can enable up to 2 status bar options at a time. Currently \(enabledWidgetCount) of 2 enabled.")
                     .foregroundStyle(enabledWidgetCount >= 2 ? .orange : .secondary)

@@ -195,7 +195,7 @@ struct ManageStorageView: View {
                     
                     Text(formatBytes(totalFeatherStorage))
                         .font(.system(.title3, design: .rounded, weight: .bold))
-                        .foregroundStyle(.accentColor)
+                        .foregroundStyle(Color.accentColor)
                 }
                 .padding(.vertical, 8)
             }

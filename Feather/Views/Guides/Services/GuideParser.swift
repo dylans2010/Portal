@@ -207,7 +207,6 @@ class GuideParser {
         while i < text.endIndex {
             // Check for (accent://) wrapped text syntax
             if text[i] == "(" {
-                let startPos = i
                 // Look ahead for "accent://"
                 let afterParen = text.index(after: i)
                 let checkText = String(text[afterParen...])
