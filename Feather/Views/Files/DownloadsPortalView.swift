@@ -13,7 +13,16 @@ struct DownloadsPortalItem: Codable, Identifiable {
 }
 
 struct DownloadsPortalResponse: Codable {
-    let downloads: [DownloadsPortalItem]
+    let downloads: [DownloadsPortalItem]?
+    
+    enum CodingKeys: String, CodingKey {
+        case downloads
+    }
+    
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        downloads = try container.decodeIfPresent([DownloadsPortalItem].self, forKey: .downloads) ?? []
+    }
 }
 
 // MARK: - Downloads Portal Service
@@ -36,10 +45,32 @@ class DownloadsPortalService: ObservableObject {
             }
             
             let (data, _) = try await URLSession.shared.data(from: url)
+            
+            // Try to decode the response
             let response = try JSONDecoder().decode(DownloadsPortalResponse.self, from: data)
             
             await MainActor.run {
-                self.items = response.downloads
+                self.items = response.downloads ?? []
+                self.isLoading = false
+            }
+        } catch let decodingError as DecodingError {
+            // Provide more specific error messages for decoding errors
+            let errorDescription: String
+            switch decodingError {
+            case .keyNotFound(let key, _):
+                errorDescription = "Missing key '\(key.stringValue)' in JSON data"
+            case .typeMismatch(let type, _):
+                errorDescription = "Type mismatch for expected type \(type)"
+            case .valueNotFound(let type, _):
+                errorDescription = "Missing value for type \(type)"
+            case .dataCorrupted:
+                errorDescription = "Data corrupted or invalid JSON format"
+            @unknown default:
+                errorDescription = "Unknown decoding error"
+            }
+            
+            await MainActor.run {
+                self.errorMessage = errorDescription
                 self.isLoading = false
             }
         } catch {

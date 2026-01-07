@@ -194,7 +194,8 @@ struct ConfigureLayoutsView: View {
                     .fontWeight(.medium)
             }
             
-            let maxValue = (title == "Right" && selectedLayout == .time) ? rightPaddingMax : 50.0
+            // Increased max padding values for better customization
+            let maxValue: Double = 100.0
             
             Slider(value: value, in: 0...maxValue, step: 1)
                 .tint(.accentColor)
@@ -239,15 +240,6 @@ struct ConfigureLayoutsView: View {
             return $viewModel.timeRightPadding
         case .battery:
             return $viewModel.batteryRightPadding
-        }
-    }
-    
-    private var rightPaddingMax: Double {
-        switch selectedLayout {
-        case .time:
-            return 100  // Increased limit for Time
-        default:
-            return 50
         }
     }
     

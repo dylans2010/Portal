@@ -78,9 +78,6 @@ struct SettingsView: View {
                     NavigationLink(destination: InstallationView()) {
                         ConditionalLabel(title: .localized("Installation"), systemImage: "arrow.down.circle")
                     }
-                    NavigationLink(destination: BackupRestoreView()) {
-                        ConditionalLabel(title: .localized("Backup & Restore"), systemImage: "externaldrive")
-                    }
                     NavigationLink(destination: NotificationsView()) {
                         ConditionalLabel(title: .localized("Notifications"), systemImage: "bell.badge.fill")
                     }
@@ -98,7 +95,7 @@ struct SettingsView: View {
                             ConditionalLabel(title: .localized("Manage Storage"), systemImage: "internaldrive")
                         }
                         Button {
-                            UIApplication.open("https://github.com/aoyn1xw/Feather/releases/tag/v0.1")
+                            UIApplication.open("https://github.com/aoyn1xw/Portal/releases/tag/v0.1")
                         } label: {
                             ConditionalLabel(title: .localized("Check for Updates"), systemImage: "arrow.down.circle")
                         }

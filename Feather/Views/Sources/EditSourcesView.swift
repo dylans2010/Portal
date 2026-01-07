@@ -16,16 +16,37 @@ struct EditSourcesView: View {
 	// MARK: Body
 	var body: some View {
 		NavigationView {
-			NBList(.localized("Edit Sources")) {
-				ForEach(Array(sources), id: \.objectID) { source in
-					sourceRow(source)
-				}
-				.onDelete(perform: deleteSource)
-				.onMove(perform: moveSource)
+			ZStack {
+				// Background gradient
+				LinearGradient(
+					colors: [
+						Color.accentColor.opacity(0.05),
+						Color.clear
+					],
+					startPoint: .top,
+					endPoint: .bottom
+				)
+				.ignoresSafeArea()
 				
-				if sources.isEmpty {
-					emptyStateView
+				NBList(.localized("Edit Sources")) {
+					ForEach(Array(sources), id: \.objectID) { source in
+						sourceRow(source)
+							.listRowBackground(
+								RoundedRectangle(cornerRadius: 10, style: .continuous)
+									.fill(Color(uiColor: .secondarySystemGroupedBackground))
+									.padding(.horizontal, 4)
+									.padding(.vertical, 2)
+							)
+					}
+					.onDelete(perform: deleteSource)
+					.onMove(perform: moveSource)
+					
+					if sources.isEmpty {
+						emptyStateView
+							.listRowBackground(Color.clear)
+					}
 				}
+				.scrollContentBackground(.hidden)
 			}
 			.environment(\.editMode, $editMode)
 			.toolbar {
@@ -34,7 +55,14 @@ struct EditSourcesView: View {
 						dismiss()
 					} label: {
 						Text(.localized("Done"))
-							.fontWeight(.semibold)
+							.fontWeight(.bold)
+							.foregroundStyle(.white)
+							.padding(.horizontal, 16)
+							.padding(.vertical, 8)
+							.background(
+								Capsule()
+									.fill(Color.accentColor)
+							)
 					}
 				}
 			}
@@ -54,8 +82,8 @@ struct EditSourcesView: View {
 	// MARK: - Source Row
 	@ViewBuilder
 	private func sourceRow(_ source: AltSource) -> some View {
-		HStack(spacing: 12) {
-			// Icon
+		HStack(spacing: 14) {
+			// Icon with shadow
 			if let iconURL = source.iconURL {
 				AsyncImage(url: iconURL) { phase in
 					switch phase {
@@ -69,16 +97,18 @@ struct EditSourcesView: View {
 						placeholderIcon
 					}
 				}
-				.frame(width: 50, height: 50)
-				.clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+				.frame(width: 56, height: 56)
+				.clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+				.shadow(color: .black.opacity(0.15), radius: 4, x: 0, y: 2)
 			} else {
 				placeholderIcon
+					.shadow(color: .black.opacity(0.15), radius: 4, x: 0, y: 2)
 			}
 			
-			// Name and URL
-			VStack(alignment: .leading, spacing: 4) {
+			// Name and URL with better spacing
+			VStack(alignment: .leading, spacing: 5) {
 				Text(source.name ?? .localized("Unknown"))
-					.font(.headline)
+					.font(.system(size: 16, weight: .semibold))
 					.foregroundStyle(.primary)
 				
 				if let url = source.sourceURL?.absoluteString {
@@ -90,16 +120,38 @@ struct EditSourcesView: View {
 			}
 			
 			Spacer()
+			
+			// Drag indicator
+			Image(systemName: "line.3.horizontal")
+				.font(.system(size: 14))
+				.foregroundStyle(.tertiary)
 		}
+		.padding(.vertical, 8)
 	}
 	
 	private var placeholderIcon: some View {
-		RoundedRectangle(cornerRadius: 12, style: .continuous)
-			.fill(Color.gray.opacity(0.2))
-			.frame(width: 50, height: 50)
+		RoundedRectangle(cornerRadius: 14, style: .continuous)
+			.fill(
+				LinearGradient(
+					colors: [
+						Color.accentColor.opacity(0.2),
+						Color.accentColor.opacity(0.1)
+					],
+					startPoint: .topLeading,
+					endPoint: .bottomTrailing
+				)
+			)
+			.frame(width: 56, height: 56)
 			.overlay(
 				Image(systemName: "globe")
-					.foregroundStyle(.secondary)
+					.font(.title2)
+					.foregroundStyle(
+						LinearGradient(
+							colors: [Color.accentColor, Color.accentColor.opacity(0.7)],
+							startPoint: .topLeading,
+							endPoint: .bottomTrailing
+						)
+					)
 			)
 	}
 	

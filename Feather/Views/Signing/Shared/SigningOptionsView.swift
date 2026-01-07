@@ -32,6 +32,7 @@ struct SigningOptionsView: View {
 				.disabled(hasCertificateWithPPQCheck)
 				
 				Button {
+					HapticsManager.shared.impact()
 					showPPQInfo = true
 				} label: {
 					HStack(spacing: 12) {

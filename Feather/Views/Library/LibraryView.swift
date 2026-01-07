@@ -164,8 +164,8 @@ struct LibraryView: View {
 							.frame(maxWidth: .infinity)
 							.padding()
 						} else {
-							// Compact List View
-							LazyVStack(spacing: 0) {
+							// Compact List View with proper swipe actions
+							List {
 								ForEach(_allApps, id: \.uuid) { app in
 									CompactLibraryRow(
 										app: app,
@@ -174,15 +174,28 @@ struct LibraryView: View {
 										selectedInstallAppPresenting: $_selectedInstallAppPresenting
 									)
 									.compatMatchedTransitionSource(id: app.uuid ?? "", ns: _namespace)
-									
-									if app.uuid != _allApps.last?.uuid {
-										Divider()
-											.padding(.leading, 72)
+									.listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
+									.listRowSeparator(.hidden)
+									.swipeActions(edge: .trailing, allowsFullSwipe: false) {
+										Button(role: .destructive) {
+											Storage.shared.deleteApp(for: app)
+										} label: {
+											Label(.localized("Delete"), systemImage: "trash.fill")
+										}
+										
+										if app.isSigned {
+											Button {
+												exportApp(app)
+											} label: {
+												Label(.localized("Export"), systemImage: "square.and.arrow.up.fill")
+											}
+											.tint(.blue)
+										}
 									}
 								}
 							}
-							.background(Color(UIColor.secondarySystemGroupedBackground))
-							.clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+							.listStyle(.plain)
+							.scrollContentBackground(.hidden)
 							.padding(.horizontal, 20)
 						}
 						
@@ -382,6 +395,14 @@ extension LibraryView {
 			_isDownloadingPresenting = true
 		}
 	}
+	
+	private func exportApp(_ app: AppInfoPresentable) {
+		guard app.isSigned, let archiveURL = app.archiveURL else { return }
+		
+		// Use UIActivityViewController to share the IPA file
+		UIActivityViewController.show(activityItems: [archiveURL])
+		HapticsManager.shared.success()
+	}
 }
 
 // MARK: - Compact Library Row (New Design)
@@ -443,22 +464,6 @@ struct CompactLibraryRow: View {
 		.padding(.horizontal, 12)
 		.padding(.vertical, 10)
 		.contentShape(Rectangle())
-		.swipeActions(edge: .trailing, allowsFullSwipe: false) {
-			Button(role: .destructive) {
-				Storage.shared.deleteApp(for: app)
-			} label: {
-				Label(.localized("Delete"), systemImage: "trash.fill")
-			}
-			
-			if app.isSigned {
-				Button {
-					exportApp()
-				} label: {
-					Label(.localized("Export"), systemImage: "square.and.arrow.up.fill")
-				}
-				.tint(.blue)
-			}
-		}
 		.contextMenu {
 			Button {
 				selectedInfoAppPresenting = AnyApp(base: app)
@@ -493,14 +498,6 @@ struct CompactLibraryRow: View {
 				Label(.localized("Delete"), systemImage: "trash.fill")
 			}
 		}
-	}
-	
-	private func exportApp() {
-		guard app.isSigned, let archiveURL = app.archiveURL else { return }
-		
-		// Use UIActivityViewController to share the IPA file
-		UIActivityViewController.show(activityItems: [archiveURL])
-		HapticsManager.shared.success()
 	}
 }
 
