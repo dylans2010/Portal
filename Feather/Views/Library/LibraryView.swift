@@ -1,6 +1,7 @@
 import SwiftUI
 import CoreData
 import NimbleViews
+import Combine
 
 // MARK: - View
 struct LibraryView: View {
@@ -16,9 +17,14 @@ struct LibraryView: View {
 	@State private var _showImportAnimation = false
 	@State private var _importStatus: ImportStatus = .loading
 	@State private var _importedAppName: String = ""
+	@State private var _importErrorMessage: String = ""
+	@State private var _currentDownloadId: String = ""
+	@State private var _downloadProgress: Double = 0.0
 	
 	enum ImportStatus {
 		case loading
+		case downloading
+		case processing
 		case success
 		case failed
 	}
@@ -231,39 +237,25 @@ struct LibraryView: View {
 							
 							// Show loading animation
 							_importedAppName = url.deletingPathExtension().lastPathComponent
-							_importStatus = .loading
+							_currentDownloadId = id
+							_importStatus = .processing
+							_importErrorMessage = ""
 							withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) {
 								_showImportAnimation = true
 							}
 							
+							// Start the import - completion will be handled via notifications
 							do {
 								try downloadManager.handlePachageFile(url: url, dl: dl)
-								
-								// Show success after short delay
-								DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
-									withAnimation(.spring(response: 0.5, dampingFraction: 0.7)) {
-										_importStatus = .success
-									}
-									
-									// Auto-dismiss after 1.5 seconds
-									DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
-										withAnimation(.easeOut(duration: 0.3)) {
-											_showImportAnimation = false
-										}
-									}
-								}
 							} catch {
-								// Show failed state
-								DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-									withAnimation(.spring(response: 0.5, dampingFraction: 0.7)) {
-										_importStatus = .failed
-									}
-									
-									// Auto-dismiss after 2 seconds
-									DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
-										withAnimation(.easeOut(duration: 0.3)) {
-											_showImportAnimation = false
-										}
+								// This catch is for synchronous errors only (rare)
+								_importErrorMessage = error.localizedDescription
+								withAnimation(.spring(response: 0.5, dampingFraction: 0.7)) {
+									_importStatus = .failed
+								}
+								DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) {
+									withAnimation(.easeOut(duration: 0.3)) {
+										_showImportAnimation = false
 									}
 								}
 							}
@@ -274,27 +266,95 @@ struct LibraryView: View {
 			}
 			.sheet(isPresented: $_isDownloadingPresenting) {
 				ModernImportURLView { url in
-					// Show loading animation for URL import
-					_importedAppName = url.lastPathComponent
-					_importStatus = .loading
+					// Start URL download with proper tracking
+					let downloadId = "FeatherManualDownload_\(UUID().uuidString)"
+					_currentDownloadId = downloadId
+					_importedAppName = url.deletingPathExtension().lastPathComponent
+					_downloadProgress = 0.0
+					_importStatus = .downloading
+					_importErrorMessage = ""
+					
 					withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) {
 						_showImportAnimation = true
 					}
 					
-					let downloadId = "FeatherManualDownload_\(UUID().uuidString)"
+					// Start the download - progress and completion handled via notifications
 					_ = downloadManager.startDownload(from: url, id: downloadId)
-					
-					// Monitor download completion - dismiss loading after showing it
-					// The actual success/failure will be handled by the download manager
-					// For now, just show the loading state briefly and dismiss
-					DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
-						withAnimation(.easeOut(duration: 0.3)) {
-							_showImportAnimation = false
-						}
-					}
 				}
 				.presentationDetents([.medium, .large])
 				.presentationDragIndicator(.visible)
+			}
+			// Listen for import success notifications
+			.onReceive(NotificationCenter.default.publisher(for: DownloadManager.importDidSucceedNotification)) { notification in
+				guard let userInfo = notification.userInfo,
+					  let downloadId = userInfo["downloadId"] as? String,
+					  downloadId == _currentDownloadId else { return }
+				
+				withAnimation(.spring(response: 0.5, dampingFraction: 0.7)) {
+					_importStatus = .success
+				}
+				
+				// Auto-dismiss after showing success
+				DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+					withAnimation(.easeOut(duration: 0.3)) {
+						_showImportAnimation = false
+						_currentDownloadId = ""
+					}
+				}
+			}
+			// Listen for import failure notifications
+			.onReceive(NotificationCenter.default.publisher(for: DownloadManager.importDidFailNotification)) { notification in
+				guard let userInfo = notification.userInfo,
+					  let downloadId = userInfo["downloadId"] as? String,
+					  downloadId == _currentDownloadId else { return }
+				
+				_importErrorMessage = userInfo["error"] as? String ?? "Unknown error"
+				withAnimation(.spring(response: 0.5, dampingFraction: 0.7)) {
+					_importStatus = .failed
+				}
+				
+				// Auto-dismiss after showing error
+				DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) {
+					withAnimation(.easeOut(duration: 0.3)) {
+						_showImportAnimation = false
+						_currentDownloadId = ""
+					}
+				}
+			}
+			// Listen for download failure notifications
+			.onReceive(NotificationCenter.default.publisher(for: DownloadManager.downloadDidFailNotification)) { notification in
+				guard let userInfo = notification.userInfo,
+					  let downloadId = userInfo["downloadId"] as? String,
+					  downloadId == _currentDownloadId else { return }
+				
+				_importErrorMessage = userInfo["error"] as? String ?? "Download failed"
+				withAnimation(.spring(response: 0.5, dampingFraction: 0.7)) {
+					_importStatus = .failed
+				}
+				
+				// Auto-dismiss after showing error
+				DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) {
+					withAnimation(.easeOut(duration: 0.3)) {
+						_showImportAnimation = false
+						_currentDownloadId = ""
+					}
+				}
+			}
+			// Listen for download progress notifications
+			.onReceive(NotificationCenter.default.publisher(for: DownloadManager.downloadDidProgressNotification)) { notification in
+				guard let userInfo = notification.userInfo,
+					  let downloadId = userInfo["downloadId"] as? String,
+					  downloadId == _currentDownloadId,
+					  let progress = userInfo["progress"] as? Double else { return }
+				
+				_downloadProgress = progress
+				
+				// Switch to processing status when download is complete (progress >= 0.99)
+				if progress >= 0.99 && _importStatus == .downloading {
+					withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+						_importStatus = .processing
+					}
+				}
 			}
 			.onReceive(NotificationCenter.default.publisher(for: Notification.Name("Feather.installApp"))) { _ in
 				if let latest = _signedApps.first {
@@ -315,6 +375,7 @@ struct LibraryView: View {
 						
 						VStack(spacing: 20) {
 							ZStack {
+								// Background circle with status color
 								Circle()
 									.fill(
 										_importStatus == .success 
@@ -327,36 +388,54 @@ struct LibraryView: View {
 									.scaleEffect(_showImportAnimation ? 1.0 : 0.5)
 									.animation(.spring(response: 0.6, dampingFraction: 0.6), value: _showImportAnimation)
 								
+								// Progress ring for downloading state
+								if _importStatus == .downloading {
+									Circle()
+										.stroke(Color.white.opacity(0.3), lineWidth: 6)
+										.frame(width: 90, height: 90)
+									
+									Circle()
+										.trim(from: 0, to: _downloadProgress)
+										.stroke(Color.white, style: StrokeStyle(lineWidth: 6, lineCap: .round))
+										.frame(width: 90, height: 90)
+										.rotationEffect(.degrees(-90))
+										.animation(.easeInOut(duration: 0.2), value: _downloadProgress)
+								}
+								
 								Group {
-									if _importStatus == .loading {
+									switch _importStatus {
+									case .loading, .processing:
 										ProgressView()
 											.progressViewStyle(CircularProgressViewStyle(tint: .white))
 											.scaleEffect(1.5)
-									} else if _importStatus == .success {
+									case .downloading:
+										VStack(spacing: 2) {
+											Image(systemName: "arrow.down")
+												.font(.system(size: 28, weight: .bold))
+												.foregroundStyle(.white)
+											Text("\(Int(_downloadProgress * 100))%")
+												.font(.system(size: 14, weight: .bold))
+												.foregroundStyle(.white)
+										}
+									case .success:
 										Image(systemName: "checkmark")
 											.font(.system(size: 50, weight: .bold))
 											.foregroundStyle(.white)
-									} else {
+									case .failed:
 										Image(systemName: "xmark")
 											.font(.system(size: 50, weight: .bold))
 											.foregroundStyle(.white)
 									}
 								}
-								.scaleEffect(_showImportAnimation && _importStatus != .loading ? 1.0 : 0.3)
-								.animation(.spring(response: 0.6, dampingFraction: 0.6).delay(_importStatus == .loading ? 0 : 0.1), value: _importStatus)
+								.scaleEffect(_showImportAnimation && (_importStatus == .success || _importStatus == .failed) ? 1.0 : (_importStatus == .downloading ? 1.0 : 0.8))
+								.animation(.spring(response: 0.6, dampingFraction: 0.6).delay((_importStatus == .success || _importStatus == .failed) ? 0.1 : 0), value: _importStatus)
 							}
 							
 							VStack(spacing: 8) {
-								Text(
-									_importStatus == .success 
-										? .localized("Import Successful!")
-										: _importStatus == .failed
-										? .localized("Import Failed")
-										: .localized("Importing...")
-								)
-								.font(.title2)
-								.fontWeight(.bold)
-								.foregroundStyle(.white)
+								Text(_statusTitle)
+									.font(.title2)
+									.fontWeight(.bold)
+									.foregroundStyle(.white)
 								
 								Text(_importedAppName)
 									.font(.subheadline)
@@ -364,6 +443,17 @@ struct LibraryView: View {
 									.lineLimit(2)
 									.multilineTextAlignment(.center)
 									.padding(.horizontal, 40)
+								
+								// Show error message if failed
+								if _importStatus == .failed && !_importErrorMessage.isEmpty {
+									Text(_importErrorMessage)
+										.font(.caption)
+										.foregroundStyle(.white.opacity(0.6))
+										.lineLimit(3)
+										.multilineTextAlignment(.center)
+										.padding(.horizontal, 20)
+										.padding(.top, 4)
+								}
 							}
 							.opacity(_showImportAnimation ? 1.0 : 0.0)
 							.offset(y: _showImportAnimation ? 0 : 20)
@@ -380,6 +470,21 @@ struct LibraryView: View {
 					}
 				}
 			}
+		}
+	}
+	
+	private var _statusTitle: String {
+		switch _importStatus {
+		case .loading:
+			return String.localized("Loading...")
+		case .downloading:
+			return String.localized("Downloading...")
+		case .processing:
+			return String.localized("Processing...")
+		case .success:
+			return String.localized("Import Successful!")
+		case .failed:
+			return String.localized("Import Failed")
 		}
 	}
 }

@@ -225,33 +225,45 @@ struct ModernImportURLView: View {
 		DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
 			// Check if empty
 			guard !urlText.isEmpty else {
-				showErrorWithAnimation("Please enter a URL")
+				showErrorWithAnimation(.localized("Please enter a URL"))
 				return
 			}
 			
+			// Trim whitespace and normalize the URL
+			var urlString = urlText.trimmingCharacters(in: .whitespacesAndNewlines)
+			
+			// Auto-add https:// if no scheme is provided
+			if !urlString.lowercased().hasPrefix("http://") && !urlString.lowercased().hasPrefix("https://") {
+				urlString = "https://" + urlString
+			}
+			
 			// Check if valid URL format
-			guard let url = URL(string: urlText.trimmingCharacters(in: .whitespacesAndNewlines)) else {
-				showErrorWithAnimation("Invalid URL format")
+			guard let url = URL(string: urlString) else {
+				showErrorWithAnimation(.localized("Invalid URL format"))
 				return
 			}
 			
 			// Check if it has a scheme (http/https)
 			guard let scheme = url.scheme, ["http", "https"].contains(scheme.lowercased()) else {
-				showErrorWithAnimation("URL must start with http:// or https://")
+				showErrorWithAnimation(.localized("URL must start with http:// or https://"))
 				return
 			}
 			
 			// Check if it has a host
-			guard url.host != nil else {
-				showErrorWithAnimation("Invalid URL - missing host")
+			guard let host = url.host, !host.isEmpty else {
+				showErrorWithAnimation(.localized("Invalid URL - missing host"))
 				return
 			}
 			
-			// Check if it ends with .ipa or .tipa
+			// Check if it ends with .ipa or .tipa (warn but allow other extensions)
 			let pathExtension = url.pathExtension.lowercased()
-			guard pathExtension == "ipa" || pathExtension == "tipa" else {
-				showErrorWithAnimation("URL must point to an .ipa or .tipa file")
-				return
+			let isValidExtension = pathExtension == "ipa" || pathExtension == "tipa"
+			
+			// If extension is not .ipa or .tipa, still allow but the server should respond with proper content type
+			if !isValidExtension && !pathExtension.isEmpty {
+				// Allow downloads that might redirect to IPA files or have query parameters
+				// The server's Content-Disposition header or actual file type will determine validity
+				AppLogManager.shared.info("URL may not be a direct IPA link, attempting download anyway: \(url.absoluteString)", category: "Import")
 			}
 			
 			HapticsManager.shared.impact()
