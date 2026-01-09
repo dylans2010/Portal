@@ -12,6 +12,7 @@ struct LibraryView: View {
 	@State private var _selectedInfoAppPresenting: AnyApp?
 	@State private var _selectedSigningAppPresenting: AnyApp?
 	@State private var _selectedInstallAppPresenting: AnyApp?
+	@State private var _selectedInstallModifyAppPresenting: AnyApp?
 	@State private var _isImportingPresenting = false
 	@State private var _isDownloadingPresenting = false
 	@State private var _showImportAnimation = false
@@ -224,6 +225,11 @@ struct LibraryView: View {
 					.presentationDetents([.medium, .large])
 					.presentationDragIndicator(.visible)
 			}
+			.sheet(item: $_selectedInstallModifyAppPresenting) { app in
+				InstallModifyDialogView(app: app.base)
+					.presentationDetents([.medium, .large])
+					.presentationDragIndicator(.visible)
+			}
 			.sheet(isPresented: $_isImportingPresenting) {
 				FileImporterRepresentableView(
 					allowedContentTypes:  [.ipa, .tipa],
@@ -364,6 +370,15 @@ struct LibraryView: View {
 			.onReceive(NotificationCenter.default.publisher(for: Notification.Name("Feather.openSigningView"))) { notification in
 				if let app = notification.object as? AppInfoPresentable {
 					_selectedSigningAppPresenting = AnyApp(base: app)
+				}
+			}
+			.onReceive(NotificationCenter.default.publisher(for: Notification.Name("Feather.showInstallModifyPopup"))) { notification in
+				// When app is downloaded from Sources view, show Install/Modify dialog
+				if let _ = notification.object as? URL {
+					// Get the latest imported app (just downloaded)
+					if let latestApp = Storage.shared.getLatestImportedApp() {
+						_selectedInstallModifyAppPresenting = AnyApp(base: latestApp)
+					}
 				}
 			}
 			.overlay {
