@@ -20,7 +20,7 @@ struct AppearanceTintColorView: View {
 		("Clock", 			"#FF9500"),
 		("Peculiar", 		"#4860e8"),
 		("Very Peculiar", 	"#5394F7"),
-		("Emily",			"#e18aab"),
+		("Pink",			"#e18aab"),
 		("Mint Fresh",		"#00E5C3"),
 		("Sunset Orange",	"#FF6B35"),
 		("Ocean Blue",		"#0077BE"),

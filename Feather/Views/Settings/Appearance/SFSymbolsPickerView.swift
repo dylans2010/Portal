@@ -135,7 +135,7 @@ struct SFSymbolsPickerView: View {
                 HStack {
                     Image(systemName: "magnifyingglass")
                         .foregroundStyle(.secondary)
-                    TextField("Search symbols...", text: $viewModel.searchText)
+                    TextField("Search SF Symbols", text: $viewModel.searchText)
                         .textFieldStyle(.plain)
                         .autocapitalization(.none)
                 }

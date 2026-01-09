@@ -1,3 +1,6 @@
+// Created by dylan on 12/30/25
+// Adding auth next (todo)
+
 import SwiftUI
 import NimbleViews
 import AltSourceKit
@@ -245,7 +248,7 @@ struct AppLogsView: View {
                     Image(systemName: "magnifyingglass")
                         .foregroundStyle(.secondary)
                     
-                    TextField("Search logs...", text: $searchText)
+                    TextField("Search Logs", text: $searchText)
                         .textFieldStyle(.plain)
                     
                     if !searchText.isEmpty {
@@ -300,7 +303,7 @@ struct AppLogsView: View {
                     Image(systemName: "doc.text.magnifyingglass")
                         .font(.system(size: 50))
                         .foregroundStyle(.secondary)
-                    Text(logManager.logs.isEmpty ? "No logs yet" : "No matching logs")
+                    Text(logManager.logs.isEmpty ? "No Logs Yet" : "No Matching Logs")
                         .font(.headline)
                         .foregroundStyle(.secondary)
                     if !logManager.logs.isEmpty {
@@ -595,7 +598,7 @@ struct IPAInspectorView: View {
                                     .font(.caption)
                                     .foregroundStyle(.secondary)
                             } else {
-                                Text("No file selected")
+                                Text("No File Selected")
                                     .font(.caption)
                                     .foregroundStyle(.tertiary)
                             }
@@ -724,7 +727,7 @@ struct IPAInspectorView: View {
                         }
                         if info.dylibs.count > 10 {
                             NavigationLink(destination: ListDetailView(items: info.dylibs, title: "All Dynamic Libraries")) {
-                                Text("View all \(info.dylibs.count) libraries")
+                                Text("View All \(info.dylibs.count) Libraries")
                                     .font(.caption)
                                     .foregroundStyle(.blue)
                             }
@@ -747,7 +750,7 @@ struct IPAInspectorView: View {
                         }
                         if info.frameworks.count > 10 {
                             NavigationLink(destination: ListDetailView(items: info.frameworks, title: "All Frameworks")) {
-                                Text("View all \(info.frameworks.count) frameworks")
+                                Text("View All \(info.frameworks.count) Frameworks")
                                     .font(.caption)
                                     .foregroundStyle(.blue)
                             }
@@ -773,7 +776,7 @@ struct IPAInspectorView: View {
                 
                 // Entitlements Section
                 if let entitlements = info.entitlements, !entitlements.isEmpty {
-                    Section(header: Text("Entitlements (from Provisioning Profile)"), footer: Text("Entitlements declared in the embedded provisioning profile.")) {
+                    Section(header: Text("Entitlements (From Provisioning Profile)"), footer: Text("Entitlements declared in the embedded provisioning profile.")) {
                         NavigationLink(destination: PlistViewer(dictionary: entitlements, title: "Entitlements")) {
                             HStack {
                                 Image(systemName: "checkmark.shield")
@@ -994,6 +997,7 @@ struct IPAInspectorView: View {
         }
         
         // Define limitations for iOS on-device inspection
+        // macOS Only Tools (will try to add 3rd party soon)
         let limitations = [
             "Code signature validation: Not available on iOS (requires macOS security tools)",
             "Full entitlements extraction: Limited (only from provisioning profile)",
@@ -1148,7 +1152,7 @@ struct PlistViewer: View {
                 .padding(.vertical, 4)
             }
         }
-        .searchable(text: $searchText, prompt: "Search keys...")
+        .searchable(text: $searchText, prompt: "Search Keys...")
         .navigationTitle(title)
         .navigationBarTitleDisplayMode(.inline)
     }
@@ -1309,6 +1313,7 @@ struct PerformanceMonitorView: View {
             
             for i in 0..<Int(numCPUs) {
                 let cpuLoad = cpuLoadInfo[i]
+                // CPU dev data (not for regular user)
                 // CPU_STATE_USER = 0, CPU_STATE_SYSTEM = 1, CPU_STATE_IDLE = 2, CPU_STATE_NICE = 3
                 totalUser += cpuLoad.pointee.cpu_ticks.0    // CPU_STATE_USER
                 totalSystem += cpuLoad.pointee.cpu_ticks.1  // CPU_STATE_SYSTEM
@@ -1344,7 +1349,7 @@ struct PerformanceMonitorView: View {
         if let systemAttributes = try? FileManager.default.attributesOfFileSystem(forPath: NSHomeDirectory()),
            let freeSpace = systemAttributes[.systemFreeSize] as? NSNumber {
             let freeGB = Double(truncating: freeSpace) / 1024.0 / 1024.0 / 1024.0
-            diskSpace = String(format: "%.1f GB free", freeGB)
+            diskSpace = String(format: "%.1f GB Free", freeGB)
         }
     }
 }
@@ -1567,7 +1572,7 @@ struct TestNotificationsView: View {
                     troubleshooting.append("• Notification permission not requested yet")
                 } else if settings.authorizationStatus == .denied {
                     troubleshooting.append("• Notification permission denied by user")
-                    troubleshooting.append("• Go to Settings > Feather > Notifications to enable")
+                    troubleshooting.append("• Go to Settings > Portal > Notifications to enable")
                 }
                 
                 // Check settings
@@ -1581,7 +1586,7 @@ struct TestNotificationsView: View {
                     troubleshooting.append("• Notification Center is disabled")
                 }
                 if settings.lockScreenSetting == .disabled {
-                    troubleshooting.append("• Lock Screen notifications are disabled")
+                    troubleshooting.append("• Lock Screen Notifications Are Disabled")
                 }
                 
                 // Check Do Not Disturb / Focus mode
@@ -1589,16 +1594,16 @@ struct TestNotificationsView: View {
                 
                 // Check app state
                 let appState = UIApplication.shared.applicationState
-                troubleshooting.append("• App state: \(appState == .active ? "Active (notifications may not show)" : appState == .background ? "Background" : "Inactive")")
+                troubleshooting.append("• App State: \(appState == .active ? "Active (notifications may not show)" : appState == .background ? "Background" : "Inactive")")
                 
                 // Add pending notifications count
                 UNUserNotificationCenter.current().getPendingNotificationRequests { requests in
                     DispatchQueue.main.async {
-                        troubleshooting.append("• Pending notifications: \(requests.count)")
+                        troubleshooting.append("• Pending Notifications: \(requests.count)")
                         
                         UNUserNotificationCenter.current().getDeliveredNotifications { delivered in
                             DispatchQueue.main.async {
-                                troubleshooting.append("• Delivered notifications: \(delivered.count)")
+                                troubleshooting.append("• Delivered Notifications: \(delivered.count)")
                                 
                                 debugInfo.append(contentsOf: troubleshooting)
                                 
@@ -1606,7 +1611,7 @@ struct TestNotificationsView: View {
                                 let message = troubleshooting.joined(separator: "\n")
                                 UIAlertController.showAlertWithOk(
                                     title: "Notification Not Received",
-                                    message: "Troubleshooting info:\n\n\(message)\n\nCheck the Debug Information section for more details."
+                                    message: "Troubleshooting Info:\n\n\(message)\n\nCheck the Debug Information section for more details."
                                 )
                             }
                         }

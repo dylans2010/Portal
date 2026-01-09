@@ -1,3 +1,5 @@
+// Created by dylan on 12/30/25
+
 import OSLog
 
 extension Logger {

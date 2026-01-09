@@ -17,7 +17,7 @@ struct AppearanceContentPanel: View {
             // Content Section
             if viewModel.showCustomText {
                 Section(header: Text("Custom Text")) {
-                    TextField("Enter custom text", text: $viewModel.customText)
+                    TextField("Enter Custom Text", text: $viewModel.customText)
                         .textFieldStyle(.roundedBorder)
                 }
             }
@@ -89,7 +89,7 @@ struct AppearanceContentPanel: View {
                 
                 if viewModel.showTime {
                     Toggle("Show Seconds", isOn: $viewModel.showSeconds)
-                    Toggle("24-Hour Clock", isOn: $viewModel.use24HourClock)
+                    Toggle("24 Hour Clock", isOn: $viewModel.use24HourClock)
                     Toggle("Animate Time Changes", isOn: $viewModel.animateTime)
                     Toggle("Use Accent Color", isOn: $viewModel.timeAccentColored)
                     

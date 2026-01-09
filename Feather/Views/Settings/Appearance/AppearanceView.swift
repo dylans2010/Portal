@@ -89,12 +89,12 @@ struct AppearanceView: View {
 						Text(.localized("Your Name"))
 					}
 					Spacer()
-					TextField(.localized("Enter your name"), text: $_greetingsName)
+					TextField(.localized("Enter Name"), text: $_greetingsName)
 						.multilineTextAlignment(.trailing)
 						.textFieldStyle(.plain)
 				}
 			} footer: {
-				Text(.localized("Personalize your home screen greeting with your name"))
+				Text(.localized("Personalize the Home Screen with a greeting with your name"))
 			}
 			
 			NBSection(.localized("Sources")) {

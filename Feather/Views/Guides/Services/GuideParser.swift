@@ -1,3 +1,5 @@
+
+// parses all guides fetched from the GitHUb repo
 import Foundation
 
 // MARK: - Guide Parser
