@@ -171,7 +171,7 @@ struct LibraryView: View {
 							.frame(maxWidth: .infinity)
 							.padding()
 						} else {
-							// Compact List View with proper swipe actions
+							// Simple List View
 							List {
 								ForEach(_allApps, id: \.uuid) { app in
 									CompactLibraryRow(
@@ -184,22 +184,6 @@ struct LibraryView: View {
 									.listRowInsets(EdgeInsets(top: 4, leading: 20, bottom: 4, trailing: 20))
 									.listRowSeparator(.hidden)
 									.listRowBackground(Color.clear)
-									.swipeActions(edge: .trailing, allowsFullSwipe: false) {
-										Button(role: .destructive) {
-											Storage.shared.deleteApp(for: app)
-										} label: {
-											Label(.localized("Delete"), systemImage: "trash.fill")
-										}
-										
-										if app.isSigned {
-											Button {
-												exportApp(app)
-											} label: {
-												Label(.localized("Export"), systemImage: "square.and.arrow.up.fill")
-											}
-											.tint(.blue)
-										}
-									}
 								}
 							}
 							.listStyle(.plain)

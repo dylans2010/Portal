@@ -14,20 +14,32 @@ extension Storage {
 		completion: @escaping (Error?) -> Void
 	) {
 		
-		let new = Imported(context: context)
-		
-		new.uuid = uuid
-		new.source = source
-		new.date = Date()
-		// could possibly be nil, but thats fine.
-		new.identifier = appIdentifier
-		new.name = appName
-		new.icon = appIcon
-		new.version = appVersion
-		
-		saveContext()
-		HapticsManager.shared.impact()
-		completion(nil)
+		DispatchQueue.main.async {
+			let new = Imported(context: self.context)
+			
+			new.uuid = uuid
+			new.source = source
+			new.date = Date()
+			// could possibly be nil, but thats fine.
+			new.identifier = appIdentifier
+			new.name = appName
+			new.icon = appIcon
+			new.version = appVersion
+			
+			// Save context synchronously on main queue
+			if self.context.hasChanges {
+				do {
+					try self.context.save()
+					HapticsManager.shared.impact()
+					completion(nil)
+				} catch {
+					completion(error)
+				}
+			} else {
+				HapticsManager.shared.impact()
+				completion(nil)
+			}
+		}
 	}
 	
 	func getLatestImportedApp() -> Imported? {

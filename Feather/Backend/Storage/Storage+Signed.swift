@@ -15,22 +15,34 @@ extension Storage {
 		completion: @escaping (Error?) -> Void
 	) {
 		
-		let new = Signed(context: context)
-		
-		new.uuid = uuid
-		new.source = source
-		new.date = Date()
-		// if nil, we assume adhoc or certificate was deleted afterwards
-		new.certificate = certificate
-		// could possibly be nil, but thats fine.
-		new.identifier = appIdentifier
-		new.name = appName
-		new.icon = appIcon
-		new.version = appVersion
-		
-		saveContext()
-		HapticsManager.shared.impact()
-		completion(nil)
+		DispatchQueue.main.async {
+			let new = Signed(context: self.context)
+			
+			new.uuid = uuid
+			new.source = source
+			new.date = Date()
+			// if nil, we assume adhoc or certificate was deleted afterwards
+			new.certificate = certificate
+			// could possibly be nil, but thats fine.
+			new.identifier = appIdentifier
+			new.name = appName
+			new.icon = appIcon
+			new.version = appVersion
+			
+			// Save context synchronously on main queue
+			if self.context.hasChanges {
+				do {
+					try self.context.save()
+					HapticsManager.shared.impact()
+					completion(nil)
+				} catch {
+					completion(error)
+				}
+			} else {
+				HapticsManager.shared.impact()
+				completion(nil)
+			}
+		}
 	}
 	
 	func getSignedApps() -> [Signed] {
