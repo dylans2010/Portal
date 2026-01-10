@@ -7,6 +7,25 @@ import NimbleViews
 struct SourceNewsCardInfoView: View {
 	var new: ASRepository.News
 	
+	// MARK: - Placeholder View
+	private var placeholderView: some View {
+		ZStack {
+			LinearGradient(
+				colors: [
+					Color.accentColor.opacity(0.2),
+					Color.accentColor.opacity(0.1),
+					Color.accentColor.opacity(0.05)
+				],
+				startPoint: .topLeading,
+				endPoint: .bottomTrailing
+			)
+			
+			Image(systemName: "newspaper.fill")
+				.font(.system(size: 64, weight: .light))
+				.foregroundStyle(Color.accentColor.opacity(0.3))
+		}
+	}
+	
 	// MARK: Body
 	var body: some View {
 		NavigationStack {
@@ -14,22 +33,6 @@ struct SourceNewsCardInfoView: View {
 				VStack(alignment: .leading, spacing: 24) {
 					// Modern image header
 					ZStack(alignment: .bottomLeading) {
-						let placeholderView: some View = ZStack {
-							LinearGradient(
-								colors: [
-									Color.accentColor.opacity(0.2),
-									Color.accentColor.opacity(0.1),
-									Color.accentColor.opacity(0.05)
-								],
-								startPoint: .topLeading,
-								endPoint: .bottomTrailing
-							)
-							
-							Image(systemName: "newspaper.fill")
-								.font(.system(size: 64, weight: .light))
-								.foregroundStyle(Color.accentColor.opacity(0.3))
-						}
-						
 						if let iconURL = new.imageURL {
 							LazyImage(url: iconURL) { state in
 								if let image = state.image {
@@ -53,7 +56,7 @@ struct SourceNewsCardInfoView: View {
 						RoundedRectangle(cornerRadius: 24, style: .continuous)
 							.stroke(
 								LinearGradient(
-									colors: [.white.opacity(0.2), .clear],
+									colors: [Color.white.opacity(0.2), Color.clear],
 									startPoint: .topLeading,
 									endPoint: .bottomTrailing
 								),
