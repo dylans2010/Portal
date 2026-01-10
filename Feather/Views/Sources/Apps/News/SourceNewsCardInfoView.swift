@@ -7,6 +7,25 @@ import NimbleViews
 struct SourceNewsCardInfoView: View {
 	var new: ASRepository.News
 	
+	// MARK: - Placeholder View
+	private var placeholderView: some View {
+		ZStack {
+			LinearGradient(
+				colors: [
+					Color.accentColor.opacity(0.2),
+					Color.accentColor.opacity(0.1),
+					Color.accentColor.opacity(0.05)
+				],
+				startPoint: .topLeading,
+				endPoint: .bottomTrailing
+			)
+			
+			Image(systemName: "newspaper.fill")
+				.font(.system(size: 64, weight: .light))
+				.foregroundStyle(Color.accentColor.opacity(0.3))
+		}
+	}
+	
 	// MARK: Body
 	var body: some View {
 		NavigationStack {
@@ -14,30 +33,13 @@ struct SourceNewsCardInfoView: View {
 				VStack(alignment: .leading, spacing: 24) {
 					// Modern image header
 					ZStack(alignment: .bottomLeading) {
-						let placeholderView = {
-						ZStack {
-							LinearGradient(
-								colors: [
-									Color.accentColor.opacity(0.2),
-									Color.accentColor.opacity(0.1),
-									Color.accentColor.opacity(0.05)
-								],
-								startPoint: .topLeading,
-								endPoint: .bottomTrailing
-							)
-							
-							Image(systemName: "newspaper.fill")
-								.font(.system(size: 64, weight: .light))
-								.foregroundStyle(Color.accentColor.opacity(0.3))
-						}
-						
 						if let iconURL = new.imageURL {
 							LazyImage(url: iconURL) { state in
 								if let image = state.image {
 									Color.clear.overlay(
-									image
-										.resizable()
-										.aspectRatio(contentMode: .fill)
+										image
+											.resizable()
+											.aspectRatio(contentMode: .fill)
 									)
 								} else {
 									placeholderView
@@ -47,21 +49,21 @@ struct SourceNewsCardInfoView: View {
 							placeholderView
 						}
 					}
-				.frame(height: 280)
-				.frame(maxWidth: .infinity)
-				.clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
-				.overlay(
-					RoundedRectangle(cornerRadius: 24, style: .continuous)
-						.stroke(
-							LinearGradient(
-								colors: [.white.opacity(0.2), .clear],
-								startPoint: .topLeading,
-								endPoint: .bottomTrailing
-							),
-							lineWidth: 1
-						)
-				)
-				.shadow(color: .black.opacity(0.2), radius: 20, x: 0, y: 10)
+					.frame(height: 280)
+					.frame(maxWidth: .infinity)
+					.clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
+					.overlay(
+						RoundedRectangle(cornerRadius: 24, style: .continuous)
+							.stroke(
+								LinearGradient(
+									colors: [Color.white.opacity(0.2), Color.clear],
+									startPoint: .topLeading,
+									endPoint: .bottomTrailing
+								),
+								lineWidth: 1
+							)
+					)
+					.shadow(color: Color.black.opacity(0.2), radius: 20, x: 0, y: 10)
 					VStack(alignment: .leading, spacing: 16) {
 						// Title
 						Text(new.title)
