@@ -521,12 +521,7 @@ extension LibraryView {
                     Capsule()
                         .fill(Color.accentColor)
                 )
-                .shadow(color: .black.opacity(0.15), radius: 4, x: 0, y: 2),
-                                endPoint: .trailing
-                            )
-                        )
-                )
-                .shadow(color: .cyan.opacity(0.4), radius: 12, x: 0, y: 6)
+                .shadow(color: .black.opacity(0.15), radius: 4, x: 0, y: 2)
             }
             
             Spacer(minLength: 60)

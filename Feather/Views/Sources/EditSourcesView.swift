@@ -123,11 +123,7 @@ struct EditSourcesView: View {
 			.overlay(
 				Image(systemName: "globe")
 					.font(.title2)
-					.foregroundStyle(Color.accentColor,
-							startPoint: .topLeading,
-							endPoint: .bottomTrailing
-						)
-					)
+					.foregroundStyle(Color.accentColor)
 			)
 	}
 	
