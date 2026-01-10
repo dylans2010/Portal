@@ -61,7 +61,9 @@ struct CertificatesAddView: View {
     
     // MARK: - File Import Section
     private var fileImportSection: some View {
-		VStack(spacing: 12) {
+        VStack(spacing: 12) {
+            compactImportCard(
+                title: "P12 Certificate",
                 subtitle: _p12URL?.lastPathComponent ?? "Tap to select",
                 icon: "key.fill",
                 isSelected: _p12URL != nil,
@@ -91,30 +93,39 @@ struct CertificatesAddView: View {
         } label: {
             HStack(spacing: 10) {
                 Image(systemName: "doc.zipper")
-					.font(.system(size: 16, weight: .semibold))
-					.foregroundStyle(.white)
-				Text("Import from ZIP")
-					.font(.system(size: 15, weight: .semibold))
-					.foregroundStyle(.white)
-			}
-			.frame(maxWidth: .infinity)
-			.padding(.vertical, 14)
-			.background(
-				LinearGradient(
-					colors: [Color.purple, Color.purple.opacity(0.8)],
-					startPoint: .leading,
-					endPoint: .trailing
-				)
-			)
-			.clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
-			.shadow(color: Color.purple.opacity(0.3), radius: 6, x: 0, y: 3)
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundStyle(.white)
+                Text("Import from ZIP")
+                    .font(.system(size: 15, weight: .semibold))
+                    .foregroundStyle(.white)
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 14)
+            .background(
+                LinearGradient(
+                    colors: [Color.purple, Color.purple.opacity(0.8)],
+                    startPoint: .leading,
+                    endPoint: .trailing
+                )
+            )
+            .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+            .shadow(color: Color.purple.opacity(0.3), radius: 6, x: 0, y: 3)
+        }
+    }
+    
+    // MARK: - Divider Section
+    private var dividerSection: some View {
+        Rectangle()
+            .fill(Color(UIColor.separator).opacity(0.3))
             .frame(height: 1)
             .padding(.vertical, 4)
     }
     
     // MARK: - Input Fields Section
     private var inputFieldsSection: some View {
-		VStack(spacing: 12) {
+        VStack(spacing: 12) {
+            passwordField
+            nicknameField
         }
     }
     
