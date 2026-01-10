@@ -19,20 +19,13 @@ struct VersionHistoryView: View {
                             // Version badge
                             ZStack {
                                 Circle()
-                                    .fill(
-                                        LinearGradient(
-                                            colors: [dominantColor.opacity(0.3), dominantColor.opacity(0.15)],
-                                            startPoint: .topLeading,
-                                            endPoint: .bottomTrailing
-                                        )
-                                    )
-                                    .frame(width: 50, height: 50)
+                                    .fill(dominantColor.opacity(0.12))
+                                    .frame(width: 44, height: 44)
                                 
                                 Image(systemName: "tag.fill")
-                                    .font(.title3)
+                                    .font(.system(size: 18, weight: .semibold))
                                     .foregroundStyle(dominantColor)
                             }
-                            .shadow(color: dominantColor.opacity(0.3), radius: 6, x: 0, y: 3)
                             
                             VStack(alignment: .leading, spacing: 6) {
                                 // Version number
@@ -108,26 +101,16 @@ struct VersionHistoryView: View {
                                 .italic()
                         }
                     }
-                    .padding(16)
+                    .padding(14)
                     .background(
-                        ZStack {
-                            RoundedRectangle(cornerRadius: 16, style: .continuous)
-                                .fill(
-                                    LinearGradient(
-                                        colors: [
-                                            dominantColor.opacity(0.08),
-                                            dominantColor.opacity(0.03)
-                                        ],
-                                        startPoint: .topLeading,
-                                        endPoint: .bottomTrailing
-                                    )
-                                )
-                            
-                            RoundedRectangle(cornerRadius: 16, style: .continuous)
-                                .stroke(dominantColor.opacity(0.2), lineWidth: 1)
-                        }
+                        RoundedRectangle(cornerRadius: 14, style: .continuous)
+                            .fill(Color(.secondarySystemGroupedBackground))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                                    .stroke(dominantColor.opacity(0.2), lineWidth: 1)
+                            )
                     )
-                    .shadow(color: Color.black.opacity(0.05), radius: 8, x: 0, y: 4)
+                    .shadow(color: dominantColor.opacity(0.08), radius: 4, x: 0, y: 2)
                 }
             }
             .padding(.horizontal)

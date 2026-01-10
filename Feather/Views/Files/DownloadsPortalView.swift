@@ -10,10 +10,23 @@ struct DownloadsPortalItem: Codable, Identifiable {
     let category: String?
     
     var id: String { url }
+    
+    enum CodingKeys: String, CodingKey {
+        case name, description, url, icon, category
+    }
+    
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        name = try container.decode(String.self, forKey: .name)
+        description = try? container.decodeIfPresent(String.self, forKey: .description)
+        url = try container.decode(String.self, forKey: .url)
+        icon = try? container.decodeIfPresent(String.self, forKey: .icon)
+        category = try? container.decodeIfPresent(String.self, forKey: .category)
+    }
 }
 
 struct DownloadsPortalResponse: Codable {
-    let downloads: [DownloadsPortalItem]?
+    let downloads: [DownloadsPortalItem]
     
     enum CodingKeys: String, CodingKey {
         case downloads
@@ -21,7 +34,19 @@ struct DownloadsPortalResponse: Codable {
     
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
-        downloads = try container.decodeIfPresent([DownloadsPortalItem].self, forKey: .downloads) ?? []
+        
+        // Try to decode as array directly or from "downloads" key
+        if let items = try? container.decode([DownloadsPortalItem].self, forKey: .downloads) {
+            downloads = items
+        } else {
+            // Try decoding the entire JSON as an array
+            let singleContainer = try decoder.singleValueContainer()
+            if let items = try? singleContainer.decode([DownloadsPortalItem].self) {
+                downloads = items
+            } else {
+                downloads = []
+            }
+        }
     }
 }
 
@@ -46,34 +71,45 @@ class DownloadsPortalService: ObservableObject {
             
             let (data, _) = try await URLSession.shared.data(from: url)
             
+            // Debug: Print raw JSON
+            if let jsonString = String(data: data, encoding: .utf8) {
+                print("📦 Downloads Portal JSON Response:")
+                print(jsonString)
+            }
+            
             // Try to decode the response
             let response = try JSONDecoder().decode(DownloadsPortalResponse.self, from: data)
             
             await MainActor.run {
-                self.items = response.downloads ?? []
+                self.items = response.downloads
                 self.isLoading = false
+                print("✅ Successfully loaded \(response.downloads.count) download items")
             }
         } catch let decodingError as DecodingError {
             // Provide more specific error messages for decoding errors
             let errorDescription: String
             switch decodingError {
-            case .keyNotFound(let key, _):
-                errorDescription = "Missing key '\(key.stringValue)' in JSON data"
-            case .typeMismatch(let type, _):
-                errorDescription = "Type mismatch for expected type \(type)"
-            case .valueNotFound(let type, _):
-                errorDescription = "Missing value for type \(type)"
-            case .dataCorrupted:
-                errorDescription = "Data corrupted or invalid JSON format"
+            case .keyNotFound(let key, let context):
+                errorDescription = "Missing key '\(key.stringValue)' in JSON. Path: \(context.codingPath.map { $0.stringValue }.joined(separator: " -> "))"
+            case .typeMismatch(let type, let context):
+                errorDescription = "Type mismatch for expected type \(type). Path: \(context.codingPath.map { $0.stringValue }.joined(separator: " -> "))"
+            case .valueNotFound(let type, let context):
+                errorDescription = "Missing value for type \(type). Path: \(context.codingPath.map { $0.stringValue }.joined(separator: " -> "))"
+            case .dataCorrupted(let context):
+                errorDescription = "Data corrupted. Path: \(context.codingPath.map { $0.stringValue }.joined(separator: " -> ")). Debug: \(context.debugDescription)"
             @unknown default:
-                errorDescription = "Unknown decoding error"
+                errorDescription = "Unknown decoding error: \(decodingError)"
             }
+            
+            print("❌ Decoding Error: \(errorDescription)")
             
             await MainActor.run {
                 self.errorMessage = errorDescription
                 self.isLoading = false
             }
         } catch {
+            print("❌ Network Error: \(error.localizedDescription)")
+            
             await MainActor.run {
                 self.errorMessage = error.localizedDescription
                 self.isLoading = false

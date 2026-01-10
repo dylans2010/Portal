@@ -181,13 +181,19 @@ struct SourceAppsDetailView: View {
 				
 				// Top rounded gradient container
 				VStack {
+					let hasIcon = app.iconURL != nil
 					RoundedRectangle(cornerRadius: containerCornerRadius, style: .continuous)
 						.fill(
 							LinearGradient(
-								colors: [
+								colors: hasIcon ? [
 									dominantColor.opacity(0.45),
 									dominantColor.opacity(0.25),
 									dominantColor.opacity(0.12),
+									Color(UIColor.systemBackground).opacity(0.95)
+								] : [
+									dominantColor.opacity(0.6),
+									dominantColor.opacity(0.4),
+									dominantColor.opacity(0.25),
 									Color(UIColor.systemBackground).opacity(0.95)
 								],
 								startPoint: .top,
