@@ -40,7 +40,7 @@ extension Storage {
 				new.size = size
 			} else {
 				// Try to get size from the IPA file if available
-				let ipaPath = self.fileManager.signed(uuid).appendingPathComponent("\(uuid).ipa")
+				let ipaPath = FileManager.default.signed(uuid).appendingPathComponent("\(uuid).ipa")
 				if let attributes = try? FileManager.default.attributesOfItem(atPath: ipaPath.path),
 				   let fileSize = attributes[.size] as? UInt64 {
 					new.size = Int64(fileSize)
