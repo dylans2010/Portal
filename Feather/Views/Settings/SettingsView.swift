@@ -91,9 +91,7 @@ struct SettingsView: View {
                         NavigationLink(destination: ManageStorageView()) {
                             ConditionalLabel(title: .localized("Manage Storage"), systemImage: "internaldrive")
                         }
-                        Button {
-                            UIApplication.open("https://github.com/aoyn1xw/Portal/releases/tag/v0.1")
-                        } label: {
+                        NavigationLink(destination: CheckForUpdatesView()) {
                             ConditionalLabel(title: .localized("Check For Updates"), systemImage: "arrow.down.circle")
                         }
                     } footer: {

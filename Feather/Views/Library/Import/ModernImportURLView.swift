@@ -4,6 +4,7 @@ import NimbleViews
 // MARK: - ModernImportURLView
 struct ModernImportURLView: View {
     @Environment(\.dismiss) var dismiss
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
 	@AppStorage("Feather.useGradients") private var _useGradients: Bool = true
     @State private var urlText = ""
     @FocusState private var isTextFieldFocused: Bool
@@ -13,7 +14,7 @@ struct ModernImportURLView: View {
     var onImport: (URL) -> Void
     
     var body: some View {
-        NavigationView {
+        NavigationStack {
             ZStack {
                 // Background gradient
 				if _useGradients {
@@ -32,72 +33,73 @@ struct ModernImportURLView: View {
 						.ignoresSafeArea()
 				}
                 
-                VStack(spacing: 24) {
-                    // Icon
-                    ZStack {
-                        Circle()
-                            .fill(
+                ScrollView {
+                    VStack(spacing: 24) {
+                        // Icon
+                        ZStack {
+                            Circle()
+                                .fill(
 								_useGradients ?
-                                LinearGradient(
-                                    colors: [
-                                        Color.accentColor.opacity(0.25),
-                                        Color.accentColor.opacity(0.12)
-                                    ],
-                                    startPoint: .topLeading,
-                                    endPoint: .bottomTrailing
-                                )
+                                    LinearGradient(
+                                        colors: [
+                                            Color.accentColor.opacity(0.25),
+                                            Color.accentColor.opacity(0.12)
+                                        ],
+                                        startPoint: .topLeading,
+                                        endPoint: .bottomTrailing
+                                    )
 								:
 								LinearGradient(
 									colors: [Color.accentColor.opacity(0.2), Color.accentColor.opacity(0.2)],
 									startPoint: .topLeading,
 									endPoint: .bottomTrailing
 								)
-                            )
-                            .frame(width: 90, height: 90)
-							.shadow(color: Color.accentColor.opacity(_useGradients ? 0.3 : 0.1), radius: 15, x: 0, y: 5)
-                        
-                        Image(systemName: "link.circle.fill")
-                            .font(.system(size: 44))
-                            .foregroundStyle(
-								_useGradients ?
-                                LinearGradient(
-                                    colors: [Color.accentColor, Color.accentColor.opacity(0.7)],
-                                    startPoint: .topLeading,
-                                    endPoint: .bottomTrailing
                                 )
+                                .frame(width: 90, height: 90)
+							.shadow(color: Color.accentColor.opacity(_useGradients ? 0.3 : 0.1), radius: 15, x: 0, y: 5)
+                            
+                            Image(systemName: "link.circle.fill")
+                                .font(.system(size: 44))
+                                .foregroundStyle(
+								_useGradients ?
+                                    LinearGradient(
+                                        colors: [Color.accentColor, Color.accentColor.opacity(0.7)],
+                                        startPoint: .topLeading,
+                                        endPoint: .bottomTrailing
+                                    )
 								:
 								LinearGradient(
 									colors: [Color.accentColor, Color.accentColor],
 									startPoint: .topLeading,
 									endPoint: .bottomTrailing
 								)
-                            )
-                    }
-                    .padding(.top, 30)
-                    
-                    VStack(spacing: 8) {
-                        Text(.localized("Import from URL"))
-                            .font(.title2.bold())
-                            .foregroundStyle(.primary)
+                                )
+                        }
+                        .padding(.top, 30)
                         
-                        Text(.localized("Enter the URL of the IPA file you want to import"))
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
-                            .multilineTextAlignment(.center)
-                            .padding(.horizontal, 32)
-                    }
-                    
-                    // URL Input Field
-                    VStack(alignment: .leading, spacing: 8) {
-                        HStack(spacing: 12) {
-                            Image(systemName: "globe")
-                                .foregroundStyle(.secondary)
-                                .font(.system(size: 18))
+                        VStack(spacing: 8) {
+                            Text(.localized("Import from URL"))
+                                .font(.title2.bold())
+                                .foregroundStyle(.primary)
                             
-                            TextField(.localized("https://example.com/app.ipa"), text: $urlText)
-                                .textInputAutocapitalization(.never)
-                                .autocorrectionDisabled()
-                                .keyboardType(.URL)
+                            Text(.localized("Enter the URL of the IPA file you want to import"))
+                                .font(.subheadline)
+                                .foregroundStyle(.secondary)
+                                .multilineTextAlignment(.center)
+                                .padding(.horizontal, 32)
+                        }
+                        
+                        // URL Input Field
+                        VStack(alignment: .leading, spacing: 8) {
+                            HStack(spacing: 12) {
+                                Image(systemName: "globe")
+                                    .foregroundStyle(.secondary)
+                                    .font(.system(size: 18))
+                                
+                                TextField(.localized("https://example.com/app.ipa"), text: $urlText)
+                                    .textInputAutocapitalization(.never)
+                                    .autocorrectionDisabled()
+                                    .keyboardType(.URL)
                                 .focused($isTextFieldFocused)
                                 .submitLabel(.done)
                                 .onSubmit {
@@ -141,8 +143,9 @@ struct ModernImportURLView: View {
 						}
                     }
                     .padding(.horizontal, 24)
+                    .frame(maxWidth: horizontalSizeClass == .regular ? 500 : .infinity)
                     
-                    Spacer()
+                    Spacer(minLength: 40)
                     
                     // Action Buttons
                     VStack(spacing: 12) {
@@ -162,7 +165,7 @@ struct ModernImportURLView: View {
 								}
                             }
                             .foregroundStyle(.white)
-                            .frame(maxWidth: .infinity)
+                            .frame(maxWidth: horizontalSizeClass == .regular ? 400 : .infinity)
                             .padding(.vertical, 16)
                             .background(
 								_useGradients ?
@@ -181,6 +184,7 @@ struct ModernImportURLView: View {
                             .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
 							.shadow(color: Color.accentColor.opacity(_useGradients ? 0.3 : 0.2), radius: 10, x: 0, y: 5)
                         }
+                        .contentShape(Rectangle())
                         .disabled(urlText.isEmpty || isImporting)
                         .opacity(urlText.isEmpty || isImporting ? 0.5 : 1.0)
                         
@@ -190,19 +194,21 @@ struct ModernImportURLView: View {
                             Text(.localized("Cancel"))
                                 .font(.headline)
                                 .foregroundStyle(.secondary)
-                                .frame(maxWidth: .infinity)
+                                .frame(maxWidth: horizontalSizeClass == .regular ? 400 : .infinity)
                                 .padding(.vertical, 16)
                                 .background(
                                     RoundedRectangle(cornerRadius: 14, style: .continuous)
                                         .fill(Color(uiColor: .secondarySystemGroupedBackground))
                                 )
                         }
+                        .contentShape(Rectangle())
 						.disabled(isImporting)
                     }
                     .padding(.horizontal, 24)
                     .padding(.bottom, 24)
+                    }
+                    .frame(maxWidth: .infinity)
                 }
-            }
             .navigationBarHidden(true)
         }
         .onAppear {

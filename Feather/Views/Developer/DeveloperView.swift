@@ -45,6 +45,7 @@ struct DeveloperAuthView: View {
     @State private var newPasscode = ""
     @State private var confirmPasscode = ""
     @State private var authMethod: AuthMethod = .passcode
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     
     let onAuthenticated: () -> Void
     
@@ -55,114 +56,128 @@ struct DeveloperAuthView: View {
     }
     
     var body: some View {
-        NavigationView {
-            VStack(spacing: 24) {
-                // Header
-                VStack(spacing: 12) {
-                    ZStack {
-                        Circle()
-                            .fill(Color.orange.opacity(0.15))
-                            .frame(width: 80, height: 80)
-                        Image(systemName: "lock.shield.fill")
-                            .font(.system(size: 36))
-                            .foregroundStyle(.orange)
+        NavigationStack {
+            ScrollView {
+                VStack(spacing: 24) {
+                    // Header
+                    VStack(spacing: 12) {
+                        ZStack {
+                            Circle()
+                                .fill(Color.orange.opacity(0.15))
+                                .frame(width: 80, height: 80)
+                            Image(systemName: "lock.shield.fill")
+                                .font(.system(size: 36))
+                                .foregroundStyle(.orange)
+                        }
+                        
+                        Text("Developer Mode")
+                            .font(.title2.bold())
+                        
+                        Text("Authentication required")
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
                     }
+                    .padding(.top, 40)
                     
-                    Text("Developer Mode")
-                        .font(.title2.bold())
-                    
-                    Text("Authentication required")
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                }
-                .padding(.top, 40)
-                
-                // Auth method picker
-                Picker("Authentication Method", selection: $authMethod) {
-                    ForEach(AuthMethod.allCases, id: \.self) { method in
-                        if method == .biometric && !authManager.canUseBiometrics {
-                            EmptyView()
-                        } else {
-                            Text(method.rawValue).tag(method)
+                    // Auth method picker
+                    Picker("Authentication Method", selection: $authMethod) {
+                        ForEach(AuthMethod.allCases, id: \.self) { method in
+                            if method == .biometric && !authManager.canUseBiometrics {
+                                EmptyView()
+                            } else {
+                                Text(method.rawValue).tag(method)
+                            }
                         }
                     }
-                }
-                .pickerStyle(.segmented)
-                .padding(.horizontal)
-                
-                // Auth input based on method
-                VStack(spacing: 16) {
-                    switch authMethod {
-                    case .passcode:
-                        if authManager.hasPasscodeSet {
-                            SecureField("Enter Passcode", text: $passcode)
-                                .textFieldStyle(.roundedBorder)
-                                .padding(.horizontal)
+                    .pickerStyle(.segmented)
+                    .padding(.horizontal)
+                    .frame(maxWidth: horizontalSizeClass == .regular ? 500 : .infinity)
+                    
+                    // Auth input based on method
+                    VStack(spacing: 16) {
+                        switch authMethod {
+                        case .passcode:
+                            if authManager.hasPasscodeSet {
+                                SecureField("Enter Passcode", text: $passcode)
+                                    .textFieldStyle(.roundedBorder)
+                                    .padding(.horizontal)
+                                    .frame(maxWidth: horizontalSizeClass == .regular ? 400 : .infinity)
+                                
+                                Button("Authenticate") {
+                                    if authManager.verifyPasscode(passcode) {
+                                        onAuthenticated()
+                                    }
+                                }
+                                .buttonStyle(.borderedProminent)
+                                .controlSize(.large)
+                                .contentShape(Rectangle())
+                            } else {
+                                Text("No passcode set")
+                                    .foregroundStyle(.secondary)
+                                
+                                Button("Set Up Passcode") {
+                                    showSetupPasscode = true
+                                }
+                                .buttonStyle(.bordered)
+                                .controlSize(.large)
+                                .contentShape(Rectangle())
+                            }
                             
-                            Button("Authenticate") {
-                                if authManager.verifyPasscode(passcode) {
+                        case .biometric:
+                            Button {
+                                authManager.authenticateWithBiometrics { success, error in
+                                    if success {
+                                        onAuthenticated()
+                                    }
+                                }
+                            } label: {
+                                HStack {
+                                    Image(systemName: authManager.biometricType == .faceID ? "faceid" : "touchid")
+                                    Text("Authenticate with \(authManager.biometricType == .faceID ? "Face ID" : "Touch ID")")
+                                }
+                            }
+                            .buttonStyle(.borderedProminent)
+                            .controlSize(.large)
+                            .contentShape(Rectangle())
+                            
+                        case .token:
+                            TextField("Developer Token", text: $developerToken)
+                                .textFieldStyle(.roundedBorder)
+                                .autocapitalization(.allCharacters)
+                                .padding(.horizontal)
+                                .frame(maxWidth: horizontalSizeClass == .regular ? 400 : .infinity)
+                            
+                            Button("Validate Token") {
+                                if authManager.validateDeveloperToken(developerToken) {
                                     onAuthenticated()
                                 }
                             }
                             .buttonStyle(.borderedProminent)
-                            .disabled(passcode.isEmpty)
-                        } else {
-                            Text("No passcode set")
-                                .foregroundStyle(.secondary)
-                            
-                            Button("Set Up Passcode") {
-                                showSetupPasscode = true
-                            }
-                            .buttonStyle(.bordered)
+                            .controlSize(.large)
+                            .contentShape(Rectangle())
+                            .disabled(developerToken.isEmpty)
                         }
-                        
-                    case .biometric:
-                        Button {
-                            authManager.authenticateWithBiometrics { success, error in
-                                if success {
-                                    onAuthenticated()
-                                }
-                            }
-                        } label: {
-                            HStack {
-                                Image(systemName: authManager.biometricType == .faceID ? "faceid" : "touchid")
-                                Text("Authenticate with \(authManager.biometricType == .faceID ? "Face ID" : "Touch ID")")
-                            }
-                        }
-                        .buttonStyle(.borderedProminent)
-                        
-                    case .token:
-                        TextField("Developer Token", text: $developerToken)
-                            .textFieldStyle(.roundedBorder)
-                            .autocapitalization(.allCharacters)
-                            .padding(.horizontal)
-                        
-                        Button("Validate Token") {
-                            if authManager.validateDeveloperToken(developerToken) {
-                                onAuthenticated()
-                            }
-                        }
-                        .buttonStyle(.borderedProminent)
-                        .disabled(developerToken.isEmpty)
                     }
+                    
+                    // Error message
+                    if let error = authManager.authenticationError {
+                        Text(error)
+                            .font(.caption)
+                            .foregroundStyle(.red)
+                            .padding(.horizontal)
+                    }
+                    
+                    Spacer(minLength: 40)
+                    
+                    // Exit button
+                    Button("Cancel") {
+                        UserDefaults.standard.set(false, forKey: "isDeveloperModeEnabled")
+                    }
+                    .foregroundStyle(.secondary)
+                    .contentShape(Rectangle())
+                    .padding(.vertical, 20)
                 }
-                
-                // Error message
-                if let error = authManager.authenticationError {
-                    Text(error)
-                        .font(.caption)
-                        .foregroundStyle(.red)
-                        .padding(.horizontal)
-                }
-                
-                Spacer()
-                
-                // Exit button
-                Button("Cancel") {
-                    UserDefaults.standard.set(false, forKey: "isDeveloperModeEnabled")
-                }
-                .foregroundStyle(.secondary)
-                .padding(.bottom, 20)
+                .frame(maxWidth: .infinity)
             }
             .navigationBarHidden(true)
             .sheet(isPresented: $showSetupPasscode) {
@@ -185,7 +200,7 @@ struct PasscodeSetupView: View {
     let onComplete: (Bool) -> Void
     
     var body: some View {
-        NavigationView {
+        NavigationStack {
             Form {
                 Section(header: Text("Create Passcode"), footer: Text("Passcode must be at least 6 characters")) {
                     SecureField("New Passcode", text: $newPasscode)
@@ -212,6 +227,7 @@ struct PasscodeSetupView: View {
                             errorMessage = "Failed to set passcode"
                         }
                     }
+                    .contentShape(Rectangle())
                     .disabled(newPasscode.isEmpty || confirmPasscode.isEmpty)
                 }
             }
@@ -223,6 +239,7 @@ struct PasscodeSetupView: View {
                         onComplete(false)
                         dismiss()
                     }
+                    .contentShape(Rectangle())
                 }
             }
         }
@@ -304,16 +321,44 @@ struct DeveloperControlPanelView: View {
                     Text("AppStorage, UserDefaults, caches, onboarding state")
                 }
                 
-                // Legacy Tools Section
+                // Diagnostics & Debug Tools Section
                 Section {
                     NavigationLink(destination: AppLogsView()) {
                         DeveloperMenuRow(icon: "terminal.fill", title: "App Logs", color: .gray)
                     }
+                    NavigationLink(destination: DeviceInfoView()) {
+                        DeveloperMenuRow(icon: "iphone", title: "Device Information", color: .indigo)
+                    }
+                    NavigationLink(destination: EnvironmentInspectorView()) {
+                        DeveloperMenuRow(icon: "gearshape.2.fill", title: "Environment Inspector", color: .teal)
+                    }
+                    NavigationLink(destination: CrashLogViewer()) {
+                        DeveloperMenuRow(icon: "exclamationmark.triangle.fill", title: "Crash Logs", color: .red)
+                    }
                     NavigationLink(destination: TestNotificationsView()) {
-                        DeveloperMenuRow(icon: "bell.badge.fill", title: "Test Notifications", color: .red)
+                        DeveloperMenuRow(icon: "bell.badge.fill", title: "Test Notifications", color: .yellow)
                     }
                 } header: {
-                    Text("Diagnostics")
+                    Text("Diagnostics & Debugging")
+                } footer: {
+                    Text("Device info, environment variables, crash logs, and notification testing")
+                }
+                
+                // Power Tools Section
+                Section {
+                    NavigationLink(destination: QuickActionsDevView()) {
+                        DeveloperMenuRow(icon: "bolt.fill", title: "Quick Actions", color: .yellow)
+                    }
+                    NavigationLink(destination: FeatureFlagsView()) {
+                        DeveloperMenuRow(icon: "flag.fill", title: "Feature Flags", color: .mint)
+                    }
+                    NavigationLink(destination: PerformanceMonitorView()) {
+                        DeveloperMenuRow(icon: "gauge.with.dots.needle.67percent", title: "Performance Monitor", color: .purple)
+                    }
+                } header: {
+                    Text("Power Tools")
+                } footer: {
+                    Text("Quick actions, feature flags, and performance monitoring")
                 }
                 
                 // Security Section
@@ -3533,3 +3578,541 @@ extension FileManager {
         return totalSize
     }
 }
+
+// MARK: - Device Information View
+struct DeviceInfoView: View {
+    @State private var deviceInfo: [String: String] = [:]
+    @State private var hardwareInfo: [String: String] = [:]
+    @State private var storageInfo: [String: String] = [:]
+    @State private var batteryInfo: [String: String] = [:]
+    
+    var body: some View {
+        List {
+            // Device Section
+            Section(header: Text("Device")) {
+                ForEach(Array(deviceInfo.keys.sorted()), id: \.self) { key in
+                    DeviceInfoRow(label: key, value: deviceInfo[key] ?? "Unknown")
+                }
+            }
+            
+            // Hardware Section
+            Section(header: Text("Hardware")) {
+                ForEach(Array(hardwareInfo.keys.sorted()), id: \.self) { key in
+                    DeviceInfoRow(label: key, value: hardwareInfo[key] ?? "Unknown")
+                }
+            }
+            
+            // Storage Section
+            Section(header: Text("Storage")) {
+                ForEach(Array(storageInfo.keys.sorted()), id: \.self) { key in
+                    DeviceInfoRow(label: key, value: storageInfo[key] ?? "Unknown")
+                }
+            }
+            
+            // Battery Section
+            Section(header: Text("Battery")) {
+                ForEach(Array(batteryInfo.keys.sorted()), id: \.self) { key in
+                    DeviceInfoRow(label: key, value: batteryInfo[key] ?? "Unknown")
+                }
+            }
+            
+            // App Info Section
+            Section(header: Text("App Information")) {
+                DeviceInfoRow(label: "App Name", value: Bundle.main.infoDictionary?["CFBundleName"] as? String ?? "Unknown")
+                DeviceInfoRow(label: "Version", value: Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "Unknown")
+                DeviceInfoRow(label: "Build", value: Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "Unknown")
+                DeviceInfoRow(label: "Bundle ID", value: Bundle.main.bundleIdentifier ?? "Unknown")
+            }
+            
+            // Export Section
+            Section {
+                Button {
+                    exportDeviceInfo()
+                } label: {
+                    Label("Copy Device Info to Clipboard", systemImage: "doc.on.clipboard")
+                }
+            }
+        }
+        .navigationTitle("Device Information")
+        .onAppear {
+            loadDeviceInfo()
+        }
+    }
+    
+    private func loadDeviceInfo() {
+        let device = UIDevice.current
+        
+        // Device Info
+        deviceInfo = [
+            "Name": device.name,
+            "Model": device.model,
+            "System Name": device.systemName,
+            "System Version": device.systemVersion,
+            "Identifier": getDeviceIdentifier()
+        ]
+        
+        // Hardware Info
+        var sysinfo = utsname()
+        uname(&sysinfo)
+        let machine = withUnsafePointer(to: &sysinfo.machine) {
+            $0.withMemoryRebound(to: CChar.self, capacity: 1) {
+                String(validatingUTF8: $0) ?? "Unknown"
+            }
+        }
+        
+        hardwareInfo = [
+            "Machine": machine,
+            "Processor Count": "\(ProcessInfo.processInfo.processorCount) cores",
+            "Physical Memory": ByteCountFormatter.string(fromByteCount: Int64(ProcessInfo.processInfo.physicalMemory), countStyle: .memory),
+            "Active Processor Count": "\(ProcessInfo.processInfo.activeProcessorCount) cores"
+        ]
+        
+        // Storage Info
+        if let attrs = try? FileManager.default.attributesOfFileSystem(forPath: NSHomeDirectory()) {
+            let totalSpace = attrs[.systemSize] as? Int64 ?? 0
+            let freeSpace = attrs[.systemFreeSize] as? Int64 ?? 0
+            let usedSpace = totalSpace - freeSpace
+            
+            storageInfo = [
+                "Total Space": ByteCountFormatter.string(fromByteCount: totalSpace, countStyle: .file),
+                "Free Space": ByteCountFormatter.string(fromByteCount: freeSpace, countStyle: .file),
+                "Used Space": ByteCountFormatter.string(fromByteCount: usedSpace, countStyle: .file)
+            ]
+        }
+        
+        // Battery Info
+        device.isBatteryMonitoringEnabled = true
+        let batteryState: String
+        switch device.batteryState {
+        case .charging: batteryState = "Charging"
+        case .full: batteryState = "Full"
+        case .unplugged: batteryState = "Unplugged"
+        case .unknown: batteryState = "Unknown"
+        @unknown default: batteryState = "Unknown"
+        }
+        
+        batteryInfo = [
+            "Battery Level": "\(Int(device.batteryLevel * 100))%",
+            "Battery State": batteryState
+        ]
+    }
+    
+    private func getDeviceIdentifier() -> String {
+        var sysinfo = utsname()
+        uname(&sysinfo)
+        return withUnsafePointer(to: &sysinfo.machine) {
+            $0.withMemoryRebound(to: CChar.self, capacity: 1) {
+                String(validatingUTF8: $0) ?? "Unknown"
+            }
+        }
+    }
+    
+    private func exportDeviceInfo() {
+        var info = "=== Device Information ===\n\n"
+        
+        info += "-- Device --\n"
+        for (key, value) in deviceInfo.sorted(by: { $0.key < $1.key }) {
+            info += "\(key): \(value)\n"
+        }
+        
+        info += "\n-- Hardware --\n"
+        for (key, value) in hardwareInfo.sorted(by: { $0.key < $1.key }) {
+            info += "\(key): \(value)\n"
+        }
+        
+        info += "\n-- Storage --\n"
+        for (key, value) in storageInfo.sorted(by: { $0.key < $1.key }) {
+            info += "\(key): \(value)\n"
+        }
+        
+        info += "\n-- Battery --\n"
+        for (key, value) in batteryInfo.sorted(by: { $0.key < $1.key }) {
+            info += "\(key): \(value)\n"
+        }
+        
+        info += "\n-- App --\n"
+        info += "Version: \(Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "Unknown")\n"
+        info += "Build: \(Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "Unknown")\n"
+        info += "Bundle ID: \(Bundle.main.bundleIdentifier ?? "Unknown")\n"
+        
+        UIPasteboard.general.string = info
+        HapticsManager.shared.success()
+        ToastManager.shared.show("✅ Device info copied to clipboard", type: .success)
+    }
+}
+
+struct DeviceInfoRow: View {
+    let label: String
+    let value: String
+    
+    var body: some View {
+        HStack {
+            Text(label)
+                .foregroundStyle(.primary)
+            Spacer()
+            Text(value)
+                .foregroundStyle(.secondary)
+                .font(.system(.body, design: .monospaced))
+                .lineLimit(1)
+                .minimumScaleFactor(0.8)
+        }
+    }
+}
+
+// MARK: - Environment Inspector View
+struct EnvironmentInspectorView: View {
+    @State private var environment: [String: String] = [:]
+    @State private var searchText = ""
+    
+    var filteredEnvironment: [(key: String, value: String)] {
+        let sorted = environment.sorted { $0.key < $1.key }
+        if searchText.isEmpty {
+            return sorted
+        }
+        return sorted.filter { $0.key.localizedCaseInsensitiveContains(searchText) || $0.value.localizedCaseInsensitiveContains(searchText) }
+    }
+    
+    var body: some View {
+        List {
+            // Process Info Section
+            Section(header: Text("Process Information")) {
+                LabeledContent("Process ID", value: "\(ProcessInfo.processInfo.processIdentifier)")
+                LabeledContent("Process Name", value: ProcessInfo.processInfo.processName)
+                LabeledContent("Host Name", value: ProcessInfo.processInfo.hostName)
+                LabeledContent("OS Version", value: ProcessInfo.processInfo.operatingSystemVersionString)
+                LabeledContent("Is Low Power Mode", value: ProcessInfo.processInfo.isLowPowerModeEnabled ? "Yes" : "No")
+            }
+            
+            // Launch Arguments
+            Section(header: Text("Launch Arguments (\(ProcessInfo.processInfo.arguments.count))")) {
+                ForEach(ProcessInfo.processInfo.arguments, id: \.self) { arg in
+                    Text(arg)
+                        .font(.system(.caption, design: .monospaced))
+                        .lineLimit(2)
+                }
+            }
+            
+            // Environment Variables
+            Section(header: Text("Environment Variables (\(filteredEnvironment.count))")) {
+                ForEach(filteredEnvironment, id: \.key) { item in
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(item.key)
+                            .font(.system(.caption, design: .monospaced))
+                            .fontWeight(.semibold)
+                        Text(item.value)
+                            .font(.system(.caption2, design: .monospaced))
+                            .foregroundStyle(.secondary)
+                            .lineLimit(3)
+                    }
+                    .padding(.vertical, 2)
+                }
+            }
+            
+            // Actions
+            Section {
+                Button {
+                    exportEnvironment()
+                } label: {
+                    Label("Copy Environment to Clipboard", systemImage: "doc.on.clipboard")
+                }
+            }
+        }
+        .searchable(text: $searchText, prompt: "Search environment...")
+        .navigationTitle("Environment Inspector")
+        .onAppear {
+            loadEnvironment()
+        }
+    }
+    
+    private func loadEnvironment() {
+        environment = ProcessInfo.processInfo.environment
+    }
+    
+    private func exportEnvironment() {
+        var output = "=== Environment Variables ===\n\n"
+        for (key, value) in environment.sorted(by: { $0.key < $1.key }) {
+            output += "\(key)=\(value)\n"
+        }
+        UIPasteboard.general.string = output
+        HapticsManager.shared.success()
+        ToastManager.shared.show("✅ Environment copied to clipboard", type: .success)
+    }
+}
+
+// MARK: - Crash Log Viewer
+struct CrashLogViewer: View {
+    @StateObject private var logManager = AppLogManager.shared
+    @State private var crashLogs: [LogEntry] = []
+    
+    var body: some View {
+        List {
+            if crashLogs.isEmpty {
+                Section {
+                    VStack(spacing: 16) {
+                        Image(systemName: "checkmark.shield.fill")
+                            .font(.system(size: 48))
+                            .foregroundStyle(.green)
+                        
+                        Text("No Crash Logs")
+                            .font(.headline)
+                        
+                        Text("The app has not recorded any crashes. This is good!")
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                            .multilineTextAlignment(.center)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 40)
+                }
+                .listRowBackground(Color.clear)
+            } else {
+                Section(header: Text("Critical Errors (\(crashLogs.count))")) {
+                    ForEach(crashLogs) { log in
+                        VStack(alignment: .leading, spacing: 8) {
+                            HStack {
+                                Text(log.level.icon)
+                                Text(log.formattedTimestamp)
+                                    .font(.caption.monospaced())
+                                    .foregroundStyle(.secondary)
+                            }
+                            
+                            Text(log.message)
+                                .font(.system(.caption, design: .monospaced))
+                                .foregroundStyle(.red)
+                            
+                            HStack {
+                                Text("[\(log.category)]")
+                                Text("\(log.file):\(log.line)")
+                            }
+                            .font(.caption2)
+                            .foregroundStyle(.tertiary)
+                        }
+                        .padding(.vertical, 4)
+                    }
+                }
+                
+                Section {
+                    Button(role: .destructive) {
+                        clearCrashLogs()
+                    } label: {
+                        Label("Clear Crash Logs", systemImage: "trash")
+                    }
+                }
+            }
+            
+            // Export Section
+            Section {
+                Button {
+                    exportCrashLogs()
+                } label: {
+                    Label("Export All Logs", systemImage: "square.and.arrow.up")
+                }
+            }
+        }
+        .navigationTitle("Crash Logs")
+        .onAppear {
+            loadCrashLogs()
+        }
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                Button {
+                    loadCrashLogs()
+                } label: {
+                    Image(systemName: "arrow.clockwise")
+                }
+            }
+        }
+    }
+    
+    private func loadCrashLogs() {
+        crashLogs = logManager.logs.filter { $0.level == .critical || $0.level == .error }
+    }
+    
+    private func clearCrashLogs() {
+        // Note: This only removes them from view, not from the actual log manager
+        crashLogs.removeAll()
+        HapticsManager.shared.success()
+        ToastManager.shared.show("✅ Crash logs cleared from view", type: .success)
+    }
+    
+    private func exportCrashLogs() {
+        let logs = logManager.exportLogs()
+        UIPasteboard.general.string = logs
+        HapticsManager.shared.success()
+        ToastManager.shared.show("✅ Logs exported to clipboard", type: .success)
+    }
+}
+
+// MARK: - Quick Actions Dev View
+struct QuickActionsDevView: View {
+    @State private var showConfirmation = false
+    @State private var selectedAction: QuickAction?
+    
+    enum QuickAction: String, CaseIterable {
+        case clearAllCaches = "Clear All Caches"
+        case resetOnboarding = "Reset Onboarding"
+        case reloadSources = "Reload All Sources"
+        case exportLogs = "Export All Logs"
+        case resetUserDefaults = "Reset UserDefaults"
+        case simulateCrash = "Simulate Crash Log"
+        case triggerMemoryWarning = "Trigger Memory Warning"
+        case clearImageCache = "Clear Image Cache"
+        
+        var icon: String {
+            switch self {
+            case .clearAllCaches: return "trash.circle.fill"
+            case .resetOnboarding: return "arrow.counterclockwise.circle.fill"
+            case .reloadSources: return "arrow.clockwise.circle.fill"
+            case .exportLogs: return "square.and.arrow.up.circle.fill"
+            case .resetUserDefaults: return "gear.badge.xmark"
+            case .simulateCrash: return "exclamationmark.triangle.fill"
+            case .triggerMemoryWarning: return "memorychip.fill"
+            case .clearImageCache: return "photo.badge.arrow.down.fill"
+            }
+        }
+        
+        var color: Color {
+            switch self {
+            case .clearAllCaches: return .orange
+            case .resetOnboarding: return .blue
+            case .reloadSources: return .green
+            case .exportLogs: return .purple
+            case .resetUserDefaults: return .red
+            case .simulateCrash: return .red
+            case .triggerMemoryWarning: return .yellow
+            case .clearImageCache: return .cyan
+            }
+        }
+        
+        var isDestructive: Bool {
+            switch self {
+            case .clearAllCaches, .resetOnboarding, .resetUserDefaults, .simulateCrash:
+                return true
+            default:
+                return false
+            }
+        }
+    }
+    
+    var body: some View {
+        List {
+            Section(header: Text("Cache Actions")) {
+                quickActionButton(.clearAllCaches)
+                quickActionButton(.clearImageCache)
+            }
+            
+            Section(header: Text("State Actions")) {
+                quickActionButton(.resetOnboarding)
+                quickActionButton(.resetUserDefaults)
+            }
+            
+            Section(header: Text("Data Actions")) {
+                quickActionButton(.reloadSources)
+                quickActionButton(.exportLogs)
+            }
+            
+            Section(header: Text("Debug Actions")) {
+                quickActionButton(.simulateCrash)
+                quickActionButton(.triggerMemoryWarning)
+            }
+        }
+        .navigationTitle("Quick Actions")
+        .alert("Confirm Action", isPresented: $showConfirmation) {
+            Button("Cancel", role: .cancel) { }
+            Button(selectedAction?.isDestructive == true ? "Confirm" : "Execute", role: selectedAction?.isDestructive == true ? .destructive : nil) {
+                if let action = selectedAction {
+                    executeAction(action)
+                }
+            }
+        } message: {
+            Text("Are you sure you want to \(selectedAction?.rawValue.lowercased() ?? "perform this action")?")
+        }
+    }
+    
+    private func quickActionButton(_ action: QuickAction) -> some View {
+        Button {
+            selectedAction = action
+            if action.isDestructive {
+                showConfirmation = true
+            } else {
+                executeAction(action)
+            }
+        } label: {
+            HStack(spacing: 12) {
+                ZStack {
+                    RoundedRectangle(cornerRadius: 8, style: .continuous)
+                        .fill(action.color.opacity(0.15))
+                        .frame(width: 36, height: 36)
+                    Image(systemName: action.icon)
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundStyle(action.color)
+                }
+                
+                Text(action.rawValue)
+                    .foregroundStyle(.primary)
+                
+                Spacer()
+            }
+        }
+    }
+    
+    private func executeAction(_ action: QuickAction) {
+        switch action {
+        case .clearAllCaches:
+            URLCache.shared.removeAllCachedResponses()
+            if let cacheURL = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask).first {
+                try? FileManager.default.removeItem(at: cacheURL.appendingPathComponent("com.github.kean.Nuke.Cache"))
+            }
+            HapticsManager.shared.success()
+            ToastManager.shared.show("✅ All caches cleared", type: .success)
+            AppLogManager.shared.info("All caches cleared via Quick Actions", category: "Developer")
+            
+        case .resetOnboarding:
+            UserDefaults.standard.set(false, forKey: "hasCompletedOnboarding")
+            HapticsManager.shared.success()
+            ToastManager.shared.show("✅ Onboarding reset. Restart app to see changes.", type: .success)
+            AppLogManager.shared.info("Onboarding reset via Quick Actions", category: "Developer")
+            
+        case .reloadSources:
+            NotificationCenter.default.post(name: Notification.Name("Feather.reloadSources"), object: nil)
+            HapticsManager.shared.success()
+            ToastManager.shared.show("✅ Source reload triggered", type: .success)
+            AppLogManager.shared.info("Sources reload triggered via Quick Actions", category: "Developer")
+            
+        case .exportLogs:
+            let logs = AppLogManager.shared.exportLogs()
+            UIPasteboard.general.string = logs
+            HapticsManager.shared.success()
+            ToastManager.shared.show("✅ Logs exported to clipboard", type: .success)
+            
+        case .resetUserDefaults:
+            if let bundleID = Bundle.main.bundleIdentifier {
+                UserDefaults.standard.removePersistentDomain(forName: bundleID)
+            }
+            HapticsManager.shared.success()
+            ToastManager.shared.show("⚠️ UserDefaults reset. Restart app.", type: .warning)
+            AppLogManager.shared.warning("UserDefaults reset via Quick Actions", category: "Developer")
+            
+        case .simulateCrash:
+            AppLogManager.shared.critical("Simulated crash log entry for testing purposes", category: "Developer")
+            HapticsManager.shared.error()
+            ToastManager.shared.show("⚠️ Crash log entry created", type: .warning)
+            
+        case .triggerMemoryWarning:
+            // Post a simulated memory warning notification
+            NotificationCenter.default.post(name: UIApplication.didReceiveMemoryWarningNotification, object: nil)
+            HapticsManager.shared.warning()
+            ToastManager.shared.show("⚠️ Memory warning triggered", type: .warning)
+            AppLogManager.shared.warning("Memory warning triggered via Quick Actions", category: "Developer")
+            
+        case .clearImageCache:
+            if let cacheURL = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask).first {
+                try? FileManager.default.removeItem(at: cacheURL.appendingPathComponent("com.github.kean.Nuke.Cache"))
+            }
+            HapticsManager.shared.success()
+            ToastManager.shared.show("✅ Image cache cleared", type: .success)
+            AppLogManager.shared.info("Image cache cleared via Quick Actions", category: "Developer")
+        }
+    }
+}
+

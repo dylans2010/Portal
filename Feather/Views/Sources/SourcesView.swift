@@ -297,7 +297,7 @@ struct SourcesView: View {
     
     // MARK: - Certificate Tooltip View
     private var certificateTooltipView: some View {
-        NavigationView {
+        NavigationStack {
             ScrollView {
                 VStack(spacing: 24) {
                     VStack(spacing: 16) {
@@ -340,6 +340,7 @@ struct SourcesView: View {
                         )
                     }
                     .padding(.horizontal, 20)
+                    .frame(maxWidth: horizontalSizeClass == .regular ? 600 : .infinity)
                     
                     Button {
                         _showCertificateTooltip = false
@@ -351,12 +352,13 @@ struct SourcesView: View {
                             Text("Get Developer Certificate")
                                 .font(.headline)
                         }
-                        .frame(maxWidth: .infinity)
+                        .frame(maxWidth: horizontalSizeClass == .regular ? 400 : .infinity)
                         .padding(.vertical, 16)
                         .background(.blue)
                         .foregroundStyle(.white)
                         .cornerRadius(12)
                     }
+                    .contentShape(Rectangle())
                     .padding(.horizontal, 20)
                     
                     Button {
@@ -367,8 +369,10 @@ struct SourcesView: View {
                             .font(.subheadline)
                             .foregroundStyle(.secondary)
                     }
+                    .contentShape(Rectangle())
                     .padding(.bottom, 20)
                 }
+                .frame(maxWidth: .infinity)
             }
             .navigationTitle("Developer Certificates")
             .navigationBarTitleDisplayMode(.inline)
@@ -382,6 +386,7 @@ struct SourcesView: View {
                             .font(.system(size: 20))
                             .foregroundStyle(.secondary)
                     }
+                    .contentShape(Rectangle())
                 }
             }
         }
