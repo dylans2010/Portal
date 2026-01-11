@@ -4231,8 +4231,7 @@ struct CertificateProfileManagerView: View {
         
         if !searchText.isEmpty {
             result = result.filter { cert in
-                (cert.nickname?.localizedCaseInsensitiveContains(searchText) ?? false) ||
-                (cert.teamName?.localizedCaseInsensitiveContains(searchText) ?? false)
+                (cert.nickname?.localizedCaseInsensitiveContains(searchText) ?? false)
             }
         }
         
@@ -4268,15 +4267,34 @@ struct CertificateProfileManagerView: View {
             // Certificates List
             Section {
                 if filteredCertificates.isEmpty {
-                    ContentUnavailableView {
-                        Label("No Certificates", systemImage: "person.badge.key")
-                    } description: {
-                        Text("Add a signing certificate to get started")
-                    } actions: {
-                        Button("Add Certificate") {
-                            showAddCertificate = true
+                    if #available(iOS 17, *) {
+                        ContentUnavailableView {
+                            Label("No Certificates", systemImage: "person.badge.key")
+                        } description: {
+                            Text("Add a signing certificate to get started")
+                        } actions: {
+                            Button("Add Certificate") {
+                                showAddCertificate = true
+                            }
+                            .buttonStyle(.borderedProminent)
                         }
-                        .buttonStyle(.borderedProminent)
+                    } else {
+                        VStack(spacing: 12) {
+                            Image(systemName: "person.badge.key")
+                                .font(.system(size: 48))
+                                .foregroundStyle(.secondary)
+                            Text("No Certificates")
+                                .font(.headline)
+                            Text("Add a signing certificate to get started")
+                                .font(.subheadline)
+                                .foregroundStyle(.secondary)
+                                .multilineTextAlignment(.center)
+                            Button("Add Certificate") {
+                                showAddCertificate = true
+                            }
+                            .buttonStyle(.borderedProminent)
+                        }
+                        .padding()
                     }
                 } else {
                     ForEach(filteredCertificates, id: \.uuid) { cert in
@@ -4381,12 +4399,6 @@ struct CertificateManagerRow: View {
                     Text(certificate.nickname ?? "Unknown Certificate")
                         .font(.headline)
                         .foregroundStyle(.primary)
-                    
-                    if let teamName = certificate.teamName {
-                        Text(teamName)
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                    }
                     
                     if let expiration = certificate.expiration {
                         HStack(spacing: 4) {
@@ -4685,7 +4697,7 @@ struct BatchSigningView: View {
                     ForEach(importedApps, id: \.uuid) { app in
                         BatchAppRow(
                             app: app,
-                            isSelected: selectedApps.contains(app.uuid?.uuidString ?? ""),
+                            isSelected: selectedApps.contains(app.uuid ?? ""),
                             onToggle: {
                                 toggleAppSelection(app)
                             }
@@ -4701,7 +4713,7 @@ struct BatchSigningView: View {
                             if selectedApps.count == importedApps.count {
                                 selectedApps.removeAll()
                             } else {
-                                selectedApps = Set(importedApps.compactMap { $0.uuid?.uuidString })
+                                selectedApps = Set(importedApps.compactMap { $0.uuid })
                             }
                         }
                         .font(.caption)
@@ -4761,7 +4773,7 @@ struct BatchSigningView: View {
     }
     
     private func toggleAppSelection(_ app: Imported) {
-        guard let id = app.uuid?.uuidString else { return }
+        guard let id = app.uuid else { return }
         if selectedApps.contains(id) {
             selectedApps.remove(id)
         } else {
@@ -4776,7 +4788,7 @@ struct BatchSigningView: View {
         batchProgress = 0
         batchResults.removeAll()
         
-        let appsToSign = importedApps.filter { selectedApps.contains($0.uuid?.uuidString ?? "") }
+        let appsToSign = importedApps.filter { selectedApps.contains($0.uuid ?? "") }
         let totalApps = Double(appsToSign.count)
         
         AppLogManager.shared.info("Starting batch signing for \(Int(totalApps)) apps", category: "BatchSign")
@@ -4826,7 +4838,7 @@ struct BatchAppRow: View {
             HStack(spacing: 12) {
                 Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
                     .font(.title2)
-                    .foregroundStyle(isSelected ? .accentColor : .secondary)
+                    .foregroundStyle(isSelected ? Color.accentColor : Color.secondary)
                 
                 FRAppIconView(app: app, size: 40)
                 
@@ -5045,7 +5057,7 @@ struct EntitlementRow: View {
                     .padding(.horizontal, 6)
                     .padding(.vertical, 2)
                     .background(Color.accentColor.opacity(0.15))
-                    .foregroundStyle(.accentColor)
+                    .foregroundStyle(Color.accentColor)
                     .clipShape(Capsule())
                 
                 Text(item.value)
@@ -5754,10 +5766,25 @@ struct APILogsView: View {
     var body: some View {
         List {
             if apiLogs.isEmpty {
-                ContentUnavailableView {
-                    Label("No API Logs", systemImage: "network.slash")
-                } description: {
-                    Text("API and webhook activity will appear here")
+                if #available(iOS 17, *) {
+                    ContentUnavailableView {
+                        Label("No API Logs", systemImage: "network.slash")
+                    } description: {
+                        Text("API and webhook activity will appear here")
+                    }
+                } else {
+                    VStack(spacing: 12) {
+                        Image(systemName: "network.slash")
+                            .font(.system(size: 48))
+                            .foregroundStyle(.secondary)
+                        Text("No API Logs")
+                            .font(.headline)
+                        Text("API and webhook activity will appear here")
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                            .multilineTextAlignment(.center)
+                    }
+                    .padding()
                 }
             } else {
                 ForEach(apiLogs) { log in
