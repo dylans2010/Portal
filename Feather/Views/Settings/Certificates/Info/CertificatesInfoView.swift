@@ -377,7 +377,7 @@ struct CertificatesInfoView: View {
                 }
                 
                 if devices.count > 5 {
-                    Text("+ \(devices.count - 5) more devices")
+                    Text("+ \(devices.count - 5) More Devices")
                         .font(.system(size: 11, weight: .medium))
                         .foregroundStyle(.secondary)
                 }
@@ -869,7 +869,7 @@ struct CertificatesInfoView: View {
 				Spacer()
 				
 				let totalDays = Calendar.current.dateComponents([.day], from: data.CreationDate, to: data.ExpirationDate).day ?? 0
-				Text("\(totalDays) days total")
+				Text("\(totalDays) Days Total")
 					.font(.caption)
 					.foregroundStyle(.secondary)
 			}
@@ -1152,7 +1152,7 @@ struct CertificatesInfoView: View {
 				Image(systemName: "folder.fill")
 					.foregroundStyle(.tint)
 					.font(.title3)
-				Text(.localized("Open in Files"))
+				Text(.localized("Open In Files"))
 					.font(.subheadline)
 					.fontWeight(.medium)
 					.foregroundStyle(.primary)

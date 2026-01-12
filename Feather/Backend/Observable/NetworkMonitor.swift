@@ -72,9 +72,9 @@ final class NetworkMonitor: ObservableObject {
         
         // Log connection changes
         if isConnected {
-            AppLogManager.shared.success("Network connected: \(connectionType.displayName)", category: "Network")
+            AppLogManager.shared.success("Network Connected: \(connectionType.displayName)", category: "Network")
         } else {
-            AppLogManager.shared.warning("Network disconnected", category: "Network")
+            AppLogManager.shared.warning("Network Disconnected", category: "Network")
         }
     }
     
@@ -87,7 +87,7 @@ final class NetworkMonitor: ObservableObject {
         if simulate {
             isConnected = false
             connectionType = .none
-            AppLogManager.shared.info("Simulating offline mode", category: "Developer")
+            AppLogManager.shared.info("Simulating Offline Mode", category: "Developer")
         } else {
             // Re-evaluate actual connection
             startMonitoring()

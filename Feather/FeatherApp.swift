@@ -57,7 +57,7 @@ struct FeatherApp: App {
 								onDismiss: {
 									updateBannerDismissed = true
 									showUpdateBanner = false
-									AppLogManager.shared.info("Update banner dismissed", category: "Updates")
+									AppLogManager.shared.info("Update Banner Dismissed", category: "Updates")
 								},
 								onNavigateToUpdates: {
 									navigateToUpdates = true

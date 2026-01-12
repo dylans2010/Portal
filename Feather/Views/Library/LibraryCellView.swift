@@ -200,7 +200,7 @@ struct LibraryCellView: View {
         Button {
             selectedInfoAppPresenting = AnyApp(base: app)
         } label: {
-            Label(String.localized("Get Info"), systemImage: "info.circle")
+            Label(String.localized("Details"), systemImage: "info.circle")
         }
         
         Divider()
@@ -221,7 +221,7 @@ struct LibraryCellView: View {
             Button {
                 selectedSigningAppPresenting = AnyApp(base: app)
             } label: {
-                Label(String.localized("Re-sign"), systemImage: "signature")
+                Label(String.localized("Re-Sign"), systemImage: "signature")
             }
             Button {
                 selectedInstallAppPresenting = AnyApp(base: app, archive: true)

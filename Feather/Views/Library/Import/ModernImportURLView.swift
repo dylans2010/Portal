@@ -82,7 +82,7 @@ struct ModernImportURLView: View {
                                 .font(.title2.bold())
                                 .foregroundStyle(.primary)
                             
-                            Text(.localized("Enter the URL of the IPA file you want to import"))
+                            Text(.localized("Enter the URL of the IPA file you want to install"))
                                 .font(.subheadline)
                                 .foregroundStyle(.secondary)
                                 .multilineTextAlignment(.center)
@@ -96,7 +96,7 @@ struct ModernImportURLView: View {
                                     .foregroundStyle(.secondary)
                                     .font(.system(size: 18))
                                 
-                                TextField(.localized("https://example.com/app.ipa"), text: $urlText)
+                                TextField(.localized("Enter IPA Link Here"), text: $urlText)
                                     .textInputAutocapitalization(.never)
                                     .autocorrectionDisabled()
                                     .keyboardType(.URL)
@@ -246,7 +246,7 @@ struct ModernImportURLView: View {
 			
 			// Check if valid URL format
 			guard let url = URL(string: urlString) else {
-				showErrorWithAnimation(.localized("Invalid URL format"))
+				showErrorWithAnimation(.localized("Invalid URL Format"))
 				return
 			}
 			

@@ -1,3 +1,5 @@
+// This logic checks to see if the app has any added .dylibs, if it does, it blcoks the navigation making the app unusable.
+
 import Foundation
 import SwiftUI
 

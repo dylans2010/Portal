@@ -499,7 +499,7 @@ extension LibraryView {
                     .font(.system(size: 24, weight: .bold, design: .rounded))
                     .foregroundStyle(.primary)
                 
-                Text("Get started by importing your first IPA file.")
+                Text("Get started by importing and installing your first IPA file.")
                     .font(.system(size: 16, weight: .medium))
                     .foregroundStyle(.secondary)
                     .multilineTextAlignment(.center)
@@ -530,10 +530,10 @@ extension LibraryView {
     
     @ViewBuilder
     private func _importActions() -> some View {
-        Button(String.localized("Import from Files"), systemImage: "folder") {
+        Button(String.localized("Import From Files"), systemImage: "folder") {
             _isImportingPresenting = true
         }
-        Button(String.localized("Import from URL"), systemImage: "globe") {
+        Button(String.localized("Import From URL"), systemImage: "globe") {
             _isDownloadingPresenting = true
         }
     }
@@ -640,7 +640,7 @@ struct PremiumAppCard: View {
             Button {
                 selectedInfoAppPresenting = AnyApp(base: app)
             } label: {
-                Label(String.localized("Get Info"), systemImage: "info.circle.fill")
+                Label(String.localized("Details"), systemImage: "info.circle.fill")
             }
             
             if app.isSigned {
