@@ -20,10 +20,9 @@ struct InstallationView: View {
 		NBList(.localized("Installation")) {
 			ServerView()
 			
-			// Only show Tunnel section when Semi Local (method 1) is selected
-			if _serverMethod == 1 {
-				// Tunnel Toggle Section
-				NBSection(.localized("Connection Method")) {
+			// Show Tunnel section for all methods
+			// Tunnel Toggle Section
+			NBSection(.localized("Connection Method")) {
 					Toggle(isOn: $_useTunnel) {
 						HStack(spacing: 10) {
 							ZStack {
@@ -58,10 +57,9 @@ struct InstallationView: View {
 					.toggleStyle(SwitchToggleStyle(tint: .green))
 				}
 				
-				// Only show TunnelView when Tunnel is enabled
-				if _useTunnel {
-					TunnelView()
-				}
+			// Only show TunnelView when Tunnel is enabled
+			if _useTunnel {
+				TunnelView()
 			}
 		}
     }

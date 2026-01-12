@@ -201,7 +201,7 @@ struct CoreSignHeaderView: View {
                 Text(.localized("Credits"))
                     .font(.system(size: 11, weight: .semibold))
             }
-            .foregroundStyle(.white)
+            .foregroundStyle(Color.white)
             .padding(.horizontal, 10)
             .padding(.vertical, 5)
             .background(
@@ -212,7 +212,14 @@ struct CoreSignHeaderView: View {
                             startPoint: .topLeading,
                             endPoint: .bottomTrailing
                         )
-                    )6, style: .continuous)
+                    )
+            )
+            .shadow(color: Color.accentColor.opacity(0.3), radius: 4, x: 0, y: 2)
+        }
+    }
+    
+    private var backgroundShape: some View {
+        RoundedRectangle(cornerRadius: 16, style: .continuous)
             .fill(
                 LinearGradient(
                     colors: [
@@ -223,7 +230,7 @@ struct CoreSignHeaderView: View {
                     endPoint: .bottomTrailing
                 )
             )
-            .shadow(color: .black.opacity(0.08), radius: 12, x: 0, y: 4)
+            .shadow(color: Color.black.opacity(0.08), radius: 12, x: 0, y: 4)
     }
     
     private var borderShape: some View {
@@ -238,15 +245,7 @@ struct CoreSignHeaderView: View {
                     endPoint: .bottomTrailing
                 ),
                 lineWidth: 1
-            
-        RoundedRectangle(cornerRadius: 14, style: .continuous)
-            .fill(Color(uiColor: .secondarySystemGroupedBackground))
-            .shadow(color: .black.opacity(0.05), radius: 8, x: 0, y: 3)
-    }
-    
-    private var borderShape: some View {
-        RoundedRectangle(cornerRadius: 14, style: .continuous)
-            .stroke(Color(uiColor: .separator).opacity(0.3), lineWidth: 0.5)
+            )
     }
 
     // MARK: - Methods

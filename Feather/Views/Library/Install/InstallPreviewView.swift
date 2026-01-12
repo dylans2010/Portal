@@ -46,12 +46,13 @@ struct InstallPreviewView: View {
 				if case .ready = newStatus {
 					if _serverMethod == 0 {
 						UIApplication.shared.open(URL(string: installer.iTunesLink)!)
-					} else if _serverMethod == 1 {
+					} else if _serverMethod == 1 || _serverMethod == 2 {
+						// Semi Local or Custom API - open webview for installation
 						_isWebviewPresenting = true
 					}
 				}
 				
-				if case .sendingPayload = newStatus, _serverMethod == 1 {
+				if case .sendingPayload = newStatus, (_serverMethod == 1 || _serverMethod == 2) {
 					_isWebviewPresenting = false
 				}
                 

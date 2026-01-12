@@ -43,10 +43,12 @@ extension ServerView {
 struct ServerView: View {
 	@AppStorage("Feather.ipFix") private var _ipFix: Bool = false
 	@AppStorage("Feather.serverMethod") private var _serverMethod: Int = 0
+	@AppStorage("Feather.customSigningAPI") private var _customSigningAPI: String = ""
 	
 	private let _serverMethods: [(name: String, description: String)] = [
 		(.localized("Fully Local"), .localized("Signs and installs apps entirely on your device without external servers")),
-		(.localized("Semi Local"), .localized("Signs locally but uses a local server for installation via Wi-Fi. This method is more reliable."))
+		(.localized("Semi Local"), .localized("Signs locally but uses a local server for installation via Wi-Fi. This method is more reliable.")),
+		(.localized("Custom"), .localized("Use your own custom API endpoint for remote signing and installation"))
 	]
 	
 	private let _dataService = NBFetchService()
@@ -58,6 +60,11 @@ struct ServerView: View {
 	var body: some View {
 		Group {
 			serverTypeSection
+			
+			// Show custom API input when Custom method is selected
+			if _serverMethod == 2 {
+				customAPISection
+			}
 			
 			sslCertificatesSection
 			
@@ -109,6 +116,54 @@ struct ServerView: View {
 			.padding(.vertical, 6)
 		}
 		.tag(index)
+	}
+	
+	private var customAPISection: some View {
+		Section {
+			VStack(alignment: .leading, spacing: 12) {
+				HStack(spacing: 8) {
+					Image(systemName: "link.circle.fill")
+						.font(.system(size: 14))
+						.foregroundStyle(Color.accentColor)
+					Text("API Endpoint URL")
+						.font(.subheadline.weight(.semibold))
+				}
+				
+				TextField("https://your-api.example.com/sign", text: $_customSigningAPI)
+					.textInputAutocapitalization(.never)
+					.autocorrectionDisabled()
+					.keyboardType(.URL)
+					.font(.system(size: 14, design: .monospaced))
+					.padding(10)
+					.background(
+						RoundedRectangle(cornerRadius: 8, style: .continuous)
+							.fill(Color(UIColor.tertiarySystemBackground))
+					)
+					.overlay(
+						RoundedRectangle(cornerRadius: 8, style: .continuous)
+							.strokeBorder(Color.accentColor.opacity(0.3), lineWidth: 1)
+					)
+			}
+			.padding(.vertical, 4)
+		} header: {
+			Label("Custom API Configuration", systemImage: "gearshape.2.fill")
+		} footer: {
+			VStack(alignment: .leading, spacing: 8) {
+				Text("Enter your custom signing API endpoint URL. The API should accept IPA, P12, and provisioning profile files and return an itms:// installation link.")
+					.font(.caption)
+				
+				if !_customSigningAPI.isEmpty {
+					HStack(spacing: 4) {
+						Image(systemName: _customSigningAPI.hasPrefix("https://") ? "checkmark.circle.fill" : "exclamationmark.triangle.fill")
+							.font(.caption2)
+							.foregroundStyle(_customSigningAPI.hasPrefix("https://") ? .green : .orange)
+						Text(_customSigningAPI.hasPrefix("https://") ? "HTTPS endpoint configured" : "Warning: Using HTTP may be insecure")
+							.font(.caption2)
+							.foregroundStyle(_customSigningAPI.hasPrefix("https://") ? .green : .orange)
+					}
+				}
+			}
+		}
 	}
 	
 	private var sslCertificatesSection: some View {
@@ -180,6 +235,7 @@ struct ServerView: View {
 		switch index {
 		case 0: return "iphone" // Fully Local
 		case 1: return "wifi" // Semi Local
+		case 2: return "link" // Custom
 		default: return "server.rack"
 		}
 	}

@@ -56,11 +56,11 @@ final class RemoteSigningHandler: NSObject {
         let customAPI = UserDefaults.standard.string(forKey: "Feather.customSigningAPI") ?? ""
         
         let apiURLString: String
-        if serverMethod == 3 && !customAPI.isEmpty {
-            // Custom API
+        if serverMethod == 2 && !customAPI.isEmpty {
+            // Custom API (method 2)
             apiURLString = customAPI
         } else {
-            // Default remote signing API
+            // Default remote signing API (not used for Custom, but kept as fallback)
             apiURLString = "https://sign.ayon1xw.me/sign"
         }
         

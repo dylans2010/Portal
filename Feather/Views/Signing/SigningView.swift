@@ -659,8 +659,8 @@ extension SigningView {
 		_isSigning = true
         _isSigningProcessPresented = true
 		
-        if _serverMethod == 2 || _serverMethod == 3 {
-            // Fully Remote or Custom API
+        if _serverMethod == 2 {
+            // Custom API - uses remote signing with custom endpoint
             FR.remoteSignPackageFile(
                 app,
                 using: _temporaryOptions,
