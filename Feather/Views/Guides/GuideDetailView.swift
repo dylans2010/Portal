@@ -16,7 +16,9 @@ struct GuideDetailView: View {
     // AI State
     @State private var showingAIActionSheet = false
     @State private var showingDescribeGuideInput = false
+    @State private var showingTranslateSheet = false
     @State private var describeGuideInstruction: String = ""
+    @State private var selectedLanguage: String = ""
     @State private var isProcessingAI = false
     @State private var aiOutputContent: String?
     @State private var aiParsedContent: ParsedGuideContent?
@@ -24,6 +26,7 @@ struct GuideDetailView: View {
     @State private var showingAIOutput = false
     @State private var aiEngineUsed: AIEngine?
     @State private var didFallback = false
+    @State private var currentAIAction: AIAction?
     @ObservedObject private var aiSettingsManager = GuideAISettingsManager.shared
     
     var accentColor: Color {
@@ -136,15 +139,21 @@ struct GuideDetailView: View {
                         DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
                             showingDescribeGuideInput = true
                         }
+                    } else if action == .translate {
+                        showingAIActionSheet = false
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                            showingTranslateSheet = true
+                        }
                     } else {
                         showingAIActionSheet = false
+                        currentAIAction = action
                         Task {
                             await processAIAction(action)
                         }
                     }
                 }
             )
-            .presentationDetents([.medium])
+            .presentationDetents([.medium, .large])
             .presentationDragIndicator(.visible)
         }
         .sheet(isPresented: $showingDescribeGuideInput) {
@@ -153,9 +162,26 @@ struct GuideDetailView: View {
                 instruction: $describeGuideInstruction,
                 onSubmit: {
                     showingDescribeGuideInput = false
+                    currentAIAction = .describeGuide
                     Task {
                         await processAIAction(.describeGuide, customInstruction: describeGuideInstruction)
                         describeGuideInstruction = ""
+                    }
+                }
+            )
+            .presentationDetents([.medium])
+            .presentationDragIndicator(.visible)
+        }
+        .sheet(isPresented: $showingTranslateSheet) {
+            TranslateSheet(
+                isPresented: $showingTranslateSheet,
+                selectedLanguage: $selectedLanguage,
+                onSubmit: { language in
+                    showingTranslateSheet = false
+                    currentAIAction = .translate
+                    Task {
+                        await processAIAction(.translate, customInstruction: "Translate to \(language)")
+                        selectedLanguage = ""
                     }
                 }
             )
@@ -193,70 +219,161 @@ struct GuideDetailView: View {
     
     @ViewBuilder
     private var aiOutputHeader: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack {
-                Image(systemName: "sparkles")
-                    .foregroundStyle(.purple)
-                Text("AI Generated Content")
-                    .font(.headline)
-                    .foregroundStyle(.purple)
+        VStack(spacing: 0) {
+            HStack(spacing: 12) {
+                // Animated gradient icon
+                ZStack {
+                    Circle()
+                        .fill(
+                            LinearGradient(
+                                colors: [.purple, .pink, .blue],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                        )
+                        .frame(width: 44, height: 44)
+                    
+                    Image(systemName: "sparkles")
+                        .font(.title3)
+                        .foregroundStyle(.white)
+                }
+                
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("AI Generated")
+                        .font(.headline)
+                        .foregroundStyle(.primary)
+                    
+                    if let engine = aiEngineUsed {
+                        HStack(spacing: 4) {
+                            Image(systemName: engine == .appleIntelligence ? "apple.logo" : "cloud.fill")
+                                .font(.caption2)
+                            Text(engine.displayName)
+                                .font(.caption)
+                            if didFallback {
+                                Text("• Fallback")
+                                    .font(.caption)
+                                    .foregroundStyle(.orange)
+                            }
+                        }
+                        .foregroundStyle(.secondary)
+                    }
+                }
+                
                 Spacer()
+                
                 Button {
-                    withAnimation {
+                    withAnimation(.spring(response: 0.3)) {
                         showingAIOutput = false
                         aiParsedContent = nil
                         aiOutputContent = nil
                     }
                 } label: {
                     Image(systemName: "xmark.circle.fill")
+                        .font(.title2)
                         .foregroundStyle(.secondary)
                 }
             }
-            
-            if let engine = aiEngineUsed {
-                HStack(spacing: 4) {
-                    Text("Powered by")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                    Text(engine.displayName)
-                        .font(.caption)
-                        .fontWeight(.medium)
-                        .foregroundStyle(.secondary)
-                    if didFallback {
-                        Text("(fallback)")
-                            .font(.caption)
-                            .foregroundStyle(.orange)
-                    }
-                }
-            }
+            .padding()
+            .background(
+                LinearGradient(
+                    colors: [Color.purple.opacity(0.15), Color.pink.opacity(0.1), Color.blue.opacity(0.05)],
+                    startPoint: .leading,
+                    endPoint: .trailing
+                )
+            )
         }
-        .padding()
-        .background(Color.purple.opacity(0.1))
-        .cornerRadius(12)
+        .background(Color(.secondarySystemGroupedBackground))
+        .cornerRadius(16)
+        .overlay(
+            RoundedRectangle(cornerRadius: 16)
+                .stroke(
+                    LinearGradient(
+                        colors: [.purple.opacity(0.3), .pink.opacity(0.2), .blue.opacity(0.1)],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    ),
+                    lineWidth: 1
+                )
+        )
     }
     
     @ViewBuilder
     private var aiProcessingOverlay: some View {
         ZStack {
-            Color.black.opacity(0.4)
+            Color.black.opacity(0.5)
                 .ignoresSafeArea()
             
-            VStack(spacing: 16) {
-                ProgressView()
-                    .scaleEffect(1.5)
-                    .tint(.white)
+            VStack(spacing: 24) {
+                // Animated sparkles
+                ZStack {
+                    // Outer glow
+                    Circle()
+                        .fill(
+                            RadialGradient(
+                                colors: [.purple.opacity(0.3), .clear],
+                                center: .center,
+                                startRadius: 30,
+                                endRadius: 80
+                            )
+                        )
+                        .frame(width: 160, height: 160)
+                    
+                    // Spinning ring
+                    Circle()
+                        .stroke(
+                            AngularGradient(
+                                colors: [.purple, .pink, .blue, .purple],
+                                center: .center
+                            ),
+                            lineWidth: 3
+                        )
+                        .frame(width: 80, height: 80)
+                        .rotationEffect(.degrees(isProcessingAI ? 360 : 0))
+                        .animation(.linear(duration: 2).repeatForever(autoreverses: false), value: isProcessingAI)
+                    
+                    // Center icon
+                    Image(systemName: "sparkles")
+                        .font(.system(size: 32))
+                        .foregroundStyle(
+                            LinearGradient(
+                                colors: [.purple, .pink],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                        )
+                        .scaleEffect(isProcessingAI ? 1.1 : 0.9)
+                        .animation(.easeInOut(duration: 0.8).repeatForever(autoreverses: true), value: isProcessingAI)
+                }
                 
-                Text("Processing with AI...")
-                    .font(.headline)
-                    .foregroundStyle(.white)
-                
-                Text("This may take a moment")
-                    .font(.subheadline)
-                    .foregroundStyle(.white.opacity(0.8))
+                VStack(spacing: 8) {
+                    Text(getProcessingTitle())
+                        .font(.title3)
+                        .fontWeight(.semibold)
+                        .foregroundStyle(.white)
+                    
+                    Text("This may take a moment...")
+                        .font(.subheadline)
+                        .foregroundStyle(.white.opacity(0.7))
+                }
             }
-            .padding(32)
+            .padding(40)
             .background(.ultraThinMaterial)
-            .cornerRadius(16)
+            .cornerRadius(24)
+            .shadow(color: .purple.opacity(0.3), radius: 20, x: 0, y: 10)
+        }
+    }
+    
+    private func getProcessingTitle() -> String {
+        guard let action = currentAIAction else { return "Processing..." }
+        switch action {
+        case .simplify: return "Simplifying..."
+        case .translate: return "Translating..."
+        case .explain: return "Explaining..."
+        case .summarize: return "Summarizing..."
+        case .keyPoints: return "Extracting Key Points..."
+        case .stepByStep: return "Creating Steps..."
+        case .proofread: return "Proofreading..."
+        case .describeGuide: return "Processing..."
         }
     }
     
@@ -632,34 +749,48 @@ struct AIActionsSheet: View {
     var body: some View {
         NavigationStack {
             ScrollView {
-                VStack(spacing: 20) {
-                    // Header
-                    VStack(spacing: 8) {
+                VStack(spacing: 24) {
+                    // Header with animated gradient
+                    VStack(spacing: 12) {
                         ZStack {
+                            // Outer glow
+                            Circle()
+                                .fill(
+                                    RadialGradient(
+                                        colors: [.purple.opacity(0.4), .pink.opacity(0.2), .clear],
+                                        center: .center,
+                                        startRadius: 20,
+                                        endRadius: 60
+                                    )
+                                )
+                                .frame(width: 100, height: 100)
+                            
                             Circle()
                                 .fill(
                                     LinearGradient(
-                                        colors: [.purple, .pink],
+                                        colors: [.purple, .pink, .blue],
                                         startPoint: .topLeading,
                                         endPoint: .bottomTrailing
                                     )
                                 )
-                                .frame(width: 60, height: 60)
-                            Image(systemName: "sparkles")
-                                .font(.title)
+                                .frame(width: 70, height: 70)
+                            
+                            Image(systemName: "wand.and.stars")
+                                .font(.system(size: 28))
                                 .foregroundStyle(.white)
                         }
                         
-                        Text("AI Actions")
-                            .font(.title2)
-                            .fontWeight(.bold)
-                        
-                        Text("Choose how you want AI to process this guide")
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
-                            .multilineTextAlignment(.center)
+                        VStack(spacing: 4) {
+                            Text("AI Actions")
+                                .font(.title)
+                                .fontWeight(.bold)
+                            
+                            Text("Transform your guide with AI")
+                                .font(.subheadline)
+                                .foregroundStyle(.secondary)
+                        }
                     }
-                    .padding(.top)
+                    .padding(.top, 8)
                     
                     // Actions Grid
                     LazyVGrid(columns: columns, spacing: 12) {
@@ -673,21 +804,44 @@ struct AIActionsSheet: View {
                     .padding(.horizontal)
                     
                     if !isAIAvailable {
-                        HStack(spacing: 8) {
-                            Image(systemName: "exclamationmark.triangle.fill")
-                                .foregroundStyle(.orange)
-                            Text("Configure OpenRouter API key in Settings → Guides")
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
+                        VStack(spacing: 12) {
+                            HStack(spacing: 10) {
+                                Image(systemName: "exclamationmark.triangle.fill")
+                                    .font(.title3)
+                                    .foregroundStyle(.orange)
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text("AI Not Configured")
+                                        .font(.subheadline)
+                                        .fontWeight(.semibold)
+                                    Text("Add your API key in Settings → Guides")
+                                        .font(.caption)
+                                        .foregroundStyle(.secondary)
+                                }
+                                Spacer()
+                                Image(systemName: "chevron.right")
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
+                            .padding()
+                            .background(
+                                LinearGradient(
+                                    colors: [.orange.opacity(0.15), .yellow.opacity(0.1)],
+                                    startPoint: .leading,
+                                    endPoint: .trailing
+                                )
+                            )
+                            .cornerRadius(12)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 12)
+                                    .stroke(Color.orange.opacity(0.3), lineWidth: 1)
+                            )
                         }
-                        .padding()
-                        .background(Color.orange.opacity(0.1))
-                        .cornerRadius(10)
                         .padding(.horizontal)
                     }
                 }
-                .padding(.bottom)
+                .padding(.bottom, 24)
             }
+            .background(Color(.systemGroupedBackground))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
@@ -695,6 +849,7 @@ struct AIActionsSheet: View {
                         isPresented = false
                     } label: {
                         Image(systemName: "xmark.circle.fill")
+                            .font(.title2)
                             .foregroundStyle(.secondary)
                     }
                 }
@@ -706,12 +861,25 @@ struct AIActionsSheet: View {
 struct AIActionButton: View {
     let action: AIAction
     let onTap: () -> Void
+    @State private var isPressed = false
     
     var body: some View {
         Button(action: onTap) {
-            VStack(spacing: 12) {
+            VStack(spacing: 14) {
                 ZStack {
-                    RoundedRectangle(cornerRadius: 12)
+                    // Background glow
+                    RoundedRectangle(cornerRadius: 16)
+                        .fill(
+                            LinearGradient(
+                                colors: action.gradientColors.map { $0.opacity(0.3) },
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                        )
+                        .frame(width: 52, height: 52)
+                        .blur(radius: 8)
+                    
+                    RoundedRectangle(cornerRadius: 14)
                         .fill(
                             LinearGradient(
                                 colors: action.gradientColors,
@@ -719,14 +887,15 @@ struct AIActionButton: View {
                                 endPoint: .bottomTrailing
                             )
                         )
-                        .frame(width: 44, height: 44)
+                        .frame(width: 48, height: 48)
                     
                     Image(systemName: action.systemImage)
                         .font(.title3)
+                        .fontWeight(.semibold)
                         .foregroundStyle(.white)
                 }
                 
-                VStack(spacing: 2) {
+                VStack(spacing: 4) {
                     Text(action.displayName)
                         .font(.subheadline)
                         .fontWeight(.semibold)
@@ -737,14 +906,26 @@ struct AIActionButton: View {
                         .foregroundStyle(.secondary)
                         .multilineTextAlignment(.center)
                         .lineLimit(2)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
             }
             .frame(maxWidth: .infinity)
-            .padding()
+            .padding(.vertical, 16)
+            .padding(.horizontal, 12)
             .background(Color(.secondarySystemGroupedBackground))
-            .cornerRadius(16)
+            .cornerRadius(20)
+            .overlay(
+                RoundedRectangle(cornerRadius: 20)
+                    .stroke(Color.secondary.opacity(0.1), lineWidth: 1)
+            )
+            .scaleEffect(isPressed ? 0.95 : 1.0)
         }
         .buttonStyle(.plain)
+        .onLongPressGesture(minimumDuration: .infinity, pressing: { pressing in
+            withAnimation(.spring(response: 0.2)) {
+                isPressed = pressing
+            }
+        }, perform: {})
     }
 }
 
@@ -945,5 +1126,230 @@ struct AIErrorSheet: View {
                 }
             }
         }
+    }
+}
+
+// MARK: - Translate Sheet
+struct TranslateSheet: View {
+    @Binding var isPresented: Bool
+    @Binding var selectedLanguage: String
+    let onSubmit: (String) -> Void
+    
+    @State private var showCustomLanguage = false
+    @State private var customLanguage = ""
+    @FocusState private var isCustomFocused: Bool
+    
+    static let languages: [(name: String, flag: String, code: String)] = [
+        ("Spanish", "🇪🇸", "es"),
+        ("French", "🇫🇷", "fr"),
+        ("German", "🇩🇪", "de"),
+        ("Italian", "🇮🇹", "it"),
+        ("Portuguese", "🇵🇹", "pt"),
+        ("Chinese (Simplified)", "🇨🇳", "zh"),
+        ("Japanese", "🇯🇵", "ja"),
+        ("Korean", "🇰🇷", "ko"),
+        ("Arabic", "🇸🇦", "ar"),
+        ("Russian", "🇷🇺", "ru"),
+        ("Hindi", "🇮🇳", "hi"),
+        ("Dutch", "🇳🇱", "nl")
+    ]
+    
+    var body: some View {
+        NavigationStack {
+            ScrollView {
+                VStack(spacing: 24) {
+                    // Header
+                    VStack(spacing: 12) {
+                        ZStack {
+                            Circle()
+                                .fill(
+                                    RadialGradient(
+                                        colors: [.green.opacity(0.4), .mint.opacity(0.2), .clear],
+                                        center: .center,
+                                        startRadius: 20,
+                                        endRadius: 60
+                                    )
+                                )
+                                .frame(width: 100, height: 100)
+                            
+                            Circle()
+                                .fill(
+                                    LinearGradient(
+                                        colors: [.green, .mint],
+                                        startPoint: .topLeading,
+                                        endPoint: .bottomTrailing
+                                    )
+                                )
+                                .frame(width: 70, height: 70)
+                            
+                            Image(systemName: "globe")
+                                .font(.system(size: 28))
+                                .foregroundStyle(.white)
+                        }
+                        
+                        VStack(spacing: 4) {
+                            Text("Translate")
+                                .font(.title)
+                                .fontWeight(.bold)
+                            
+                            Text("Select your target language")
+                                .font(.subheadline)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                    .padding(.top, 8)
+                    
+                    // Language Grid
+                    LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
+                        ForEach(Self.languages, id: \.code) { language in
+                            LanguageButton(
+                                name: language.name,
+                                flag: language.flag,
+                                isSelected: selectedLanguage == language.name
+                            ) {
+                                selectedLanguage = language.name
+                                HapticsManager.shared.softImpact()
+                            }
+                        }
+                    }
+                    .padding(.horizontal)
+                    
+                    // Custom Language Option
+                    VStack(spacing: 12) {
+                        Button {
+                            withAnimation(.spring(response: 0.3)) {
+                                showCustomLanguage.toggle()
+                                if showCustomLanguage {
+                                    selectedLanguage = ""
+                                    isCustomFocused = true
+                                }
+                            }
+                        } label: {
+                            HStack {
+                                Image(systemName: "plus.circle.fill")
+                                    .foregroundStyle(.blue)
+                                Text("Language Not Listed")
+                                    .font(.subheadline)
+                                    .fontWeight(.medium)
+                                Spacer()
+                                Image(systemName: showCustomLanguage ? "chevron.up" : "chevron.down")
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
+                            .padding()
+                            .background(Color(.secondarySystemGroupedBackground))
+                            .cornerRadius(12)
+                        }
+                        .buttonStyle(.plain)
+                        
+                        if showCustomLanguage {
+                            HStack {
+                                TextField("Enter language name...", text: $customLanguage)
+                                    .textFieldStyle(.plain)
+                                    .focused($isCustomFocused)
+                                    .onChange(of: customLanguage) { newValue in
+                                        if !newValue.isEmpty {
+                                            selectedLanguage = newValue
+                                        }
+                                    }
+                                
+                                if !customLanguage.isEmpty {
+                                    Button {
+                                        customLanguage = ""
+                                        selectedLanguage = ""
+                                    } label: {
+                                        Image(systemName: "xmark.circle.fill")
+                                            .foregroundStyle(.secondary)
+                                    }
+                                }
+                            }
+                            .padding()
+                            .background(Color(.secondarySystemGroupedBackground))
+                            .cornerRadius(12)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 12)
+                                    .stroke(Color.blue.opacity(0.5), lineWidth: 1)
+                            )
+                        }
+                    }
+                    .padding(.horizontal)
+                    
+                    // Translate Button
+                    Button {
+                        if !selectedLanguage.isEmpty {
+                            onSubmit(selectedLanguage)
+                        }
+                    } label: {
+                        HStack {
+                            Image(systemName: "sparkles")
+                            Text("Translate to \(selectedLanguage.isEmpty ? "..." : selectedLanguage)")
+                                .fontWeight(.semibold)
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .background(
+                            LinearGradient(
+                                colors: selectedLanguage.isEmpty ? [.gray, .secondary] : [.green, .mint],
+                                startPoint: .leading,
+                                endPoint: .trailing
+                            )
+                        )
+                        .foregroundStyle(.white)
+                        .cornerRadius(12)
+                    }
+                    .disabled(selectedLanguage.isEmpty)
+                    .padding(.horizontal)
+                }
+                .padding(.bottom, 24)
+            }
+            .background(Color(.systemGroupedBackground))
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button("Cancel") {
+                        selectedLanguage = ""
+                        customLanguage = ""
+                        isPresented = false
+                    }
+                }
+            }
+        }
+    }
+}
+
+struct LanguageButton: View {
+    let name: String
+    let flag: String
+    let isSelected: Bool
+    let onTap: () -> Void
+    
+    var body: some View {
+        Button(action: onTap) {
+            HStack(spacing: 10) {
+                Text(flag)
+                    .font(.title2)
+                
+                Text(name)
+                    .font(.subheadline)
+                    .fontWeight(.medium)
+                    .foregroundStyle(.primary)
+                    .lineLimit(1)
+                
+                Spacer()
+                
+                if isSelected {
+                    Image(systemName: "checkmark.circle.fill")
+                        .foregroundStyle(.green)
+                }
+            }
+            .padding()
+            .background(isSelected ? Color.green.opacity(0.15) : Color(.secondarySystemGroupedBackground))
+            .cornerRadius(12)
+            .overlay(
+                RoundedRectangle(cornerRadius: 12)
+                    .stroke(isSelected ? Color.green.opacity(0.5) : Color.clear, lineWidth: 1)
+            )
+        }
+        .buttonStyle(.plain)
     }
 }
