@@ -13,6 +13,19 @@ struct GuideDetailView: View {
     @AppStorage("Feather.userTintGradientStart") private var gradientStartHex: String = "#0077BE"
     @AppStorage("Feather.userTintGradientEnd") private var gradientEndHex: String = "#848ef9"
     
+    // AI State
+    @State private var showingAIActionSheet = false
+    @State private var showingDescribeGuideInput = false
+    @State private var describeGuideInstruction: String = ""
+    @State private var isProcessingAI = false
+    @State private var aiOutputContent: String?
+    @State private var aiParsedContent: ParsedGuideContent?
+    @State private var aiError: String?
+    @State private var showingAIOutput = false
+    @State private var aiEngineUsed: AIEngine?
+    @State private var didFallback = false
+    @StateObject private var aiSettingsManager = GuideAISettingsManager.shared
+    
     var accentColor: Color {
         if colorType == "gradient" {
             return Color(hex: gradientStartHex)
@@ -21,56 +34,246 @@ struct GuideDetailView: View {
         }
     }
     
+    private var isAIEnabled: Bool {
+        aiSettingsManager.getPreference(for: guide.id).aiEnabled
+    }
+    
+    private var isAIAvailable: Bool {
+        GuideAIService.shared.isAIAvailable(for: guide.id)
+    }
+    
     var body: some View {
-        ScrollView {
-            if isLoading {
-                VStack(spacing: 20) {
-                    ProgressView()
-                    Text("Loading Guide...")
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .padding()
-            } else if let error = errorMessage {
-                VStack(spacing: 20) {
-                    Image(systemName: "exclamationmark.triangle.fill")
-                        .font(.system(size: 50))
-                        .foregroundStyle(.red)
-                    
-                    Text("Failed to load guide")
-                        .font(.title2)
-                        .fontWeight(.semibold)
-                    
-                    Text(error)
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                        .multilineTextAlignment(.center)
-                        .padding(.horizontal)
-                    
-                    Button("Retry") {
-                        Task {
-                            await loadContent()
+        ZStack {
+            ScrollView {
+                if isLoading {
+                    VStack(spacing: 20) {
+                        ProgressView()
+                        Text("Loading Guide...")
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .padding()
+                } else if let error = errorMessage {
+                    VStack(spacing: 20) {
+                        Image(systemName: "exclamationmark.triangle.fill")
+                            .font(.system(size: 50))
+                            .foregroundStyle(.red)
+                        
+                        Text("Failed to load guide")
+                            .font(.title2)
+                            .fontWeight(.semibold)
+                        
+                        Text(error)
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                            .multilineTextAlignment(.center)
+                            .padding(.horizontal)
+                        
+                        Button("Retry") {
+                            Task {
+                                await loadContent()
+                            }
+                        }
+                        .buttonStyle(.bordered)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                } else if showingAIOutput, let aiParsed = aiParsedContent {
+                    // AI Output View
+                    VStack(alignment: .leading, spacing: 16) {
+                        // AI Output Header
+                        aiOutputHeader
+                        
+                        ForEach(aiParsed.elements) { element in
+                            renderElement(element)
                         }
                     }
-                    .buttonStyle(.bordered)
-                }
-                .frame(maxWidth: .infinity)
-                .padding()
-            } else if let parsed = parsedContent {
-                VStack(alignment: .leading, spacing: 16) {
-                    ForEach(parsed.elements) { element in
-                        renderElement(element)
+                    .padding()
+                } else if let parsed = parsedContent {
+                    VStack(alignment: .leading, spacing: 16) {
+                        ForEach(parsed.elements) { element in
+                            renderElement(element)
+                        }
                     }
+                    .padding()
                 }
-                .padding()
+            }
+            
+            // AI Processing Overlay
+            if isProcessingAI {
+                aiProcessingOverlay
             }
         }
         .navigationTitle(guide.displayName)
         .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .navigationBarTrailing) {
+                if isAIEnabled {
+                    aiButton
+                }
+            }
+        }
         .task {
             await loadContent()
         }
+        .confirmationDialog("AI Actions", isPresented: $showingAIActionSheet, titleVisibility: .visible) {
+            ForEach(AIAction.allCases) { action in
+                Button(action.displayName) {
+                    if action == .describeGuide {
+                        showingDescribeGuideInput = true
+                    } else {
+                        Task {
+                            await processAIAction(action)
+                        }
+                    }
+                }
+            }
+            Button("Cancel", role: .cancel) {}
+        }
+        .alert("Describe Guide", isPresented: $showingDescribeGuideInput) {
+            TextField("Enter your instruction...", text: $describeGuideInstruction)
+            Button("Cancel", role: .cancel) {
+                describeGuideInstruction = ""
+            }
+            Button("Process") {
+                Task {
+                    await processAIAction(.describeGuide, customInstruction: describeGuideInstruction)
+                    describeGuideInstruction = ""
+                }
+            }
+        } message: {
+            Text("Enter a custom instruction describing what you want done with the guide.")
+        }
+        .alert("AI Error", isPresented: Binding(
+            get: { aiError != nil },
+            set: { if !$0 { aiError = nil } }
+        )) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            if let error = aiError {
+                Text(error)
+            }
+        }
+    }
+    
+    @ViewBuilder
+    private var aiButton: some View {
+        Button {
+            if isAIAvailable {
+                showingAIActionSheet = true
+            } else {
+                aiError = GuideAIService.shared.getAvailabilityStatus(for: guide.id)
+            }
+        } label: {
+            Image(systemName: "sparkles")
+                .foregroundStyle(isAIAvailable ? accentColor : .secondary)
+        }
+        .disabled(isProcessingAI)
+    }
+    
+    @ViewBuilder
+    private var aiOutputHeader: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack {
+                Image(systemName: "sparkles")
+                    .foregroundStyle(.purple)
+                Text("AI Generated Content")
+                    .font(.headline)
+                    .foregroundStyle(.purple)
+                Spacer()
+                Button {
+                    withAnimation {
+                        showingAIOutput = false
+                        aiParsedContent = nil
+                        aiOutputContent = nil
+                    }
+                } label: {
+                    Image(systemName: "xmark.circle.fill")
+                        .foregroundStyle(.secondary)
+                }
+            }
+            
+            if let engine = aiEngineUsed {
+                HStack(spacing: 4) {
+                    Text("Powered by")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                    Text(engine.displayName)
+                        .font(.caption)
+                        .fontWeight(.medium)
+                        .foregroundStyle(.secondary)
+                    if didFallback {
+                        Text("(fallback)")
+                            .font(.caption)
+                            .foregroundStyle(.orange)
+                    }
+                }
+            }
+        }
+        .padding()
+        .background(Color.purple.opacity(0.1))
+        .cornerRadius(12)
+    }
+    
+    @ViewBuilder
+    private var aiProcessingOverlay: some View {
+        ZStack {
+            Color.black.opacity(0.4)
+                .ignoresSafeArea()
+            
+            VStack(spacing: 16) {
+                ProgressView()
+                    .scaleEffect(1.5)
+                    .tint(.white)
+                
+                Text("Processing with AI...")
+                    .font(.headline)
+                    .foregroundStyle(.white)
+                
+                Text("This may take a moment")
+                    .font(.subheadline)
+                    .foregroundStyle(.white.opacity(0.8))
+            }
+            .padding(32)
+            .background(.ultraThinMaterial)
+            .cornerRadius(16)
+        }
+    }
+    
+    private func processAIAction(_ action: AIAction, customInstruction: String? = nil) async {
+        guard !content.isEmpty else {
+            aiError = "Guide content is not loaded"
+            return
+        }
+        
+        isProcessingAI = true
+        aiError = nil
+        
+        do {
+            let result = try await GuideAIService.shared.processGuide(
+                guideId: guide.id,
+                guideText: content,
+                action: action,
+                customInstruction: customInstruction
+            )
+            
+            aiOutputContent = result.content
+            aiParsedContent = GuideParser.parse(markdown: result.content)
+            aiEngineUsed = result.engineUsed
+            didFallback = result.didFallback
+            
+            withAnimation {
+                showingAIOutput = true
+            }
+            
+            HapticsManager.shared.success()
+        } catch {
+            aiError = error.localizedDescription
+            HapticsManager.shared.error()
+        }
+        
+        isProcessingAI = false
     }
     
     private func loadContent() async {
