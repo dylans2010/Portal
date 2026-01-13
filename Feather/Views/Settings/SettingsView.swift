@@ -68,6 +68,9 @@ struct SettingsView: View {
                     NavigationLink(destination: FilesSettingsView()) {
                         ConditionalLabel(title: .localized("Files"), systemImage: "folder")
                     }
+                    NavigationLink(destination: GuidesSettingsView()) {
+                        ConditionalLabel(title: .localized("Guides"), systemImage: "book")
+                    }
                     NavigationLink(destination: CertificatesView()) {
                         ConditionalLabel(title: .localized("Certificates"), systemImage: "checkmark.seal")
                     }
