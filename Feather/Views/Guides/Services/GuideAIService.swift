@@ -154,22 +154,22 @@ final class GuideAIService {
         let preference = settingsManager.getPreference(for: guideId)
         
         if !preference.aiEnabled {
-            return "AI disabled for this guide"
+            return "AI disabled for this guide. Enable it in Settings → Guides."
         }
         
         if preference.selectedEngine == .appleIntelligence {
             if appleIntelligence.isAvailable {
                 return "Apple Intelligence ready"
             } else if settingsManager.hasAPIKey {
-                return "Will use OpenRouter (Apple Intelligence unavailable)"
+                return "Will use OpenRouter (Apple Intelligence unavailable on this device)"
             } else {
-                return "Configure OpenRouter API key for fallback"
+                return "Apple Intelligence is not available on this device. Please configure an OpenRouter API key in Settings → Guides to use AI features."
             }
         } else {
             if settingsManager.hasAPIKey {
                 return "OpenRouter ready"
             } else {
-                return "Configure OpenRouter API key"
+                return "Please configure an OpenRouter API key in Settings → Guides to use AI features."
             }
         }
     }

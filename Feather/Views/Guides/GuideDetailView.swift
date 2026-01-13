@@ -39,7 +39,16 @@ struct GuideDetailView: View {
     }
     
     private var isAIAvailable: Bool {
-        GuideAIService.shared.isAIAvailable(for: guide.id)
+        // AI is available if either Apple Intelligence is supported OR OpenRouter API key is configured
+        let appleIntelligenceAvailable = AppleIntelligenceService.shared.isAvailable
+        let openRouterConfigured = aiSettingsManager.hasAPIKey
+        return appleIntelligenceAvailable || openRouterConfigured
+    }
+    
+    private var shouldShowAIButton: Bool {
+        // Always show the AI button if AI is enabled for this guide
+        // The button will indicate availability status when tapped
+        return isAIEnabled
     }
     
     var body: some View {
@@ -109,7 +118,7 @@ struct GuideDetailView: View {
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .navigationBarTrailing) {
-                if isAIEnabled {
+                if shouldShowAIButton {
                     aiButton
                 }
             }
