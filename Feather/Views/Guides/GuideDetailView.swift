@@ -27,7 +27,10 @@ struct GuideDetailView: View {
     @State private var aiEngineUsed: AIEngine?
     @State private var didFallback = false
     @State private var currentAIAction: AIAction?
+    @State private var streamingText: String = ""
+    @State private var isStreaming = false
     @ObservedObject private var aiSettingsManager = GuideAISettingsManager.shared
+    @Environment(\.colorScheme) private var colorScheme
     
     var accentColor: Color {
         if colorType == "gradient" {
@@ -52,6 +55,26 @@ struct GuideDetailView: View {
         // Always show the AI button if AI is enabled for this guide
         // The button will indicate availability status when tapped
         return isAIEnabled
+    }
+    
+    // Dynamic gradient colors based on theme and time
+    private var dynamicGradientColors: [Color] {
+        let hour = Calendar.current.component(.hour, from: Date())
+        let isDark = colorScheme == .dark
+        
+        if hour >= 6 && hour < 12 {
+            // Morning - warm tones
+            return isDark ? [.orange.opacity(0.3), .pink.opacity(0.2), .purple.opacity(0.1)] : [.orange.opacity(0.15), .pink.opacity(0.1), .yellow.opacity(0.05)]
+        } else if hour >= 12 && hour < 18 {
+            // Afternoon - vibrant
+            return isDark ? [.blue.opacity(0.3), .purple.opacity(0.2), .cyan.opacity(0.1)] : [.blue.opacity(0.15), .purple.opacity(0.1), .cyan.opacity(0.05)]
+        } else if hour >= 18 && hour < 22 {
+            // Evening - sunset
+            return isDark ? [.purple.opacity(0.3), .pink.opacity(0.2), .orange.opacity(0.1)] : [.purple.opacity(0.15), .pink.opacity(0.1), .orange.opacity(0.05)]
+        } else {
+            // Night - cool tones
+            return isDark ? [.indigo.opacity(0.3), .blue.opacity(0.2), .purple.opacity(0.1)] : [.indigo.opacity(0.15), .blue.opacity(0.1), .purple.opacity(0.05)]
+        }
     }
     
     var body: some View {
@@ -130,10 +153,12 @@ struct GuideDetailView: View {
             await loadContent()
         }
         .sheet(isPresented: $showingAIActionSheet) {
-            AIActionsSheet(
+            GlassmorphicAIActionsSheet(
                 isPresented: $showingAIActionSheet,
                 isAIAvailable: isAIAvailable,
+                accentColor: accentColor,
                 onActionSelected: { action in
+                    HapticsManager.shared.softImpact()
                     if action == .describeGuide {
                         showingAIActionSheet = false
                         DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
@@ -153,14 +178,19 @@ struct GuideDetailView: View {
                     }
                 }
             )
-            .presentationDetents([.medium, .large])
-            .presentationDragIndicator(.visible)
+            .presentationDetents([.fraction(0.55)])
+            .presentationDragIndicator(.hidden)
+            .presentationBackground(.ultraThinMaterial)
+            .presentationCornerRadius(32)
+            .interactiveDismissDisabled(false)
         }
         .sheet(isPresented: $showingDescribeGuideInput) {
-            CustomPromptSheet(
+            GlassmorphicCustomPromptSheet(
                 isPresented: $showingDescribeGuideInput,
                 instruction: $describeGuideInstruction,
+                accentColor: accentColor,
                 onSubmit: {
+                    HapticsManager.shared.softImpact()
                     showingDescribeGuideInput = false
                     currentAIAction = .describeGuide
                     Task {
@@ -169,42 +199,55 @@ struct GuideDetailView: View {
                     }
                 }
             )
-            .presentationDetents([.medium])
-            .presentationDragIndicator(.visible)
+            .presentationDetents([.fraction(0.45)])
+            .presentationDragIndicator(.hidden)
+            .presentationBackground(.ultraThinMaterial)
+            .presentationCornerRadius(32)
         }
         .sheet(isPresented: $showingTranslateSheet) {
-            TranslateSheet(
+            GlassmorphicTranslateSheet(
                 isPresented: $showingTranslateSheet,
                 selectedLanguage: $selectedLanguage,
+                accentColor: accentColor,
                 onSubmit: { language in
+                    HapticsManager.shared.softImpact()
                     showingTranslateSheet = false
                     currentAIAction = .translate
                     Task {
-                        await processAIAction(.translate, customInstruction: "Translate to \(language)")
+                        await processAIAction(.translate, customInstruction: language)
                         selectedLanguage = ""
                     }
                 }
             )
-            .presentationDetents([.medium])
-            .presentationDragIndicator(.visible)
+            .presentationDetents([.fraction(0.55)])
+            .presentationDragIndicator(.hidden)
+            .presentationBackground(.ultraThinMaterial)
+            .presentationCornerRadius(32)
         }
         .sheet(isPresented: Binding(
             get: { aiError != nil },
             set: { if !$0 { aiError = nil } }
         )) {
-            AIErrorSheet(
+            GlassmorphicErrorSheet(
                 error: aiError ?? "",
                 isAIAvailable: isAIAvailable,
-                onDismiss: { aiError = nil }
+                accentColor: accentColor,
+                onDismiss: { 
+                    HapticsManager.shared.softImpact()
+                    aiError = nil 
+                }
             )
-            .presentationDetents([.medium])
-            .presentationDragIndicator(.visible)
+            .presentationDetents([.fraction(0.35)])
+            .presentationDragIndicator(.hidden)
+            .presentationBackground(.ultraThinMaterial)
+            .presentationCornerRadius(32)
         }
     }
     
     @ViewBuilder
     private var aiButton: some View {
         Button {
+            HapticsManager.shared.softImpact()
             if isAIAvailable {
                 showingAIActionSheet = true
             } else {
@@ -213,6 +256,7 @@ struct GuideDetailView: View {
         } label: {
             Image(systemName: "sparkles")
                 .foregroundStyle(isAIAvailable ? accentColor : .secondary)
+                .symbolEffect(.pulse, options: .repeating, isActive: isAIAvailable)
         }
         .disabled(isProcessingAI)
     }
@@ -300,67 +344,158 @@ struct GuideDetailView: View {
     @ViewBuilder
     private var aiProcessingOverlay: some View {
         ZStack {
-            Color.black.opacity(0.5)
+            // Full screen frosted glass background
+            Rectangle()
+                .fill(.ultraThinMaterial)
                 .ignoresSafeArea()
             
-            VStack(spacing: 24) {
-                // Animated sparkles
-                ZStack {
-                    // Outer glow
-                    Circle()
-                        .fill(
-                            RadialGradient(
-                                colors: [.purple.opacity(0.3), .clear],
-                                center: .center,
-                                startRadius: 30,
-                                endRadius: 80
+            // Dynamic gradient overlay
+            LinearGradient(
+                colors: dynamicGradientColors,
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+            .ignoresSafeArea()
+            .opacity(0.5)
+            
+            VStack(spacing: 0) {
+                Spacer()
+                
+                // Header with animated icon
+                VStack(spacing: 20) {
+                    ZStack {
+                        // Outer glow rings
+                        ForEach(0..<3, id: \.self) { index in
+                            Circle()
+                                .stroke(
+                                    LinearGradient(
+                                        colors: [accentColor.opacity(0.3), accentColor.opacity(0.1)],
+                                        startPoint: .topLeading,
+                                        endPoint: .bottomTrailing
+                                    ),
+                                    lineWidth: 2
+                                )
+                                .frame(width: CGFloat(100 + index * 30), height: CGFloat(100 + index * 30))
+                                .scaleEffect(isProcessingAI ? 1.1 : 0.9)
+                                .opacity(isProcessingAI ? 0.3 : 0.6)
+                                .animation(
+                                    .easeInOut(duration: 1.5 + Double(index) * 0.3)
+                                    .repeatForever(autoreverses: true)
+                                    .delay(Double(index) * 0.2),
+                                    value: isProcessingAI
+                                )
+                        }
+                        
+                        // Spinning gradient ring
+                        Circle()
+                            .stroke(
+                                AngularGradient(
+                                    colors: [accentColor, accentColor.opacity(0.5), .purple, .pink, accentColor],
+                                    center: .center
+                                ),
+                                lineWidth: 4
                             )
-                        )
-                        .frame(width: 160, height: 160)
-                    
-                    // Spinning ring
-                    Circle()
-                        .stroke(
-                            AngularGradient(
-                                colors: [.purple, .pink, .blue, .purple],
-                                center: .center
-                            ),
-                            lineWidth: 3
-                        )
-                        .frame(width: 80, height: 80)
-                        .rotationEffect(.degrees(isProcessingAI ? 360 : 0))
-                        .animation(.linear(duration: 2).repeatForever(autoreverses: false), value: isProcessingAI)
-                    
-                    // Center icon
-                    Image(systemName: "sparkles")
-                        .font(.system(size: 32))
-                        .foregroundStyle(
-                            LinearGradient(
-                                colors: [.purple, .pink],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
+                            .frame(width: 80, height: 80)
+                            .rotationEffect(.degrees(isProcessingAI ? 360 : 0))
+                            .animation(.linear(duration: 3).repeatForever(autoreverses: false), value: isProcessingAI)
+                        
+                        // Center icon with pulse
+                        Image(systemName: "sparkles")
+                            .font(.system(size: 36, weight: .medium))
+                            .foregroundStyle(
+                                LinearGradient(
+                                    colors: [accentColor, .purple],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                )
                             )
-                        )
-                        .scaleEffect(isProcessingAI ? 1.1 : 0.9)
-                        .animation(.easeInOut(duration: 0.8).repeatForever(autoreverses: true), value: isProcessingAI)
+                            .scaleEffect(isProcessingAI ? 1.15 : 0.95)
+                            .animation(.easeInOut(duration: 1).repeatForever(autoreverses: true), value: isProcessingAI)
+                    }
+                    
+                    VStack(spacing: 6) {
+                        Text(getProcessingTitle())
+                            .font(.title2)
+                            .fontWeight(.bold)
+                            .foregroundStyle(.primary)
+                        
+                        Text("AI is generating content...")
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+                .padding(.bottom, 40)
+                
+                // Streaming text preview area
+                if isStreaming && !streamingText.isEmpty {
+                    VStack(alignment: .leading, spacing: 12) {
+                        HStack {
+                            Image(systemName: "text.cursor")
+                                .foregroundStyle(accentColor)
+                            Text("Writing...")
+                                .font(.caption)
+                                .fontWeight(.medium)
+                                .foregroundStyle(.secondary)
+                            Spacer()
+                        }
+                        
+                        ScrollView {
+                            Text(streamingText)
+                                .font(.system(.body, design: .rounded))
+                                .foregroundStyle(.primary)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .multilineTextAlignment(.leading)
+                        }
+                        .frame(maxHeight: 300)
+                    }
+                    .padding(20)
+                    .background(
+                        RoundedRectangle(cornerRadius: 20)
+                            .fill(.ultraThinMaterial)
+                            .shadow(color: .black.opacity(0.1), radius: 10, x: 0, y: 5)
+                    )
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 20)
+                            .stroke(
+                                LinearGradient(
+                                    colors: [accentColor.opacity(0.3), .clear],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                ),
+                                lineWidth: 1
+                            )
+                    )
+                    .padding(.horizontal, 24)
+                    .transition(.asymmetric(
+                        insertion: .move(edge: .bottom).combined(with: .opacity),
+                        removal: .opacity
+                    ))
                 }
                 
-                VStack(spacing: 8) {
-                    Text(getProcessingTitle())
-                        .font(.title3)
-                        .fontWeight(.semibold)
-                        .foregroundStyle(.white)
-                    
-                    Text("This may take a moment...")
-                        .font(.subheadline)
-                        .foregroundStyle(.white.opacity(0.7))
+                Spacer()
+                
+                // Cancel button
+                Button {
+                    HapticsManager.shared.softImpact()
+                    isProcessingAI = false
+                    isStreaming = false
+                    streamingText = ""
+                } label: {
+                    Text("Cancel")
+                        .font(.body)
+                        .fontWeight(.medium)
+                        .foregroundStyle(.secondary)
+                        .padding(.horizontal, 32)
+                        .padding(.vertical, 12)
+                        .background(
+                            Capsule()
+                                .fill(.ultraThinMaterial)
+                        )
                 }
+                .padding(.bottom, 50)
             }
-            .padding(40)
-            .background(.ultraThinMaterial)
-            .cornerRadius(24)
-            .shadow(color: .purple.opacity(0.3), radius: 20, x: 0, y: 10)
         }
+        .transition(.opacity)
     }
     
     private func getProcessingTitle() -> String {
@@ -1351,5 +1486,511 @@ struct LanguageButton: View {
             )
         }
         .buttonStyle(.plain)
+    }
+}
+
+// MARK: - Glassmorphic AI Actions Sheet (iOS 26 Style)
+struct GlassmorphicAIActionsSheet: View {
+    @Binding var isPresented: Bool
+    let isAIAvailable: Bool
+    let accentColor: Color
+    let onActionSelected: (AIAction) -> Void
+    
+    @State private var animateGradient = false
+    @Environment(\.colorScheme) private var colorScheme
+    
+    private let columns = [
+        GridItem(.flexible(), spacing: 12),
+        GridItem(.flexible(), spacing: 12)
+    ]
+    
+    var body: some View {
+        VStack(spacing: 0) {
+            // Drag indicator
+            Capsule()
+                .fill(Color.secondary.opacity(0.3))
+                .frame(width: 36, height: 5)
+                .padding(.top, 8)
+                .padding(.bottom, 16)
+            
+            // Header
+            VStack(spacing: 8) {
+                ZStack {
+                    // Animated gradient background
+                    Circle()
+                        .fill(
+                            LinearGradient(
+                                colors: [accentColor.opacity(0.3), .purple.opacity(0.2), .pink.opacity(0.1)],
+                                startPoint: animateGradient ? .topLeading : .bottomTrailing,
+                                endPoint: animateGradient ? .bottomTrailing : .topLeading
+                            )
+                        )
+                        .frame(width: 70, height: 70)
+                        .blur(radius: 15)
+                    
+                    Image(systemName: "wand.and.stars")
+                        .font(.system(size: 28, weight: .medium))
+                        .foregroundStyle(
+                            LinearGradient(
+                                colors: [accentColor, .purple],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                        )
+                }
+                
+                Text("AI Actions")
+                    .font(.title2)
+                    .fontWeight(.bold)
+                
+                Text("Transform your guide")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+            }
+            .padding(.bottom, 20)
+            
+            // Actions Grid
+            ScrollView(showsIndicators: false) {
+                LazyVGrid(columns: columns, spacing: 12) {
+                    ForEach(AIAction.allCases) { action in
+                        GlassmorphicActionButton(
+                            action: action,
+                            accentColor: accentColor
+                        ) {
+                            onActionSelected(action)
+                        }
+                    }
+                }
+                .padding(.horizontal, 20)
+                
+                if !isAIAvailable {
+                    HStack(spacing: 10) {
+                        Image(systemName: "exclamationmark.triangle.fill")
+                            .foregroundStyle(.orange)
+                        Text("Configure API key in Settings")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                    .padding()
+                    .frame(maxWidth: .infinity)
+                    .background(.ultraThinMaterial)
+                    .cornerRadius(12)
+                    .padding(.horizontal, 20)
+                    .padding(.top, 12)
+                }
+            }
+            
+            Spacer(minLength: 20)
+        }
+        .onAppear {
+            withAnimation(.easeInOut(duration: 3).repeatForever(autoreverses: true)) {
+                animateGradient = true
+            }
+        }
+    }
+}
+
+struct GlassmorphicActionButton: View {
+    let action: AIAction
+    let accentColor: Color
+    let onTap: () -> Void
+    
+    @State private var isPressed = false
+    
+    var body: some View {
+        Button {
+            onTap()
+        } label: {
+            VStack(spacing: 10) {
+                ZStack {
+                    RoundedRectangle(cornerRadius: 14)
+                        .fill(
+                            LinearGradient(
+                                colors: action.gradientColors.map { $0.opacity(0.8) },
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                        )
+                        .frame(width: 44, height: 44)
+                        .shadow(color: action.gradientColors.first?.opacity(0.3) ?? .clear, radius: 8, x: 0, y: 4)
+                    
+                    Image(systemName: action.systemImage)
+                        .font(.system(size: 18, weight: .semibold))
+                        .foregroundStyle(.white)
+                }
+                
+                VStack(spacing: 2) {
+                    Text(action.displayName)
+                        .font(.subheadline)
+                        .fontWeight(.semibold)
+                        .foregroundStyle(.primary)
+                    
+                    Text(action.description)
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(2)
+                        .multilineTextAlignment(.center)
+                }
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 14)
+            .padding(.horizontal, 8)
+            .background(.ultraThinMaterial)
+            .cornerRadius(16)
+            .overlay(
+                RoundedRectangle(cornerRadius: 16)
+                    .stroke(Color.white.opacity(0.1), lineWidth: 1)
+            )
+            .shadow(color: .black.opacity(0.05), radius: 5, x: 0, y: 2)
+            .scaleEffect(isPressed ? 0.96 : 1.0)
+        }
+        .buttonStyle(.plain)
+        .onLongPressGesture(minimumDuration: .infinity, pressing: { pressing in
+            withAnimation(.spring(response: 0.2)) {
+                isPressed = pressing
+            }
+        }, perform: {})
+    }
+}
+
+// MARK: - Glassmorphic Custom Prompt Sheet
+struct GlassmorphicCustomPromptSheet: View {
+    @Binding var isPresented: Bool
+    @Binding var instruction: String
+    let accentColor: Color
+    let onSubmit: () -> Void
+    
+    @FocusState private var isFocused: Bool
+    
+    var body: some View {
+        VStack(spacing: 0) {
+            // Drag indicator
+            Capsule()
+                .fill(Color.secondary.opacity(0.3))
+                .frame(width: 36, height: 5)
+                .padding(.top, 8)
+                .padding(.bottom, 20)
+            
+            // Header
+            VStack(spacing: 8) {
+                Image(systemName: "text.bubble.fill")
+                    .font(.system(size: 32))
+                    .foregroundStyle(
+                        LinearGradient(
+                            colors: [.purple, .indigo],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+                
+                Text("Custom Prompt")
+                    .font(.title2)
+                    .fontWeight(.bold)
+                
+                Text("Enter your instructions")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+            }
+            .padding(.bottom, 24)
+            
+            // Text input
+            TextField("What would you like the AI to do?", text: $instruction, axis: .vertical)
+                .textFieldStyle(.plain)
+                .padding()
+                .background(.ultraThinMaterial)
+                .cornerRadius(16)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 16)
+                        .stroke(accentColor.opacity(0.3), lineWidth: 1)
+                )
+                .focused($isFocused)
+                .lineLimit(3...6)
+                .padding(.horizontal, 20)
+            
+            Spacer()
+            
+            // Submit button
+            Button {
+                if !instruction.isEmpty {
+                    onSubmit()
+                }
+            } label: {
+                HStack {
+                    Image(systemName: "sparkles")
+                    Text("Process")
+                        .fontWeight(.semibold)
+                }
+                .frame(maxWidth: .infinity)
+                .padding()
+                .background(
+                    LinearGradient(
+                        colors: instruction.isEmpty ? [.gray, .secondary] : [.purple, .indigo],
+                        startPoint: .leading,
+                        endPoint: .trailing
+                    )
+                )
+                .foregroundStyle(.white)
+                .cornerRadius(16)
+            }
+            .disabled(instruction.isEmpty)
+            .padding(.horizontal, 20)
+            .padding(.bottom, 20)
+        }
+        .onAppear {
+            isFocused = true
+        }
+    }
+}
+
+// MARK: - Glassmorphic Translate Sheet
+struct GlassmorphicTranslateSheet: View {
+    @Binding var isPresented: Bool
+    @Binding var selectedLanguage: String
+    let accentColor: Color
+    let onSubmit: (String) -> Void
+    
+    @State private var showCustomLanguage = false
+    @State private var customLanguage = ""
+    @FocusState private var isCustomFocused: Bool
+    
+    static let languages: [(name: String, flag: String, code: String)] = [
+        ("Spanish", "🇪🇸", "es"),
+        ("French", "🇫🇷", "fr"),
+        ("German", "🇩🇪", "de"),
+        ("Italian", "🇮🇹", "it"),
+        ("Portuguese", "🇵🇹", "pt"),
+        ("Chinese", "🇨🇳", "zh"),
+        ("Japanese", "🇯🇵", "ja"),
+        ("Korean", "🇰🇷", "ko"),
+        ("Arabic", "🇸🇦", "ar"),
+        ("Russian", "🇷🇺", "ru"),
+        ("Hindi", "🇮🇳", "hi"),
+        ("Dutch", "🇳🇱", "nl")
+    ]
+    
+    var body: some View {
+        VStack(spacing: 0) {
+            // Drag indicator
+            Capsule()
+                .fill(Color.secondary.opacity(0.3))
+                .frame(width: 36, height: 5)
+                .padding(.top, 8)
+                .padding(.bottom, 16)
+            
+            // Header
+            VStack(spacing: 8) {
+                Image(systemName: "globe")
+                    .font(.system(size: 32))
+                    .foregroundStyle(
+                        LinearGradient(
+                            colors: [.green, .mint],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+                
+                Text("Translate")
+                    .font(.title2)
+                    .fontWeight(.bold)
+                
+                Text("Select target language")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+            }
+            .padding(.bottom, 20)
+            
+            // Language Grid
+            ScrollView(showsIndicators: false) {
+                LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 10) {
+                    ForEach(Self.languages, id: \.code) { language in
+                        GlassmorphicLanguageButton(
+                            name: language.name,
+                            flag: language.flag,
+                            isSelected: selectedLanguage == language.name,
+                            accentColor: accentColor
+                        ) {
+                            HapticsManager.shared.softImpact()
+                            selectedLanguage = language.name
+                            showCustomLanguage = false
+                            customLanguage = ""
+                        }
+                    }
+                }
+                .padding(.horizontal, 20)
+                
+                // Custom language option
+                Button {
+                    withAnimation(.spring(response: 0.3)) {
+                        showCustomLanguage.toggle()
+                        if showCustomLanguage {
+                            selectedLanguage = ""
+                            isCustomFocused = true
+                        }
+                    }
+                } label: {
+                    HStack {
+                        Image(systemName: "plus.circle.fill")
+                            .foregroundStyle(accentColor)
+                        Text("Other Language")
+                            .font(.subheadline)
+                            .fontWeight(.medium)
+                        Spacer()
+                        Image(systemName: showCustomLanguage ? "chevron.up" : "chevron.down")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                    .padding()
+                    .background(.ultraThinMaterial)
+                    .cornerRadius(12)
+                }
+                .buttonStyle(.plain)
+                .padding(.horizontal, 20)
+                .padding(.top, 8)
+                
+                if showCustomLanguage {
+                    TextField("Enter language name...", text: $customLanguage)
+                        .textFieldStyle(.plain)
+                        .padding()
+                        .background(.ultraThinMaterial)
+                        .cornerRadius(12)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 12)
+                                .stroke(accentColor.opacity(0.3), lineWidth: 1)
+                        )
+                        .focused($isCustomFocused)
+                        .onChange(of: customLanguage) { newValue in
+                            if !newValue.isEmpty {
+                                selectedLanguage = newValue
+                            }
+                        }
+                        .padding(.horizontal, 20)
+                        .transition(.move(edge: .top).combined(with: .opacity))
+                }
+            }
+            
+            // Translate button
+            Button {
+                if !selectedLanguage.isEmpty {
+                    onSubmit(selectedLanguage)
+                }
+            } label: {
+                HStack {
+                    Image(systemName: "sparkles")
+                    Text("Translate to \(selectedLanguage.isEmpty ? "..." : selectedLanguage)")
+                        .fontWeight(.semibold)
+                }
+                .frame(maxWidth: .infinity)
+                .padding()
+                .background(
+                    LinearGradient(
+                        colors: selectedLanguage.isEmpty ? [.gray, .secondary] : [.green, .mint],
+                        startPoint: .leading,
+                        endPoint: .trailing
+                    )
+                )
+                .foregroundStyle(.white)
+                .cornerRadius(16)
+            }
+            .disabled(selectedLanguage.isEmpty)
+            .padding(.horizontal, 20)
+            .padding(.vertical, 16)
+        }
+    }
+}
+
+struct GlassmorphicLanguageButton: View {
+    let name: String
+    let flag: String
+    let isSelected: Bool
+    let accentColor: Color
+    let onTap: () -> Void
+    
+    var body: some View {
+        Button(action: onTap) {
+            HStack(spacing: 8) {
+                Text(flag)
+                    .font(.title3)
+                
+                Text(name)
+                    .font(.subheadline)
+                    .fontWeight(.medium)
+                    .foregroundStyle(.primary)
+                    .lineLimit(1)
+                
+                Spacer()
+                
+                if isSelected {
+                    Image(systemName: "checkmark.circle.fill")
+                        .foregroundStyle(.green)
+                }
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 10)
+            .background(isSelected ? Color.green.opacity(0.15) : .ultraThinMaterial)
+            .cornerRadius(12)
+            .overlay(
+                RoundedRectangle(cornerRadius: 12)
+                    .stroke(isSelected ? Color.green.opacity(0.5) : Color.white.opacity(0.1), lineWidth: 1)
+            )
+        }
+        .buttonStyle(.plain)
+    }
+}
+
+// MARK: - Glassmorphic Error Sheet
+struct GlassmorphicErrorSheet: View {
+    let error: String
+    let isAIAvailable: Bool
+    let accentColor: Color
+    let onDismiss: () -> Void
+    
+    var body: some View {
+        VStack(spacing: 0) {
+            // Drag indicator
+            Capsule()
+                .fill(Color.secondary.opacity(0.3))
+                .frame(width: 36, height: 5)
+                .padding(.top, 8)
+                .padding(.bottom, 20)
+            
+            // Error icon
+            ZStack {
+                Circle()
+                    .fill(Color.orange.opacity(0.2))
+                    .frame(width: 70, height: 70)
+                
+                Image(systemName: "exclamationmark.triangle.fill")
+                    .font(.system(size: 32))
+                    .foregroundStyle(.orange)
+            }
+            .padding(.bottom, 16)
+            
+            Text("AI Unavailable")
+                .font(.title2)
+                .fontWeight(.bold)
+                .padding(.bottom, 8)
+            
+            Text(error)
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, 24)
+            
+            Spacer()
+            
+            Button {
+                onDismiss()
+            } label: {
+                Text("OK")
+                    .fontWeight(.semibold)
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .background(accentColor)
+                    .foregroundStyle(.white)
+                    .cornerRadius(16)
+            }
+            .padding(.horizontal, 20)
+            .padding(.bottom, 20)
+        }
     }
 }

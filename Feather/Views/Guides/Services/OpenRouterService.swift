@@ -237,7 +237,8 @@ final class OpenRouterService {
         case .simplify:
             return basePrompt + "\n\nYour task is to simplify the guide text. Make it easier to understand while preserving all important information. Use simpler words and shorter sentences."
         case .translate:
-            return basePrompt + "\n\nYour task is to translate the guide text. Detect the source language and translate to English if not English, or to the user's preferred language if specified. Maintain the original structure and meaning."
+            let targetLanguage = customInstruction ?? "English"
+            return basePrompt + "\n\nYour task is to translate the guide text to \(targetLanguage). Maintain the original structure, formatting, and meaning. Translate ALL content accurately to \(targetLanguage)."
         case .explain:
             return basePrompt + "\n\nYour task is to explain the guide content in detail. Break down complex concepts, provide context, and make sure the reader fully understands each part."
         case .summarize:
@@ -260,7 +261,8 @@ final class OpenRouterService {
         case .simplify:
             actionDescription = "Simplify the following guide text:"
         case .translate:
-            actionDescription = "Translate the following guide text:"
+            let targetLanguage = customInstruction ?? "English"
+            actionDescription = "Translate the following guide text to \(targetLanguage):"
         case .explain:
             actionDescription = "Explain the following guide text in detail:"
         case .summarize:
