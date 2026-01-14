@@ -155,7 +155,7 @@ struct AppearanceView: View {
 				NBSection(.localized("Experiments")) {
 					Toggle(.localized("Enable Liquid Glass"), isOn: $_ignoreSolariumLinkedOnCheck)
 				} footer: {
-					Text(.localized("This enables Liquid Glass for Portal, this requires Portal to restart in order for the changes to reflect."))
+					Text(.localized("This enables Liquid Glass UI for Portal, this requires Portal to restart in order for the changes to reflect."))
 				}
 			}
 		}

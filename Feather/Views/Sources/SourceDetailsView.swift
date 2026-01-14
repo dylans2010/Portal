@@ -238,7 +238,7 @@ struct SourceDetailsView: View {
     private func featuredNewsSection(news: [ASRepository.News]) -> some View {
         VStack(alignment: .leading, spacing: 16) {
             HStack {
-                Text("Featured")
+                Text("Source News")
                     .font(.system(size: 20, weight: .bold, design: .rounded))
                     .foregroundStyle(.white)
                 

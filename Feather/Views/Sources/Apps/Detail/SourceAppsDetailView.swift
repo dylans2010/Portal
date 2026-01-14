@@ -234,7 +234,7 @@ struct SourceAppsDetailView: View {
     private func whatsNewSection(version: String, description: String) -> some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
-                sectionHeader(title: .localized("What's New"), icon: "sparkles")
+                sectionHeader(title: .localized("What's New?"), icon: "sparkles")
                 Spacer()
                 if let versions = app.versions {
                     NavigationLink {

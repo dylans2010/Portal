@@ -1216,7 +1216,7 @@ struct AIErrorSheet: View {
                             HStack(spacing: 12) {
                                 Image(systemName: "3.circle.fill")
                                     .foregroundStyle(.blue)
-                                Text("Select an AI model")
+                                Text("Select An AI Model")
                                     .font(.subheadline)
                                 Spacer()
                             }
@@ -1323,7 +1323,7 @@ struct TranslateSheet: View {
                                 .font(.title)
                                 .fontWeight(.bold)
                             
-                            Text("Select your target language")
+                            Text("Select Language")
                                 .font(.subheadline)
                                 .foregroundStyle(.secondary)
                         }
@@ -1375,7 +1375,7 @@ struct TranslateSheet: View {
                         
                         if showCustomLanguage {
                             HStack {
-                                TextField("Enter language name...", text: $customLanguage)
+                                TextField("Enter Language Name", text: $customLanguage)
                                     .textFieldStyle(.plain)
                                     .focused($isCustomFocused)
                                     .onChange(of: customLanguage) { newValue in
@@ -1413,7 +1413,7 @@ struct TranslateSheet: View {
                     } label: {
                         HStack {
                             Image(systemName: "sparkles")
-                            Text("Translate to \(selectedLanguage.isEmpty ? "..." : selectedLanguage)")
+                            Text("Translate To \(selectedLanguage.isEmpty ? "..." : selectedLanguage)")
                                 .fontWeight(.semibold)
                         }
                         .frame(maxWidth: .infinity)
@@ -1539,7 +1539,7 @@ struct GlassmorphicAIActionsSheet: View {
                     .font(.title2)
                     .fontWeight(.bold)
                 
-                Text("Transform your guide")
+                Text("Make Guides Easier")
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
             }
@@ -1683,7 +1683,7 @@ struct GlassmorphicCustomPromptSheet: View {
                     .font(.title2)
                     .fontWeight(.bold)
                 
-                Text("Enter your instructions")
+                Text("Enter Instructions")
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
             }
@@ -1789,7 +1789,7 @@ struct GlassmorphicTranslateSheet: View {
                     .font(.title2)
                     .fontWeight(.bold)
                 
-                Text("Select target language")
+                Text("Select Target Language")
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
             }
@@ -1844,7 +1844,7 @@ struct GlassmorphicTranslateSheet: View {
                 .padding(.top, 8)
                 
                 if showCustomLanguage {
-                    TextField("Enter language name...", text: $customLanguage)
+                    TextField("Enter Language Name", text: $customLanguage)
                         .textFieldStyle(.plain)
                         .padding()
                         .background(.ultraThinMaterial)
@@ -1872,7 +1872,7 @@ struct GlassmorphicTranslateSheet: View {
             } label: {
                 HStack {
                     Image(systemName: "sparkles")
-                    Text("Translate to \(selectedLanguage.isEmpty ? "..." : selectedLanguage)")
+                    Text("Translate To \(selectedLanguage.isEmpty ? "..." : selectedLanguage)")
                         .fontWeight(.semibold)
                 }
                 .frame(maxWidth: .infinity)

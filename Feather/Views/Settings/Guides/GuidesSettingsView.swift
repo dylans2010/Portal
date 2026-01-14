@@ -199,7 +199,7 @@ struct GuidesSettingsView: View {
             
             // Custom Model Input
             HStack {
-                TextField("Custom model (e.g., provider/model-name)", text: $customModelInput)
+                TextField("Custom Model", text: $customModelInput)
                     .textFieldStyle(.plain)
                     .autocapitalization(.none)
                     .disableAutocorrection(true)
@@ -231,7 +231,7 @@ struct GuidesSettingsView: View {
             HStack {
                 Image(systemName: "doc.text")
                     .foregroundStyle(.blue)
-                Text("Per-Guide Settings")
+                Text("Per Guide Settings")
                     .font(.headline)
             }
             
@@ -265,7 +265,7 @@ struct GuidesSettingsView: View {
                     Image(systemName: "doc.text.magnifyingglass")
                         .font(.title)
                         .foregroundStyle(.secondary)
-                    Text("No guides available")
+                    Text("No Guides Available")
                         .foregroundStyle(.secondary)
                 }
                 .frame(maxWidth: .infinity)
@@ -285,13 +285,13 @@ struct GuidesSettingsView: View {
     
     private func getOverallStatus() -> String {
         if AppleIntelligenceService.shared.isAvailable && settingsManager.hasAPIKey {
-            return "All AI features available"
+            return "All AI Features Available"
         } else if AppleIntelligenceService.shared.isAvailable {
-            return "Apple Intelligence ready"
+            return "Apple Intelligence Ready"
         } else if settingsManager.hasAPIKey {
-            return "OpenRouter ready"
+            return "OpenRouter Ready"
         } else {
-            return "Configure API key to enable AI"
+            return "Configure API Key To Enable AI"
         }
     }
     

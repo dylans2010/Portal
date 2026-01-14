@@ -303,7 +303,7 @@ struct CheckForUpdatesView: View {
                                 .font(.headline)
                                 .foregroundStyle(.primary)
                             
-                            Text("Portal \(currentVersion) is the latest version")
+                            Text("Portal \(currentVersion) is the latest and version.")
                                 .font(.subheadline)
                                 .foregroundStyle(.secondary)
                         }
@@ -357,7 +357,7 @@ struct CheckForUpdatesView: View {
         VStack(alignment: .leading, spacing: 16) {
             // Header
             HStack {
-                Text("What's New")
+                Text("What's New?")
                     .font(.title3.bold())
                 
                 Spacer()
@@ -389,7 +389,7 @@ struct CheckForUpdatesView: View {
                 HStack(spacing: 6) {
                     Image(systemName: "calendar")
                         .font(.caption)
-                    Text("Released \(date.formatted(date: .abbreviated, time: .omitted))")
+                    Text("Released On \(date.formatted(date: .abbreviated, time: .omitted))")
                         .font(.caption)
                 }
                 .foregroundStyle(.secondary)
@@ -674,7 +674,7 @@ struct FullReleaseNotesView: View {
                     if let body = release.body, !body.isEmpty {
                         ModernMarkdownView(markdown: body)
                     } else {
-                        Text("No release notes available.")
+                        Text("No Release Notes Available.")
                             .font(.body)
                             .foregroundStyle(.secondary)
                             .italic()

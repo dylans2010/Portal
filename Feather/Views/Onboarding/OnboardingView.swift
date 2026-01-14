@@ -255,7 +255,7 @@ struct OnboardingViewLegacy: View {
                         HapticsManager.shared.success()
                     } label: {
                         HStack(spacing: 12) {
-                            Text("Get Started")
+                            Text("Let's Go!")
                                 .font(.system(size: 20, weight: .bold, design: .rounded))
                             
                             Image(systemName: "arrow.right.circle.fill")

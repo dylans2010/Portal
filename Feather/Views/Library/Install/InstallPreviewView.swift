@@ -169,7 +169,7 @@ struct InstallPreviewView: View {
 		guard isSharing || app.identifier != Bundle.main.bundleIdentifier! || _installationMethod == 1 else {
 			UIAlertController.showAlertWithOk(
 				title: .localized("Install"),
-				message: .localized("You cannot update '%@' with itself, please use an alternative tool to update it like a online signer.", arguments: Bundle.main.name)
+				message: .localized("You cannot update '%@' with itself, please use an alternative tool to update it like a online signer or diffrent app.", arguments: Bundle.main.name)
 			)
 			return
 		}

@@ -172,7 +172,7 @@ struct SourceAppsView: View {
         VStack(spacing: 16) {
             ProgressView()
                 .scaleEffect(1.2)
-            Text(.localized("Loading Apps..."))
+            Text(.localized("Loading Apps"))
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
         }
@@ -481,7 +481,7 @@ struct ModernAppListCard: View {
     }
     
     private var getButton: some View {
-        Text("GET")
+        Text("Download")
             .font(.system(size: 14, weight: .bold))
             .foregroundStyle(.white)
             .padding(.horizontal, 20)
@@ -587,7 +587,7 @@ struct ModernAppGridCard: View {
             Spacer(minLength: 0)
             
             // Get Button
-            Text("GET")
+            Text("Download")
                 .font(.system(size: 12, weight: .bold))
                 .foregroundStyle(.white)
                 .frame(maxWidth: .infinity)

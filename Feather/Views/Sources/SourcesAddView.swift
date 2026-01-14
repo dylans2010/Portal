@@ -432,7 +432,7 @@ struct SourcesAddView: View {
 			let malformedSources = _importedSources.filter { !$0.isValid }
 			if !malformedSources.isEmpty {
 				VStack(alignment: .leading, spacing: 12) {
-					Text(.localized("Malformed Sources"))
+					Text(.localized("Sources With Errors"))
 						.font(.headline)
 						.foregroundStyle(.white)
 						.padding(.horizontal, 4)
@@ -494,7 +494,7 @@ struct SourcesAddView: View {
 		let sources = Storage.shared.getSources()
 		
 		VStack(alignment: .leading, spacing: 16) {
-			Text(.localized("Select Sources to Export"))
+			Text(.localized("Select Sources To Export"))
 				.font(.headline)
 				.foregroundStyle(.primary)
 				.padding(.horizontal, 4)

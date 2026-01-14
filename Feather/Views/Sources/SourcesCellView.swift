@@ -88,7 +88,7 @@ struct SourcesCellView: View {
 					.lineLimit(1)
 				
 				if let appCount = viewModel.sources[source]?.apps.count, appCount > 0 {
-					Text("\(appCount) \(appCount == 1 ? "app" : "apps")")
+					Text("\(appCount) \(appCount == 1 ? "App" : "Apps")")
 						.font(.system(size: 10, weight: .regular))
 						.foregroundStyle(.secondary)
 				}

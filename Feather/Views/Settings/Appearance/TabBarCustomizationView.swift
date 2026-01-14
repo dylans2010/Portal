@@ -49,7 +49,7 @@ struct TabBarCustomizationView: View {
             } header: {
                 Text(.localized("Launch"))
             } footer: {
-                Text(.localized("Choose which tab opens by default when you launch the app."))
+                Text(.localized("Choose which tab opens by default when you launch the app (Beta)."))
             }
             .onChange(of: showHome) { _ in validateDefaultTab() }
             .onChange(of: showLibrary) { _ in validateDefaultTab() }
@@ -69,7 +69,7 @@ struct TabBarCustomizationView: View {
             } header: {
                 Text(.localized("Appearance"))
             } footer: {
-                Text(.localized("Hide text labels under tab bar icons for a cleaner look."))
+                Text(.localized("Hide the labels under tab bar icons for a cleaner look."))
             }
             
             // Reorder Section
@@ -103,7 +103,7 @@ struct TabBarCustomizationView: View {
                             Image(systemName: "arrow.counterclockwise")
                                 .foregroundStyle(.red)
                                 .frame(width: 24)
-                            Text(.localized("Reset to Default Order"))
+                            Text(.localized("Reset To Default Order"))
                         }
                     }
                     .foregroundStyle(.red)
@@ -127,7 +127,7 @@ struct TabBarCustomizationView: View {
             } header: {
                 Text(.localized("Visible Tabs"))
             } footer: {
-                Text(.localized("Choose which tabs appear in the bottom tab bar. Settings cannot be hidden and at least 2 tabs must be visible."))
+                Text(.localized("Choose which tabs appear in the bottom tab bar. Settings cannot be hidden."))
             }
         }
         .onAppear {

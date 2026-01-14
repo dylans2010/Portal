@@ -166,7 +166,7 @@ struct SourcesView: View {
                     .lineLimit(1)
                     .minimumScaleFactor(0.8)
                 
-                Text("Manage your sources")
+                Text("Manage Sources")
                     .font(.system(size: 12, weight: .medium))
                     .foregroundStyle(.secondary)
             }
@@ -337,7 +337,7 @@ struct SourcesView: View {
                         certificateSectionCard(
                             icon: "star.fill",
                             iconColor: .blue,
-                            title: "Future-Proof Choice",
+                            title: "Future Proof Choice",
                             description: "Developer certificates follow Apple's intended security model."
                         )
                     }
@@ -559,7 +559,7 @@ struct ModernSourceCardWithIcon: View {
                 }
                 
                 HStack(spacing: 6) {
-                    Text("\(appCount) \(appCount == 1 ? "app" : "apps")")
+                    Text("\(appCount) \(appCount == 1 ? "App" : "Apps")")
                         .font(.system(size: 13, weight: .regular))
                         .foregroundStyle(.secondary)
                 }
