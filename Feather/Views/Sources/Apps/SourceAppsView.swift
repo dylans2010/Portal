@@ -160,15 +160,10 @@ struct SourceAppsView: View {
     // MARK: - Background
     @ViewBuilder
     private var backgroundGradient: some View {
-        LinearGradient(
-            colors: [
-                Color(UIColor.systemBackground),
-                Color(UIColor.systemGroupedBackground).opacity(0.5)
-            ],
-            startPoint: .top,
-            endPoint: .bottom
-        )
-        .ignoresSafeArea()
+        // Use a single solid color that matches the navigation bar area
+        // to ensure seamless appearance from top to content
+        Color(UIColor.systemBackground)
+            .ignoresSafeArea()
     }
     
     // MARK: - Loading View

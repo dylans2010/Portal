@@ -24,6 +24,12 @@ struct ModernSigningView: View {
     @State private var _isAddingCertificatePresenting = false
     @State private var _selectedTab = 0
     
+    // Animation states
+    @State private var _appearAnimation = false
+    @State private var _headerScale: CGFloat = 0.8
+    @State private var _contentOpacity: Double = 0
+    @State private var _buttonOffset: CGFloat = 50
+    
     // MARK: Fetch
     @FetchRequest(
         entity: CertificatePair.entity(),
@@ -62,9 +68,12 @@ struct ModernSigningView: View {
                 VStack(spacing: 0) {
                     // Header with app info
                     headerSection
+                        .scaleEffect(_headerScale)
+                        .opacity(_contentOpacity)
                     
                     // Tab selector
                     tabSelector
+                        .opacity(_contentOpacity)
                     
                     // Content based on selected tab
                     TabView(selection: $_selectedTab) {
@@ -78,21 +87,25 @@ struct ModernSigningView: View {
                             .tag(2)
                     }
                     .tabViewStyle(.page(indexDisplayMode: .never))
+                    .opacity(_contentOpacity)
                     
                     // Sign button
                     signButton
+                        .offset(y: _buttonOffset)
+                        .opacity(_contentOpacity)
                 }
             }
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
                     Button {
-                        dismiss()
+                        dismissWithAnimation()
                     } label: {
                         Image(systemName: "xmark.circle.fill")
                             .font(.title2)
                             .foregroundStyle(.secondary)
                     }
+                    .opacity(_contentOpacity)
                 }
                 
                 ToolbarItem(placement: .topBarTrailing) {
@@ -103,6 +116,7 @@ struct ModernSigningView: View {
                         Text("Reset")
                             .font(.subheadline.weight(.medium))
                     }
+                    .opacity(_contentOpacity)
                 }
             }
             .sheet(isPresented: $_isAltPickerPresenting) {
@@ -193,7 +207,27 @@ struct ModernSigningView: View {
                    let newName = _temporaryOptions.displayNames[currentName] {
                     _temporaryOptions.appName = newName
                 }
+                
+                // Trigger entrance animation
+                withAnimation(.spring(response: 0.6, dampingFraction: 0.8)) {
+                    _headerScale = 1.0
+                    _contentOpacity = 1.0
+                    _buttonOffset = 0
+                    _appearAnimation = true
+                }
             }
+        }
+    }
+    
+    // MARK: - Dismiss with Animation
+    private func dismissWithAnimation() {
+        withAnimation(.easeOut(duration: 0.25)) {
+            _headerScale = 0.9
+            _contentOpacity = 0
+            _buttonOffset = 30
+        }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+            dismiss()
         }
     }
     
@@ -598,8 +632,17 @@ struct ModernSigningView: View {
         }
         
         HapticsManager.shared.impact()
-        _isSigning = true
-        _isSigningProcessPresented = true
+        
+        // Animate out before showing signing process
+        withAnimation(.easeOut(duration: 0.2)) {
+            _headerScale = 0.95
+            _contentOpacity = 0.5
+        }
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+            _isSigning = true
+            _isSigningProcessPresented = true
+        }
         
         if _serverMethod == 2 {
             // Custom API - uses remote signing with custom endpoint

@@ -134,8 +134,8 @@ struct StatusBarOverlay: View {
     
     private func getAlignment(for type: String) -> Alignment {
         switch type {
-        case "leading": return .leading
-        case "trailing": return .trailing
+        case "leading", "left": return .leading
+        case "trailing", "right": return .trailing
         default: return .center
         }
     }
@@ -229,7 +229,7 @@ struct StatusBarOverlay: View {
                     .allowsHitTesting(false)
                 
                 VStack(spacing: 0) {
-                    HStack(spacing: 0) {
+                    ZStack {
                         // Time display with its own layout
                         if showTime {
                             HStack {
@@ -248,6 +248,7 @@ struct StatusBarOverlay: View {
                                     Spacer()
                                 }
                             }
+                            .frame(maxWidth: .infinity)
                         }
                         
                         // Custom text with its own layout
@@ -267,6 +268,7 @@ struct StatusBarOverlay: View {
                                     Spacer()
                                 }
                             }
+                            .frame(maxWidth: .infinity)
                         }
 
                         // SF Symbol with its own layout
@@ -286,6 +288,7 @@ struct StatusBarOverlay: View {
                                     Spacer()
                                 }
                             }
+                            .frame(maxWidth: .infinity)
                         }
                         
                         // Battery display with its own layout (new standalone)
@@ -315,6 +318,7 @@ struct StatusBarOverlay: View {
                                     Spacer()
                                 }
                             }
+                            .frame(maxWidth: .infinity)
                         }
                         
                         // Widget display with its own layout (legacy support)
@@ -334,6 +338,7 @@ struct StatusBarOverlay: View {
                                     Spacer()
                                 }
                             }
+                            .frame(maxWidth: .infinity)
                         }
                     }
                     .padding(.horizontal, 12)
