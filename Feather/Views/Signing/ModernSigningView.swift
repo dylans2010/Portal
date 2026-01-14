@@ -266,30 +266,39 @@ struct ModernSigningView: View {
     @ViewBuilder
     private var tabSelector: some View {
         HStack(spacing: 0) {
-            ForEach(0..<3) { index in
-                Button {
-                    withAnimation(.easeInOut(duration: 0.2)) {
-                        _selectedTab = index
-                    }
-                } label: {
-                    VStack(spacing: 6) {
-                        Image(systemName: tabIcon(for: index))
-                            .font(.system(size: 18))
-                        Text(tabTitle(for: index))
-                            .font(.caption.weight(.medium))
-                    }
-                    .foregroundStyle(_selectedTab == index ? .accentColor : .secondary)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 12)
-                    .background(
-                        RoundedRectangle(cornerRadius: 12, style: .continuous)
-                            .fill(_selectedTab == index ? Color.accentColor.opacity(0.1) : Color.clear)
-                    )
-                }
-            }
+            tabButton(index: 0)
+            tabButton(index: 1)
+            tabButton(index: 2)
         }
         .padding(.horizontal, 16)
         .padding(.bottom, 8)
+    }
+    
+    @ViewBuilder
+    private func tabButton(index: Int) -> some View {
+        let isSelected = _selectedTab == index
+        let iconName = tabIcon(for: index)
+        let title = tabTitle(for: index)
+        
+        Button {
+            withAnimation(.easeInOut(duration: 0.2)) {
+                _selectedTab = index
+            }
+        } label: {
+            VStack(spacing: 6) {
+                Image(systemName: iconName)
+                    .font(.system(size: 18))
+                Text(title)
+                    .font(.caption.weight(.medium))
+            }
+            .foregroundColor(isSelected ? .accentColor : .secondary)
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 12)
+            .background(
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .fill(isSelected ? Color.accentColor.opacity(0.1) : Color.clear)
+            )
+        }
     }
     
     private func tabIcon(for index: Int) -> String {
@@ -351,7 +360,7 @@ struct ModernSigningView: View {
                         .frame(width: 36, height: 36)
                     Image(systemName: icon)
                         .font(.system(size: 14, weight: .semibold))
-                        .foregroundStyle(.accentColor)
+                        .foregroundColor(.accentColor)
                 }
                 
                 VStack(alignment: .leading, spacing: 2) {
@@ -394,10 +403,10 @@ struct ModernSigningView: View {
                             }
                             
                             VStack(alignment: .leading, spacing: 4) {
-                                Text(cert.name ?? "Certificate")
+                                Text(cert.nickname ?? "Certificate")
                                     .font(.headline)
                                     .foregroundStyle(.primary)
-                                Text(cert.teamName ?? "Unknown Team")
+                                Text(cert.provisioningFile ?? "Unknown Team")
                                     .font(.caption)
                                     .foregroundStyle(.secondary)
                             }
@@ -475,22 +484,18 @@ struct ModernSigningView: View {
                 }
                 
                 NavigationLink {
-                    SigningTweaksView(options: $_temporaryOptions.optional())
+                    SigningTweaksView(options: $_temporaryOptions)
                 } label: {
-                    advancedRow(title: "Inject Tweaks", icon: "syringe", color: .green)
+                    advancedRow(title: "Inject Tweaks", icon: "wrench.and.screwdriver", color: .green)
                 }
                 
+                #if NIGHTLY || DEBUG
                 NavigationLink {
-                    SigningEntitlementsView(app: app, options: $_temporaryOptions.optional())
+                    SigningEntitlementsView(bindingValue: $_temporaryOptions.appEntitlementsFile)
                 } label: {
-                    advancedRow(title: "Entitlements", icon: "lock.shield", color: .orange)
+                    advancedRow(title: "Entitlements (BETA)", icon: "lock.shield", color: .orange)
                 }
-                
-                NavigationLink {
-                    SigningPropertiesView(app: app, options: $_temporaryOptions.optional())
-                } label: {
-                    advancedRow(title: "Properties", icon: "doc.text", color: .cyan)
-                }
+                #endif
             }
             .padding(.horizontal, 16)
             .padding(.vertical, 12)

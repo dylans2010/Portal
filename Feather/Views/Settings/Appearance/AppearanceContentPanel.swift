@@ -98,7 +98,7 @@ struct AppearanceContentPanel: View {
                     Spacer()
                     Image(systemName: viewModel.sfSymbol)
                         .font(.title2)
-                        .foregroundStyle(.accentColor)
+                        .foregroundColor(.accentColor)
                     Text(viewModel.sfSymbol)
                         .foregroundStyle(.secondary)
                         .font(.caption)

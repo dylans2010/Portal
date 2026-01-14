@@ -15,7 +15,6 @@ struct ExtendedTabbarView: View {
 	@AppStorage("Feather.tabBar.guides") private var showGuides = true
 	@AppStorage("Feather.tabBar.order") private var tabOrder: String = "home,guides,library,files,settings"
 	@AppStorage("Feather.tabBar.hideLabels") private var hideTabLabels = false
-	@AppStorage("Feather.tabBar.defaultTab") private var defaultTab: String = "home"
 	@AppStorage("Feather.certificateExperience") private var certificateExperience: String = "Developer"
 	@AppStorage("forceShowGuides") private var forceShowGuides = false
 	@StateObject var viewModel = SourcesViewModel.shared
@@ -23,8 +22,6 @@ struct ExtendedTabbarView: View {
 	@State private var _isAddingPresenting = false
 	@State private var showInstallModifySheet = false
 	@State private var appToInstall: (any AppInfoPresentable)?
-	@State private var selectedTab: TabEnum = .home
-	@State private var hasSetInitialTab = false
 	
 	@FetchRequest(
 		entity: AltSource.entity(),
@@ -72,29 +69,12 @@ struct ExtendedTabbarView: View {
 		
 		return sortedTabs
 	}
-	
-	private var initialTab: TabEnum {
-		switch defaultTab {
-		case "home": return visibleTabs.contains(.home) ? .home : visibleTabs.first ?? .settings
-		case "library": return visibleTabs.contains(.library) ? .library : visibleTabs.first ?? .settings
-		case "files": return visibleTabs.contains(.files) ? .files : visibleTabs.first ?? .settings
-		case "guides": return visibleTabs.contains(.guides) ? .guides : visibleTabs.first ?? .settings
-		case "settings": return .settings
-		default: return visibleTabs.first ?? .settings
-		}
-	}
 		
 	var body: some View {
-		TabView(selection: $selectedTab) {
+		TabView {
 			ForEach(visibleTabs, id: \.hashValue) { tab in
-				Tab(value: tab) {
+				Tab(hideTabLabels ? "" : tab.title, systemImage: tab.icon) {
 					TabEnum.view(for: tab)
-				} label: {
-					if hideTabLabels {
-						Image(systemName: tab.icon)
-					} else {
-						Label(tab.title, systemImage: tab.icon)
-					}
 				}
 			}
 			
@@ -130,12 +110,6 @@ struct ExtendedTabbarView: View {
 		}
 		.tabViewStyle(.sidebarAdaptable)
 		.tabViewCustomization($customization)
-		.onAppear {
-			if !hasSetInitialTab {
-				selectedTab = initialTab
-				hasSetInitialTab = true
-			}
-		}
 		.sheet(isPresented: $_isAddingPresenting) {
 			SourcesAddView()
 				.presentationDetents([.medium, .large])
