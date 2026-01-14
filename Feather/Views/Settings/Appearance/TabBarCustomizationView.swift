@@ -9,14 +9,53 @@ struct TabBarCustomizationView: View {
     @AppStorage("Feather.tabBar.guides") private var showGuides = true
     @AppStorage("Feather.tabBar.order") private var tabOrder: String = "home,guides,library,files,settings"
     @AppStorage("Feather.tabBar.hideLabels") private var hideTabLabels = false
+    @AppStorage("Feather.tabBar.defaultTab") private var defaultTab: String = "home"
     // Settings cannot be disabled
     
     @State private var showMinimumWarning = false
     @State private var orderedTabs: [String] = []
     @State private var isReordering = false
     
+    private var availableDefaultTabs: [String] {
+        var tabs: [String] = []
+        if showHome { tabs.append("home") }
+        if showGuides { tabs.append("guides") }
+        if showLibrary { tabs.append("library") }
+        if showFiles { tabs.append("files") }
+        tabs.append("settings")
+        return tabs
+    }
+    
     var body: some View {
         NBList(.localized("Tab Bar")) {
+            // Default Tab Section
+            Section {
+                Picker(selection: $defaultTab) {
+                    ForEach(availableDefaultTabs, id: \.self) { tabId in
+                        HStack {
+                            tabIcon(for: tabId)
+                            Text(tabName(for: tabId))
+                        }
+                        .tag(tabId)
+                    }
+                } label: {
+                    HStack {
+                        Image(systemName: "house.circle.fill")
+                            .foregroundStyle(.green)
+                            .frame(width: 24)
+                        Text(.localized("Default Tab"))
+                    }
+                }
+            } header: {
+                Text(.localized("Launch"))
+            } footer: {
+                Text(.localized("Choose which tab opens by default when you launch the app."))
+            }
+            .onChange(of: showHome) { _ in validateDefaultTab() }
+            .onChange(of: showLibrary) { _ in validateDefaultTab() }
+            .onChange(of: showFiles) { _ in validateDefaultTab() }
+            .onChange(of: showGuides) { _ in validateDefaultTab() }
+            
             // Tab Labels Section
             Section {
                 Toggle(isOn: $hideTabLabels) {
@@ -285,5 +324,12 @@ struct TabBarCustomizationView: View {
             }
         }
         return true
+    }
+    
+    private func validateDefaultTab() {
+        // If the current default tab is no longer available, reset to first available
+        if !availableDefaultTabs.contains(defaultTab) {
+            defaultTab = availableDefaultTabs.first ?? "settings"
+        }
     }
 }

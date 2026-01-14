@@ -36,6 +36,10 @@ struct DownloadsPortalResponse: Codable {
         case downloads, items, files, data
     }
     
+    init(downloads: [DownloadsPortalItem] = []) {
+        self.downloads = downloads
+    }
+    
     init(from decoder: Decoder) throws {
         // Try multiple possible JSON structures
         if let container = try? decoder.container(keyedBy: CodingKeys.self) {
@@ -71,6 +75,11 @@ struct DownloadsPortalResponse: Codable {
         // If all else fails, return empty array
         downloads = []
     }
+    
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(downloads, forKey: .downloads)
+    }
 }
 
 // MARK: - Downloads Portal Service
@@ -100,10 +109,10 @@ class DownloadsPortalService: ObservableObject {
             
             AppLogManager.shared.debug("Fetching data from URL...", category: "Downloads")
             
-            let (data, response) = try await URLSession.shared.data(from: url)
+            let (data, urlResponse) = try await URLSession.shared.data(from: url)
             
             // Log HTTP response
-            if let httpResponse = response as? HTTPURLResponse {
+            if let httpResponse = urlResponse as? HTTPURLResponse {
                 AppLogManager.shared.info("HTTP Status Code: \(httpResponse.statusCode)", category: "Downloads")
                 
                 if httpResponse.statusCode != 200 {
@@ -141,17 +150,17 @@ class DownloadsPortalService: ObservableObject {
             
             // Try to decode the response
             let decoder = JSONDecoder()
-            let response = try decoder.decode(DownloadsPortalResponse.self, from: data)
+            let decodedResponse = try decoder.decode(DownloadsPortalResponse.self, from: data)
             
             await MainActor.run {
-                self.items = response.downloads
+                self.items = decodedResponse.downloads
                 self.isLoading = false
             }
             
-            AppLogManager.shared.success("Successfully loaded \(response.downloads.count) download items", category: "Downloads")
+            AppLogManager.shared.success("Successfully loaded \(decodedResponse.downloads.count) download items", category: "Downloads")
             
             // Log each item
-            for (index, item) in response.downloads.enumerated() {
+            for (index, item) in decodedResponse.downloads.enumerated() {
                 AppLogManager.shared.debug("Item \(index + 1): \(item.name) - \(item.url)", category: "Downloads")
             }
             

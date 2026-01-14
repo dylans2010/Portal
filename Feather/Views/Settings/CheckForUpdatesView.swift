@@ -1017,7 +1017,52 @@ class DownloadDelegate: NSObject, URLSessionDownloadDelegate {
     }
     
     func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask, didFinishDownloadingTo location: URL) {
-        manager?.downloadCompleted(at: location)
+        // IMPORTANT: The temp file at `location` is deleted immediately after this method returns.
+        // We must copy/move the file synchronously before returning.
+        
+        guard let manager = manager else { return }
+        
+        let fileManager = FileManager.default
+        let documentsPath = fileManager.urls(for: .documentDirectory, in: .userDomainMask)[0]
+        let fileName = manager.downloadedFileName.isEmpty ? "Portal-Update.ipa" : manager.downloadedFileName
+        let destinationURL = documentsPath.appendingPathComponent(fileName)
+        
+        do {
+            // Ensure documents directory exists
+            if !fileManager.fileExists(atPath: documentsPath.path) {
+                try fileManager.createDirectory(at: documentsPath, withIntermediateDirectories: true)
+            }
+            
+            // Remove existing file if present
+            if fileManager.fileExists(atPath: destinationURL.path) {
+                try fileManager.removeItem(at: destinationURL)
+            }
+            
+            // Copy the file synchronously (must happen before this method returns)
+            try fileManager.copyItem(at: location, to: destinationURL)
+            
+            // Now dispatch to main queue for UI updates
+            DispatchQueue.main.async {
+                manager.downloadedIPAURL = destinationURL
+                manager.isDownloading = false
+                manager.downloadProgress = 1.0
+                manager.showUpdateFinished = true
+                
+                HapticsManager.shared.success()
+                AppLogManager.shared.success("Update downloaded successfully: \(destinationURL.path)", category: "Updates")
+                
+                // Clear forced update flag
+                UserDefaults.standard.set(false, forKey: "dev.forceShowUpdate")
+            }
+        } catch {
+            DispatchQueue.main.async {
+                manager.isDownloading = false
+                manager.downloadProgress = 0.0
+                manager.errorMessage = "Failed to save update: \(error.localizedDescription)"
+                HapticsManager.shared.error()
+                AppLogManager.shared.error("Failed to save update: \(error.localizedDescription)", category: "Updates")
+            }
+        }
     }
     
     func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask, didWriteData bytesWritten: Int64, totalBytesWritten: Int64, totalBytesExpectedToWrite: Int64) {

@@ -7,11 +7,13 @@ struct TabbarView: View {
 	@AppStorage("Feather.tabBar.library") private var showLibrary = true
 	@AppStorage("Feather.tabBar.files") private var showFiles = false
 	@AppStorage("Feather.tabBar.guides") private var showGuides = true
+	@AppStorage("Feather.tabBar.defaultTab") private var defaultTab: String = "home"
 	@AppStorage("Feather.certificateExperience") private var certificateExperience: String = "Developer"
 	@AppStorage("forceShowGuides") private var forceShowGuides = false
 	
 	@State private var showInstallModifySheet = false
 	@State private var appToInstall: (any AppInfoPresentable)?
+	@State private var hasSetInitialTab = false
 	
 	var visibleTabs: [TabEnum] {
 		var tabs: [TabEnum] = []
@@ -25,6 +27,17 @@ struct TabbarView: View {
 		tabs.append(.settings) // Always show settings
 		return tabs
 	}
+	
+	private var initialTab: TabEnum {
+		switch defaultTab {
+		case "home": return visibleTabs.contains(.home) ? .home : visibleTabs.first ?? .settings
+		case "library": return visibleTabs.contains(.library) ? .library : visibleTabs.first ?? .settings
+		case "files": return visibleTabs.contains(.files) ? .files : visibleTabs.first ?? .settings
+		case "guides": return visibleTabs.contains(.guides) ? .guides : visibleTabs.first ?? .settings
+		case "settings": return .settings
+		default: return visibleTabs.first ?? .settings
+		}
+	}
 
 	var body: some View {
 		TabView(selection: $selectedTab) {
@@ -34,6 +47,12 @@ struct TabbarView: View {
 						ConditionalLabel(title: LocalizedStringKey(tab.title), systemImage: tab.icon)
 					}
 					.tag(tab)
+			}
+		}
+		.onAppear {
+			if !hasSetInitialTab {
+				selectedTab = initialTab
+				hasSetInitialTab = true
 			}
 		}
 		.sheet(isPresented: $showInstallModifySheet) {

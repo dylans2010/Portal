@@ -13,6 +13,45 @@ extension Storage {
 		return (try? context.fetch(request)) ?? []
 	}
 	
+	/// Add a source from a URL string - fetches repository data automatically
+	func addSource(url urlString: String) {
+		guard let url = URL(string: urlString) else {
+			Logger.misc.error("Invalid URL string: \(urlString)")
+			return
+		}
+		
+		// Check if source already exists
+		if sourceExists(urlString) {
+			Logger.misc.debug("Source already exists: \(urlString)")
+			return
+		}
+		
+		// Fetch repository data and add source
+		Task {
+			do {
+				let (data, _) = try await URLSession.shared.data(from: url)
+				let repository = try JSONDecoder().decode(ASRepository.self, from: data)
+				
+				await MainActor.run {
+					self.addSource(url, repository: repository, id: urlString) { error in
+						if let error = error {
+							Logger.misc.error("Failed to add source: \(error.localizedDescription)")
+						}
+					}
+				}
+			} catch {
+				// If fetching fails, add with minimal info
+				await MainActor.run {
+					self.addSource(url, name: "Unknown", identifier: urlString, iconURL: nil, deferSave: false) { error in
+						if let error = error {
+							Logger.misc.error("Failed to add source: \(error.localizedDescription)")
+						}
+					}
+				}
+			}
+		}
+	}
+	
 	func addSource(
 		_ url: URL,
 		name: String? = "Unknown",

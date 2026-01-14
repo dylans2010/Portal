@@ -168,9 +168,53 @@ class StatusBarViewModel: ObservableObject {
     // Animation
     @AppStorage("statusBar.enableAnimation") var enableAnimation: Bool = false
     @AppStorage("statusBar.animationType") var animationType: String = "bounce"
+    @AppStorage("statusBar.animationDuration") var animationDuration: Double = 0.3
+    @AppStorage("statusBar.animationDelay") var animationDelay: Double = 0.0
     
     // System Integration
     @AppStorage("statusBar.hideDefaultStatusBar") var hideDefaultStatusBar: Bool = true
+    
+    // Advanced Features
+    @AppStorage("statusBar.showDate") var showDate: Bool = false
+    @AppStorage("statusBar.dateFormat") var dateFormat: String = "short" // short, medium, long, custom
+    @AppStorage("statusBar.customDateFormat") var customDateFormat: String = "MMM d"
+    @AppStorage("statusBar.showWeekday") var showWeekday: Bool = false
+    
+    // Network Status
+    @AppStorage("statusBar.showNetworkStatus") var showNetworkStatus: Bool = false
+    @AppStorage("statusBar.networkIconStyle") var networkIconStyle: String = "bars" // bars, dot, text
+    
+    // Memory/Performance
+    @AppStorage("statusBar.showMemoryUsage") var showMemoryUsage: Bool = false
+    @AppStorage("statusBar.memoryDisplayStyle") var memoryDisplayStyle: String = "percentage" // percentage, mb, both
+    
+    // Gradient Text
+    @AppStorage("statusBar.useGradientText") var useGradientText: Bool = false
+    @AppStorage("statusBar.gradientStartColor") var gradientStartColorHex: String = "#007AFF"
+    @AppStorage("statusBar.gradientEndColor") var gradientEndColorHex: String = "#5856D6"
+    @AppStorage("statusBar.gradientAngle") var gradientAngle: Double = 0
+    
+    // Glow Effect
+    @AppStorage("statusBar.enableGlow") var enableGlow: Bool = false
+    @AppStorage("statusBar.glowColor") var glowColorHex: String = "#007AFF"
+    @AppStorage("statusBar.glowRadius") var glowRadius: Double = 4
+    @AppStorage("statusBar.glowIntensity") var glowIntensity: Double = 0.5
+    
+    // Blur Style
+    @AppStorage("statusBar.blurStyle") var blurStyle: String = "regular" // regular, thin, thick, chrome, material
+    
+    // Auto-hide
+    @AppStorage("statusBar.autoHide") var autoHide: Bool = false
+    @AppStorage("statusBar.autoHideDelay") var autoHideDelay: Double = 3.0
+    @AppStorage("statusBar.showOnTap") var showOnTap: Bool = true
+    
+    // Spacing
+    @AppStorage("statusBar.itemSpacing") var itemSpacing: Double = 8
+    @AppStorage("statusBar.verticalOffset") var verticalOffset: Double = 0
+    
+    // Icon Customization
+    @AppStorage("statusBar.iconSize") var iconSize: Double = 16
+    @AppStorage("statusBar.iconWeight") var iconWeight: String = "regular"
     
     // Time and Battery - NEW unified widget approach
     @AppStorage("statusBar.showTime") var showTime: Bool = false
@@ -369,6 +413,8 @@ class StatusBarViewModel: ObservableObject {
         batteryBottomPadding = 0
         enableAnimation = false
         animationType = "bounce"
+        animationDuration = 0.3
+        animationDelay = 0.0
         hideDefaultStatusBar = true
         showTime = false
         showSeconds = false
@@ -385,6 +431,32 @@ class StatusBarViewModel: ObservableObject {
         widgetAccentColored = false
         selectedDeviceTypeRaw = DeviceType.iPhone15Pro.rawValue
         selectedDeviceColorRaw = DeviceColor.black.rawValue
+        
+        // Reset new advanced features
+        showDate = false
+        dateFormat = "short"
+        customDateFormat = "MMM d"
+        showWeekday = false
+        showNetworkStatus = false
+        networkIconStyle = "bars"
+        showMemoryUsage = false
+        memoryDisplayStyle = "percentage"
+        useGradientText = false
+        gradientStartColorHex = "#007AFF"
+        gradientEndColorHex = "#5856D6"
+        gradientAngle = 0
+        enableGlow = false
+        glowColorHex = "#007AFF"
+        glowRadius = 4
+        glowIntensity = 0.5
+        blurStyle = "regular"
+        autoHide = false
+        autoHideDelay = 3.0
+        showOnTap = true
+        itemSpacing = 8
+        verticalOffset = 0
+        iconSize = 16
+        iconWeight = "regular"
         
         selectedColor = .blue
         selectedBackgroundColor = .black
