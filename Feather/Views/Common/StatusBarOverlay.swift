@@ -82,7 +82,17 @@ struct StatusBarOverlay: View {
     @AppStorage("statusBar.widgetType") private var widgetTypeRaw: String = "none"
     @AppStorage("statusBar.widgetAccentColored") private var widgetAccentColored: Bool = false
     
+    // Network Status
+    @AppStorage("statusBar.showNetworkStatus") private var showNetworkStatus: Bool = false
+    @AppStorage("statusBar.networkIconStyle") private var networkIconStyle: String = "bars"
+    
+    // Memory Usage
+    @AppStorage("statusBar.showMemoryUsage") private var showMemoryUsage: Bool = false
+    @AppStorage("statusBar.memoryDisplayStyle") private var memoryDisplayStyle: String = "percentage"
+    
     @State private var isVisible = false
+    @State private var isConnected = true
+    @State private var memoryUsage: Double = 0
     @State private var currentTime = Date()
     @State private var batteryLevel: Float = 0.0
     @State private var batteryState: UIDevice.BatteryState = .unknown
@@ -167,7 +177,7 @@ struct StatusBarOverlay: View {
     }
     
     private var hasContent: Bool {
-        showCustomText || showSFSymbol || showTime || showBattery || widgetType != .none
+        showCustomText || showSFSymbol || showTime || showBattery || showNetworkStatus || showMemoryUsage || widgetType != .none
     }
     
     private var batteryIconName: String {
@@ -321,6 +331,26 @@ struct StatusBarOverlay: View {
                             .frame(maxWidth: .infinity)
                         }
                         
+                        // Network Status display
+                        if showNetworkStatus {
+                            HStack {
+                                Spacer()
+                                networkStatusView
+                                Spacer()
+                            }
+                            .frame(maxWidth: .infinity)
+                        }
+                        
+                        // Memory Usage display
+                        if showMemoryUsage {
+                            HStack {
+                                Spacer()
+                                memoryUsageView
+                                Spacer()
+                            }
+                            .frame(maxWidth: .infinity)
+                        }
+                        
                         // Widget display with its own layout (legacy support)
                         if widgetType != .none {
                             HStack {
@@ -361,6 +391,10 @@ struct StatusBarOverlay: View {
                     batteryLevel = UIDevice.current.batteryLevel
                     batteryState = UIDevice.current.batteryState
                 }
+                // Update memory usage
+                if showMemoryUsage {
+                    updateMemoryUsage()
+                }
                 if enableAnimation {
                     withAnimation(contentAnimation) {
                         isVisible = true
@@ -382,8 +416,98 @@ struct StatusBarOverlay: View {
                     batteryLevel = UIDevice.current.batteryLevel
                     batteryState = UIDevice.current.batteryState
                 }
+                // Update memory usage periodically
+                if showMemoryUsage {
+                    updateMemoryUsage()
+                }
             }
         }
+    }
+    
+    // MARK: - Network Status View
+    @ViewBuilder
+    private var networkStatusView: some View {
+        let color = Color(hex: colorHex)
+        
+        switch networkIconStyle {
+        case "bars":
+            Image(systemName: isConnected ? "wifi" : "wifi.slash")
+                .font(.system(size: fontSize))
+                .foregroundStyle(isConnected ? color : .red)
+        case "dot":
+            Circle()
+                .fill(isConnected ? Color.green : Color.red)
+                .frame(width: 8, height: 8)
+        case "text":
+            Text(isConnected ? "Online" : "Offline")
+                .font(.system(size: fontSize * 0.8, weight: isBold ? .bold : .regular, design: selectedFontDesign))
+                .foregroundStyle(isConnected ? color : .red)
+        default:
+            Image(systemName: "wifi")
+                .font(.system(size: fontSize))
+                .foregroundStyle(color)
+        }
+    }
+    
+    // MARK: - Memory Usage View
+    @ViewBuilder
+    private var memoryUsageView: some View {
+        let color = Color(hex: colorHex)
+        
+        switch memoryDisplayStyle {
+        case "percentage":
+            Text("\(Int(memoryUsage))%")
+                .font(.system(size: fontSize * 0.9, weight: isBold ? .bold : .regular, design: selectedFontDesign))
+                .foregroundStyle(color)
+        case "mb":
+            Text("\(Int(getMemoryMB())) MB")
+                .font(.system(size: fontSize * 0.9, weight: isBold ? .bold : .regular, design: selectedFontDesign))
+                .foregroundStyle(color)
+        case "both":
+            HStack(spacing: 4) {
+                Text("\(Int(memoryUsage))%")
+                Text("·")
+                Text("\(Int(getMemoryMB())) MB")
+            }
+            .font(.system(size: fontSize * 0.8, weight: isBold ? .bold : .regular, design: selectedFontDesign))
+            .foregroundStyle(color)
+        default:
+            Text("\(Int(memoryUsage))%")
+                .font(.system(size: fontSize * 0.9, weight: isBold ? .bold : .regular, design: selectedFontDesign))
+                .foregroundStyle(color)
+        }
+    }
+    
+    // MARK: - Memory Helpers
+    private func updateMemoryUsage() {
+        var info = mach_task_basic_info()
+        var count = mach_msg_type_number_t(MemoryLayout<mach_task_basic_info>.size) / 4
+        let result = withUnsafeMutablePointer(to: &info) {
+            $0.withMemoryRebound(to: integer_t.self, capacity: 1) {
+                task_info(mach_task_self_, task_flavor_t(MACH_TASK_BASIC_INFO), $0, &count)
+            }
+        }
+        
+        if result == KERN_SUCCESS {
+            let usedMemory = Double(info.resident_size)
+            let totalMemory = Double(ProcessInfo.processInfo.physicalMemory)
+            memoryUsage = (usedMemory / totalMemory) * 100
+        }
+    }
+    
+    private func getMemoryMB() -> Double {
+        var info = mach_task_basic_info()
+        var count = mach_msg_type_number_t(MemoryLayout<mach_task_basic_info>.size) / 4
+        let result = withUnsafeMutablePointer(to: &info) {
+            $0.withMemoryRebound(to: integer_t.self, capacity: 1) {
+                task_info(mach_task_self_, task_flavor_t(MACH_TASK_BASIC_INFO), $0, &count)
+            }
+        }
+        
+        if result == KERN_SUCCESS {
+            return Double(info.resident_size) / 1024 / 1024
+        }
+        return 0
     }
     
     @ViewBuilder

@@ -511,6 +511,13 @@ struct ModernSigningView: View {
     private var advancedTab: some View {
         ScrollView {
             VStack(spacing: 16) {
+                // Signing Options
+                NavigationLink {
+                    ModernSigningOptionsView(options: $_temporaryOptions)
+                } label: {
+                    advancedRow(title: "Signing Options", icon: "gearshape.2", color: .accentColor)
+                }
+                
                 NavigationLink {
                     SigningDylibView(app: app, options: $_temporaryOptions.optional())
                 } label: {
@@ -724,5 +731,222 @@ struct ModernSigningView: View {
                 }
             }
         }
+    }
+}
+
+// MARK: - Modern Signing Options View
+struct ModernSigningOptionsView: View {
+    @Binding var options: Options
+    @State private var showPPQInfo = false
+    @AppStorage("Feather.certificateExperience") private var certificateExperience: String = "Developer"
+    
+    private var hasCertificateWithPPQCheck: Bool {
+        let certificates = Storage.shared.getAllCertificates()
+        return certificates.contains { $0.ppQCheck }
+    }
+    
+    private var isEnterpriseCertificate: Bool {
+        certificateExperience == "Enterprise"
+    }
+    
+    private var isPPQProtectionForced: Bool {
+        isEnterpriseCertificate || hasCertificateWithPPQCheck
+    }
+    
+    var body: some View {
+        ScrollView {
+            VStack(spacing: 20) {
+                // Protection Section
+                optionSection(title: "Protection", icon: "shield.lefthalf.filled", color: .blue) {
+                    optionToggle(
+                        title: "PPQ Protection",
+                        subtitle: isPPQProtectionForced ? "Required for your certificate" : "Append random string to Bundle IDs",
+                        icon: "shield.checkered",
+                        isOn: Binding(
+                            get: { isPPQProtectionForced ? true : options.ppqProtection },
+                            set: { newValue in
+                                if !isPPQProtectionForced || newValue {
+                                    options.ppqProtection = newValue
+                                }
+                            }
+                        ),
+                        disabled: isPPQProtectionForced
+                    )
+                    
+                    Button {
+                        showPPQInfo = true
+                    } label: {
+                        HStack(spacing: 12) {
+                            Image(systemName: "questionmark.circle.fill")
+                                .foregroundStyle(.accentColor)
+                            Text("What is PPQ?")
+                                .foregroundStyle(.primary)
+                            Spacer()
+                            Image(systemName: "chevron.right")
+                                .font(.caption)
+                                .foregroundStyle(.tertiary)
+                        }
+                        .padding(14)
+                        .background(Color(UIColor.tertiarySystemGroupedBackground))
+                        .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+                    }
+                }
+                
+                // General Section
+                optionSection(title: "General", icon: "gearshape.2.fill", color: .gray) {
+                    optionPicker(
+                        title: "Appearance",
+                        icon: "paintpalette.fill",
+                        selection: $options.appAppearance,
+                        values: Options.AppAppearance.allCases
+                    )
+                    
+                    optionPicker(
+                        title: "Minimum Requirement",
+                        icon: "ruler.fill",
+                        selection: $options.minimumAppRequirement,
+                        values: Options.MinimumAppRequirement.allCases
+                    )
+                }
+                
+                // Signing Section
+                optionSection(title: "Signing", icon: "signature", color: .purple) {
+                    optionPicker(
+                        title: "Signing Type",
+                        icon: "pencil.and.scribble",
+                        selection: $options.signingOption,
+                        values: Options.SigningOption.allCases
+                    )
+                }
+                
+                // App Features Section
+                optionSection(title: "App Features", icon: "sparkles", color: .yellow) {
+                    optionToggle(title: "File Sharing", subtitle: "Enable document sharing", icon: "folder.fill.badge.person.crop", isOn: $options.fileSharing)
+                    optionToggle(title: "iTunes File Sharing", subtitle: "Access via iTunes/Finder", icon: "music.note.list", isOn: $options.itunesFileSharing)
+                    optionToggle(title: "ProMotion", subtitle: "120Hz display support", icon: "gauge.with.dots.needle.67percent", isOn: $options.proMotion)
+                    optionToggle(title: "Game Mode", subtitle: "Optimize for gaming", icon: "gamecontroller.fill", isOn: $options.gameMode)
+                    optionToggle(title: "iPad Fullscreen", subtitle: "Full screen on iPad", icon: "ipad.landscape", isOn: $options.ipadFullscreen)
+                }
+                
+                // Removal Section
+                optionSection(title: "Removal", icon: "trash.slash.fill", color: .red) {
+                    optionToggle(title: "Remove URL Scheme", subtitle: "Strip URL handlers", icon: "link.badge.minus", isOn: $options.removeURLScheme)
+                    optionToggle(title: "Remove Provisioning", subtitle: "Exclude .mobileprovision", icon: "doc.badge.minus", isOn: $options.removeProvisioning)
+                }
+                
+                // Localization Section
+                optionSection(title: "Localization", icon: "globe.badge.chevron.backward", color: .green) {
+                    optionToggle(title: "Force Localize", subtitle: "Override localized titles", icon: "character.bubble.fill", isOn: $options.changeLanguageFilesForCustomDisplayName)
+                }
+                
+                // Post Signing Section
+                optionSection(title: "Post Signing", icon: "clock.arrow.circlepath", color: .orange) {
+                    optionToggle(title: "Install After Signing", subtitle: "Auto-install when done", icon: "arrow.down.circle.fill", isOn: $options.post_installAppAfterSigned)
+                    optionToggle(title: "Delete After Signing", subtitle: "Remove original file", icon: "trash.fill", isOn: $options.post_deleteAppAfterSigned)
+                }
+                
+                // Experiments Section
+                optionSection(title: "Experiments", icon: "flask.fill", color: .purple) {
+                    optionToggle(title: "Replace Substrate", subtitle: "Use ElleKit instead", icon: "arrow.triangle.2.circlepath.circle.fill", isOn: $options.experiment_replaceSubstrateWithEllekit)
+                    optionToggle(title: "Liquid Glass", subtitle: "iOS 26 redesign support", icon: "sparkles.rectangle.stack.fill", isOn: $options.experiment_supportLiquidGlass)
+                }
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 12)
+        }
+        .background(Color(UIColor.systemGroupedBackground))
+        .navigationTitle("Signing Options")
+        .navigationBarTitleDisplayMode(.inline)
+        .alert("What is PPQ?", isPresented: $showPPQInfo) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text("PPQ is a check Apple has added to certificates. If you have this check on the certificate, change your Bundle IDs when signing apps to avoid Apple revoking your certificates.")
+        }
+        .onAppear {
+            if isPPQProtectionForced && !options.ppqProtection {
+                options.ppqProtection = true
+            }
+        }
+    }
+    
+    // MARK: - Section Builder
+    @ViewBuilder
+    private func optionSection<Content: View>(title: String, icon: String, color: Color, @ViewBuilder content: () -> Content) -> some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack(spacing: 8) {
+                Image(systemName: icon)
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(color)
+                Text(title)
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(.secondary)
+            }
+            .padding(.leading, 4)
+            
+            VStack(spacing: 1) {
+                content()
+            }
+            .background(Color(UIColor.secondarySystemGroupedBackground))
+            .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+        }
+    }
+    
+    // MARK: - Toggle Row
+    @ViewBuilder
+    private func optionToggle(title: String, subtitle: String? = nil, icon: String, isOn: Binding<Bool>, disabled: Bool = false) -> some View {
+        HStack(spacing: 14) {
+            Image(systemName: icon)
+                .font(.system(size: 16))
+                .foregroundStyle(.accentColor)
+                .frame(width: 24)
+            
+            VStack(alignment: .leading, spacing: 2) {
+                Text(title)
+                    .font(.body)
+                    .foregroundStyle(.primary)
+                if let subtitle = subtitle {
+                    Text(subtitle)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+            }
+            
+            Spacer()
+            
+            Toggle("", isOn: isOn)
+                .labelsHidden()
+                .disabled(disabled)
+        }
+        .padding(.horizontal, 14)
+        .padding(.vertical, 12)
+        .background(Color(UIColor.secondarySystemGroupedBackground))
+    }
+    
+    // MARK: - Picker Row
+    @ViewBuilder
+    private func optionPicker<T: Hashable & LocalizedDescribable>(title: String, icon: String, selection: Binding<T>, values: [T]) -> some View {
+        HStack(spacing: 14) {
+            Image(systemName: icon)
+                .font(.system(size: 16))
+                .foregroundStyle(.accentColor)
+                .frame(width: 24)
+            
+            Text(title)
+                .font(.body)
+                .foregroundStyle(.primary)
+            
+            Spacer()
+            
+            Picker("", selection: selection) {
+                ForEach(values, id: \.self) { value in
+                    Text(value.localizedDescription).tag(value)
+                }
+            }
+            .labelsHidden()
+            .tint(.secondary)
+        }
+        .padding(.horizontal, 14)
+        .padding(.vertical, 10)
+        .background(Color(UIColor.secondarySystemGroupedBackground))
     }
 }

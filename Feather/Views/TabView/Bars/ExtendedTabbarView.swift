@@ -15,10 +15,12 @@ struct ExtendedTabbarView: View {
 	@AppStorage("Feather.tabBar.guides") private var showGuides = true
 	@AppStorage("Feather.tabBar.order") private var tabOrder: String = "home,guides,library,files,settings"
 	@AppStorage("Feather.tabBar.hideLabels") private var hideTabLabels = false
+	@AppStorage("Feather.tabBar.defaultTab") private var defaultTab: String = "home"
 	@AppStorage("Feather.certificateExperience") private var certificateExperience: String = "Developer"
 	@AppStorage("forceShowGuides") private var forceShowGuides = false
 	@StateObject var viewModel = SourcesViewModel.shared
 	
+	@State private var selectedTab: TabEnum?
 	@State private var _isAddingPresenting = false
 	@State private var showInstallModifySheet = false
 	@State private var appToInstall: (any AppInfoPresentable)?
@@ -69,11 +71,25 @@ struct ExtendedTabbarView: View {
 		
 		return sortedTabs
 	}
+	
+	private func getInitialTab() -> TabEnum {
+		switch defaultTab {
+		case "home": return visibleTabs.contains(.home) ? .home : visibleTabs.first ?? .settings
+		case "library": return visibleTabs.contains(.library) ? .library : visibleTabs.first ?? .settings
+		case "files": return visibleTabs.contains(.files) ? .files : visibleTabs.first ?? .settings
+		case "guides": return visibleTabs.contains(.guides) ? .guides : visibleTabs.first ?? .settings
+		case "settings": return .settings
+		default: return visibleTabs.first ?? .settings
+		}
+	}
 		
 	var body: some View {
-		TabView {
+		TabView(selection: Binding(
+			get: { selectedTab ?? getInitialTab() },
+			set: { selectedTab = $0 }
+		)) {
 			ForEach(visibleTabs, id: \.hashValue) { tab in
-				Tab(hideTabLabels ? "" : tab.title, systemImage: tab.icon) {
+				Tab(hideTabLabels ? "" : tab.title, systemImage: tab.icon, value: tab) {
 					TabEnum.view(for: tab)
 				}
 			}
@@ -110,6 +126,11 @@ struct ExtendedTabbarView: View {
 		}
 		.tabViewStyle(.sidebarAdaptable)
 		.tabViewCustomization($customization)
+		.onAppear {
+			if selectedTab == nil {
+				selectedTab = getInitialTab()
+			}
+		}
 		.sheet(isPresented: $_isAddingPresenting) {
 			SourcesAddView()
 				.presentationDetents([.medium, .large])

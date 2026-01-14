@@ -16,6 +16,8 @@ struct StructureVisibilityPanel: View {
         if viewModel.showTime { count += 1 }
         if viewModel.showBattery { count += 1 }
         if viewModel.showDate { count += 1 }
+        if viewModel.showNetworkStatus { count += 1 }
+        if viewModel.showMemoryUsage { count += 1 }
         return count
     }
     
@@ -102,35 +104,69 @@ struct StructureVisibilityPanel: View {
                     Label("Battery", systemImage: "battery.100")
                 }
             } header: {
-                Label("Visibility", systemImage: "eye")
+                Label("Widgets", systemImage: "square.grid.2x2")
             } footer: {
-                Text("You can enable up to 2 status bar options at a time. Currently \(enabledWidgetCount) of 2 enabled.")
+                Text("Enable up to 2 widgets. Currently \(enabledWidgetCount) of 2.")
                     .foregroundStyle(enabledWidgetCount >= 2 ? .orange : .secondary)
             }
             
-            Section(header: Text("Saved Styles")) {
+            Section {
+                Toggle(isOn: Binding(
+                    get: { viewModel.showNetworkStatus },
+                    set: { newValue in
+                        if newValue && enabledWidgetCount >= 2 {
+                            attemptedWidget = "Network Status"
+                            showLimitReachedAlert = true
+                            HapticsManager.shared.error()
+                        } else {
+                            viewModel.showNetworkStatus = newValue
+                            HapticsManager.shared.softImpact()
+                        }
+                    }
+                )) {
+                    Label("Network Status", systemImage: "wifi")
+                }
+                
+                Toggle(isOn: Binding(
+                    get: { viewModel.showMemoryUsage },
+                    set: { newValue in
+                        if newValue && enabledWidgetCount >= 2 {
+                            attemptedWidget = "Memory Usage"
+                            showLimitReachedAlert = true
+                            HapticsManager.shared.error()
+                        } else {
+                            viewModel.showMemoryUsage = newValue
+                            HapticsManager.shared.softImpact()
+                        }
+                    }
+                )) {
+                    Label("Memory Usage", systemImage: "memorychip")
+                }
+            } header: {
+                Label("System Info", systemImage: "info.circle")
+            }
+            
+            Section {
                 Button {
                     showSavedStyles = true
                 } label: {
                     HStack {
                         Image(systemName: "bookmark.fill")
                             .foregroundStyle(.blue)
-                        Text("Manage Saved Styles")
+                        Text("Saved Styles")
                         Spacer()
                         Image(systemName: "chevron.right")
                             .font(.caption)
                             .foregroundStyle(.secondary)
                     }
                 }
-            }
-            
-            Section(header: Text("Layout Configuration")) {
+                
                 Button {
                     showConfigureLayouts = true
                 } label: {
                     HStack {
                         Image(systemName: "slider.horizontal.3")
-                            .foregroundStyle(.blue)
+                            .foregroundStyle(.purple)
                         Text("Configure Layouts")
                         Spacer()
                         Image(systemName: "chevron.right")
@@ -138,13 +174,17 @@ struct StructureVisibilityPanel: View {
                             .foregroundStyle(.secondary)
                     }
                 }
+            } header: {
+                Label("Customization", systemImage: "paintbrush")
             }
             
-            Section(header: Text("System Integration")) {
+            Section {
                 Toggle("Hide Default Status Bar", isOn: $viewModel.hideDefaultStatusBar)
                     .onChange(of: viewModel.hideDefaultStatusBar) { newValue in
                         viewModel.handleHideDefaultStatusBarChange(newValue)
                     }
+            } header: {
+                Label("System", systemImage: "gearshape")
             }
         }
         .listStyle(.insetGrouped)

@@ -2,7 +2,6 @@
 import SwiftUI
 
 struct TabbarView: View {
-	@State private var selectedTab: TabEnum = .home
 	@AppStorage("Feather.tabBar.home") private var showHome = true
 	@AppStorage("Feather.tabBar.library") private var showLibrary = true
 	@AppStorage("Feather.tabBar.files") private var showFiles = false
@@ -13,9 +12,9 @@ struct TabbarView: View {
 	@AppStorage("Feather.certificateExperience") private var certificateExperience: String = "Developer"
 	@AppStorage("forceShowGuides") private var forceShowGuides = false
 	
+	@State private var selectedTab: TabEnum?
 	@State private var showInstallModifySheet = false
 	@State private var appToInstall: (any AppInfoPresentable)?
-	@State private var hasSetInitialTab = false
 	
 	private var orderedTabIds: [String] {
 		tabOrder.split(separator: ",").map(String.init)
@@ -53,7 +52,7 @@ struct TabbarView: View {
 		return sortedTabs
 	}
 	
-	private var initialTab: TabEnum {
+	private func getInitialTab() -> TabEnum {
 		switch defaultTab {
 		case "home": return visibleTabs.contains(.home) ? .home : visibleTabs.first ?? .settings
 		case "library": return visibleTabs.contains(.library) ? .library : visibleTabs.first ?? .settings
@@ -65,7 +64,10 @@ struct TabbarView: View {
 	}
 
 	var body: some View {
-		TabView(selection: $selectedTab) {
+		TabView(selection: Binding(
+			get: { selectedTab ?? getInitialTab() },
+			set: { selectedTab = $0 }
+		)) {
 			ForEach(visibleTabs, id: \.hashValue) { tab in
 				TabEnum.view(for: tab)
 					.tabItem {
@@ -79,9 +81,8 @@ struct TabbarView: View {
 			}
 		}
 		.onAppear {
-			if !hasSetInitialTab {
-				selectedTab = initialTab
-				hasSetInitialTab = true
+			if selectedTab == nil {
+				selectedTab = getInitialTab()
 			}
 		}
 		.sheet(isPresented: $showInstallModifySheet) {

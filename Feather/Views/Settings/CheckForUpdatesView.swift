@@ -1093,201 +1093,175 @@ struct UpdateFinishedView: View {
     
     var body: some View {
         NavigationStack {
-            ZStack {
-                // Background
-                Color(UIColor.systemGroupedBackground)
-                    .ignoresSafeArea()
+            VStack(spacing: 20) {
+                // Compact Success Header
+                successHeader
                 
-                ScrollView {
-                    VStack(spacing: 28) {
-                        // Success Header
-                        successHeader
-                        
-                        // File Info Card
-                        fileInfoCard
-                        
-                        // Action Buttons
-                        actionButtons
-                        
-                        // Error message if any
-                        if let error = errorMessage {
-                            errorView(error)
-                        }
-                    }
-                    .padding(.horizontal, 20)
-                    .padding(.top, 20)
-                    .padding(.bottom, 40)
+                // File Info Card
+                fileInfoCard
+                
+                // Action Buttons
+                actionButtons
+                
+                // Error message if any
+                if let error = errorMessage {
+                    errorView(error)
                 }
+                
+                Spacer()
             }
+            .padding(.horizontal, 20)
+            .padding(.top, 8)
+            .background(Color(UIColor.systemGroupedBackground))
             .navigationTitle("Download Complete")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
-                    Button("Done") {
+                    Button {
                         onDismiss()
                         dismiss()
+                    } label: {
+                        Image(systemName: "xmark.circle.fill")
+                            .font(.title2)
+                            .foregroundStyle(.secondary)
                     }
-                    .fontWeight(.semibold)
                 }
             }
             .sheet(isPresented: $showShareSheet) {
                 ShareSheet(urls: [ipaURL])
             }
             .onAppear {
-                withAnimation(.spring(response: 0.6, dampingFraction: 0.7).delay(0.2)) {
+                withAnimation(.spring(response: 0.5, dampingFraction: 0.7).delay(0.1)) {
                     successAnimation = true
                 }
             }
         }
+        .presentationDetents([.medium])
+        .presentationDragIndicator(.visible)
     }
     
     // MARK: - Success Header
     private var successHeader: some View {
-        VStack(spacing: 20) {
-            // Animated checkmark
+        HStack(spacing: 14) {
+            // Compact checkmark
             ZStack {
-                // Outer ring
-                Circle()
-                    .stroke(Color.green.opacity(0.2), lineWidth: 4)
-                    .frame(width: 100, height: 100)
-                
-                // Animated fill
-                Circle()
-                    .trim(from: 0, to: successAnimation ? 1 : 0)
-                    .stroke(Color.green, style: StrokeStyle(lineWidth: 4, lineCap: .round))
-                    .frame(width: 100, height: 100)
-                    .rotationEffect(.degrees(-90))
-                
-                // Inner circle
                 Circle()
                     .fill(Color.green.opacity(0.15))
-                    .frame(width: 80, height: 80)
+                    .frame(width: 48, height: 48)
                 
-                // Checkmark
                 Image(systemName: "checkmark")
-                    .font(.system(size: 40, weight: .bold))
+                    .font(.system(size: 22, weight: .bold))
                     .foregroundStyle(.green)
                     .scaleEffect(successAnimation ? 1 : 0)
             }
             
-            VStack(spacing: 8) {
-                Text("Update Downloaded!")
-                    .font(.title2.bold())
+            VStack(alignment: .leading, spacing: 2) {
+                Text("Download Complete")
+                    .font(.headline)
                 
-                Text("The update has been saved to your device")
+                Text(fileName)
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
-                    .multilineTextAlignment(.center)
+                    .lineLimit(1)
             }
+            
+            Spacer()
         }
-        .padding(.top, 20)
+        .padding(.top, 8)
     }
     
     // MARK: - File Info Card
     private var fileInfoCard: some View {
-        VStack(spacing: 16) {
-            HStack(spacing: 16) {
-                // IPA Icon
-                ZStack {
-                    RoundedRectangle(cornerRadius: 12, style: .continuous)
-                        .fill(
-                            LinearGradient(
-                                colors: [Color.blue, Color.purple],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            )
+        HStack(spacing: 14) {
+            // IPA Icon
+            ZStack {
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .fill(
+                        LinearGradient(
+                            colors: [Color.blue, Color.purple],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
                         )
-                        .frame(width: 56, height: 56)
-                    
-                    Image(systemName: "app.badge.fill")
-                        .font(.system(size: 24))
-                        .foregroundStyle(.white)
-                }
+                    )
+                    .frame(width: 50, height: 50)
                 
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(fileName)
-                        .font(.headline)
-                        .lineLimit(1)
-                    
-                    if let fileSize = getFileSize() {
-                        Text(fileSize)
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
-                    }
-                    
-                    Text("Ready To Install")
-                        .font(.caption)
-                        .foregroundStyle(.green)
-                }
-                
-                Spacer()
+                Image(systemName: "app.badge.fill")
+                    .font(.system(size: 22))
+                    .foregroundStyle(.white)
             }
+            
+            VStack(alignment: .leading, spacing: 3) {
+                if let fileSize = getFileSize() {
+                    Text(fileSize)
+                        .font(.subheadline)
+                        .foregroundStyle(.primary)
+                }
+                
+                Text("Ready to Sign")
+                    .font(.caption)
+                    .foregroundStyle(.green)
+            }
+            
+            Spacer()
         }
-        .padding(20)
+        .padding(16)
         .background(
-            RoundedRectangle(cornerRadius: 16, style: .continuous)
+            RoundedRectangle(cornerRadius: 14, style: .continuous)
                 .fill(Color(UIColor.secondarySystemGroupedBackground))
         )
     }
     
     // MARK: - Action Buttons
     private var actionButtons: some View {
-        VStack(spacing: 12) {
-            // Export IPA Button
-            Button {
-                showShareSheet = true
-                HapticsManager.shared.softImpact()
-            } label: {
-                HStack(spacing: 12) {
-                    Image(systemName: "square.and.arrow.up")
-                        .font(.system(size: 18, weight: .semibold))
-                    Text("Export IPA")
-                        .font(.headline)
-                }
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 16)
-                .background(
-                    RoundedRectangle(cornerRadius: 14, style: .continuous)
-                        .fill(Color.blue)
-                )
-                .foregroundStyle(.white)
-            }
-            
-            // Add to Library Button
+        VStack(spacing: 10) {
+            // Add to Library Button (primary action)
             Button {
                 addToLibrary()
             } label: {
-                HStack(spacing: 12) {
+                HStack(spacing: 10) {
                     if isAddingToLibrary {
                         ProgressView()
                             .progressViewStyle(CircularProgressViewStyle(tint: .white))
-                            .scaleEffect(0.9)
+                            .scaleEffect(0.85)
                     } else if addedToLibrary {
                         Image(systemName: "checkmark.circle.fill")
-                            .font(.system(size: 18, weight: .semibold))
+                            .font(.system(size: 16, weight: .semibold))
                     } else {
                         Image(systemName: "plus.app")
-                            .font(.system(size: 18, weight: .semibold))
+                            .font(.system(size: 16, weight: .semibold))
                     }
                     Text(addedToLibrary ? "Added to Library" : "Add to Library")
-                        .font(.headline)
+                        .font(.system(size: 15, weight: .semibold))
                 }
                 .frame(maxWidth: .infinity)
-                .padding(.vertical, 16)
+                .padding(.vertical, 14)
                 .background(
-                    RoundedRectangle(cornerRadius: 14, style: .continuous)
-                        .fill(addedToLibrary ? Color.green : Color.purple)
+                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                        .fill(addedToLibrary ? Color.green : Color.accentColor)
                 )
                 .foregroundStyle(.white)
             }
             .disabled(isAddingToLibrary || addedToLibrary)
             
-            // Info text
-            Text("Export to share the IPA file, or add directly to your Library for signing.")
-                .font(.caption)
-                .foregroundStyle(.secondary)
-                .multilineTextAlignment(.center)
-                .padding(.top, 8)
+            // Share IPA Button
+            Button {
+                showShareSheet = true
+                HapticsManager.shared.softImpact()
+            } label: {
+                HStack(spacing: 10) {
+                    Image(systemName: "square.and.arrow.up")
+                        .font(.system(size: 16, weight: .semibold))
+                    Text("Share IPA")
+                        .font(.system(size: 15, weight: .semibold))
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 14)
+                .background(
+                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                        .fill(Color(UIColor.secondarySystemGroupedBackground))
+                )
+                .foregroundStyle(.primary)
+            }
         }
     }
     

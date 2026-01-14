@@ -395,6 +395,40 @@ struct AppearanceContentPanel: View {
                 Label("Battery Display", systemImage: "battery.100.bolt")
             }
         }
+        
+        // Network Status Display
+        if viewModel.showNetworkStatus {
+            Section {
+                Picker(selection: $viewModel.networkIconStyle) {
+                    Text("Signal Bars").tag("bars")
+                    Text("Dot Indicator").tag("dot")
+                    Text("Text Label").tag("text")
+                } label: {
+                    Label("Display Style", systemImage: "antenna.radiowaves.left.and.right")
+                }
+            } header: {
+                Label("Network Status", systemImage: "wifi")
+            } footer: {
+                Text("Shows current network connectivity status.")
+            }
+        }
+        
+        // Memory Usage Display
+        if viewModel.showMemoryUsage {
+            Section {
+                Picker(selection: $viewModel.memoryDisplayStyle) {
+                    Text("Percentage").tag("percentage")
+                    Text("MB Used").tag("mb")
+                    Text("Both").tag("both")
+                } label: {
+                    Label("Display Style", systemImage: "chart.bar")
+                }
+            } header: {
+                Label("Memory Usage", systemImage: "memorychip")
+            } footer: {
+                Text("Shows current app memory usage.")
+            }
+        }
     }
     
     // MARK: - Behavior Section
