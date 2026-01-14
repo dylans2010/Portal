@@ -212,7 +212,7 @@ struct VersionHistoryView: View {
                                 .padding(.leading, 38)
                         }
                     } else {
-                        Text(.localized("No release notes available"))
+                        Text(.localized("No Release Notes Available"))
                             .font(.system(size: 14))
                             .foregroundStyle(.tertiary)
                             .italic()

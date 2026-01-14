@@ -172,7 +172,7 @@ struct ModernSigningView: View {
                 Button("Cancel", role: .cancel) { }
                 Button("Save") { }
             }
-            .alert("Identifier", isPresented: $_isIdentifierDialogPresenting) {
+            .alert("Bundle ID", isPresented: $_isIdentifierDialogPresenting) {
                 TextField(_temporaryOptions.appIdentifier ?? (app.identifier ?? ""), text: Binding(
                     get: { _temporaryOptions.appIdentifier ?? app.identifier ?? "" },
                     set: { _temporaryOptions.appIdentifier = $0 }
@@ -245,12 +245,12 @@ struct ModernSigningView: View {
                 Button {
                     _isFilePickerPresenting = true
                 } label: {
-                    Label("Choose From Files", systemImage: "folder")
+                    Label("Choose Files", systemImage: "folder")
                 }
                 Button {
                     _isImagePickerPresenting = true
                 } label: {
-                    Label("Choose From Photos", systemImage: "photo")
+                    Label("Choose Photos", systemImage: "photo")
                 }
             } label: {
                 ZStack {
@@ -366,7 +366,7 @@ struct ModernSigningView: View {
                     
                     Divider().padding(.leading, 52)
                     
-                    infoRow(title: "Identifier", value: _temporaryOptions.appIdentifier ?? app.identifier, icon: "barcode") {
+                    infoRow(title: "Bundle ID", value: _temporaryOptions.appIdentifier ?? app.identifier, icon: "barcode") {
                         _isIdentifierDialogPresenting = true
                     }
                     
@@ -401,7 +401,7 @@ struct ModernSigningView: View {
                     Text(title)
                         .font(.subheadline.weight(.medium))
                         .foregroundStyle(.primary)
-                    Text(value ?? "Not set")
+                    Text(value ?? "Not Set")
                         .font(.caption)
                         .foregroundStyle(.secondary)
                         .lineLimit(1)
@@ -445,7 +445,7 @@ struct ModernSigningView: View {
                                         .font(.caption)
                                         .foregroundStyle(.secondary)
                                 } else {
-                                    Text("Tap to view details")
+                                    Text("View Details")
                                         .font(.caption)
                                         .foregroundStyle(.secondary)
                                 }
@@ -476,7 +476,7 @@ struct ModernSigningView: View {
                         VStack(spacing: 4) {
                             Text("No Certificate")
                                 .font(.headline)
-                            Text("Add a certificate to sign apps")
+                            Text("Add a certificate to sign apps.")
                                 .font(.subheadline)
                                 .foregroundStyle(.secondary)
                         }
@@ -589,7 +589,7 @@ struct ModernSigningView: View {
                 HStack(spacing: 12) {
                     Image(systemName: "signature")
                         .font(.system(size: 18, weight: .semibold))
-                    Text("Start Signing")
+                    Text("Sign App")
                         .font(.system(size: 17, weight: .semibold))
                 }
                 .foregroundStyle(.white)
@@ -625,7 +625,7 @@ struct ModernSigningView: View {
         guard let cert = _selectedCert() else {
             UIAlertController.showAlertWithOk(
                 title: .localized("No Certificate"),
-                message: .localized("Please go to Settings and import a certificate"),
+                message: .localized("Please go to Settings and import a certificate then come back here."),
                 isCancel: true
             )
             return
@@ -673,7 +673,7 @@ struct ModernSigningView: View {
                         
                         UIAlertController.showAlert(
                             title: .localized("Signing Successful"),
-                            message: .localized("Your app is ready to install."),
+                            message: .localized("Your app is ready to install!"),
                             actions: [install, copy, cancel]
                         )
                         

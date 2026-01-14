@@ -53,7 +53,7 @@ struct EditSourcesView: View {
 					}
 				}
 			}
-			.alert(.localized("Delete Source"), isPresented: $showDeleteAlert) {
+			.alert(.localized("Delete Source?"), isPresented: $showDeleteAlert) {
 				Button(.localized("Cancel"), role: .cancel) {}
 				Button(.localized("Delete"), role: .destructive) {
 					if let source = sourceToDelete {

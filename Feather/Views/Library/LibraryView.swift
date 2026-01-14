@@ -650,7 +650,7 @@ struct PremiumAppCard: View {
                 Button {
                     selectedSigningAppPresenting = AnyApp(base: app)
                 } label: {
-                    Label(String.localized("Re-sign"), systemImage: "signature")
+                    Label(String.localized("ReSign"), systemImage: "signature")
                 }
             } else {
                 Button {

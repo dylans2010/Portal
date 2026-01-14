@@ -207,13 +207,13 @@ struct ConfigureLayoutsView: View {
     private var layoutDescription: String {
         switch selectedLayout {
         case .text:
-            return "Configure layout settings for custom text display. These settings only affect text elements."
+            return "Configure layout settings for custom text display. These settings only affect Text Elements."
         case .sfSymbol:
-            return "Configure layout settings for SF Symbol icons. These settings only affect symbol elements."
+            return "Configure layout settings for SF Symbol icons. These settings only affect Symbol Elements."
         case .time:
-            return "Configure layout settings for time display. These settings only affect the time widget."
+            return "Configure layout settings for time display. These settings only affect the Time Widget."
         case .battery:
-            return "Configure layout settings for battery display. These settings only affect the battery widget."
+            return "Configure layout settings for battery display. These settings only affect the Battery Widget."
         }
     }
     

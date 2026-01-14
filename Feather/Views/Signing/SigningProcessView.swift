@@ -5,7 +5,7 @@ import NimbleViews
 struct SigningProcessView: View {
     @Environment(\.dismiss) var dismiss
     @State private var progress: Double = 0.0
-    @State private var currentStep: String = "Initializing..."
+    @State private var currentStep: String = "Initializing Signing Engine..."
     @State private var isFinished = false
     @State private var dominantColor: Color = .accentColor
     @State private var secondaryColor: Color = .accentColor
@@ -256,10 +256,10 @@ struct SigningProcessView: View {
         // logs (fake logging, UI looks only)
         let steps = [
             "Extracting IPA...",
-            "Verifying entitlements...",
-            "Patching binary...",
-            "Signing frameworks...",
-            "Signing application...",
+            "Verifying Entitlements...",
+            "Patching Binary...",
+            "Signing Frameworks...",
+            "Signing Application...",
             "Packaging...",
             "Done!"
         ]

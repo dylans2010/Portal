@@ -98,7 +98,7 @@ struct GuidesView: View {
                         .font(.system(size: 50))
                         .foregroundStyle(.secondary)
                     
-                    Text("No guides available")
+                    Text("No Guides Available")
                         .font(.title2)
                         .fontWeight(.semibold)
                     

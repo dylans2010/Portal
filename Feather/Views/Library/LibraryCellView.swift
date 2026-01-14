@@ -221,7 +221,7 @@ struct LibraryCellView: View {
             Button {
                 selectedSigningAppPresenting = AnyApp(base: app)
             } label: {
-                Label(String.localized("Re-Sign"), systemImage: "signature")
+                Label(String.localized("ReSign"), systemImage: "signature")
             }
             Button {
                 selectedInstallAppPresenting = AnyApp(base: app, archive: true)
