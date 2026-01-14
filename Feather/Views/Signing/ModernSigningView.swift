@@ -406,9 +406,15 @@ struct ModernSigningView: View {
                                 Text(cert.nickname ?? "Certificate")
                                     .font(.headline)
                                     .foregroundStyle(.primary)
-                                Text(cert.provisioningFile ?? "Unknown Team")
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
+                                if let expiration = cert.expiration {
+                                    Text("Expires: \(expiration, style: .date)")
+                                        .font(.caption)
+                                        .foregroundStyle(.secondary)
+                                } else {
+                                    Text("Tap to view details")
+                                        .font(.caption)
+                                        .foregroundStyle(.secondary)
+                                }
                             }
                             
                             Spacer()
