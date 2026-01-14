@@ -146,16 +146,16 @@ struct BatchRenameView: View {
     
     @ViewBuilder
     private var findReplaceFields: some View {
-        TextField(.localized("Find text"), text: $replaceText)
+        TextField(.localized("Find Text"), text: $replaceText)
             .textInputAutocapitalization(.never)
         
-        TextField(.localized("Replace with"), text: $withText)
+        TextField(.localized("Replace With"), text: $withText)
             .textInputAutocapitalization(.never)
     }
     
     @ViewBuilder
     private var sequentialFields: some View {
-        TextField(.localized("Name pattern"), text: $renamePattern)
+        TextField(.localized("Name Pattern"), text: $renamePattern)
             .textInputAutocapitalization(.never)
         
         Stepper(value: $startNumber, in: 1...9999) {

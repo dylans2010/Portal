@@ -176,7 +176,7 @@ struct ZipOperationView: View {
                 .padding(.vertical, 2)
             }
         } header: {
-            Label(.localized("Files to Zip (\(files.count))"), systemImage: "doc.on.doc.fill")
+            Label(.localized("Files To Zip (\(files.count))"), systemImage: "doc.on.doc.fill")
         }
     }
     

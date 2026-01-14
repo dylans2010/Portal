@@ -84,7 +84,7 @@ struct FilesSettingsView: View {
                     }
                     
                     Toggle(isOn: $enableOpenInSigner) {
-                        ConditionalLabel(title: .localized("Open in Signer"), systemImage: "signature")
+                        ConditionalLabel(title: .localized("Open In Signer"), systemImage: "signature")
                     }
                     
                     Toggle(isOn: $enableFixStructure) {
@@ -101,7 +101,7 @@ struct FilesSettingsView: View {
                     } label: {
                         HStack {
                             Spacer()
-                            Text(.localized("Reset to Defaults"))
+                            Text(.localized("Reset To Defaults"))
                                 .foregroundStyle(.red)
                             Spacer()
                         }

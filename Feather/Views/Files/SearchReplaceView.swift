@@ -18,14 +18,14 @@ struct SearchReplaceView: View {
         NBNavigationView(.localized("Search & Replace"), displayMode: .inline) {
             Form {
                 Section {
-                    TextField(.localized("Search for..."), text: $searchText)
+                    TextField(.localized("Search For..."), text: $searchText)
                         .textInputAutocapitalization(.never)
                         .autocorrectionDisabled()
                         .onChange(of: searchText) { _ in
                             updateMatchCount()
                         }
                     
-                    TextField(.localized("Replace with..."), text: $replaceText)
+                    TextField(.localized("Replace With..."), text: $replaceText)
                         .textInputAutocapitalization(.never)
                         .autocorrectionDisabled()
                 } header: {
@@ -127,7 +127,7 @@ struct SearchReplaceView: View {
                 errorMessage = nil
             } catch {
                 matchCount = 0
-                errorMessage = "Invalid regular expression"
+                errorMessage = "Invalid Regular Expression"
             }
         } else {
             let options: String.CompareOptions = isCaseSensitive ? [] : [.caseInsensitive]
@@ -157,7 +157,7 @@ struct SearchReplaceView: View {
                 updateMatchCount()
                 HapticsManager.shared.success()
             } catch {
-                errorMessage = "Replace failed: \(error.localizedDescription)"
+                errorMessage = "Replace Failed: \(error.localizedDescription)"
                 HapticsManager.shared.error()
             }
         } else {
@@ -180,7 +180,7 @@ struct SearchReplaceView: View {
             hasChanges = false
             dismiss()
         } catch {
-            errorMessage = "Save failed: \(error.localizedDescription)"
+            errorMessage = "Save Failed: \(error.localizedDescription)"
             HapticsManager.shared.error()
         }
     }

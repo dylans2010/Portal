@@ -141,7 +141,7 @@ struct ManageStorageView: View {
                     // Percentage indicator
                     if totalSpace > 0 {
                         let percentage = Int((Double(usedSpace) / Double(totalSpace)) * 100)
-                        Text("\(percentage)% used")
+                        Text("\(percentage)% Used")
                             .font(.caption)
                             .fontWeight(.medium)
                             .foregroundStyle(.secondary)
@@ -298,7 +298,7 @@ struct ManageStorageView: View {
                             .foregroundStyle(.orange)
                         
                         VStack(alignment: .leading, spacing: 2) {
-                            Text(.localized("Can be removed"))
+                            Text(.localized("Can Be Removed"))
                                 .font(.caption)
                                 .foregroundStyle(.secondary)
                             
@@ -450,7 +450,7 @@ struct ManageStorageView: View {
                 cleanupOptionButton(
                     title: .localized("Delete Certificates"),
                     systemImage: "key.horizontal",
-                    description: .localized("Remove all certificates"),
+                    description: .localized("Remove All Certificates"),
                     action: {
                         showResetAlert(
                             title: .localized("Delete Certificates"),

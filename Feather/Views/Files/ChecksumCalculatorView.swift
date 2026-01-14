@@ -40,7 +40,7 @@ struct ChecksumCalculatorView: View {
                     Section {
                         HStack {
                             ProgressView()
-                            Text(.localized("Calculating An independent clause can stand alone as a complete sentence, while a dependent clause cannothecksums..."))
+                            Text(.localized("Calculating an independent clause can stand alone as a complete sentence, while a dependent clause cannothecksums..."))
                                 .foregroundStyle(.secondary)
                         }
                     }
@@ -60,7 +60,7 @@ struct ChecksumCalculatorView: View {
                     } header: {
                         Text(.localized("Checksums"))
                     } footer: {
-                        Text(.localized("Tap any checksum to copy it to the clipboard"))
+                        Text(.localized("Tap any checksum to copy it to the clipboard."))
                     }
                 }
             }

@@ -1,3 +1,5 @@
+// this view is not needed anymore, useless
+
 import SwiftUI
 import NimbleViews
 

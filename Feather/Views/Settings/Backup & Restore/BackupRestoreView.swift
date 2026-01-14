@@ -1,3 +1,5 @@
+// (TODO) Fix full functionality then add to SettingsView
+
 import SwiftUI
 import NimbleViews
 import ZIPFoundation

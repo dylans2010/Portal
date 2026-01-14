@@ -32,6 +32,7 @@ final class DeveloperAuthManager: ObservableObject {
         "FEATHER-DEV-2024-ALPHA",
         "FEATHER-DEV-2024-BETA",
         "INTERNAL-DEV",
+        "DEV-MODE-AUTH",
         "PORTAL-INTERNAL-DEV"
     ]
     

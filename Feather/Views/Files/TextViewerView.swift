@@ -163,7 +163,7 @@ struct TextViewerView: View {
                 
                 ToolbarItemGroup(placement: .primaryAction) {
                     if hasUnsavedChanges {
-                        Label(.localized("Auto-saving..."), systemImage: "clock.arrow.circlepath")
+                        Label(.localized("Auto Saving..."), systemImage: "clock.arrow.circlepath")
                             .font(.caption)
                             .foregroundStyle(.secondary)
                     }
@@ -295,7 +295,7 @@ struct TextViewerView: View {
             isEditing = false
         } catch {
             HapticsManager.shared.error()
-            errorMessage = "Save failed: \(error.localizedDescription)"
+            errorMessage = "Save Failed: \(error.localizedDescription)"
             AppLogManager.shared.error("Failed to save text file: \(error.localizedDescription)", category: "Files")
         }
     }

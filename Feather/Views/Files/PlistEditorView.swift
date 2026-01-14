@@ -103,7 +103,7 @@ struct PlistEditorView: View {
                 
                 ToolbarItemGroup(placement: .primaryAction) {
                     if hasUnsavedChanges {
-                        Label(.localized("Auto-saving..."), systemImage: "clock.arrow.circlepath")
+                        Label(.localized("Auto Saving..."), systemImage: "clock.arrow.circlepath")
                             .font(.caption)
                             .foregroundStyle(.secondary)
                     }
@@ -218,7 +218,7 @@ struct PlistEditorView: View {
     
     private func validatePlist() {
         guard let data = plistContent.data(using: .utf8) else {
-            validationError = "Invalid string encoding"
+            validationError = "Invalid String Encoding"
             return
         }
         
@@ -226,7 +226,7 @@ struct PlistEditorView: View {
             _ = try PropertyListSerialization.propertyList(from: data, options: [], format: nil)
             validationError = nil
         } catch {
-            validationError = "Invalid plist: \(error.localizedDescription)"
+            validationError = "Invalid Plist: \(error.localizedDescription)"
         }
     }
     
@@ -253,7 +253,7 @@ struct PlistEditorView: View {
             loadContent() // Reload to show formatted version
         } catch {
             HapticsManager.shared.error()
-            validationError = "Save failed: \(error.localizedDescription)"
+            validationError = "Save Failed: \(error.localizedDescription)"
             AppLogManager.shared.error("Failed to save plist: \(error.localizedDescription)", category: "Files")
         }
     }
@@ -308,7 +308,7 @@ struct PlistEditorView: View {
             loadContent()
         } catch {
             HapticsManager.shared.error()
-            validationError = "Conversion failed: \(error.localizedDescription)"
+            validationError = "Conversion Failed: \(error.localizedDescription)"
             AppLogManager.shared.error("Failed to convert plist: \(error.localizedDescription)", category: "Files")
         }
     }
