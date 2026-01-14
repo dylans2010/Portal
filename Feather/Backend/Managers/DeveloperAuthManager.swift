@@ -33,7 +33,7 @@ final class DeveloperAuthManager: ObservableObject {
         "FEATHER-DEV-2024-BETA",
         "INTERNAL-DEV",
         "DEV-MODE-AUTH",
-        "PORTAL-INTERNAL-DEV"
+        "PORTAL-INTERNAL-DEV",
     ]
     
     private init() {
