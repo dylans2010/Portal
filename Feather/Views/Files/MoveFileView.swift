@@ -59,7 +59,7 @@ struct MoveFileView: View {
                             }
                         }
                     } header: {
-                        Label(.localized("Files to Move"), systemImage: "arrow.up.doc")
+                        Label(.localized("Files To Move"), systemImage: "arrow.up.doc")
                     }
                     
                     Section {

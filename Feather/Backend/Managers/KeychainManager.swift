@@ -21,13 +21,13 @@ final class KeychainManager {
         var errorDescription: String? {
             switch self {
             case .duplicateEntry:
-                return "Duplicate keychain entry"
+                return "Duplicate Keychain Entry"
             case .unknown(let status):
-                return "Keychain error: \(status)"
+                return "Keychain Error: \(status)"
             case .itemNotFound:
                 return "Item not found in keychain"
             case .invalidData:
-                return "Invalid data format"
+                return "Invalid Data Format"
             }
         }
     }

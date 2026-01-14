@@ -194,7 +194,7 @@ struct JSONViewerView: View {
     
     private func validateJSON() {
         guard let data = jsonContent.data(using: .utf8) else {
-            validationError = "Invalid UTF-8 encoding"
+            validationError = "Invalid UTF-8 Encoding"
             return
         }
         
@@ -222,7 +222,7 @@ struct JSONViewerView: View {
             isEditing = false
         } catch {
             HapticsManager.shared.error()
-            validationError = "Save failed: \(error.localizedDescription)"
+            validationError = "Save Failed: \(error.localizedDescription)"
             AppLogManager.shared.error("Failed to save JSON file: \(error.localizedDescription)", category: "Files")
         }
     }

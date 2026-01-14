@@ -1,5 +1,5 @@
 // Created by dylan on 1.11.26
-
+// (1.14.25) need to update to be half view and clean UI
 import SwiftUI
 
 struct CheckForUpdatesView: View {

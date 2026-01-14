@@ -1,7 +1,8 @@
+// UpdateBannerView is for users to know about a new Portal update
+// (WIP) UI fixes
+
 import SwiftUI
 
-// MARK: - Update Banner View
-/// Displays a banner at the top of the screen when an update is available
 struct UpdateBannerView: View {
     let version: String
     let message: String
@@ -116,8 +117,6 @@ struct UpdateBannerView: View {
 }
 
 // MARK: - Update Available View
-/// A modern banner view that shows when an update is available
-/// Navigates to Check for Updates page when tapped
 struct UpdateAvailableView: View {
     let version: String
     let releaseURL: String
@@ -164,12 +163,12 @@ struct UpdateAvailableView: View {
                     // Content
                     VStack(alignment: .leading, spacing: 3) {
                         HStack(spacing: 6) {
-                            Text("Update Available")
+                            Text("Update Available!")
                                 .font(.subheadline.weight(.semibold))
                                 .foregroundStyle(.primary)
                             
                             // NEW badge
-                            Text("NEW")
+                            Text("New")
                                 .font(.system(size: 9, weight: .bold))
                                 .foregroundStyle(.white)
                                 .padding(.horizontal, 6)
@@ -180,7 +179,7 @@ struct UpdateAvailableView: View {
                                 )
                         }
                         
-                        Text("Portal v\(version) is ready to install")
+                        Text("Portal v\(version) has released!")
                             .font(.caption)
                             .foregroundStyle(.secondary)
                     }
