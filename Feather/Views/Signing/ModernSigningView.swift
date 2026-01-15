@@ -865,87 +865,61 @@ struct ModernSigningView: View {
     // MARK: - Modern Sign Button
     @ViewBuilder
     private var modernSignButton: some View {
-        VStack(spacing: 0) {
-            // Fade gradient at top
-            LinearGradient(
-                colors: [
-                    Color(UIColor.systemBackground).opacity(0),
-                    Color(UIColor.systemBackground).opacity(0.8),
-                    Color(UIColor.systemBackground)
-                ],
-                startPoint: .top,
-                endPoint: .bottom
-            )
-            .frame(height: 30)
-            
-            Button {
-                _start()
-            } label: {
-                ZStack {
-                    // Animated glow behind button
-                    Capsule()
-                        .fill(Color.accentColor.opacity(_glowAnimation ? 0.5 : 0.3))
-                        .blur(radius: 20)
-                        .scaleEffect(_glowAnimation ? 1.05 : 1.0)
-                        .padding(.horizontal, 10)
-                    
-                    HStack(spacing: 12) {
-                        Image(systemName: "signature")
-                            .font(.system(size: 18, weight: .bold))
-                            .modifier(PulseEffectModifier(trigger: _glowAnimation))
-                        Text("Sign App")
-                            .font(.system(size: 17, weight: .bold))
-                    }
-                    .foregroundStyle(.white)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 18)
-                    .background(
-                        ZStack {
-                            // Main gradient
-                            LinearGradient(
-                                colors: [
-                                    Color.accentColor,
-                                    Color.accentColor.opacity(0.9),
-                                    Color.accentColor.opacity(0.8)
-                                ],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            )
-                            
-                            // Shine effect
-                            LinearGradient(
-                                colors: [
-                                    .white.opacity(0.25),
-                                    .white.opacity(0),
-                                    .white.opacity(0)
-                                ],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            )
-                        }
-                    )
-                    .clipShape(Capsule())
-                    .overlay(
-                        Capsule()
-                            .stroke(
-                                LinearGradient(
-                                    colors: [.white.opacity(0.4), .white.opacity(0.1)],
-                                    startPoint: .topLeading,
-                                    endPoint: .bottomTrailing
-                                ),
-                                lineWidth: 1
-                            )
-                    )
-                    .shadow(color: Color.accentColor.opacity(0.5), radius: 15, x: 0, y: 8)
+        Button {
+            _start()
+        } label: {
+            ZStack {
+                // Animated glow behind button
+                Capsule()
+                    .fill(Color.accentColor.opacity(_glowAnimation ? 0.5 : 0.3))
+                    .blur(radius: 20)
+                    .scaleEffect(_glowAnimation ? 1.05 : 1.0)
+                    .padding(.horizontal, 10)
+                
+                HStack(spacing: 12) {
+                    Image(systemName: "signature")
+                        .font(.system(size: 18, weight: .bold))
+                        .modifier(PulseEffectModifier(trigger: _glowAnimation))
+                    Text("Sign App")
+                        .font(.system(size: 17, weight: .bold))
                 }
+                .foregroundStyle(.white)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 18)
+                .background(
+                    ZStack {
+                        // Main solid accent color
+                        Color.accentColor
+                        
+                        // Subtle shine effect
+                        LinearGradient(
+                            colors: [
+                                .white.opacity(0.2),
+                                .white.opacity(0)
+                            ],
+                            startPoint: .top,
+                            endPoint: .bottom
+                        )
+                    }
+                )
+                .clipShape(Capsule())
+                .overlay(
+                    Capsule()
+                        .stroke(
+                            LinearGradient(
+                                colors: [.white.opacity(0.4), .white.opacity(0.1)],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            ),
+                            lineWidth: 1
+                        )
+                )
+                .shadow(color: Color.accentColor.opacity(0.5), radius: 15, x: 0, y: 8)
             }
-            .padding(.horizontal, 20)
-            .padding(.bottom, 20)
-            .background(
-                Color(UIColor.systemBackground)
-                    .opacity(0.9)
-            )
         }
+        .padding(.horizontal, 20)
+        .padding(.bottom, 20)
+        .padding(.top, 12)
     }
     
     // MARK: - Start Signing
@@ -1303,17 +1277,6 @@ struct ModernSigningOptionsView: View {
                 RoundedRectangle(cornerRadius: 18, style: .continuous)
                     .fill(.ultraThinMaterial)
                     .shadow(color: .black.opacity(0.06), radius: 12, x: 0, y: 6)
-            )
-            .overlay(
-                RoundedRectangle(cornerRadius: 18, style: .continuous)
-                    .stroke(
-                        LinearGradient(
-                            colors: [.white.opacity(0.3), .white.opacity(0.1)],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        ),
-                        lineWidth: 1
-                    )
             )
         }
     }
