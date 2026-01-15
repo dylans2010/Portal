@@ -814,11 +814,24 @@ struct ModernPasscodeSetupView: View {
 struct DeveloperControlPanelView: View {
     @StateObject private var authManager = DeveloperAuthManager.shared
     @State private var showResetConfirmation = false
+    @AppStorage("Feather.enableCustomTabBar") private var enableCustomTabBar = false
     @Environment(\.scenePhase) private var scenePhase
     
     var body: some View {
         NBNavigationView("Developer Mode") {
             List {
+                // Experimental UI Section
+                Section {
+                    Toggle(isOn: $enableCustomTabBar) {
+                        DeveloperMenuRow(icon: "dock.rectangle", title: "Enable New Tab Bar", color: .cyan)
+                    }
+                    .tint(.cyan)
+                } header: {
+                    Text("Experimental UI")
+                } footer: {
+                    Text("Enable a fully custom modern tab bar with animations and glass effects. Requires app restart.")
+                }
+                
                 // Updates & Releases Section
                 Section {
                     NavigationLink(destination: UpdatesReleasesView()) {

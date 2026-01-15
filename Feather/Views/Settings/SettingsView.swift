@@ -25,117 +25,113 @@ struct SettingsView: View {
     @AppStorage("forceShowGuides") private var forceShowGuides = false
     @Environment(\.navigateToUpdates) private var navigateToUpdates
     
-    // MARK: Body
     var body: some View {
         NBNavigationView(.localized("Settings")) {
             Form {
-                // CoreSign Header at top
+                // Header
                 Section {
                     CoreSignHeaderView(hideAboutButton: true)
                         .listRowInsets(EdgeInsets())
                         .listRowBackground(Color.clear)
-                        .onTapGesture {
-                            handleDeveloperModeTap()
-                        }
+                        .onTapGesture { handleDeveloperModeTap() }
                 }
                 
+                // General
                 Section {
                     NavigationLink(destination: AppearanceView()) {
-                        ConditionalLabel(title: .localized("Appearance"), systemImage: "paintbrush")
+                        settingsRow(icon: "paintbrush.fill", title: "Appearance", color: .pink)
                     }
                     NavigationLink(destination: HapticsView()) {
-                        ConditionalLabel(title: .localized("Haptics"), systemImage: "iphone.radiowaves.left.and.right")
+                        settingsRow(icon: "waveform", title: "Haptics", color: .purple)
                     }
-                }
-                
-                NBSection(.localized("Experience")) {
-                    Picker(.localized("Certificate Type"), selection: $certificateExperience) {
-                        ForEach(CertificateExperience.allCases, id: \.rawValue) { experience in
-                            Text(experience.displayName).tag(experience.rawValue)
+                    Picker(selection: $certificateExperience) {
+                        ForEach(CertificateExperience.allCases, id: \.rawValue) { exp in
+                            Text(exp.displayName).tag(exp.rawValue)
                         }
+                    } label: {
+                        settingsRow(icon: "person.badge.shield.checkmark.fill", title: "Certificate Type", color: .blue)
                     }
                     .onChange(of: certificateExperience) { newValue in
-                        // Always enable Guides for Enterprise
                         if newValue == CertificateExperience.enterprise.rawValue {
                             forceShowGuides = true
                         }
                     }
-                } footer: {
-                    Text(.localized("Select your certificate type. Enterprise certificates will enable the Guides feature."))
+                } header: {
+                    Text("General")
                 }
                 
-                NBSection(.localized("Features")) {
-                    NavigationLink(destination: FilesSettingsView()) {
-                        ConditionalLabel(title: .localized("Files"), systemImage: "folder")
-                    }
-                    NavigationLink(destination: GuidesSettingsView()) {
-                        ConditionalLabel(title: .localized("Guides"), systemImage: "book")
-                    }
+                // Configuration
+                Section {
                     NavigationLink(destination: CertificatesView()) {
-                        ConditionalLabel(title: .localized("Certificates"), systemImage: "checkmark.seal")
+                        settingsRow(icon: "checkmark.seal.fill", title: "Certificates", color: .green)
                     }
                     NavigationLink(destination: ConfigurationView()) {
-                        ConditionalLabel(title: .localized("Signing Options"), systemImage: "signature")
-                    }
-                    NavigationLink(destination: ArchiveView()) {
-                        ConditionalLabel(title: .localized("Archive & Compression"), systemImage: "archivebox")
+                        settingsRow(icon: "signature", title: "Signing Options", color: .orange)
                     }
                     NavigationLink(destination: InstallationView()) {
-                        ConditionalLabel(title: .localized("Installation"), systemImage: "arrow.down.circle")
+                        settingsRow(icon: "arrow.down.app.fill", title: "Installation", color: .cyan)
                     }
-                } footer: {
-                    Text(.localized("Configure the apps way of installing, its zip compression levels, custom modifications to apps, and enable experimental features."))
+                    NavigationLink(destination: ArchiveView()) {
+                        settingsRow(icon: "archivebox.fill", title: "Archive & Compression", color: .indigo)
+                    }
+                } header: {
+                    Text("Configuration")
                 }
                 
-                // Only show Extras section when NOT in Enterprise mode
+                // Features
+                Section {
+                    NavigationLink(destination: FilesSettingsView()) {
+                        settingsRow(icon: "folder.fill", title: "Files", color: .blue)
+                    }
+                    NavigationLink(destination: GuidesSettingsView()) {
+                        settingsRow(icon: "book.fill", title: "Guides", color: .orange)
+                    }
+                } header: {
+                    Text("Features")
+                }
+                
+                // App
                 if certificateExperience != CertificateExperience.enterprise.rawValue {
-                    NBSection(.localized("Extras")) {
+                    Section {
                         NavigationLink(destination: AppIconView()) {
-                            ConditionalLabel(title: .localized("App Icons"), systemImage: "app.badge")
+                            settingsRow(icon: "app.badge.fill", title: "App Icons", color: .pink)
                         }
                         NavigationLink(destination: ManageStorageView()) {
-                            ConditionalLabel(title: .localized("Manage Storage"), systemImage: "internaldrive")
+                            settingsRow(icon: "internaldrive.fill", title: "Storage", color: .gray)
                         }
-                        NavigationLink(destination: CheckForUpdatesView()) {
-                            ConditionalLabel(title: .localized("Check For Updates"), systemImage: "arrow.down.circle")
+                        NavigationLink(destination: CheckForUpdatesView(), isActive: $navigateToCheckForUpdates) {
+                            settingsRow(icon: "arrow.triangle.2.circlepath", title: "Updates", color: .green)
                         }
-                        .background(
-                            NavigationLink(destination: CheckForUpdatesView(), isActive: $navigateToCheckForUpdates) {
-                                EmptyView()
-                            }
-                            .hidden()
-                        )
-                    } footer: {
-                        Text(.localized("Customize your app icon, manage storage, and check for updates."))
+                    } header: {
+                        Text("App")
                     }
                 }
                 
+                // Developer
                 if isDeveloperModeEnabled {
-                    NBSection("Developer") {
+                    Section {
                         NavigationLink(destination: DeveloperView()) {
-                            ConditionalLabelString(title: "Developer Tools", systemImage: "hammer.fill")
+                            settingsRow(icon: "hammer.fill", title: "Developer Tools", color: .yellow)
                         }
+                    } header: {
+                        Text("Developer")
                     }
                 }
             }
         }
         .alert("Enable Developer Mode", isPresented: $showDeveloperConfirmation) {
-            Button("Cancel", role: .cancel) {
-                developerTapCount = 0
-            }
-            Button("Enable", role: .none) {
+            Button("Cancel", role: .cancel) { developerTapCount = 0 }
+            Button("Enable") {
                 isDeveloperModeEnabled = true
                 developerTapCount = 0
                 HapticsManager.shared.success()
-                AppLogManager.shared.info("Developer mode enabled", category: "Settings")
             }
         } message: {
-            Text("Developer mode provides advanced tools and diagnostics. This is intended for developers and advanced users only. Are you sure you want to enable it?")
+            Text("Developer mode provides advanced tools for developers and advanced users.")
         }
         .onChange(of: navigateToUpdates.wrappedValue) { shouldNavigate in
             if shouldNavigate {
                 navigateToCheckForUpdates = true
-                // Reset the environment value
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
                     navigateToUpdates.wrappedValue = false
                 }
@@ -143,23 +139,28 @@ struct SettingsView: View {
         }
     }
     
+    @ViewBuilder
+    private func settingsRow(icon: String, title: String, color: Color) -> some View {
+        HStack(spacing: 12) {
+            Image(systemName: icon)
+                .font(.system(size: 14, weight: .medium))
+                .foregroundStyle(.white)
+                .frame(width: 28, height: 28)
+                .background(color, in: RoundedRectangle(cornerRadius: 6, style: .continuous))
+            Text(title)
+        }
+    }
+    
     private func handleDeveloperModeTap() {
         let now = Date()
-        
-        // Reset counter if too much time has passed (5 seconds)
         if let lastTap = lastTapTime, now.timeIntervalSince(lastTap) > 5.0 {
             developerTapCount = 0
         }
-        
         lastTapTime = now
         developerTapCount += 1
-        
-        // Provide subtle feedback
         if developerTapCount >= 5 && developerTapCount < 10 {
             HapticsManager.shared.softImpact()
         }
-        
-        // Require 10 taps to show confirmation dialog
         if developerTapCount >= 10 {
             showDeveloperConfirmation = true
         }
