@@ -96,9 +96,15 @@ struct SettingsView: View {
                         NavigationLink(destination: ManageStorageView()) {
                             ConditionalLabel(title: .localized("Manage Storage"), systemImage: "internaldrive")
                         }
-                        NavigationLink(destination: CheckForUpdatesView(), isActive: $navigateToCheckForUpdates) {
+                        NavigationLink(destination: CheckForUpdatesView()) {
                             ConditionalLabel(title: .localized("Check For Updates"), systemImage: "arrow.down.circle")
                         }
+                        .background(
+                            NavigationLink(destination: CheckForUpdatesView(), isActive: $navigateToCheckForUpdates) {
+                                EmptyView()
+                            }
+                            .hidden()
+                        )
                     } footer: {
                         Text(.localized("Customize your app icon, manage storage, and check for updates."))
                     }

@@ -778,7 +778,7 @@ struct ModernSigningOptionsView: View {
                     } label: {
                         HStack(spacing: 12) {
                             Image(systemName: "questionmark.circle.fill")
-                                .foregroundStyle(.accentColor)
+                                .foregroundColor(.accentColor)
                             Text("What is PPQ?")
                                 .foregroundStyle(.primary)
                             Spacer()
@@ -897,7 +897,7 @@ struct ModernSigningOptionsView: View {
         HStack(spacing: 14) {
             Image(systemName: icon)
                 .font(.system(size: 16))
-                .foregroundStyle(.accentColor)
+                .foregroundColor(.accentColor)
                 .frame(width: 24)
             
             VStack(alignment: .leading, spacing: 2) {
@@ -928,7 +928,7 @@ struct ModernSigningOptionsView: View {
         HStack(spacing: 14) {
             Image(systemName: icon)
                 .font(.system(size: 16))
-                .foregroundStyle(.accentColor)
+                .foregroundColor(.accentColor)
                 .frame(width: 24)
             
             Text(title)

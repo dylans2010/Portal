@@ -84,12 +84,9 @@ struct ExtendedTabbarView: View {
 	}
 		
 	var body: some View {
-		TabView(selection: Binding(
-			get: { selectedTab ?? getInitialTab() },
-			set: { selectedTab = $0 }
-		)) {
+		TabView {
 			ForEach(visibleTabs, id: \.hashValue) { tab in
-				Tab(hideTabLabels ? "" : tab.title, systemImage: tab.icon, value: tab) {
+				Tab(hideTabLabels ? "" : tab.title, systemImage: tab.icon) {
 					TabEnum.view(for: tab)
 				}
 			}
@@ -126,11 +123,6 @@ struct ExtendedTabbarView: View {
 		}
 		.tabViewStyle(.sidebarAdaptable)
 		.tabViewCustomization($customization)
-		.onAppear {
-			if selectedTab == nil {
-				selectedTab = getInitialTab()
-			}
-		}
 		.sheet(isPresented: $_isAddingPresenting) {
 			SourcesAddView()
 				.presentationDetents([.medium, .large])
