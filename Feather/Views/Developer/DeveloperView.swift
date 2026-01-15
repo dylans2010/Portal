@@ -3057,7 +3057,7 @@ struct UpdatesReleasesView: View {
     @AppStorage("dev.updateBannerDismissed") private var updateBannerDismissed = false
     @AppStorage("dev.showUpdateBannerPreview") private var showUpdateBannerPreview = false
     
-    private let repoOwner = "aoyn1xw"
+    private let repoOwner = "dylans2010"
     private let repoName = "Portal"
     
     var currentVersion: String {
@@ -3312,7 +3312,7 @@ struct UpdatesReleasesView: View {
             name: "Portal-99.0.0.ipa",
             size: 50_000_000,
             downloadCount: 1000,
-            browserDownloadUrl: "https://github.com/aoyn1xw/Portal/releases/download/v99.0.0/Portal-99.0.0.ipa"
+            browserDownloadUrl: "https://github.com/dylans2010/Portal/releases/download/v99.0.0/Portal-99.0.0.ipa"
         )
         
         let fakeRelease = GitHubRelease(
@@ -3336,7 +3336,7 @@ struct UpdatesReleasesView: View {
             prerelease: false,
             draft: false,
             publishedAt: Date(),
-            htmlUrl: "https://github.com/aoyn1xw/Portal/releases/tag/v99.0.0",
+            htmlUrl: "https://github.com/dylans2010/Portal/releases/tag/v99.0.0",
             assets: [fakeAsset]
         )
         

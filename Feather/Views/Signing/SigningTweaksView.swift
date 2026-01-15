@@ -200,7 +200,7 @@ extension SigningTweaksView {
 						// Show success alert
 						UIAlertController.showAlertWithOk(
 							title: .localized("Success"),
-							message: .localized("Added \(addedCount) default framework(s)")
+							message: .localized("Added \(addedCount) Default Framework(s)")
 						)
 					} else {
 						HapticsManager.shared.impact()

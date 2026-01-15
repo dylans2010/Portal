@@ -1,5 +1,5 @@
 // Created by dylan on 1.11.26
-// (1.14.25) need to update to be half view and clean UI
+// (1.14.25) need to update to be half view and clean UI (update: done)
 import SwiftUI
 
 struct CheckForUpdatesView: View {
@@ -8,7 +8,7 @@ struct CheckForUpdatesView: View {
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     @Environment(\.colorScheme) private var colorScheme
     
-    private let repoOwner = "aoyn1xw"
+    private let repoOwner = "dylans2010"
     private let repoName = "Portal"
     
     var currentVersion: String {
@@ -758,7 +758,7 @@ class UpdateManager: ObservableObject {
     @Published var downloadedIPAURL: URL?
     @Published var downloadedFileName: String = ""
     
-    private let repoOwner = "aoyn1xw"
+    private let repoOwner = "dylans2010"
     private let repoName = "Portal"
     private var downloadTask: URLSessionDownloadTask?
     private var downloadSession: URLSession?
@@ -844,7 +844,7 @@ class UpdateManager: ObservableObject {
             name: "Portal-\(fakeVersion).ipa",
             size: 50_000_000,
             downloadCount: 1000,
-            browserDownloadUrl: "https://github.com/aoyn1xw/Portal/releases/download/v\(fakeVersion)/Portal-\(fakeVersion).ipa"
+            browserDownloadUrl: "https://github.com/dylans2010/Portal/releases/download/v\(fakeVersion)/Portal-\(fakeVersion).ipa"
         )
         
         let fakeRelease = GitHubRelease(
@@ -868,7 +868,7 @@ class UpdateManager: ObservableObject {
             prerelease: false,
             draft: false,
             publishedAt: Date(),
-            htmlUrl: "https://github.com/aoyn1xw/Portal/releases/tag/v\(fakeVersion)",
+            htmlUrl: "https://github.com/dylans2010/Portal/releases/tag/v\(fakeVersion)",
             assets: [fakeAsset]
         )
         
@@ -1113,7 +1113,7 @@ struct UpdateFinishedView: View {
             .padding(.horizontal, 20)
             .padding(.top, 8)
             .background(Color(UIColor.systemGroupedBackground))
-            .navigationTitle("Download Complete")
+            .navigationTitle("Portal Update")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
@@ -1197,7 +1197,7 @@ struct UpdateFinishedView: View {
                         .foregroundStyle(.primary)
                 }
                 
-                Text("Ready to Sign")
+                Text("Ready To Sign")
                     .font(.caption)
                     .foregroundStyle(.green)
             }
@@ -1230,7 +1230,7 @@ struct UpdateFinishedView: View {
                         Image(systemName: "plus.app")
                             .font(.system(size: 16, weight: .semibold))
                     }
-                    Text(addedToLibrary ? "Added to Library" : "Add to Library")
+                    Text(addedToLibrary ? "Added To Library" : "Add to Library")
                         .font(.system(size: 15, weight: .semibold))
                 }
                 .frame(maxWidth: .infinity)

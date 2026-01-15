@@ -145,7 +145,7 @@ struct SigningEntitlementsView: View {
                         .font(.title2.weight(.bold))
                         .foregroundStyle(.primary)
                     
-                    Text("BETA")
+                    Text("Beta")
                         .font(.system(size: 10, weight: .bold))
                         .foregroundStyle(.white)
                         .padding(.horizontal, 8)
@@ -156,7 +156,7 @@ struct SigningEntitlementsView: View {
                         )
                 }
                 
-                Text("Customize app permissions and capabilities")
+                Text("Customize App Permissions And Capabilities")
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
                     .multilineTextAlignment(.center)
@@ -233,7 +233,7 @@ struct SigningEntitlementsView: View {
                                 .font(.headline.weight(.semibold))
                                 .foregroundStyle(.primary)
                             
-                            Text("Choose a .plist or .entitlements file")
+                            Text("Choose Entitlements File")
                                 .font(.caption)
                                 .foregroundStyle(.secondary)
                         }
@@ -265,9 +265,9 @@ struct SigningEntitlementsView: View {
             }
             
             VStack(alignment: .leading, spacing: 10) {
-                infoRow(icon: "checkmark.shield.fill", text: "Override default app permissions", color: .green)
-                infoRow(icon: "key.fill", text: "Add custom capabilities", color: .blue)
-                infoRow(icon: "exclamationmark.triangle.fill", text: "Incorrect entitlements may cause crashes", color: .orange)
+                infoRow(icon: "checkmark.shield.fill", text: "Override Default App Permissions", color: .green)
+                infoRow(icon: "key.fill", text: "Add Custom Capabilities", color: .blue)
+                infoRow(icon: "exclamationmark.triangle.fill", text: "Notice: Incorrect entitlements may cause app crashes which means you have to resign the app", color: .orange)
             }
             .padding(16)
             .background(

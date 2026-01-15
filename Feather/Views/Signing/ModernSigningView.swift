@@ -503,7 +503,7 @@ struct ModernSigningView: View {
                             .font(.subheadline.weight(.semibold))
                             .foregroundStyle(.primary)
                         if let expiration = cert.expiration {
-                            Text("Expires: \(expiration, style: .date)")
+                            Text("Expires On \(expiration, style: .date)")
                                 .font(.caption)
                                 .foregroundStyle(.secondary)
                         }
@@ -539,7 +539,7 @@ struct ModernSigningView: View {
                         Text("No Certificate")
                             .font(.subheadline.weight(.semibold))
                             .foregroundStyle(.primary)
-                        Text("Tap to add a certificate")
+                        Text("Add Certificate")
                             .font(.caption)
                             .foregroundStyle(.secondary)
                     }
@@ -673,7 +673,7 @@ struct ModernSigningView: View {
                                     HStack(spacing: 4) {
                                         Image(systemName: "calendar")
                                             .font(.caption2)
-                                        Text("Expires: \(expiration, style: .date)")
+                                        Text("Expires On \(expiration, style: .date)")
                                             .font(.caption)
                                     }
                                     .foregroundStyle(.secondary)
@@ -813,19 +813,19 @@ struct ModernSigningView: View {
                     NavigationLink {
                         SigningDylibView(app: app, options: $_temporaryOptions.optional())
                     } label: {
-                        modernAdvancedRow(title: "Existing Dylibs", subtitle: "Manage dynamic libraries", icon: "puzzlepiece.extension.fill", color: .purple)
+                        modernAdvancedRow(title: "Existing Dylibs", subtitle: "Manage Dynamic Libraries", icon: "puzzlepiece.extension.fill", color: .purple)
                     }
                     
                     NavigationLink {
                         SigningFrameworksView(app: app, options: $_temporaryOptions.optional())
                     } label: {
-                        modernAdvancedRow(title: "Frameworks & Plugins", subtitle: "Add or remove frameworks", icon: "cube.fill", color: .blue)
+                        modernAdvancedRow(title: "Frameworks & Plugins", subtitle: "Add or Remove Frameworks", icon: "cube.fill", color: .blue)
                     }
                     
                     NavigationLink {
                         SigningTweaksView(options: $_temporaryOptions)
                     } label: {
-                        modernAdvancedRow(title: "Inject Tweaks", subtitle: "Add custom modifications", icon: "wrench.and.screwdriver.fill", color: .green, isLast: true)
+                        modernAdvancedRow(title: "Inject Tweaks", subtitle: "Add Custom Modifications or Frameworks.", icon: "wrench.and.screwdriver.fill", color: .green, isLast: true)
                     }
                 }
                 .background(
@@ -860,7 +860,7 @@ struct ModernSigningView: View {
                 NavigationLink {
                     SigningEntitlementsView(bindingValue: $_temporaryOptions.appEntitlementsFile)
                 } label: {
-                    modernAdvancedRow(title: "Entitlements", subtitle: "Edit app entitlements", icon: "lock.shield.fill", color: .orange, isFirst: true, isLast: true, isBeta: true)
+                    modernAdvancedRow(title: "Entitlements", subtitle: "Edit App Entitlements", icon: "lock.shield.fill", color: .orange, isFirst: true, isLast: true, isBeta: true)
                 }
                 .background(
                     RoundedRectangle(cornerRadius: 20, style: .continuous)
@@ -1117,7 +1117,7 @@ struct ModernSigningOptionsView: View {
                     modernOptionSection(title: "Protection", icon: "shield.lefthalf.filled", color: .blue) {
                         modernOptionToggle(
                             title: "PPQ Protection",
-                            subtitle: isPPQProtectionForced ? "Required for your certificate" : "Append random string to Bundle IDs",
+                            subtitle: isPPQProtectionForced ? "Required for your certificate." : "Append random string to Bundle IDs to avoid Apple flagging this certificate.",
                             icon: "shield.checkered",
                             color: .blue,
                             isOn: Binding(
@@ -1189,34 +1189,34 @@ struct ModernSigningOptionsView: View {
                     
                     // App Features Section
                     modernOptionSection(title: "App Features", icon: "sparkles", color: .yellow) {
-                        modernOptionToggle(title: "File Sharing", subtitle: "Enable document sharing", icon: "folder.fill.badge.person.crop", color: .blue, isOn: $options.fileSharing)
-                        modernOptionToggle(title: "iTunes File Sharing", subtitle: "Access via iTunes/Finder", icon: "music.note.list", color: .pink, isOn: $options.itunesFileSharing)
-                        modernOptionToggle(title: "ProMotion", subtitle: "120Hz display support", icon: "gauge.with.dots.needle.67percent", color: .green, isOn: $options.proMotion)
-                        modernOptionToggle(title: "Game Mode", subtitle: "Optimize for gaming", icon: "gamecontroller.fill", color: .purple, isOn: $options.gameMode)
-                        modernOptionToggle(title: "iPad Fullscreen", subtitle: "Full screen on iPad", icon: "ipad.landscape", color: .orange, isOn: $options.ipadFullscreen)
+                        modernOptionToggle(title: "File Sharing", subtitle: "Enable Document Sharing.", icon: "folder.fill.badge.person.crop", color: .blue, isOn: $options.fileSharing)
+                        modernOptionToggle(title: "iTunes File Sharing", subtitle: "Access Via iTunes/Finder.", icon: "music.note.list", color: .pink, isOn: $options.itunesFileSharing)
+                        modernOptionToggle(title: "ProMotion", subtitle: "120Hz Display Support.", icon: "gauge.with.dots.needle.67percent", color: .green, isOn: $options.proMotion)
+                        modernOptionToggle(title: "Game Mode", subtitle: "Turn on Gaming Mode (iOS 18+).", icon: "gamecontroller.fill", color: .purple, isOn: $options.gameMode)
+                        modernOptionToggle(title: "iPad Fullscreen", subtitle: "Full Screen On iPad.", icon: "ipad.landscape", color: .orange, isOn: $options.ipadFullscreen)
                     }
                     
                     // Removal Section
                     modernOptionSection(title: "Removal", icon: "trash.slash.fill", color: .red) {
-                        modernOptionToggle(title: "Remove URL Scheme", subtitle: "Strip URL handlers", icon: "link.badge.minus", color: .red, isOn: $options.removeURLScheme)
-                        modernOptionToggle(title: "Remove Provisioning", subtitle: "Exclude .mobileprovision", icon: "doc.badge.minus", color: .orange, isOn: $options.removeProvisioning)
+                        modernOptionToggle(title: "Remove URL Scheme", subtitle: "Strip URL Handlers.", icon: "link.badge.minus", color: .red, isOn: $options.removeURLScheme)
+                        modernOptionToggle(title: "Remove Provisioning", subtitle: "Exclude .mobileprovision.", icon: "doc.badge.minus", color: .orange, isOn: $options.removeProvisioning)
                     }
                     
                     // Localization Section
                     modernOptionSection(title: "Localization", icon: "globe.badge.chevron.backward", color: .green) {
-                        modernOptionToggle(title: "Force Localize", subtitle: "Override localized titles", icon: "character.bubble.fill", color: .green, isOn: $options.changeLanguageFilesForCustomDisplayName)
+                        modernOptionToggle(title: "Force Localize", subtitle: "Override Localized Titles.", icon: "character.bubble.fill", color: .green, isOn: $options.changeLanguageFilesForCustomDisplayName)
                     }
                     
                     // Post Signing Section
                     modernOptionSection(title: "Post Signing", icon: "clock.arrow.circlepath", color: .orange) {
-                        modernOptionToggle(title: "Install After Signing", subtitle: "Auto-install when done", icon: "arrow.down.circle.fill", color: .green, isOn: $options.post_installAppAfterSigned)
-                        modernOptionToggle(title: "Delete After Signing", subtitle: "Remove original file", icon: "trash.fill", color: .red, isOn: $options.post_deleteAppAfterSigned)
+                        modernOptionToggle(title: "Install After Signing", subtitle: "Auto Install When Done.", icon: "arrow.down.circle.fill", color: .green, isOn: $options.post_installAppAfterSigned)
+                        modernOptionToggle(title: "Delete After Signing", subtitle: "Remove Original File.", icon: "trash.fill", color: .red, isOn: $options.post_deleteAppAfterSigned)
                     }
                     
                     // Experiments Section
                     modernOptionSection(title: "Experiments", icon: "flask.fill", color: .purple, isBeta: true) {
-                        modernOptionToggle(title: "Replace Substrate", subtitle: "Use ElleKit instead", icon: "arrow.triangle.2.circlepath.circle.fill", color: .cyan, isOn: $options.experiment_replaceSubstrateWithEllekit)
-                        modernOptionToggle(title: "Liquid Glass", subtitle: "iOS 26 redesign support", icon: "sparkles.rectangle.stack.fill", color: .purple, isOn: $options.experiment_supportLiquidGlass)
+                        modernOptionToggle(title: "Replace Substrate", subtitle: "Use ElleKit Instead.", icon: "arrow.triangle.2.circlepath.circle.fill", color: .cyan, isOn: $options.experiment_replaceSubstrateWithEllekit)
+                        modernOptionToggle(title: "Liquid Glass", subtitle: "Use iOS 26 Redesign Support.", icon: "sparkles.rectangle.stack.fill", color: .purple, isOn: $options.experiment_supportLiquidGlass)
                     }
                 }
                 .padding(.horizontal, 16)
