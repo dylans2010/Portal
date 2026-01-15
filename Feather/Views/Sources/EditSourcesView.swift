@@ -90,7 +90,7 @@ struct EditSourcesView: View {
             .overlay(
                 Image(systemName: "globe")
                     .font(.system(size: 16))
-                    .foregroundStyle(.accentColor)
+                    .foregroundStyle(Color.accentColor)
             )
     }
     

@@ -548,7 +548,7 @@ struct ModernSigningView: View {
                     
                     Image(systemName: "plus.circle.fill")
                         .font(.system(size: 20))
-                        .foregroundStyle(.accentColor)
+                        .foregroundStyle(Color.accentColor)
                 }
                 .padding(14)
                 .background(
