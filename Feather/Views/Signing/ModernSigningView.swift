@@ -60,30 +60,22 @@ struct ModernSigningView: View {
                 modernBackground
                 
                 VStack(spacing: 0) {
-                    // Header with app info
-                    headerSection
-                        .scaleEffect(_headerScale)
-                        .opacity(_contentOpacity)
-                    
-                    // Modern tab selector with glass effect
-                    modernTabSelector
-                        .opacity(_contentOpacity)
-                    
-                    // Content based on selected tab
-                    TabView(selection: $_selectedTab) {
-                        customizationTab
-                            .tag(0)
-                        
-                        signingTab
-                            .tag(1)
-                        
-                        advancedTab
-                            .tag(2)
+                    // Unified scrollable content
+                    ScrollView {
+                        VStack(spacing: 16) {
+                            // Header with app info
+                            headerSection
+                                .scaleEffect(_headerScale)
+                                .opacity(_contentOpacity)
+                            
+                            // All content in unified view
+                            unifiedContentSection
+                                .opacity(_contentOpacity)
+                        }
+                        .padding(.bottom, 100)
                     }
-                    .tabViewStyle(.page(indexDisplayMode: .never))
-                    .opacity(_contentOpacity)
                     
-                    // Modern sign button
+                    // Modern sign button (fixed at bottom)
                     modernSignButton
                         .offset(y: _buttonOffset)
                         .opacity(_contentOpacity)
@@ -390,129 +382,217 @@ struct ModernSigningView: View {
         }
     }
     
-    // MARK: - Modern Tab Selector
+    // MARK: - Unified Content Section
     @ViewBuilder
-    private var modernTabSelector: some View {
-        HStack(spacing: 8) {
-            ForEach(0..<3) { index in
-                modernTabButton(index: index)
-            }
-        }
-        .padding(6)
-        .background(
-            RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .fill(.ultraThinMaterial)
-                .shadow(color: .black.opacity(0.1), radius: 10, x: 0, y: 5)
-        )
-        .padding(.horizontal, 16)
-        .padding(.bottom, 8)
-    }
-    
-    @ViewBuilder
-    private func modernTabButton(index: Int) -> some View {
-        let isSelected = _selectedTab == index
-        let iconName = tabIcon(for: index)
-        let title = tabTitle(for: index)
-        
-        Button {
-            withAnimation(.spring(response: 0.35, dampingFraction: 0.7)) {
-                _selectedTab = index
-            }
-        } label: {
-            VStack(spacing: 4) {
-                Image(systemName: iconName)
-                    .font(.system(size: 16, weight: isSelected ? .semibold : .regular))
-                    .modifier(BounceEffectModifier(trigger: isSelected))
-                Text(title)
-                    .font(.caption2.weight(isSelected ? .semibold : .medium))
-            }
-            .foregroundColor(isSelected ? .white : .secondary)
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, 10)
-            .background(
-                ZStack {
-                    if isSelected {
-                        RoundedRectangle(cornerRadius: 12, style: .continuous)
-                            .fill(
-                                LinearGradient(
-                                    colors: [Color.accentColor, Color.accentColor.opacity(0.8)],
-                                    startPoint: .topLeading,
-                                    endPoint: .bottomTrailing
-                                )
-                            )
-                            .shadow(color: Color.accentColor.opacity(0.4), radius: 8, x: 0, y: 4)
-                    }
+    private var unifiedContentSection: some View {
+        VStack(spacing: 20) {
+            // App Details Section
+            sectionHeader(title: "App Details", icon: "app.badge.fill", color: .blue)
+            
+            VStack(spacing: 0) {
+                modernInfoRow(title: "Name", value: _temporaryOptions.appName ?? app.name, icon: "textformat", color: .blue) {
+                    _isNameDialogPresenting = true
                 }
+                
+                Divider().padding(.leading, 56)
+                
+                modernInfoRow(title: "Bundle ID", value: _temporaryOptions.appIdentifier ?? app.identifier, icon: "barcode", color: .purple) {
+                    _isIdentifierDialogPresenting = true
+                }
+                
+                Divider().padding(.leading, 56)
+                
+                modernInfoRow(title: "Version", value: _temporaryOptions.appVersion ?? app.version, icon: "tag.fill", color: .orange) {
+                    _isVersionDialogPresenting = true
+                }
+            }
+            .background(
+                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .fill(.ultraThinMaterial)
+            )
+            
+            // Certificate Section
+            sectionHeader(title: "Certificate", icon: "checkmark.seal.fill", color: .green)
+            
+            certificateCard
+            
+            // Configuration Section
+            sectionHeader(title: "Configuration", icon: "slider.horizontal.3", color: .accentColor)
+            
+            VStack(spacing: 0) {
+                NavigationLink {
+                    ModernSigningOptionsView(options: $_temporaryOptions)
+                } label: {
+                    compactRow(title: "Signing Options", icon: "gearshape.fill", color: .gray)
+                }
+                
+                Divider().padding(.leading, 56)
+                
+                NavigationLink {
+                    SigningDylibView(app: app, options: $_temporaryOptions.optional())
+                } label: {
+                    compactRow(title: "Existing Dylibs", icon: "puzzlepiece.extension.fill", color: .purple)
+                }
+                
+                Divider().padding(.leading, 56)
+                
+                NavigationLink {
+                    SigningFrameworksView(app: app, options: $_temporaryOptions.optional())
+                } label: {
+                    compactRow(title: "Frameworks & Plugins", icon: "cube.fill", color: .blue)
+                }
+                
+                Divider().padding(.leading, 56)
+                
+                NavigationLink {
+                    SigningTweaksView(options: $_temporaryOptions)
+                } label: {
+                    compactRow(title: "Inject Tweaks", icon: "wrench.and.screwdriver.fill", color: .green)
+                }
+                
+                Divider().padding(.leading, 56)
+                
+                NavigationLink {
+                    SigningEntitlementsView(bindingValue: $_temporaryOptions.appEntitlementsFile)
+                } label: {
+                    compactRow(title: "Entitlements", icon: "lock.shield.fill", color: .orange, badge: "BETA")
+                }
+            }
+            .background(
+                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .fill(.ultraThinMaterial)
             )
         }
-        .buttonStyle(.plain)
+        .padding(.horizontal, 16)
     }
     
-    private func tabIcon(for index: Int) -> String {
-        switch index {
-        case 0: return "paintbrush.fill"
-        case 1: return "signature"
-        case 2: return "gearshape.2.fill"
-        default: return "circle"
-        }
-    }
-    
-    private func tabTitle(for index: Int) -> String {
-        switch index {
-        case 0: return "Customize"
-        case 1: return "Signing"
-        case 2: return "Advanced"
-        default: return ""
-        }
-    }
-    
-    // MARK: - Customization Tab
+    // MARK: - Section Header
     @ViewBuilder
-    private var customizationTab: some View {
-        ScrollView {
-            VStack(spacing: 16) {
-                // App Details Card with glass effect
-                VStack(spacing: 0) {
-                    modernInfoRow(title: "Name", value: _temporaryOptions.appName ?? app.name, icon: "textformat", color: .blue) {
-                        _isNameDialogPresenting = true
+    private func sectionHeader(title: String, icon: String, color: Color) -> some View {
+        HStack(spacing: 8) {
+            Image(systemName: icon)
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundStyle(color)
+            Text(title)
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(.secondary)
+            Spacer()
+        }
+        .padding(.horizontal, 4)
+    }
+    
+    // MARK: - Certificate Card
+    @ViewBuilder
+    private var certificateCard: some View {
+        if let cert = _selectedCert() {
+            NavigationLink {
+                CertificatesView(selectedCert: $_temporaryCertificate)
+            } label: {
+                HStack(spacing: 12) {
+                    ZStack {
+                        Circle()
+                            .fill(Color.green.opacity(0.15))
+                            .frame(width: 40, height: 40)
+                        Image(systemName: "checkmark.seal.fill")
+                            .font(.system(size: 16))
+                            .foregroundStyle(.green)
                     }
                     
-                    Divider()
-                        .background(Color.white.opacity(0.1))
-                        .padding(.leading, 56)
-                    
-                    modernInfoRow(title: "Bundle ID", value: _temporaryOptions.appIdentifier ?? app.identifier, icon: "barcode", color: .purple) {
-                        _isIdentifierDialogPresenting = true
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(cert.nickname ?? "Certificate")
+                            .font(.subheadline.weight(.semibold))
+                            .foregroundStyle(.primary)
+                        if let expiration = cert.expiration {
+                            Text("Expires: \(expiration, style: .date)")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
                     }
                     
-                    Divider()
-                        .background(Color.white.opacity(0.1))
-                        .padding(.leading, 56)
+                    Spacer()
                     
-                    modernInfoRow(title: "Version", value: _temporaryOptions.appVersion ?? app.version, icon: "tag.fill", color: .orange) {
-                        _isVersionDialogPresenting = true
-                    }
+                    Image(systemName: "chevron.right")
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(.tertiary)
                 }
+                .padding(14)
                 .background(
-                    RoundedRectangle(cornerRadius: 20, style: .continuous)
+                    RoundedRectangle(cornerRadius: 16, style: .continuous)
                         .fill(.ultraThinMaterial)
-                        .shadow(color: .black.opacity(0.1), radius: 15, x: 0, y: 8)
-                )
-                .overlay(
-                    RoundedRectangle(cornerRadius: 20, style: .continuous)
-                        .stroke(
-                            LinearGradient(
-                                colors: [.white.opacity(0.3), .white.opacity(0.1)],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            ),
-                            lineWidth: 1
-                        )
                 )
             }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 12)
+        } else {
+            Button {
+                _isAddingCertificatePresenting = true
+            } label: {
+                HStack(spacing: 12) {
+                    ZStack {
+                        Circle()
+                            .fill(Color.orange.opacity(0.15))
+                            .frame(width: 40, height: 40)
+                        Image(systemName: "exclamationmark.triangle.fill")
+                            .font(.system(size: 16))
+                            .foregroundStyle(.orange)
+                    }
+                    
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("No Certificate")
+                            .font(.subheadline.weight(.semibold))
+                            .foregroundStyle(.primary)
+                        Text("Tap to add a certificate")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                    
+                    Spacer()
+                    
+                    Image(systemName: "plus.circle.fill")
+                        .font(.system(size: 20))
+                        .foregroundStyle(.accentColor)
+                }
+                .padding(14)
+                .background(
+                    RoundedRectangle(cornerRadius: 16, style: .continuous)
+                        .fill(.ultraThinMaterial)
+                )
+            }
         }
+    }
+    
+    // MARK: - Compact Row
+    @ViewBuilder
+    private func compactRow(title: String, icon: String, color: Color, badge: String? = nil) -> some View {
+        HStack(spacing: 12) {
+            ZStack {
+                RoundedRectangle(cornerRadius: 8, style: .continuous)
+                    .fill(color.opacity(0.15))
+                    .frame(width: 32, height: 32)
+                Image(systemName: icon)
+                    .font(.system(size: 14, weight: .medium))
+                    .foregroundStyle(color)
+            }
+            
+            Text(title)
+                .font(.subheadline)
+                .foregroundStyle(.primary)
+            
+            if let badge = badge {
+                Text(badge)
+                    .font(.system(size: 8, weight: .bold))
+                    .foregroundStyle(.white)
+                    .padding(.horizontal, 5)
+                    .padding(.vertical, 2)
+                    .background(Capsule().fill(Color.orange))
+            }
+            
+            Spacer()
+            
+            Image(systemName: "chevron.right")
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(.tertiary)
+        }
+        .padding(.horizontal, 14)
+        .padding(.vertical, 10)
     }
     
     @ViewBuilder
@@ -868,58 +948,26 @@ struct ModernSigningView: View {
         Button {
             _start()
         } label: {
-            ZStack {
-                // Animated glow behind button
-                Capsule()
-                    .fill(Color.accentColor.opacity(_glowAnimation ? 0.5 : 0.3))
-                    .blur(radius: 20)
-                    .scaleEffect(_glowAnimation ? 1.05 : 1.0)
-                    .padding(.horizontal, 10)
-                
-                HStack(spacing: 12) {
-                    Image(systemName: "signature")
-                        .font(.system(size: 18, weight: .bold))
-                        .modifier(PulseEffectModifier(trigger: _glowAnimation))
-                    Text("Sign App")
-                        .font(.system(size: 17, weight: .bold))
-                }
-                .foregroundStyle(.white)
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 18)
-                .background(
-                    ZStack {
-                        // Main solid accent color
-                        Color.accentColor
-                        
-                        // Subtle shine effect
-                        LinearGradient(
-                            colors: [
-                                .white.opacity(0.2),
-                                .white.opacity(0)
-                            ],
-                            startPoint: .top,
-                            endPoint: .bottom
-                        )
-                    }
-                )
-                .clipShape(Capsule())
-                .overlay(
-                    Capsule()
-                        .stroke(
-                            LinearGradient(
-                                colors: [.white.opacity(0.4), .white.opacity(0.1)],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            ),
-                            lineWidth: 1
-                        )
-                )
-                .shadow(color: Color.accentColor.opacity(0.5), radius: 15, x: 0, y: 8)
+            HStack(spacing: 10) {
+                Image(systemName: "signature")
+                    .font(.system(size: 16, weight: .semibold))
+                Text("Sign App")
+                    .font(.system(size: 16, weight: .semibold))
             }
+            .foregroundStyle(.white)
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 16)
+            .background(Color.accentColor)
+            .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
         }
         .padding(.horizontal, 20)
         .padding(.bottom, 20)
-        .padding(.top, 12)
+        .padding(.top, 8)
+        .background(
+            Color(UIColor.systemBackground)
+                .opacity(0.95)
+                .ignoresSafeArea()
+        )
     }
     
     // MARK: - Start Signing
