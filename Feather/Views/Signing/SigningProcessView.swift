@@ -297,59 +297,88 @@ struct SigningProcessView: View {
     private var stepsListSection: some View {
         VStack(spacing: 8) {
             ForEach(Array(signingSteps.enumerated()), id: \.offset) { index, step in
-                HStack(spacing: 12) {
-                    // Step indicator
-                    ZStack {
-                        Circle()
-                            .fill(
-                                completedSteps.contains(index) ?
-                                LinearGradient(colors: [.green, .green.opacity(0.8)], startPoint: .topLeading, endPoint: .bottomTrailing) :
-                                (currentStepIndex == index ?
-                                 LinearGradient(colors: [dominantColor, dominantColor.opacity(0.8)], startPoint: .topLeading, endPoint: .bottomTrailing) :
-                                 LinearGradient(colors: [Color(UIColor.tertiarySystemFill), Color(UIColor.tertiarySystemFill)], startPoint: .topLeading, endPoint: .bottomTrailing))
-                            )
-                            .frame(width: 28, height: 28)
-                        
-                        if completedSteps.contains(index) {
-                            Image(systemName: "checkmark")
-                                .font(.system(size: 12, weight: .bold))
-                                .foregroundStyle(.white)
-                        } else if currentStepIndex == index {
-                            Image(systemName: step.1)
-                                .font(.system(size: 11, weight: .semibold))
-                                .foregroundStyle(.white)
-                                .symbolEffect(.pulse, options: .repeating, value: currentStepIndex)
-                        } else {
-                            Text("\(index + 1)")
-                                .font(.system(size: 11, weight: .semibold))
-                                .foregroundStyle(.secondary)
-                        }
-                    }
-                    
-                    Text(step.0)
-                        .font(.subheadline.weight(currentStepIndex == index ? .semibold : .regular))
-                        .foregroundStyle(completedSteps.contains(index) || currentStepIndex == index ? .primary : .secondary)
-                    
-                    Spacer()
-                    
-                    if completedSteps.contains(index) {
-                        Image(systemName: "checkmark.circle.fill")
-                            .font(.system(size: 16))
-                            .foregroundStyle(.green)
-                    } else if currentStepIndex == index {
-                        ProgressView()
-                            .scaleEffect(0.7)
-                    }
-                }
-                .padding(.horizontal, 16)
-                .padding(.vertical, 10)
-                .background(
-                    RoundedRectangle(cornerRadius: 12, style: .continuous)
-                        .fill(currentStepIndex == index ? .ultraThinMaterial : .clear)
-                )
+                stepRowView(index: index, step: step)
             }
         }
         .padding(.horizontal, 20)
+    }
+    
+    @ViewBuilder
+    private func stepRowView(index: Int, step: (String, String)) -> some View {
+        HStack(spacing: 12) {
+            stepIndicator(index: index, iconName: step.1)
+            stepLabel(index: index, title: step.0)
+            Spacer()
+            stepStatusIndicator(index: index)
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 10)
+        .background(stepRowBackground(index: index))
+    }
+    
+    @ViewBuilder
+    private func stepIndicator(index: Int, iconName: String) -> some View {
+        ZStack {
+            Circle()
+                .fill(stepIndicatorGradient(index: index))
+                .frame(width: 28, height: 28)
+            
+            stepIndicatorContent(index: index, iconName: iconName)
+        }
+    }
+    
+    private func stepIndicatorGradient(index: Int) -> LinearGradient {
+        if completedSteps.contains(index) {
+            return LinearGradient(colors: [.green, .green.opacity(0.8)], startPoint: .topLeading, endPoint: .bottomTrailing)
+        } else if currentStepIndex == index {
+            return LinearGradient(colors: [dominantColor, dominantColor.opacity(0.8)], startPoint: .topLeading, endPoint: .bottomTrailing)
+        } else {
+            return LinearGradient(colors: [Color(UIColor.tertiarySystemFill), Color(UIColor.tertiarySystemFill)], startPoint: .topLeading, endPoint: .bottomTrailing)
+        }
+    }
+    
+    @ViewBuilder
+    private func stepIndicatorContent(index: Int, iconName: String) -> some View {
+        if completedSteps.contains(index) {
+            Image(systemName: "checkmark")
+                .font(.system(size: 12, weight: .bold))
+                .foregroundStyle(.white)
+        } else if currentStepIndex == index {
+            Image(systemName: iconName)
+                .font(.system(size: 11, weight: .semibold))
+                .foregroundStyle(.white)
+                .symbolEffect(.pulse, options: .repeating, value: currentStepIndex)
+        } else {
+            Text("\(index + 1)")
+                .font(.system(size: 11, weight: .semibold))
+                .foregroundStyle(.secondary)
+        }
+    }
+    
+    @ViewBuilder
+    private func stepLabel(index: Int, title: String) -> some View {
+        let isActive = completedSteps.contains(index) || currentStepIndex == index
+        Text(title)
+            .font(.subheadline.weight(currentStepIndex == index ? .semibold : .regular))
+            .foregroundStyle(isActive ? .primary : .secondary)
+    }
+    
+    @ViewBuilder
+    private func stepStatusIndicator(index: Int) -> some View {
+        if completedSteps.contains(index) {
+            Image(systemName: "checkmark.circle.fill")
+                .font(.system(size: 16))
+                .foregroundStyle(.green)
+        } else if currentStepIndex == index {
+            ProgressView()
+                .scaleEffect(0.7)
+        }
+    }
+    
+    @ViewBuilder
+    private func stepRowBackground(index: Int) -> some View {
+        RoundedRectangle(cornerRadius: 12, style: .continuous)
+            .fill(currentStepIndex == index ? .ultraThinMaterial : .clear)
     }
     
     // MARK: - Completion Button
