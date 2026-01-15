@@ -377,8 +377,12 @@ struct SigningProcessView: View {
     
     @ViewBuilder
     private func stepRowBackground(index: Int) -> some View {
-        RoundedRectangle(cornerRadius: 12, style: .continuous)
-            .fill(currentStepIndex == index ? .ultraThinMaterial : .clear)
+        if currentStepIndex == index {
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                .fill(.ultraThinMaterial)
+        } else {
+            Color.clear
+        }
     }
     
     // MARK: - Completion Button
