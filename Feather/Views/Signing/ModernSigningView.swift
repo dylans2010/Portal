@@ -422,7 +422,7 @@ struct ModernSigningView: View {
             VStack(spacing: 4) {
                 Image(systemName: iconName)
                     .font(.system(size: 16, weight: isSelected ? .semibold : .regular))
-                    .symbolEffect(.bounce, value: isSelected)
+                    .modifier(BounceEffectModifier(trigger: isSelected))
                 Text(title)
                     .font(.caption2.weight(isSelected ? .semibold : .medium))
             }
@@ -765,8 +765,7 @@ struct ModernSigningView: View {
                         )
                 )
                 
-                #if NIGHTLY || DEBUG
-                // Beta Section
+                // Entitlements Section
                 HStack {
                     Text("Experimental")
                         .font(.caption.weight(.semibold))
@@ -781,7 +780,7 @@ struct ModernSigningView: View {
                 NavigationLink {
                     SigningEntitlementsView(bindingValue: $_temporaryOptions.appEntitlementsFile)
                 } label: {
-                    modernAdvancedRow(title: "Entitlements", subtitle: "Beta feature - Edit entitlements", icon: "lock.shield.fill", color: .orange, isFirst: true, isLast: true, isBeta: true)
+                    modernAdvancedRow(title: "Entitlements", subtitle: "Edit app entitlements", icon: "lock.shield.fill", color: .orange, isFirst: true, isLast: true, isBeta: true)
                 }
                 .background(
                     RoundedRectangle(cornerRadius: 20, style: .continuous)
@@ -799,7 +798,6 @@ struct ModernSigningView: View {
                             lineWidth: 1
                         )
                 )
-                #endif
             }
             .padding(.horizontal, 16)
             .padding(.vertical, 12)
@@ -894,7 +892,7 @@ struct ModernSigningView: View {
                     HStack(spacing: 12) {
                         Image(systemName: "signature")
                             .font(.system(size: 18, weight: .bold))
-                            .symbolEffect(.pulse, options: .repeating, value: _glowAnimation)
+                            .modifier(PulseEffectModifier(trigger: _glowAnimation))
                         Text("Sign App")
                             .font(.system(size: 17, weight: .bold))
                     }
@@ -1396,5 +1394,32 @@ struct ModernSigningOptionsView: View {
         }
         .padding(.horizontal, 14)
         .padding(.vertical, 10)
+    }
+}
+
+// MARK: - iOS 17 Symbol Effect Compatibility Modifiers
+struct BounceEffectModifier: ViewModifier {
+    let trigger: Bool
+    
+    func body(content: Content) -> some View {
+        if #available(iOS 17.0, *) {
+            content.symbolEffect(.bounce, value: trigger)
+        } else {
+            content
+        }
+    }
+}
+
+struct PulseEffectModifier: ViewModifier {
+    let trigger: Bool
+    
+    func body(content: Content) -> some View {
+        if #available(iOS 17.0, *) {
+            content.symbolEffect(.pulse, options: .repeating, value: trigger)
+        } else {
+            content
+                .opacity(trigger ? 1.0 : 0.8)
+                .animation(.easeInOut(duration: 0.5).repeatForever(autoreverses: true), value: trigger)
+        }
     }
 }

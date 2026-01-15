@@ -215,7 +215,7 @@ struct ConfigureLayoutsView: View {
                     Image(systemName: layout.icon)
                         .font(.system(size: 20, weight: .semibold))
                         .foregroundStyle(isSelected ? .white : .primary)
-                        .symbolEffect(.bounce, value: isSelected)
+                        .modifier(ConfigureBounceEffectModifier(trigger: isSelected))
                 }
                 
                 Text(layout.rawValue)
@@ -722,6 +722,19 @@ struct ConfigureLayoutsView: View {
         case .sfSymbol: viewModel.sfSymbolAlignment = position
         case .time: viewModel.timeAlignment = position
         case .battery, .network, .memory, .date, .cpu: viewModel.batteryAlignment = position
+        }
+    }
+}
+
+// MARK: - iOS 17 Symbol Effect Compatibility Modifier
+struct ConfigureBounceEffectModifier: ViewModifier {
+    let trigger: Bool
+    
+    func body(content: Content) -> some View {
+        if #available(iOS 17.0, *) {
+            content.symbolEffect(.bounce, value: trigger)
+        } else {
+            content
         }
     }
 }
