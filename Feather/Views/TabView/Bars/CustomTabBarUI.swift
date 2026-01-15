@@ -150,6 +150,7 @@ extension TabEnum {
         case .files: return "folder.fill"
         case .guides: return "book.fill"
         case .settings: return "gearshape.fill"
+        case .certificates: return "person.text.rectangle.fill"
         }
     }
 }

@@ -109,7 +109,7 @@ struct InstallModifyDialogView: View {
                             Text("Modify")
                         }
                         .font(.headline)
-                        .foregroundStyle(.accentColor)
+                        .foregroundStyle(Color.accentColor)
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 16)
                         .background(Color.accentColor.opacity(0.1))
