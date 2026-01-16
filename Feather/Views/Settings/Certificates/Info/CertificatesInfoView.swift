@@ -477,7 +477,7 @@ struct CertificatesInfoView: View {
             HStack(spacing: 12) {
                 Image(systemName: icon)
                     .font(.system(size: 16, weight: .medium))
-                    .foregroundStyle(.accentColor)
+                    .foregroundStyle(Color.accentColor)
                 
                 Text(title)
                     .font(.system(size: 14, weight: .semibold))
