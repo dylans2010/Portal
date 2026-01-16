@@ -36,20 +36,20 @@ struct SettingsView: View {
                         .onTapGesture { handleDeveloperModeTap() }
                 }
                 
-                // General
+                // Preferences
                 Section {
                     NavigationLink(destination: AppearanceView()) {
-                        settingsRow(icon: "paintbrush.fill", title: "Appearance", color: .pink)
+                        modernSettingsRow(icon: "paintbrush.fill", title: "Appearance", color: .pink)
                     }
                     NavigationLink(destination: HapticsView()) {
-                        settingsRow(icon: "waveform", title: "Haptics", color: .purple)
+                        modernSettingsRow(icon: "waveform", title: "Haptics", color: .purple)
                     }
                     Picker(selection: $certificateExperience) {
                         ForEach(CertificateExperience.allCases, id: \.rawValue) { exp in
                             Text(exp.displayName).tag(exp.rawValue)
                         }
                     } label: {
-                        settingsRow(icon: "person.badge.shield.checkmark.fill", title: "Certificate Type", color: .blue)
+                        modernSettingsRow(icon: "person.badge.shield.checkmark.fill", title: "Certificate Type", color: .blue)
                     }
                     .onChange(of: certificateExperience) { newValue in
                         if newValue == CertificateExperience.enterprise.rawValue {
@@ -57,53 +57,61 @@ struct SettingsView: View {
                         }
                     }
                 } header: {
-                    Text("General")
+                    sectionHeader("Preferences", icon: "slider.horizontal.3")
                 }
                 
-                // Configuration
+                // Signing & Security
                 Section {
                     NavigationLink(destination: CertificatesView()) {
-                        settingsRow(icon: "checkmark.seal.fill", title: "Certificates", color: .green)
+                        modernSettingsRow(icon: "checkmark.seal.fill", title: "Certificates", color: .green)
                     }
                     NavigationLink(destination: ConfigurationView()) {
-                        settingsRow(icon: "signature", title: "Signing Options", color: .orange)
+                        modernSettingsRow(icon: "signature", title: "Signing Options", color: .orange)
                     }
                     NavigationLink(destination: InstallationView()) {
-                        settingsRow(icon: "arrow.down.app.fill", title: "Installation", color: .cyan)
-                    }
-                    NavigationLink(destination: ArchiveView()) {
-                        settingsRow(icon: "archivebox.fill", title: "Archive & Compression", color: .indigo)
+                        modernSettingsRow(icon: "arrow.down.app.fill", title: "Installation", color: .cyan)
                     }
                 } header: {
-                    Text("Configuration")
+                    sectionHeader("Signing & Security", icon: "lock.shield.fill")
                 }
                 
-                // Features
+                // Data & Storage
                 Section {
                     NavigationLink(destination: FilesSettingsView()) {
-                        settingsRow(icon: "folder.fill", title: "Files", color: .blue)
+                        modernSettingsRow(icon: "folder.fill", title: "Files", color: .blue)
                     }
-                    NavigationLink(destination: GuidesSettingsView()) {
-                        settingsRow(icon: "book.fill", title: "Guides", color: .orange)
+                    NavigationLink(destination: ArchiveView()) {
+                        modernSettingsRow(icon: "archivebox.fill", title: "Archive & Compression", color: .indigo)
+                    }
+                    if certificateExperience != CertificateExperience.enterprise.rawValue {
+                        NavigationLink(destination: ManageStorageView()) {
+                            modernSettingsRow(icon: "internaldrive.fill", title: "Storage", color: .gray)
+                        }
                     }
                 } header: {
-                    Text("Features")
+                    sectionHeader("Data & Storage", icon: "externaldrive.fill")
+                }
+                
+                // Resources
+                Section {
+                    NavigationLink(destination: GuidesSettingsView()) {
+                        modernSettingsRow(icon: "book.fill", title: "Guides", color: .orange)
+                    }
+                } header: {
+                    sectionHeader("Resources", icon: "books.vertical.fill")
                 }
                 
                 // App
                 if certificateExperience != CertificateExperience.enterprise.rawValue {
                     Section {
                         NavigationLink(destination: AppIconView()) {
-                            settingsRow(icon: "app.badge.fill", title: "App Icons", color: .pink)
-                        }
-                        NavigationLink(destination: ManageStorageView()) {
-                            settingsRow(icon: "internaldrive.fill", title: "Storage", color: .gray)
+                            modernSettingsRow(icon: "app.badge.fill", title: "App Icons", color: .pink)
                         }
                         NavigationLink(destination: CheckForUpdatesView(), isActive: $navigateToCheckForUpdates) {
-                            settingsRow(icon: "arrow.triangle.2.circlepath", title: "Updates", color: .green)
+                            modernSettingsRow(icon: "arrow.triangle.2.circlepath", title: "Updates", color: .green)
                         }
                     } header: {
-                        Text("App")
+                        sectionHeader("App", icon: "app.fill")
                     }
                 }
                 
@@ -111,10 +119,10 @@ struct SettingsView: View {
                 if isDeveloperModeEnabled {
                     Section {
                         NavigationLink(destination: DeveloperView()) {
-                            settingsRow(icon: "hammer.fill", title: "Developer Tools", color: .yellow)
+                            modernSettingsRow(icon: "hammer.fill", title: "Developer Tools", color: .yellow)
                         }
                     } header: {
-                        Text("Developer")
+                        sectionHeader("Developer", icon: "wrench.and.screwdriver.fill")
                     }
                 }
             }
@@ -139,15 +147,32 @@ struct SettingsView: View {
         }
     }
     
+    // MARK: - Modern Settings Row (No colored background)
     @ViewBuilder
-    private func settingsRow(icon: String, title: String, color: Color) -> some View {
-        HStack(spacing: 12) {
+    private func modernSettingsRow(icon: String, title: String, color: Color) -> some View {
+        HStack(spacing: 14) {
             Image(systemName: icon)
-                .font(.system(size: 14, weight: .medium))
-                .foregroundStyle(.white)
-                .frame(width: 28, height: 28)
-                .background(color, in: RoundedRectangle(cornerRadius: 6, style: .continuous))
+                .font(.system(size: 18, weight: .medium))
+                .foregroundStyle(color)
+                .frame(width: 26)
+            
             Text(title)
+                .font(.system(size: 16, weight: .regular))
+                .foregroundStyle(.primary)
+        }
+        .padding(.vertical, 2)
+    }
+    
+    // MARK: - Section Header
+    @ViewBuilder
+    private func sectionHeader(_ title: String, icon: String) -> some View {
+        HStack(spacing: 6) {
+            Image(systemName: icon)
+                .font(.system(size: 11, weight: .semibold))
+                .foregroundStyle(.secondary)
+            Text(title.uppercased())
+                .font(.system(size: 12, weight: .semibold, design: .rounded))
+                .foregroundStyle(.secondary)
         }
     }
     

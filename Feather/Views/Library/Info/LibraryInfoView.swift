@@ -8,94 +8,53 @@ struct LibraryInfoView: View {
 	var app: AppInfoPresentable
 	@State private var dominantColors: [Color] = []
 	@State private var isLoadingColors = true
+	@State private var appearAnimation = false
 	
 	// MARK: Body
-    var body: some View {
+	var body: some View {
 		ZStack {
-			// Full gradient background based on app icon colors
+			// Animated gradient background
 			if _useGradients && !dominantColors.isEmpty {
-				LinearGradient(
-					colors: dominantColors.count > 1 
-						? [
-							dominantColors[0].opacity(0.2),
-							dominantColors[1].opacity(0.15),
-							Color(uiColor: .systemGroupedBackground),
-							dominantColors[0].opacity(0.1)
-						]
-						: [
-							dominantColors[0].opacity(0.2),
-							dominantColors[0].opacity(0.1),
-							Color(uiColor: .systemGroupedBackground)
-						],
-					startPoint: .topLeading,
-					endPoint: .bottomTrailing
-				)
-				.ignoresSafeArea()
+				MeshGradientBackground(colors: dominantColors)
+					.ignoresSafeArea()
 			}
 			
 			NBNavigationView(app.name ?? "", displayMode: .inline) {
-				List {
-					Section {} header: {
-						VStack(spacing: 16) {
-							ZStack {
-								// Glow effect behind icon
-								if _useGradients && !dominantColors.isEmpty {
-									Circle()
-										.fill(
-											RadialGradient(
-												colors: dominantColors.count > 1
-													? [dominantColors[0].opacity(0.4), dominantColors[1].opacity(0.2), Color.clear]
-													: [dominantColors[0].opacity(0.4), Color.clear],
-												center: .center,
-												startRadius: 5,
-												endRadius: 60
-											)
-										)
-										.frame(width: 120, height: 120)
-								}
-								
-								FRAppIconView(app: app, size: 100)
-									.shadow(
-										color: dominantColors.isEmpty ? .black.opacity(0.2) : dominantColors[0].opacity(0.5),
-										radius: 12,
-										x: 0,
-										y: 6
-									)
-							}
-							
-							VStack(spacing: 4) {
-								Text(app.name ?? .localized("Unknown"))
-									.font(.title2)
-									.fontWeight(.bold)
-								
-								if let version = app.version, let identifier = app.identifier {
-									Text("\(version) • \(identifier)")
-										.font(.subheadline)
-										.foregroundStyle(.secondary)
-								}
-							}
-							
-							if let date = app.date {
-								Text("Added \(date.formatted(date: .abbreviated, time: .omitted))")
-									.font(.caption)
-									.foregroundStyle(.tertiary)
-							}
+				ScrollView {
+					VStack(spacing: 20) {
+						// Hero App Card
+						heroAppCard
+							.opacity(appearAnimation ? 1 : 0)
+							.offset(y: appearAnimation ? 0 : 20)
+						
+						// Quick Stats Row
+						quickStatsRow
+							.opacity(appearAnimation ? 1 : 0)
+							.offset(y: appearAnimation ? 0 : 15)
+						
+						// Details Card
+						detailsCard
+							.opacity(appearAnimation ? 1 : 0)
+							.offset(y: appearAnimation ? 0 : 10)
+						
+						// Certificate Card
+						if let cert = Storage.shared.getCertificate(from: app) {
+							certificateCard(cert: cert)
+								.opacity(appearAnimation ? 1 : 0)
+								.offset(y: appearAnimation ? 0 : 10)
 						}
-						.frame(maxWidth: .infinity)
-						.padding(.vertical, 20)
+						
+						// Bundle & Executable Cards
+						bundleCard
+							.opacity(appearAnimation ? 1 : 0)
+							.offset(y: appearAnimation ? 0 : 10)
+						
+						// Actions Card
+						actionsCard
+							.opacity(appearAnimation ? 1 : 0)
+							.offset(y: appearAnimation ? 0 : 10)
 					}
-					.listRowBackground(Color.clear)
-					
-					_detailsSection(for: app)
-					_certSection(for: app)
-					_bundleSection(for: app)
-					_executableSection(for: app)
-					
-					Section {
-						Button(.localized("Open in Files"), systemImage: "folder") {
-							UIApplication.open(Storage.shared.getUuidDirectory(for: app)!.toSharedDocumentsURL()!)
-						}
-					}
+					.padding(20)
 				}
 				.scrollContentBackground(.hidden)
 				.toolbar {
@@ -105,10 +64,406 @@ struct LibraryInfoView: View {
 		}
 		.onAppear {
 			extractAppIconColors()
+			withAnimation(.spring(response: 0.6, dampingFraction: 0.8).delay(0.1)) {
+				appearAnimation = true
+			}
 		}
-    }
+	}
 	
-	// Extract multiple dominant colors from app icon
+	// MARK: - Hero App Card
+	private var heroAppCard: some View {
+		VStack(spacing: 0) {
+			// Top gradient accent
+			Rectangle()
+				.fill(
+					LinearGradient(
+						colors: dominantColors.isEmpty 
+							? [.accentColor.opacity(0.8), .accentColor.opacity(0.4)]
+							: [dominantColors[0].opacity(0.8), dominantColors.count > 1 ? dominantColors[1].opacity(0.4) : dominantColors[0].opacity(0.4)],
+						startPoint: .leading,
+						endPoint: .trailing
+					)
+				)
+				.frame(height: 4)
+			
+			VStack(spacing: 20) {
+				// App Icon with glow
+				ZStack {
+					// Animated glow rings
+					ForEach(0..<3, id: \.self) { index in
+						Circle()
+							.stroke(
+								(dominantColors.isEmpty ? Color.accentColor : dominantColors[0])
+									.opacity(0.15 - Double(index) * 0.04),
+								lineWidth: 2
+							)
+							.frame(width: 110 + CGFloat(index) * 20, height: 110 + CGFloat(index) * 20)
+					}
+					
+					// Soft glow
+					Circle()
+						.fill(
+							RadialGradient(
+								colors: [
+									(dominantColors.isEmpty ? .accentColor : dominantColors[0]).opacity(0.3),
+									Color.clear
+								],
+								center: .center,
+								startRadius: 30,
+								endRadius: 70
+							)
+						)
+						.frame(width: 140, height: 140)
+						.blur(radius: 10)
+					
+					FRAppIconView(app: app, size: 90)
+						.shadow(
+							color: (dominantColors.isEmpty ? .black : dominantColors[0]).opacity(0.3),
+							radius: 20,
+							x: 0,
+							y: 10
+						)
+				}
+				.padding(.top, 10)
+				
+				// App Info
+				VStack(spacing: 8) {
+					Text(app.name ?? .localized("Unknown"))
+						.font(.system(size: 24, weight: .bold, design: .rounded))
+						.foregroundStyle(.primary)
+						.multilineTextAlignment(.center)
+					
+					if let version = app.version {
+						HStack(spacing: 6) {
+							Text("v\(version)")
+								.font(.system(size: 14, weight: .semibold, design: .rounded))
+								.foregroundStyle(.white)
+								.padding(.horizontal, 10)
+								.padding(.vertical, 4)
+								.background(
+									Capsule()
+										.fill(
+											LinearGradient(
+												colors: dominantColors.isEmpty 
+													? [.accentColor, .accentColor.opacity(0.7)]
+													: [dominantColors[0], dominantColors[0].opacity(0.7)],
+												startPoint: .leading,
+												endPoint: .trailing
+											)
+										)
+								)
+						}
+					}
+					
+					if let identifier = app.identifier {
+						Text(identifier)
+							.font(.system(size: 12, weight: .medium, design: .monospaced))
+							.foregroundStyle(.secondary)
+							.lineLimit(1)
+					}
+				}
+				
+				// Date badge
+				if let date = app.date {
+					HStack(spacing: 6) {
+						Image(systemName: "calendar")
+							.font(.system(size: 11, weight: .medium))
+						Text("Added \(date.formatted(date: .abbreviated, time: .omitted))")
+							.font(.system(size: 12, weight: .medium))
+					}
+					.foregroundStyle(.tertiary)
+					.padding(.bottom, 4)
+				}
+			}
+			.padding(20)
+		}
+		.background(
+			RoundedRectangle(cornerRadius: 24, style: .continuous)
+				.fill(.ultraThinMaterial)
+				.shadow(color: .black.opacity(0.08), radius: 20, x: 0, y: 10)
+		)
+		.overlay(
+			RoundedRectangle(cornerRadius: 24, style: .continuous)
+				.stroke(
+					LinearGradient(
+						colors: [.white.opacity(0.3), .white.opacity(0.1)],
+						startPoint: .topLeading,
+						endPoint: .bottomTrailing
+					),
+					lineWidth: 1
+				)
+		)
+		.clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
+	}
+	
+	// MARK: - Quick Stats Row
+	private var quickStatsRow: some View {
+		HStack(spacing: 12) {
+			// Signed Status
+			quickStatPill(
+				icon: app.isSigned ? "checkmark.seal.fill" : "xmark.seal.fill",
+				title: app.isSigned ? .localized("Signed") : .localized("Unsigned"),
+				color: app.isSigned ? .green : .orange
+			)
+			
+			Spacer()
+		}
+	}
+	
+	private func quickStatPill(icon: String, title: String, color: Color) -> some View {
+		HStack(spacing: 8) {
+			Image(systemName: icon)
+				.font(.system(size: 14, weight: .semibold))
+				.foregroundStyle(color)
+			
+			Text(title)
+				.font(.system(size: 13, weight: .semibold))
+				.foregroundStyle(color)
+		}
+		.padding(.horizontal, 14)
+		.padding(.vertical, 10)
+		.background(
+			Capsule()
+				.fill(color.opacity(0.12))
+				.overlay(
+					Capsule()
+						.stroke(color.opacity(0.2), lineWidth: 1)
+				)
+		)
+	}
+	
+	// MARK: - Details Card
+	private var detailsCard: some View {
+		VStack(alignment: .leading, spacing: 16) {
+			// Section Header
+			HStack(spacing: 8) {
+				Image(systemName: "info.circle.fill")
+					.font(.system(size: 16, weight: .semibold))
+					.foregroundStyle(dominantColors.isEmpty ? .accentColor : dominantColors[0])
+				Text(.localized("Details"))
+					.font(.system(size: 15, weight: .bold))
+					.foregroundStyle(.primary)
+			}
+			
+			VStack(spacing: 0) {
+				if let name = app.name {
+					modernDetailRow(icon: "textformat", title: .localized("Name"), value: name, isFirst: true)
+				}
+				
+				if let ver = app.version {
+					modernDetailRow(icon: "number", title: .localized("Version"), value: ver)
+				}
+				
+				if let id = app.identifier {
+					modernDetailRow(icon: "tag", title: .localized("Bundle ID"), value: id, isLast: true)
+				}
+			}
+			.background(
+				RoundedRectangle(cornerRadius: 14, style: .continuous)
+					.fill(Color(UIColor.tertiarySystemGroupedBackground))
+			)
+		}
+		.padding(18)
+		.background(
+			RoundedRectangle(cornerRadius: 20, style: .continuous)
+				.fill(.ultraThinMaterial)
+				.shadow(color: .black.opacity(0.06), radius: 15, x: 0, y: 8)
+		)
+		.overlay(
+			RoundedRectangle(cornerRadius: 20, style: .continuous)
+				.stroke(Color.white.opacity(0.2), lineWidth: 1)
+		)
+	}
+	
+	private func modernDetailRow(icon: String, title: String, value: String, isFirst: Bool = false, isLast: Bool = false) -> some View {
+		VStack(spacing: 0) {
+			HStack(spacing: 12) {
+				Image(systemName: icon)
+					.font(.system(size: 14, weight: .medium))
+					.foregroundStyle(.secondary)
+					.frame(width: 24)
+				
+				Text(title)
+					.font(.system(size: 14, weight: .medium))
+					.foregroundStyle(.secondary)
+				
+				Spacer()
+				
+				Text(value)
+					.font(.system(size: 14, weight: .semibold))
+					.foregroundStyle(.primary)
+					.lineLimit(1)
+			}
+			.padding(.horizontal, 14)
+			.padding(.vertical, 14)
+			.copyableText(value)
+			
+			if !isLast {
+				Divider()
+					.padding(.leading, 50)
+			}
+		}
+	}
+	
+	// MARK: - Certificate Card
+	private func certificateCard(cert: CertificatePair) -> some View {
+		VStack(alignment: .leading, spacing: 16) {
+			HStack(spacing: 8) {
+				Image(systemName: "checkmark.seal.fill")
+					.font(.system(size: 16, weight: .semibold))
+					.foregroundStyle(.green)
+				Text(.localized("Certificate"))
+					.font(.system(size: 15, weight: .bold))
+					.foregroundStyle(.primary)
+			}
+			
+			CertificatesCellView(cert: cert)
+				.padding(14)
+				.background(
+					RoundedRectangle(cornerRadius: 14, style: .continuous)
+						.fill(Color(UIColor.tertiarySystemGroupedBackground))
+				)
+		}
+		.padding(18)
+		.background(
+			RoundedRectangle(cornerRadius: 20, style: .continuous)
+				.fill(.ultraThinMaterial)
+				.shadow(color: .black.opacity(0.06), radius: 15, x: 0, y: 8)
+		)
+		.overlay(
+			RoundedRectangle(cornerRadius: 20, style: .continuous)
+				.stroke(Color.white.opacity(0.2), lineWidth: 1)
+		)
+	}
+	
+	// MARK: - Bundle Card
+	private var bundleCard: some View {
+		VStack(alignment: .leading, spacing: 16) {
+			HStack(spacing: 8) {
+				Image(systemName: "shippingbox.fill")
+					.font(.system(size: 16, weight: .semibold))
+					.foregroundStyle(.purple)
+				Text(.localized("Bundle"))
+					.font(.system(size: 15, weight: .bold))
+					.foregroundStyle(.primary)
+			}
+			
+			VStack(spacing: 0) {
+				NavigationLink {
+					SigningAlternativeIconView(app: app, appIcon: .constant(nil), isModifing: .constant(false))
+				} label: {
+					modernNavRow(icon: "app.badge", title: .localized("Alternative Icons"), isFirst: true)
+				}
+				
+				NavigationLink {
+					SigningFrameworksView(app: app, options: .constant(nil))
+				} label: {
+					modernNavRow(icon: "puzzlepiece.extension", title: .localized("Frameworks & PlugIns"))
+				}
+				
+				NavigationLink {
+					SigningDylibView(app: app, options: .constant(nil))
+				} label: {
+					modernNavRow(icon: "gearshape.2", title: .localized("Dylibs"), isLast: true)
+				}
+			}
+			.background(
+				RoundedRectangle(cornerRadius: 14, style: .continuous)
+					.fill(Color(UIColor.tertiarySystemGroupedBackground))
+			)
+		}
+		.padding(18)
+		.background(
+			RoundedRectangle(cornerRadius: 20, style: .continuous)
+				.fill(.ultraThinMaterial)
+				.shadow(color: .black.opacity(0.06), radius: 15, x: 0, y: 8)
+		)
+		.overlay(
+			RoundedRectangle(cornerRadius: 20, style: .continuous)
+				.stroke(Color.white.opacity(0.2), lineWidth: 1)
+		)
+	}
+	
+	private func modernNavRow(icon: String, title: String, isFirst: Bool = false, isLast: Bool = false) -> some View {
+		VStack(spacing: 0) {
+			HStack(spacing: 12) {
+				Image(systemName: icon)
+					.font(.system(size: 14, weight: .medium))
+					.foregroundStyle(.secondary)
+					.frame(width: 24)
+				
+				Text(title)
+					.font(.system(size: 14, weight: .medium))
+					.foregroundStyle(.primary)
+				
+				Spacer()
+				
+				Image(systemName: "chevron.right")
+					.font(.system(size: 12, weight: .semibold))
+					.foregroundStyle(.tertiary)
+			}
+			.padding(.horizontal, 14)
+			.padding(.vertical, 14)
+			
+			if !isLast {
+				Divider()
+					.padding(.leading, 50)
+			}
+		}
+	}
+	
+	// MARK: - Actions Card
+	private var actionsCard: some View {
+		Button {
+			UIApplication.open(Storage.shared.getUuidDirectory(for: app)!.toSharedDocumentsURL()!)
+		} label: {
+			HStack(spacing: 12) {
+				ZStack {
+					Circle()
+						.fill(
+							LinearGradient(
+								colors: [.blue.opacity(0.2), .blue.opacity(0.1)],
+								startPoint: .topLeading,
+								endPoint: .bottomTrailing
+							)
+						)
+						.frame(width: 40, height: 40)
+					
+					Image(systemName: "folder.fill")
+						.font(.system(size: 16, weight: .semibold))
+						.foregroundStyle(.blue)
+				}
+				
+				VStack(alignment: .leading, spacing: 2) {
+					Text(.localized("Open in Files"))
+						.font(.system(size: 15, weight: .semibold))
+						.foregroundStyle(.primary)
+					Text(.localized("View app bundle contents"))
+						.font(.system(size: 12, weight: .medium))
+						.foregroundStyle(.secondary)
+				}
+				
+				Spacer()
+				
+				Image(systemName: "arrow.up.right")
+					.font(.system(size: 14, weight: .semibold))
+					.foregroundStyle(.tertiary)
+			}
+			.padding(16)
+			.background(
+				RoundedRectangle(cornerRadius: 16, style: .continuous)
+					.fill(.ultraThinMaterial)
+					.shadow(color: .black.opacity(0.06), radius: 15, x: 0, y: 8)
+			)
+			.overlay(
+				RoundedRectangle(cornerRadius: 16, style: .continuous)
+					.stroke(Color.white.opacity(0.2), lineWidth: 1)
+			)
+		}
+		.buttonStyle(.plain)
+	}
+	
+	// MARK: - Color Extraction
 	private func extractAppIconColors() {
 		Task {
 			guard let iconData = await getAppIconData() else {
@@ -124,7 +479,6 @@ struct LibraryInfoView: View {
 				return
 			}
 			
-			// Get average color (primary)
 			let ciImage = CIImage(cgImage: cgImage)
 			let filter = CIFilter(name: "CIAreaAverage")
 			filter?.setValue(ciImage, forKey: kCIInputImageKey)
@@ -150,7 +504,6 @@ struct LibraryInfoView: View {
 				colors.append(Color(red: r, green: g, blue: b))
 			}
 			
-			// Try to extract a second color from a different region
 			let quarterExtent = CGRect(
 				x: ciImage.extent.width * 0.25,
 				y: ciImage.extent.height * 0.25,
@@ -179,7 +532,6 @@ struct LibraryInfoView: View {
 				let b2 = Double(pixel2[2]) / 255.0
 				let secondColor = Color(red: r2, green: g2, blue: b2)
 				
-				// Only add if significantly different from first color
 				if !colors.isEmpty {
 					let diff = abs(r2 - (colors[0].cgColor?.components?[0] ?? 0)) +
 							   abs(g2 - (colors[0].cgColor?.components?[1] ?? 0)) +
@@ -198,129 +550,46 @@ struct LibraryInfoView: View {
 	}
 	
 	private func getAppIconData() async -> Data? {
-		// Get icon from app
 		guard let iconPath = Storage.shared.getAppIconFile(for: app) else { return nil }
 		return try? Data(contentsOf: iconPath)
 	}
 }
 
-// MARK: - Extension: View
-extension LibraryInfoView {
-	@ViewBuilder
-	private func _detailsSection(for app: AppInfoPresentable) -> some View {
-		NBSection(.localized("Details")) {
-			if let name = app.name {
-				_detailRow(
-					icon: "textformat",
-					title: .localized("Name"),
-					value: name,
-					color: dominantColors.isEmpty ? .blue : dominantColors[0]
-				)
-			}
-			
-			if let ver = app.version {
-				_detailRow(
-					icon: "number",
-					title: .localized("Version"),
-					value: ver,
-					color: dominantColors.count > 1 ? dominantColors[1] : (dominantColors.isEmpty ? .green : dominantColors[0])
-				)
-			}
-			
-			if let id = app.identifier {
-				_detailRow(
-					icon: "tag",
-					title: .localized("Bundle ID"),
-					value: id,
-					color: dominantColors.isEmpty ? .purple : dominantColors[0].opacity(0.8)
-				)
-			}
-			
-			if app.isSigned {
-				_detailRow(
-					icon: "checkmark.seal.fill",
-					title: .localized("Status"),
-					value: .localized("Signed"),
-					color: .green
-				)
-			} else {
-				_detailRow(
-					icon: "xmark.seal.fill",
-					title: .localized("Status"),
-					value: .localized("Unsigned"),
-					color: .orange
-				)
-			}
-		}
-	}
+// MARK: - Mesh Gradient Background
+struct MeshGradientBackground: View {
+	let colors: [Color]
+	@State private var animate = false
 	
-	@ViewBuilder
-	private func _detailRow(icon: String, title: String, value: String, color: Color) -> some View {
-		HStack(spacing: 12) {
-			ZStack {
-				if _useGradients && !dominantColors.isEmpty {
-					RoundedRectangle(cornerRadius: 8)
-						.fill(
-							LinearGradient(
-								colors: [color.opacity(0.3), color.opacity(0.15)],
-								startPoint: .topLeading,
-								endPoint: .bottomTrailing
-							)
+	var body: some View {
+		ZStack {
+			Color(UIColor.systemGroupedBackground)
+			
+			// Animated gradient blobs
+			ForEach(0..<3, id: \.self) { index in
+				Circle()
+					.fill(
+						RadialGradient(
+							colors: [
+								colors[index % colors.count].opacity(0.25),
+								colors[index % colors.count].opacity(0.1),
+								Color.clear
+							],
+							center: .center,
+							startRadius: 50,
+							endRadius: 200
 						)
-						.frame(width: 32, height: 32)
-				} else {
-					RoundedRectangle(cornerRadius: 8)
-						.fill(color.opacity(0.15))
-						.frame(width: 32, height: 32)
-				}
-				
-				Image(systemName: icon)
-					.font(.title3)
-					.foregroundStyle(color)
-			}
-			
-			VStack(alignment: .leading, spacing: 2) {
-				Text(title)
-					.font(.caption)
-					.foregroundStyle(.secondary)
-				Text(value)
-					.font(.body)
-					.fontWeight(.medium)
-			}
-			
-			Spacer()
-		}
-		.copyableText(value)
-	}
-	
-	@ViewBuilder
-	private func _certSection(for app: AppInfoPresentable) -> some View {
-		if let cert = Storage.shared.getCertificate(from: app) {
-			NBSection(.localized("Certificate")) {
-				CertificatesCellView(
-					cert: cert
-				)
+					)
+					.frame(width: 300, height: 300)
+					.offset(
+						x: animate ? CGFloat.random(in: -100...100) : CGFloat.random(in: -50...50),
+						y: animate ? CGFloat.random(in: -200...200) : CGFloat.random(in: -100...100)
+					)
+					.blur(radius: 60)
 			}
 		}
-	}
-	
-	@ViewBuilder
-	private func _bundleSection(for app: AppInfoPresentable) -> some View {
-		NBSection(.localized("Bundle")) {
-			NavigationLink(.localized("Alternative Icons")) {
-				SigningAlternativeIconView(app: app, appIcon: .constant(nil), isModifing: .constant(false))
-			}
-			NavigationLink(.localized("Frameworks & PlugIns")) {
-				SigningFrameworksView(app: app, options: .constant(nil))
-			}
-		}
-	}
-	
-	@ViewBuilder
-	private func _executableSection(for app: AppInfoPresentable) -> some View {
-		NBSection(.localized("Executable")) {
-			NavigationLink(.localized("Dylibs")) {
-				SigningDylibView(app: app, options: .constant(nil))
+		.onAppear {
+			withAnimation(.easeInOut(duration: 8).repeatForever(autoreverses: true)) {
+				animate = true
 			}
 		}
 	}

@@ -13,6 +13,7 @@ struct CustomTabBarUI: View {
     @State private var selectedTab: TabEnum = .home
     @State private var showInstallModifySheet = false
     @State private var appToInstall: (any AppInfoPresentable)?
+    @State private var tabBarScale: CGFloat = 1.0
     @Namespace private var animation
     
     private var orderedTabIds: [String] {
@@ -56,7 +57,7 @@ struct CustomTabBarUI: View {
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             
             // Custom Tab Bar
-            customTabBar
+            modernTabBar
         }
         .ignoresSafeArea(.keyboard)
         .sheet(isPresented: $showInstallModifySheet) {
@@ -85,59 +86,154 @@ struct CustomTabBarUI: View {
         }
     }
     
-    // MARK: - Custom Tab Bar
-    private var customTabBar: some View {
-        HStack(spacing: 0) {
+    // MARK: - Modern Tab Bar
+    private var modernTabBar: some View {
+        HStack(spacing: 4) {
             ForEach(visibleTabs, id: \.self) { tab in
-                tabButton(for: tab)
+                modernTabButton(for: tab)
             }
         }
-        .padding(.horizontal, 8)
-        .padding(.vertical, 8)
+        .padding(.horizontal, 12)
+        .padding(.vertical, 10)
         .background(
-            RoundedRectangle(cornerRadius: 24, style: .continuous)
-                .fill(.ultraThinMaterial)
-                .shadow(color: .black.opacity(0.15), radius: 20, x: 0, y: -5)
+            ZStack {
+                // Glassmorphism base
+                RoundedRectangle(cornerRadius: 28, style: .continuous)
+                    .fill(.ultraThinMaterial)
+                
+                // Subtle gradient overlay
+                RoundedRectangle(cornerRadius: 28, style: .continuous)
+                    .fill(
+                        LinearGradient(
+                            colors: [
+                                Color.white.opacity(0.1),
+                                Color.white.opacity(0.05),
+                                Color.clear
+                            ],
+                            startPoint: .top,
+                            endPoint: .bottom
+                        )
+                    )
+                
+                // Border with gradient
+                RoundedRectangle(cornerRadius: 28, style: .continuous)
+                    .stroke(
+                        LinearGradient(
+                            colors: [
+                                Color.white.opacity(0.3),
+                                Color.white.opacity(0.1),
+                                Color.white.opacity(0.05)
+                            ],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        ),
+                        lineWidth: 1
+                    )
+            }
         )
-        .padding(.horizontal, 16)
-        .padding(.bottom, 8)
+        .shadow(color: .black.opacity(0.12), radius: 25, x: 0, y: -8)
+        .shadow(color: Color.accentColor.opacity(0.08), radius: 20, x: 0, y: -5)
+        .padding(.horizontal, 20)
+        .padding(.bottom, 10)
+        .scaleEffect(tabBarScale)
+        .onAppear {
+            withAnimation(.spring(response: 0.5, dampingFraction: 0.7).delay(0.2)) {
+                tabBarScale = 1.0
+            }
+        }
     }
     
-    // MARK: - Tab Button
+    // MARK: - Modern Tab Button
     @ViewBuilder
-    private func tabButton(for tab: TabEnum) -> some View {
+    private func modernTabButton(for tab: TabEnum) -> some View {
         let isSelected = selectedTab == tab
         
         Button {
-            withAnimation(.spring(response: 0.35, dampingFraction: 0.7)) {
+            withAnimation(.spring(response: 0.4, dampingFraction: 0.7)) {
                 selectedTab = tab
             }
             HapticsManager.shared.softImpact()
         } label: {
-            VStack(spacing: 4) {
+            VStack(spacing: 6) {
                 ZStack {
+                    // Selected background with glow
                     if isSelected {
-                        RoundedRectangle(cornerRadius: 12, style: .continuous)
-                            .fill(Color.accentColor.opacity(0.15))
-                            .frame(width: 48, height: 32)
+                        // Glow effect
+                        Circle()
+                            .fill(
+                                RadialGradient(
+                                    colors: [
+                                        Color.accentColor.opacity(0.3),
+                                        Color.accentColor.opacity(0.1),
+                                        Color.clear
+                                    ],
+                                    center: .center,
+                                    startRadius: 5,
+                                    endRadius: 25
+                                )
+                            )
+                            .frame(width: 50, height: 50)
+                            .blur(radius: 5)
+                        
+                        // Background pill
+                        Capsule()
+                            .fill(
+                                LinearGradient(
+                                    colors: [
+                                        Color.accentColor.opacity(0.2),
+                                        Color.accentColor.opacity(0.1)
+                                    ],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                )
+                            )
+                            .frame(width: 52, height: 36)
+                            .overlay(
+                                Capsule()
+                                    .stroke(Color.accentColor.opacity(0.3), lineWidth: 1)
+                            )
                             .matchedGeometryEffect(id: "tabBackground", in: animation)
                     }
                     
+                    // Icon with animation
                     Image(systemName: isSelected ? tab.selectedIcon : tab.icon)
-                        .font(.system(size: 18, weight: isSelected ? .semibold : .regular))
-                        .foregroundStyle(isSelected ? Color.accentColor : .secondary)
-                        .scaleEffect(isSelected ? 1.1 : 1.0)
+                        .font(.system(size: isSelected ? 20 : 18, weight: isSelected ? .bold : .medium))
+                        .foregroundStyle(
+                            isSelected 
+                                ? AnyShapeStyle(
+                                    LinearGradient(
+                                        colors: [Color.accentColor, Color.accentColor.opacity(0.8)],
+                                        startPoint: .topLeading,
+                                        endPoint: .bottomTrailing
+                                    )
+                                )
+                                : AnyShapeStyle(Color.secondary)
+                        )
+                        .scaleEffect(isSelected ? 1.0 : 0.9)
+                        .symbolEffect(.bounce, value: isSelected)
                 }
-                .frame(height: 32)
+                .frame(height: 36)
                 
+                // Label
                 Text(tab.title)
-                    .font(.system(size: 10, weight: isSelected ? .semibold : .medium))
+                    .font(.system(size: 10, weight: isSelected ? .bold : .medium, design: .rounded))
                     .foregroundStyle(isSelected ? Color.accentColor : .secondary)
+                    .opacity(isSelected ? 1.0 : 0.7)
             }
             .frame(maxWidth: .infinity)
+            .padding(.vertical, 4)
             .contentShape(Rectangle())
         }
-        .buttonStyle(.plain)
+        .buttonStyle(TabButtonStyle())
+    }
+}
+
+// MARK: - Tab Button Style
+struct TabButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .scaleEffect(configuration.isPressed ? 0.92 : 1.0)
+            .animation(.spring(response: 0.3, dampingFraction: 0.6), value: configuration.isPressed)
     }
 }
 
