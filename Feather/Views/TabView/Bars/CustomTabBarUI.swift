@@ -13,7 +13,6 @@ struct CustomTabBarUI: View {
     @State private var selectedTab: TabEnum = .home
     @State private var showInstallModifySheet = false
     @State private var appToInstall: (any AppInfoPresentable)?
-    @State private var tabBarScale: CGFloat = 1.0
     @Namespace private var animation
     
     private var orderedTabIds: [String] {
@@ -86,141 +85,59 @@ struct CustomTabBarUI: View {
         }
     }
     
-    // MARK: - Modern Tab Bar
+    // MARK: - Modern Tab Bar (Compact)
     private var modernTabBar: some View {
-        HStack(spacing: 4) {
+        HStack(spacing: 0) {
             ForEach(visibleTabs, id: \.self) { tab in
-                modernTabButton(for: tab)
+                compactTabButton(for: tab)
             }
         }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 10)
+        .padding(.horizontal, 6)
+        .padding(.vertical, 6)
         .background(
-            ZStack {
-                // Glassmorphism base
-                RoundedRectangle(cornerRadius: 28, style: .continuous)
-                    .fill(.ultraThinMaterial)
-                
-                // Subtle gradient overlay
-                RoundedRectangle(cornerRadius: 28, style: .continuous)
-                    .fill(
-                        LinearGradient(
-                            colors: [
-                                Color.white.opacity(0.1),
-                                Color.white.opacity(0.05),
-                                Color.clear
-                            ],
-                            startPoint: .top,
-                            endPoint: .bottom
-                        )
-                    )
-                
-                // Border with gradient
-                RoundedRectangle(cornerRadius: 28, style: .continuous)
-                    .stroke(
-                        LinearGradient(
-                            colors: [
-                                Color.white.opacity(0.3),
-                                Color.white.opacity(0.1),
-                                Color.white.opacity(0.05)
-                            ],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        ),
-                        lineWidth: 1
-                    )
-            }
+            Capsule()
+                .fill(.ultraThinMaterial)
+                .overlay(
+                    Capsule()
+                        .stroke(Color.white.opacity(0.15), lineWidth: 0.5)
+                )
         )
-        .shadow(color: .black.opacity(0.12), radius: 25, x: 0, y: -8)
-        .shadow(color: Color.accentColor.opacity(0.08), radius: 20, x: 0, y: -5)
-        .padding(.horizontal, 20)
-        .padding(.bottom, 10)
-        .scaleEffect(tabBarScale)
-        .onAppear {
-            withAnimation(.spring(response: 0.5, dampingFraction: 0.7).delay(0.2)) {
-                tabBarScale = 1.0
-            }
-        }
+        .shadow(color: .black.opacity(0.1), radius: 12, x: 0, y: 4)
+        .padding(.horizontal, 24)
+        .padding(.bottom, 8)
     }
     
-    // MARK: - Modern Tab Button
+    // MARK: - Compact Tab Button
     @ViewBuilder
-    private func modernTabButton(for tab: TabEnum) -> some View {
+    private func compactTabButton(for tab: TabEnum) -> some View {
         let isSelected = selectedTab == tab
         
         Button {
-            withAnimation(.spring(response: 0.4, dampingFraction: 0.7)) {
+            withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
                 selectedTab = tab
             }
             HapticsManager.shared.softImpact()
         } label: {
-            VStack(spacing: 6) {
+            VStack(spacing: 2) {
                 ZStack {
-                    // Selected background with glow
                     if isSelected {
-                        // Glow effect
                         Circle()
-                            .fill(
-                                RadialGradient(
-                                    colors: [
-                                        Color.accentColor.opacity(0.3),
-                                        Color.accentColor.opacity(0.1),
-                                        Color.clear
-                                    ],
-                                    center: .center,
-                                    startRadius: 5,
-                                    endRadius: 25
-                                )
-                            )
-                            .frame(width: 50, height: 50)
-                            .blur(radius: 5)
-                        
-                        // Background pill
-                        Capsule()
-                            .fill(
-                                LinearGradient(
-                                    colors: [
-                                        Color.accentColor.opacity(0.2),
-                                        Color.accentColor.opacity(0.1)
-                                    ],
-                                    startPoint: .topLeading,
-                                    endPoint: .bottomTrailing
-                                )
-                            )
-                            .frame(width: 52, height: 36)
-                            .overlay(
-                                Capsule()
-                                    .stroke(Color.accentColor.opacity(0.3), lineWidth: 1)
-                            )
+                            .fill(Color.accentColor.opacity(0.15))
+                            .frame(width: 36, height: 36)
                             .matchedGeometryEffect(id: "tabBackground", in: animation)
                     }
                     
-                    // Icon with animation
                     Image(systemName: isSelected ? tab.selectedIcon : tab.icon)
-                        .font(.system(size: isSelected ? 20 : 18, weight: isSelected ? .bold : .medium))
-                        .foregroundStyle(
-                            isSelected 
-                                ? AnyShapeStyle(
-                                    LinearGradient(
-                                        colors: [Color.accentColor, Color.accentColor.opacity(0.8)],
-                                        startPoint: .topLeading,
-                                        endPoint: .bottomTrailing
-                                    )
-                                )
-                                : AnyShapeStyle(Color.secondary)
-                        )
-                        .scaleEffect(isSelected ? 1.0 : 0.9)
+                        .font(.system(size: 17, weight: isSelected ? .semibold : .regular))
+                        .foregroundStyle(isSelected ? Color.accentColor : .secondary)
                 }
-                .frame(height: 36)
+                .frame(width: 36, height: 36)
                 
-                // Label
                 Text(tab.title)
-                    .font(.system(size: 10, weight: isSelected ? .bold : .medium, design: .rounded))
+                    .font(.system(size: 9, weight: isSelected ? .semibold : .medium))
                     .foregroundStyle(isSelected ? Color.accentColor : .secondary)
-                    .opacity(isSelected ? 1.0 : 0.7)
             }
             .frame(maxWidth: .infinity)
-            .padding(.vertical, 4)
             .contentShape(Rectangle())
         }
         .buttonStyle(TabButtonStyle())
