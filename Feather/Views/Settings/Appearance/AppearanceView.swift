@@ -3,169 +3,151 @@ import NimbleViews
 import UIKit
 
 // MARK: - View
-// dear god help me
 struct AppearanceView: View {
-	@AppStorage("Feather.userInterfaceStyle")
-	private var _userIntefacerStyle: Int = UIUserInterfaceStyle.unspecified.rawValue
-	
-	@AppStorage("Feather.storeCellAppearance")
-	private var _storeCellAppearance: Int = 0
-	private let _storeCellAppearanceMethods: [(name: String, desc: String)] = [
-		(.localized("Standard"), .localized("Default style for the app, only includes subtitle.")),
-		(.localized("Big Description"), .localized("Adds the localized description of the app."))
-	]
-	
-	@AppStorage("com.apple.SwiftUI.IgnoreSolariumLinkedOnCheck")
-	private var _ignoreSolariumLinkedOnCheck: Bool = false
-	
-	@AppStorage("Feather.showNews")
-	private var _showNews: Bool = true
-	
-	@AppStorage("Feather.showIconsInAppearance")
-	private var _showIconsInAppearance: Bool = true
-	
-	@AppStorage("Feather.useNewAllAppsView")
-	private var _useNewAllAppsView: Bool = true
-	
-	@AppStorage("Feather.greetingsName")
-	private var _greetingsName: String = ""
-	
-	// MARK: Body
+    @AppStorage("Feather.userInterfaceStyle") private var userInterfaceStyle: Int = UIUserInterfaceStyle.unspecified.rawValue
+    @AppStorage("Feather.storeCellAppearance") private var storeCellAppearance: Int = 0
+    @AppStorage("com.apple.SwiftUI.IgnoreSolariumLinkedOnCheck") private var ignoreSolariumLinkedOnCheck: Bool = false
+    @AppStorage("Feather.showNews") private var showNews: Bool = true
+    @AppStorage("Feather.showIconsInAppearance") private var showIconsInAppearance: Bool = true
+    @AppStorage("Feather.useNewAllAppsView") private var useNewAllAppsView: Bool = true
+    @AppStorage("Feather.greetingsName") private var greetingsName: String = ""
+    
     var body: some View {
-		NBList(.localized("Appearance")) {
-			Section {
-				Picker(.localized("Appearance"), selection: $_userIntefacerStyle) {
-					ForEach(UIUserInterfaceStyle.allCases.sorted(by: { $0.rawValue < $1.rawValue }), id: \.rawValue) { style in
-						if _showIconsInAppearance {
-							Label {
-								Text(style.label)
-							} icon: {
-								Image(systemName: style.iconName)
-							}
-							.tag(style.rawValue)
-						} else {
-							Text(style.label).tag(style.rawValue)
-						}
-					}
-				}
-				.pickerStyle(.segmented)
-			} footer: {
-				Text(.localized("Choose between Light, Dark, or Automatic appearance mode"))
-			}
-			
-			NBSection(.localized("Theme")) {
-				AppearanceTintColorView()
-					.listRowInsets(EdgeInsets())
-					.listRowBackground(EmptyView())
-			} footer: {
-				Text(.localized("Select your preferred accent color theme"))
-			}
-			
-			NBSection(.localized("Visual Effects")) {
-				Toggle(isOn: $_showIconsInAppearance) {
-					if _showIconsInAppearance {
-						Label(.localized("Show Icons"), systemImage: "square.grid.2x2.fill")
-					} else {
-						Text(.localized("Show Icons"))
-					}
-				}
-				
-				Toggle(isOn: $_useNewAllAppsView) {
-					if _showIconsInAppearance {
-						Label(.localized("Use new All Apps View"), systemImage: "square.grid.2x2.fill")
-					} else {
-						Text(.localized("Use new All Apps View"))
-					}
-				}
-			} footer: {
-				Text(.localized("Hiding icons will affect the entire app. Enable the modern yet simple new All Apps view, keep in mind this is buggy when you have too many sources."))
-			}
-			
-			NBSection(.localized("Greetings")) {
-				HStack {
-					if _showIconsInAppearance {
-						Label(.localized("Your Name"), systemImage: "person.fill")
-					} else {
-						Text(.localized("Your Name"))
-					}
-					Spacer()
-					TextField(.localized("Enter Name"), text: $_greetingsName)
-						.multilineTextAlignment(.trailing)
-						.textFieldStyle(.plain)
-				}
-			} footer: {
-				Text(.localized("Personalize the Home Screen with a greeting with your name"))
-			}
-			
-			NBSection(.localized("Sources")) {
-				Picker(.localized("Store Cell Appearance"), selection: $_storeCellAppearance) {
-					ForEach(0..<_storeCellAppearanceMethods.count, id: \.self) { index in
-						let method = _storeCellAppearanceMethods[index]
-						if _showIconsInAppearance {
-							Label {
-								NBTitleWithSubtitleView(
-									title: method.name,
-									subtitle: method.desc
-								)
-							} icon: {
-								Image(systemName: index == 0 ? "list.bullet" : "text.alignleft")
-							}
-							.tag(index)
-						} else {
-							NBTitleWithSubtitleView(
-								title: method.name,
-								subtitle: method.desc
-							)
-							.tag(index)
-						}
-					}
-
-				}
-				.labelsHidden()
-				.pickerStyle(.inline)
-				
-				Toggle(isOn: $_showNews) {
-					if _showIconsInAppearance {
-						Label(.localized("Show News"), systemImage: "newspaper.fill")
-					} else {
-						Text(.localized("Show News"))
-					}
-				}
-			} footer: {
-				Text(.localized("When disabled, news from sources will not be displayed in the Sources section."))
-			}
-			
-			NBSection(.localized("Status Bar")) {
-				NavigationLink(destination: StatusBarCustomizationView()) {
-					ConditionalLabel(title: .localized("Status Bar Customization"), systemImage: "rectangle.inset.topright.filled")
-				}
-			} footer: {
-				Text(.localized("Customize the Status Bar with custom tweaks like text, time animations and SF symbols."))
-			}
-			
-			NBSection(.localized("Tab Bar")) {
-				NavigationLink(destination: TabBarCustomizationView()) {
-					ConditionalLabel(title: .localized("Tab Bar Customization"), systemImage: "square.split.bottomrightquarter")
-				}
-			} footer: {
-				Text(.localized("Show or hide tabs from the tab bar. Settings cannot be hidden."))
-			}
-			
-			if #available(iOS 19.0, *) {
-				NBSection(.localized("Experiments")) {
-					Toggle(.localized("Enable Liquid Glass"), isOn: $_ignoreSolariumLinkedOnCheck)
-				} footer: {
-					Text(.localized("This enables Liquid Glass UI for Portal, this requires Portal to restart in order for the changes to reflect."))
-				}
-			}
-		}
-		.onChange(of: _userIntefacerStyle) { value in
-			if let style = UIUserInterfaceStyle(rawValue: value) {
-				UIApplication.topViewController()?.view.window?.overrideUserInterfaceStyle = style
-			}
-		}
-		.onChange(of: _ignoreSolariumLinkedOnCheck) { _ in
-			UIApplication.shared.suspendAndReopen()
-		}
+        List {
+            // Appearance Mode
+            Section {
+                appearancePicker
+            } header: {
+                sectionHeader("Theme", icon: "paintbrush.fill")
+            } footer: {
+                Text("Choose your preferred appearance mode")
+                    .font(.caption)
+            }
+            
+            // Accent Color
+            Section {
+                AppearanceTintColorView()
+                    .listRowInsets(EdgeInsets())
+                    .listRowBackground(Color.clear)
+            } header: {
+                sectionHeader("Accent Color", icon: "paintpalette.fill")
+            }
+            
+            // Display Options
+            Section {
+                settingToggle(icon: "square.grid.2x2", title: "Show Icons", isOn: $showIconsInAppearance, color: .blue)
+                settingToggle(icon: "rectangle.grid.1x2", title: "Modern Apps View", isOn: $useNewAllAppsView, color: .purple)
+                settingToggle(icon: "newspaper", title: "Show News", isOn: $showNews, color: .orange)
+            } header: {
+                sectionHeader("Display", icon: "eye.fill")
+            }
+            
+            // Personalization
+            Section {
+                HStack(spacing: 12) {
+                    Image(systemName: "person.fill")
+                        .font(.system(size: 16, weight: .medium))
+                        .foregroundStyle(.green)
+                        .frame(width: 24)
+                    
+                    Text("Your Name")
+                        .font(.system(size: 15))
+                    
+                    Spacer()
+                    
+                    TextField("Enter name", text: $greetingsName)
+                        .multilineTextAlignment(.trailing)
+                        .font(.system(size: 15))
+                        .foregroundStyle(.secondary)
+                }
+            } header: {
+                sectionHeader("Personalization", icon: "person.crop.circle.fill")
+            } footer: {
+                Text("Personalize the Home Screen greeting")
+                    .font(.caption)
+            }
+            
+            // Customization
+            Section {
+                navigationRow(icon: "rectangle.topthird.inset.filled", title: "Status Bar", color: .cyan, destination: StatusBarCustomizationView())
+                navigationRow(icon: "dock.rectangle", title: "Tab Bar", color: .indigo, destination: TabBarCustomizationView())
+            } header: {
+                sectionHeader("Customization", icon: "slider.horizontal.3")
+            }
+            
+            // Experiments
+            if #available(iOS 19.0, *) {
+                Section {
+                    settingToggle(icon: "sparkles", title: "Liquid Glass", isOn: $ignoreSolariumLinkedOnCheck, color: .pink)
+                } header: {
+                    sectionHeader("Experiments", icon: "flask.fill")
+                } footer: {
+                    Text("Requires app restart to take effect")
+                        .font(.caption)
+                }
+            }
+        }
+        .navigationTitle("Appearance")
+        .onChange(of: userInterfaceStyle) { value in
+            if let style = UIUserInterfaceStyle(rawValue: value) {
+                UIApplication.topViewController()?.view.window?.overrideUserInterfaceStyle = style
+            }
+        }
+        .onChange(of: ignoreSolariumLinkedOnCheck) { _ in
+            UIApplication.shared.suspendAndReopen()
+        }
+    }
+    
+    // MARK: - Appearance Picker
+    private var appearancePicker: some View {
+        Picker("Appearance", selection: $userInterfaceStyle) {
+            ForEach(UIUserInterfaceStyle.allCases.sorted(by: { $0.rawValue < $1.rawValue }), id: \.rawValue) { style in
+                Label(style.label, systemImage: style.iconName)
+                    .tag(style.rawValue)
+            }
+        }
+        .pickerStyle(.segmented)
+    }
+    
+    // MARK: - Section Header
+    private func sectionHeader(_ title: String, icon: String) -> some View {
+        HStack(spacing: 6) {
+            Image(systemName: icon)
+                .font(.system(size: 11, weight: .semibold))
+                .foregroundStyle(.secondary)
+            Text(title.uppercased())
+                .font(.system(size: 12, weight: .semibold, design: .rounded))
+                .foregroundStyle(.secondary)
+        }
+    }
+    
+    // MARK: - Setting Toggle
+    private func settingToggle(icon: String, title: String, isOn: Binding<Bool>, color: Color) -> some View {
+        Toggle(isOn: isOn) {
+            HStack(spacing: 12) {
+                Image(systemName: icon)
+                    .font(.system(size: 16, weight: .medium))
+                    .foregroundStyle(color)
+                    .frame(width: 24)
+                
+                Text(title)
+                    .font(.system(size: 15))
+            }
+        }
+    }
+    
+    // MARK: - Navigation Row
+    private func navigationRow<Destination: View>(icon: String, title: String, color: Color, destination: Destination) -> some View {
+        NavigationLink(destination: destination) {
+            HStack(spacing: 12) {
+                Image(systemName: icon)
+                    .font(.system(size: 16, weight: .medium))
+                    .foregroundStyle(color)
+                    .frame(width: 24)
+                
+                Text(title)
+                    .font(.system(size: 15))
+            }
+        }
     }
 }
