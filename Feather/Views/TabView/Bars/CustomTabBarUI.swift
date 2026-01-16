@@ -210,7 +210,6 @@ struct CustomTabBarUI: View {
                                 : AnyShapeStyle(Color.secondary)
                         )
                         .scaleEffect(isSelected ? 1.0 : 0.9)
-                        .symbolEffect(.bounce, value: isSelected)
                 }
                 .frame(height: 36)
                 

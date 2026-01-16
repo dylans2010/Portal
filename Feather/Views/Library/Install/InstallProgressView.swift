@@ -293,7 +293,7 @@ struct InstallProgressView: View {
 						)
 				)
 			} else {
-				Text(viewModel.currentStep)
+				Text("\(viewModel.currentStep)")
 					.font(.system(size: 13, weight: .medium))
 					.foregroundStyle(.secondary)
 					.multilineTextAlignment(.center)
