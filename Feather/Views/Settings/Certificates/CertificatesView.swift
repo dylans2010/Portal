@@ -57,7 +57,7 @@ struct CertificatesView: View {
 					} label: {
 						Image(systemName: "plus.circle.fill")
 							.font(.system(size: 22, weight: .medium))
-							.foregroundStyle(.accentColor)
+							.foregroundStyle(Color.accentColor)
 					}
 				}
 			}
