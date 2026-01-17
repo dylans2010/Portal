@@ -159,40 +159,117 @@ struct PortalCertHandler {
             Logger.misc.debug("[PortalCert] Extracted to: \(extractDir.path)")
         } catch {
             Logger.misc.error("[PortalCert] Failed to extract ZIP: \(error.localizedDescription)")
+            try? FileManager.default.removeItem(at: extractDir)
             throw PortalCertError.zipExtractionFailed
         }
         
-        // Read metadata
+        // Try to read metadata first
         let metadataURL = extractDir.appendingPathComponent("metadata.json")
-        guard FileManager.default.fileExists(atPath: metadataURL.path) else {
-            Logger.misc.error("[PortalCert] Metadata file not found")
-            throw PortalCertError.invalidFormat
+        var metadata: PortalCertMetadata?
+        var p12URL: URL?
+        var provisionURL: URL?
+        
+        if FileManager.default.fileExists(atPath: metadataURL.path) {
+            do {
+                let metadataData = try Data(contentsOf: metadataURL)
+                metadata = try JSONDecoder().decode(PortalCertMetadata.self, from: metadataData)
+                
+                Logger.misc.debug("[PortalCert] Metadata version: \(metadata!.version)")
+                Logger.misc.debug("[PortalCert] P12 filename: \(metadata!.p12Filename)")
+                Logger.misc.debug("[PortalCert] Provision filename: \(metadata!.provisionFilename)")
+                
+                // Try to locate files using metadata
+                let metaP12URL = extractDir.appendingPathComponent(metadata!.p12Filename)
+                let metaProvisionURL = extractDir.appendingPathComponent(metadata!.provisionFilename)
+                
+                if FileManager.default.fileExists(atPath: metaP12URL.path) {
+                    p12URL = metaP12URL
+                }
+                if FileManager.default.fileExists(atPath: metaProvisionURL.path) {
+                    provisionURL = metaProvisionURL
+                }
+            } catch {
+                Logger.misc.warning("[PortalCert] Failed to parse metadata, will search for files: \(error.localizedDescription)")
+            }
+        } else {
+            Logger.misc.warning("[PortalCert] Metadata file not found, will search for certificate files")
         }
         
-        let metadataData = try Data(contentsOf: metadataURL)
-        let metadata = try JSONDecoder().decode(PortalCertMetadata.self, from: metadataData)
+        // If files not found via metadata, search the directory
+        if p12URL == nil || provisionURL == nil {
+            Logger.misc.info("[PortalCert] Searching for certificate files in extracted directory")
+            
+            let (foundP12, foundProvision) = try searchForCertificateFiles(in: extractDir)
+            
+            if p12URL == nil {
+                p12URL = foundP12
+            }
+            if provisionURL == nil {
+                provisionURL = foundProvision
+            }
+        }
         
-        Logger.misc.debug("[PortalCert] Metadata version: \(metadata.version)")
-        Logger.misc.debug("[PortalCert] P12 filename: \(metadata.p12Filename)")
-        Logger.misc.debug("[PortalCert] Provision filename: \(metadata.provisionFilename)")
-        
-        // Locate extracted files
-        let p12URL = extractDir.appendingPathComponent(metadata.p12Filename)
-        let provisionURL = extractDir.appendingPathComponent(metadata.provisionFilename)
-        
-        guard FileManager.default.fileExists(atPath: p12URL.path) else {
+        // Validate we found both files
+        guard let finalP12URL = p12URL else {
             Logger.misc.error("[PortalCert] P12 file not found in bundle")
+            try? FileManager.default.removeItem(at: extractDir)
             throw PortalCertError.missingP12
         }
         
-        guard FileManager.default.fileExists(atPath: provisionURL.path) else {
+        guard let finalProvisionURL = provisionURL else {
             Logger.misc.error("[PortalCert] Provision file not found in bundle")
+            try? FileManager.default.removeItem(at: extractDir)
             throw PortalCertError.missingProvision
         }
         
-        Logger.misc.info("[PortalCert] Successfully extracted .portalcert bundle")
+        // Create default metadata if not found
+        let finalMetadata = metadata ?? PortalCertMetadata(
+            version: formatVersion,
+            createdAt: Date().timeIntervalSince1970,
+            p12Filename: finalP12URL.lastPathComponent,
+            provisionFilename: finalProvisionURL.lastPathComponent,
+            nickname: nil,
+            hasPassword: false
+        )
         
-        return (p12URL, provisionURL, metadata)
+        Logger.misc.info("[PortalCert] Successfully extracted .portalcert bundle")
+        Logger.misc.debug("[PortalCert] P12: \(finalP12URL.lastPathComponent)")
+        Logger.misc.debug("[PortalCert] Provision: \(finalProvisionURL.lastPathComponent)")
+        
+        return (finalP12URL, finalProvisionURL, finalMetadata)
+    }
+    
+    /// Searches for P12 and mobileprovision files in a directory recursively
+    private static func searchForCertificateFiles(in directory: URL) throws -> (p12URL: URL?, provisionURL: URL?) {
+        var foundP12: URL?
+        var foundProvision: URL?
+        
+        func searchDirectory(_ dir: URL) throws {
+            let items = try FileManager.default.contentsOfDirectory(
+                at: dir,
+                includingPropertiesForKeys: [.isDirectoryKey],
+                options: [.skipsHiddenFiles]
+            )
+            
+            for item in items {
+                let resourceValues = try item.resourceValues(forKeys: [.isDirectoryKey])
+                if resourceValues.isDirectory == true {
+                    try searchDirectory(item)
+                } else {
+                    let ext = item.pathExtension.lowercased()
+                    if ext == "p12" && foundP12 == nil {
+                        foundP12 = item
+                        Logger.misc.debug("[PortalCert] Found P12: \(item.lastPathComponent)")
+                    } else if ext == "mobileprovision" && foundProvision == nil {
+                        foundProvision = item
+                        Logger.misc.debug("[PortalCert] Found provision: \(item.lastPathComponent)")
+                    }
+                }
+            }
+        }
+        
+        try searchDirectory(directory)
+        return (foundP12, foundProvision)
     }
     
     // MARK: - Validation
