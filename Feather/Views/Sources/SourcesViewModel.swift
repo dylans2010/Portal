@@ -175,10 +175,11 @@ final class SourcesViewModel: ObservableObject {
         
         let sourcesArray = Array(sources)
         let totalSources = sourcesArray.count
-        var processedCount = 0
         
         // Use adaptive batch size based on source count
         let adaptiveBatchSize = min(batchSize, max(2, totalSources / 4))
+        
+        var currentProcessedCount = 0
         
         for startIndex in stride(from: 0, to: sourcesArray.count, by: adaptiveBatchSize) {
             // Check for cancellation
@@ -216,6 +217,10 @@ final class SourcesViewModel: ObservableObject {
                 return results
             }
             
+            // Update processed count after batch completes
+            currentProcessedCount += batchResults.count
+            let progressValue = Double(currentProcessedCount) / Double(totalSources)
+            
             await MainActor.run {
                 for (source, repo, error) in batchResults {
                     if let repo = repo {
@@ -223,9 +228,8 @@ final class SourcesViewModel: ObservableObject {
                     } else if error != nil, let urlString = source.sourceURL?.absoluteString {
                         self.failedSources.insert(urlString)
                     }
-                    processedCount += 1
                 }
-                self.fetchProgress = Double(processedCount) / Double(totalSources)
+                self.fetchProgress = progressValue
             }
         }
         

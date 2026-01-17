@@ -741,10 +741,10 @@ struct FileHasherView: View {
                 
                 if !md5Hash.isEmpty {
                     Section {
-                        HashRow(algorithm: "MD5", hash: md5Hash)
-                        HashRow(algorithm: "SHA-1", hash: sha1Hash)
-                        HashRow(algorithm: "SHA-256", hash: sha256Hash)
-                        HashRow(algorithm: "SHA-512", hash: sha512Hash)
+                        FileHashRow(algorithm: "MD5", hash: md5Hash)
+                        FileHashRow(algorithm: "SHA-1", hash: sha1Hash)
+                        FileHashRow(algorithm: "SHA-256", hash: sha256Hash)
+                        FileHashRow(algorithm: "SHA-512", hash: sha512Hash)
                     } header: {
                         Text(.localized("Hashes"))
                     }
@@ -804,7 +804,7 @@ struct FileHasherView: View {
     }
 }
 
-struct HashRow: View {
+struct FileHashRow: View {
     let algorithm: String
     let hash: String
     

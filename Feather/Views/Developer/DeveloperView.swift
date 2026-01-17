@@ -1903,7 +1903,7 @@ struct CodeSignatureAnalyzer {
         for _ in 0..<min(Int(count), 20) {
             guard sigData.count >= blobOffset + 8 else { break }
             
-            let blobType = sigData.withUnsafeBytes { $0.load(fromByteOffset: blobOffset, as: UInt32.self).bigEndian }
+            let _ = sigData.withUnsafeBytes { $0.load(fromByteOffset: blobOffset, as: UInt32.self).bigEndian } // blobType - not used but part of structure
             let blobDataOffset = sigData.withUnsafeBytes { $0.load(fromByteOffset: blobOffset + 4, as: UInt32.self).bigEndian }
             
             let blobStart = Int(blobDataOffset)
@@ -2486,13 +2486,57 @@ struct IPAInspectorView: View {
             }
         }
         
-        // Define limitations for iOS on-device inspection
-        // macOS Only Tools (will try to add 3rd party soon)
+        // Analyze main executable binary
+        var binaryInfo: MachOAnalyzer.BinaryInfo? = nil
+        var signatureInfo: CodeSignatureAnalyzer.SignatureInfo? = nil
+        var executableName: String? = nil
+        var supportedArchitectures: [String] = []
+        var isEncrypted = false
+        var linkedFrameworksList: [String] = []
+        var weakLinkedFrameworksList: [String] = []
+        var embeddedBinaries: [String] = []
+        
+        // Get executable name from Info.plist
+        if let execName = infoPlist?["CFBundleExecutable"] as? String {
+            executableName = execName
+            let executableURL = appBundle.appendingPathComponent(execName)
+            
+            if let execData = try? Data(contentsOf: executableURL) {
+                // Analyze binary
+                if let binInfo = MachOAnalyzer.analyze(data: execData) {
+                    binaryInfo = binInfo
+                    supportedArchitectures = binInfo.architectures
+                    isEncrypted = binInfo.isEncrypted
+                    
+                    // Separate system frameworks from linked libraries
+                    for lib in binInfo.linkedLibraries {
+                        if lib.contains(".framework") {
+                            if lib.hasPrefix("/System") || lib.hasPrefix("@rpath") {
+                                linkedFrameworksList.append(lib)
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        
+        // Find embedded binaries in Frameworks folder
+        let frameworksDir = appBundle.appendingPathComponent("Frameworks")
+        if fileManager.fileExists(atPath: frameworksDir.path) {
+            if let contents = try? fileManager.contentsOfDirectory(at: frameworksDir, includingPropertiesForKeys: nil) {
+                for item in contents {
+                    if item.pathExtension == "framework" || item.pathExtension == "dylib" {
+                        embeddedBinaries.append(item.lastPathComponent)
+                    }
+                }
+            }
+        }
+        
+        // Define limitations for iOS on-device inspection (now fewer with pure Swift analysis)
         let limitations = [
-            "Code signature validation: Not available on iOS (requires macOS security tools)",
-            "Full entitlements extraction: Limited (only from provisioning profile)",
-            "Binary analysis: Not available (requires specialized tools)",
-            "Deep framework inspection: Limited (file listing only)"
+            "Certificate chain validation: Limited (cannot verify Apple root CA)",
+            "Notarization check: Not available on iOS",
+            "Full code signature verification: Partial (structure only, not cryptographic)"
         ]
         
         return IPAInfo(
@@ -2511,7 +2555,15 @@ struct IPAInspectorView: View {
             provisioning: provisioningInfo,
             fileStructure: fileStructure.sorted(),
             appIconData: appIconData,
-            limitations: limitations
+            limitations: limitations,
+            binaryInfo: binaryInfo,
+            signatureInfo: signatureInfo,
+            executableName: executableName,
+            supportedArchitectures: supportedArchitectures,
+            isEncrypted: isEncrypted,
+            linkedFrameworks: linkedFrameworksList,
+            weakLinkedFrameworks: weakLinkedFrameworksList,
+            embeddedBinaries: embeddedBinaries
         )
     }
     
