@@ -2,10 +2,12 @@ import SwiftUI
 import NimbleViews
 import UniformTypeIdentifiers
 import ZIPFoundation
+import OSLog
 
 // MARK: - Modern Compact Certificate Add View
 struct CertificatesAddView: View {
     @Environment(\.dismiss) private var dismiss
+    @AppStorage("feature_usePortalCert") private var usePortalCert = false
     
     @State private var _p12URL: URL? = nil
     @State private var _provisionURL: URL? = nil
@@ -15,6 +17,7 @@ struct CertificatesAddView: View {
     @State private var _isImportingP12Presenting = false
     @State private var _isImportingMobileProvisionPresenting = false
     @State private var _isImportingZipPresenting = false
+    @State private var _isImportingPortalCertPresenting = false
     
     var saveButtonDisabled: Bool {
         _p12URL == nil || _provisionURL == nil
@@ -57,6 +60,9 @@ struct CertificatesAddView: View {
         .sheet(isPresented: $_isImportingZipPresenting) {
             zipImportSheet
         }
+        .sheet(isPresented: $_isImportingPortalCertPresenting) {
+            portalCertImportSheet
+        }
     }
     
     // MARK: - File Import Section
@@ -85,6 +91,11 @@ struct CertificatesAddView: View {
             }
             
             zipImportButton
+            
+            // Show .portalcert import button only when feature flag is enabled
+            if usePortalCert {
+                portalCertImportButton
+            }
         }
     }
     
@@ -112,6 +123,125 @@ struct CertificatesAddView: View {
             )
             .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
             .shadow(color: Color.purple.opacity(0.2), radius: 4, x: 0, y: 2)
+        }
+    }
+    
+    // MARK: - Portal Cert Import Button
+    private var portalCertImportButton: some View {
+        Button {
+            _isImportingPortalCertPresenting = true
+        } label: {
+            HStack(spacing: 8) {
+                Image(systemName: "shippingbox.fill")
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundStyle(.white)
+                Text("Import .portalcert")
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundStyle(.white)
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 10)
+            .background(
+                LinearGradient(
+                    colors: [Color.indigo, Color.purple.opacity(0.8)],
+                    startPoint: .leading,
+                    endPoint: .trailing
+                )
+            )
+            .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+            .shadow(color: Color.indigo.opacity(0.2), radius: 4, x: 0, y: 2)
+        }
+    }
+    
+    // MARK: - Portal Cert Import Sheet
+    private var portalCertImportSheet: some View {
+        FileImporterRepresentableView(
+            allowedContentTypes: [.portalCert, .data],
+            onDocumentsPicked: { urls in
+                guard let selectedFileURL = urls.first else { return }
+                _handlePortalCertImport(selectedFileURL)
+            }
+        )
+        .ignoresSafeArea()
+    }
+    
+    // MARK: - Handle Portal Cert Import
+    private func _handlePortalCertImport(_ url: URL) {
+        Logger.misc.info("[PortalCert Import] Starting import from: \(url.lastPathComponent)")
+        
+        // Start accessing security-scoped resource
+        guard url.startAccessingSecurityScopedResource() else {
+            Logger.misc.error("[PortalCert Import] Failed to access security-scoped resource")
+            UIAlertController.showAlertWithOk(
+                title: .localized("Import Failed"),
+                message: .localized("Unable to access the selected file")
+            )
+            return
+        }
+        
+        defer {
+            url.stopAccessingSecurityScopedResource()
+        }
+        
+        do {
+            // Copy file to temporary location first
+            let tempURL = FileManager.default.temporaryDirectory.appendingPathComponent(url.lastPathComponent)
+            if FileManager.default.fileExists(atPath: tempURL.path) {
+                try FileManager.default.removeItem(at: tempURL)
+            }
+            try FileManager.default.copyItem(at: url, to: tempURL)
+            
+            // Extract the .portalcert bundle
+            let (p12URL, provisionURL, metadata) = try PortalCertHandler.extractPortalCert(from: tempURL)
+            
+            Logger.misc.info("[PortalCert Import] Successfully extracted bundle")
+            Logger.misc.debug("[PortalCert Import] P12: \(p12URL.lastPathComponent)")
+            Logger.misc.debug("[PortalCert Import] Provision: \(provisionURL.lastPathComponent)")
+            
+            // Copy files to persistent temporary location
+            let persistentTempDir = FileManager.default.temporaryDirectory.appendingPathComponent("portalcert-import-\(UUID().uuidString)")
+            try FileManager.default.createDirectory(at: persistentTempDir, withIntermediateDirectories: true)
+            
+            let newP12URL = persistentTempDir.appendingPathComponent(p12URL.lastPathComponent)
+            let newProvisionURL = persistentTempDir.appendingPathComponent(provisionURL.lastPathComponent)
+            
+            try FileManager.default.copyItem(at: p12URL, to: newP12URL)
+            try FileManager.default.copyItem(at: provisionURL, to: newProvisionURL)
+            
+            // Set the URLs
+            _p12URL = newP12URL
+            _provisionURL = newProvisionURL
+            
+            // Set nickname if available
+            if let nickname = metadata.nickname {
+                _certificateName = nickname
+            }
+            
+            Logger.misc.info("[PortalCert Import] Import complete, files ready for saving")
+            
+            // Show success message
+            var message = String.localized("Certificate files extracted successfully from .portalcert bundle.")
+            if metadata.hasPassword {
+                message += " " + String.localized("This certificate requires a password.")
+            }
+            
+            UIAlertController.showAlertWithOk(
+                title: .localized("Success"),
+                message: message
+            )
+            
+        } catch let error as PortalCertHandler.PortalCertError {
+            Logger.misc.error("[PortalCert Import] Error: \(error.localizedDescription)")
+            UIAlertController.showAlertWithOk(
+                title: .localized("Import Failed"),
+                message: error.localizedDescription
+            )
+        } catch {
+            Logger.misc.error("[PortalCert Import] Unexpected error: \(error.localizedDescription)")
+            UIAlertController.showAlertWithOk(
+                title: .localized("Import Failed"),
+                message: .localized("Failed to import .portalcert file: \(error.localizedDescription)")
+            )
         }
     }
     
