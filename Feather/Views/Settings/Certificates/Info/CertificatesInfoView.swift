@@ -1,6 +1,7 @@
 import SwiftUI
 import NimbleViews
 import ZsignSwift
+import OSLog
 
 // MARK: - Entitlement Mapping Helper
 struct EntitlementMapping {
@@ -57,10 +58,13 @@ struct EntitlementMapping {
 // MARK: - Clean Certificate Info View
 struct CertificatesInfoView: View {
     @Environment(\.dismiss) var dismiss
+    @AppStorage("feature_usePortalCert") private var usePortalCert = false
     @State private var data: Certificate?
     @State private var isEntitlementsExpanded = false
     @State private var isDevicesExpanded = false
     @State private var appearAnimation = false
+    @State private var showExportSheet = false
+    @State private var exportedFileURL: URL?
     
     var cert: CertificatePair
     
@@ -468,6 +472,65 @@ struct CertificatesInfoView: View {
                         UIApplication.shared.open(provisionURL)
                     }
                 }
+            )
+            
+            // Show export to .portalcert only when feature flag is enabled
+            if usePortalCert {
+                exportPortalCertButton
+            }
+        }
+    }
+    
+    // MARK: - Export Portal Cert Button
+    private var exportPortalCertButton: some View {
+        Button {
+            exportToPortalCert()
+        } label: {
+            HStack(spacing: 12) {
+                Image(systemName: "shippingbox.fill")
+                    .font(.system(size: 16, weight: .medium))
+                    .foregroundStyle(.indigo)
+                
+                Text("Export as .portalcert")
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundStyle(.primary)
+                
+                Spacer()
+                
+                Image(systemName: "square.and.arrow.up")
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundStyle(.indigo)
+            }
+            .padding(14)
+            .background(cardBackground)
+        }
+        .sheet(isPresented: $showExportSheet) {
+            if let url = exportedFileURL {
+                ShareSheet(activityItems: [url])
+            }
+        }
+    }
+    
+    // MARK: - Export to Portal Cert
+    private func exportToPortalCert() {
+        Logger.misc.info("[PortalCert Export] Starting export for certificate: \(cert.nickname ?? "Unknown")")
+        
+        do {
+            let outputDir = FileManager.default.temporaryDirectory
+            let exportedURL = try PortalCertHandler.exportCertificate(cert, to: outputDir)
+            
+            Logger.misc.info("[PortalCert Export] Successfully exported to: \(exportedURL.path)")
+            
+            exportedFileURL = exportedURL
+            showExportSheet = true
+            
+            HapticsManager.shared.success()
+        } catch {
+            Logger.misc.error("[PortalCert Export] Failed: \(error.localizedDescription)")
+            
+            UIAlertController.showAlertWithOk(
+                title: .localized("Export Failed"),
+                message: error.localizedDescription
             )
         }
     }

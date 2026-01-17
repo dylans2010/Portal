@@ -461,6 +461,7 @@ struct FileTerminalView: View {
 // MARK: - Advanced File Search View
 struct AdvancedFileSearchView: View {
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.colorScheme) private var colorScheme
     @State private var searchQuery = ""
     @State private var searchByContent = false
     @State private var caseSensitive = false
@@ -471,61 +472,29 @@ struct AdvancedFileSearchView: View {
     @State private var results: [URL] = []
     let baseDirectory: URL
     
+    private var gradientColors: [Color] {
+        [Color.blue.opacity(0.8), Color.purple.opacity(0.6)]
+    }
+    
     var body: some View {
         NavigationStack {
-            Form {
-                Section {
-                    TextField(.localized("Search query"), text: $searchQuery)
-                        .autocorrectionDisabled()
-                    
-                    Toggle(.localized("Search in file content"), isOn: $searchByContent)
-                    Toggle(.localized("Case sensitive"), isOn: $caseSensitive)
-                } header: {
-                    Text(.localized("Search"))
-                }
+            ZStack {
+                Color(UIColor.systemGroupedBackground)
+                    .ignoresSafeArea()
                 
-                Section {
-                    TextField(.localized("File extension (e.g., txt, json)"), text: $fileExtension)
-                        .autocorrectionDisabled()
-                    
-                    TextField(.localized("Min size (KB)"), text: $minSize)
-                        .keyboardType(.numberPad)
-                    
-                    TextField(.localized("Max size (KB)"), text: $maxSize)
-                        .keyboardType(.numberPad)
-                } header: {
-                    Text(.localized("Filters"))
-                }
-                
-                Section {
-                    Button {
-                        performSearch()
-                    } label: {
-                        HStack {
-                            if isSearching {
-                                ProgressView()
-                                    .scaleEffect(0.8)
-                            }
-                            Text(isSearching ? .localized("Searching...") : .localized("Search"))
+                ScrollView {
+                    VStack(spacing: 20) {
+                        searchHeaderSection
+                        searchInputCard
+                        filtersCard
+                        searchButton
+                        
+                        if !results.isEmpty {
+                            resultsSection
                         }
                     }
-                    .disabled(searchQuery.isEmpty || isSearching)
-                }
-                
-                if !results.isEmpty {
-                    Section {
-                        ForEach(results, id: \.absoluteString) { url in
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text(url.lastPathComponent)
-                                    .font(.subheadline)
-                                Text(url.deletingLastPathComponent().path)
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
-                            }
-                        }
-                    } header: {
-                        Text(.localized("Results (\(results.count))"))
-                    }
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 20)
                 }
             }
             .navigationTitle(.localized("Advanced Search"))
@@ -535,6 +504,332 @@ struct AdvancedFileSearchView: View {
                     Button(.localized("Done")) { dismiss() }
                 }
             }
+        }
+    }
+    
+    // MARK: - Header Section
+    private var searchHeaderSection: some View {
+        VStack(spacing: 12) {
+            ZStack {
+                Circle()
+                    .fill(
+                        RadialGradient(
+                            colors: [Color.blue.opacity(0.2), Color.clear],
+                            center: .center,
+                            startRadius: 20,
+                            endRadius: 50
+                        )
+                    )
+                    .frame(width: 100, height: 100)
+                
+                Circle()
+                    .fill(
+                        LinearGradient(
+                            colors: gradientColors,
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+                    .frame(width: 70, height: 70)
+                    .shadow(color: .blue.opacity(0.3), radius: 10, x: 0, y: 5)
+                
+                Image(systemName: "magnifyingglass")
+                    .font(.system(size: 28, weight: .semibold))
+                    .foregroundStyle(.white)
+            }
+            
+            Text(.localized("Find files with precision"))
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+        }
+        .padding(.bottom, 8)
+    }
+    
+    // MARK: - Search Input Card
+    private var searchInputCard: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            Label(.localized("Search Query"), systemImage: "text.magnifyingglass")
+                .font(.headline)
+                .foregroundStyle(.primary)
+            
+            HStack(spacing: 12) {
+                Image(systemName: "magnifyingglass")
+                    .foregroundStyle(.blue)
+                    .frame(width: 24)
+                
+                TextField(.localized("Enter search term..."), text: $searchQuery)
+                    .font(.body)
+                    .autocorrectionDisabled()
+                
+                if !searchQuery.isEmpty {
+                    Button {
+                        searchQuery = ""
+                    } label: {
+                        Image(systemName: "xmark.circle.fill")
+                            .foregroundStyle(.secondary)
+                    }
+                }
+            }
+            .padding()
+            .background(
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .fill(Color(UIColor.tertiarySystemBackground))
+            )
+            
+            VStack(spacing: 12) {
+                searchModernToggle(
+                    title: .localized("Search in file content"),
+                    icon: "doc.text.magnifyingglass",
+                    isOn: $searchByContent,
+                    color: .purple
+                )
+                
+                searchModernToggle(
+                    title: .localized("Case sensitive"),
+                    icon: "textformat.abc",
+                    isOn: $caseSensitive,
+                    color: .orange
+                )
+            }
+        }
+        .padding(20)
+        .background(
+            RoundedRectangle(cornerRadius: 20, style: .continuous)
+                .fill(Color(UIColor.secondarySystemGroupedBackground))
+                .shadow(color: .black.opacity(colorScheme == .dark ? 0.3 : 0.08), radius: 15, x: 0, y: 8)
+        )
+    }
+    
+    // MARK: - Filters Card
+    private var filtersCard: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            Label(.localized("Filters"), systemImage: "slider.horizontal.3")
+                .font(.headline)
+                .foregroundStyle(.primary)
+            
+            HStack(spacing: 12) {
+                ZStack {
+                    Circle()
+                        .fill(Color.green.opacity(0.15))
+                        .frame(width: 36, height: 36)
+                    Image(systemName: "doc.badge.gearshape")
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundStyle(.green)
+                }
+                
+                TextField(.localized("File extension (e.g., txt, json)"), text: $fileExtension)
+                    .font(.body)
+                    .autocorrectionDisabled()
+            }
+            .padding()
+            .background(
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .fill(Color(UIColor.tertiarySystemBackground))
+            )
+            
+            HStack(spacing: 12) {
+                HStack(spacing: 8) {
+                    ZStack {
+                        Circle()
+                            .fill(Color.cyan.opacity(0.15))
+                            .frame(width: 32, height: 32)
+                        Image(systemName: "arrow.down.to.line")
+                            .font(.system(size: 12, weight: .semibold))
+                            .foregroundStyle(.cyan)
+                    }
+                    
+                    TextField(.localized("Min KB"), text: $minSize)
+                        .font(.body)
+                        .keyboardType(.numberPad)
+                }
+                .padding(12)
+                .background(
+                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                        .fill(Color(UIColor.tertiarySystemBackground))
+                )
+                
+                HStack(spacing: 8) {
+                    ZStack {
+                        Circle()
+                            .fill(Color.pink.opacity(0.15))
+                            .frame(width: 32, height: 32)
+                        Image(systemName: "arrow.up.to.line")
+                            .font(.system(size: 12, weight: .semibold))
+                            .foregroundStyle(.pink)
+                    }
+                    
+                    TextField(.localized("Max KB"), text: $maxSize)
+                        .font(.body)
+                        .keyboardType(.numberPad)
+                }
+                .padding(12)
+                .background(
+                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                        .fill(Color(UIColor.tertiarySystemBackground))
+                )
+            }
+        }
+        .padding(20)
+        .background(
+            RoundedRectangle(cornerRadius: 20, style: .continuous)
+                .fill(Color(UIColor.secondarySystemGroupedBackground))
+                .shadow(color: .black.opacity(colorScheme == .dark ? 0.3 : 0.08), radius: 15, x: 0, y: 8)
+        )
+    }
+    
+    // MARK: - Search Button
+    private var searchButton: some View {
+        Button {
+            performSearch()
+        } label: {
+            HStack(spacing: 12) {
+                if isSearching {
+                    ProgressView()
+                        .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                        .scaleEffect(0.9)
+                } else {
+                    Image(systemName: "magnifyingglass")
+                        .font(.system(size: 18, weight: .semibold))
+                }
+                
+                Text(isSearching ? .localized("Searching...") : .localized("Search Files"))
+                    .font(.system(size: 17, weight: .bold))
+            }
+            .foregroundStyle(.white)
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 18)
+            .background(
+                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .fill(
+                        searchQuery.isEmpty
+                        ? AnyShapeStyle(Color.gray.opacity(0.5))
+                        : AnyShapeStyle(LinearGradient(colors: gradientColors, startPoint: .leading, endPoint: .trailing))
+                    )
+            )
+            .shadow(color: searchQuery.isEmpty ? .clear : .blue.opacity(0.3), radius: 10, x: 0, y: 5)
+        }
+        .disabled(searchQuery.isEmpty || isSearching)
+        .animation(.easeInOut(duration: 0.2), value: searchQuery.isEmpty)
+    }
+    
+    // MARK: - Results Section
+    private var resultsSection: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            HStack {
+                Label(.localized("Results"), systemImage: "doc.on.doc.fill")
+                    .font(.headline)
+                    .foregroundStyle(.primary)
+                
+                Spacer()
+                
+                Text("\(results.count)")
+                    .font(.system(size: 14, weight: .bold))
+                    .foregroundStyle(.white)
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 6)
+                    .background(
+                        Capsule()
+                            .fill(
+                                LinearGradient(colors: [.green, .green.opacity(0.8)], startPoint: .leading, endPoint: .trailing)
+                            )
+                    )
+            }
+            
+            VStack(spacing: 0) {
+                ForEach(results.prefix(50), id: \.absoluteString) { url in
+                    HStack(spacing: 12) {
+                        ZStack {
+                            RoundedRectangle(cornerRadius: 8, style: .continuous)
+                                .fill(Color.blue.opacity(0.1))
+                                .frame(width: 40, height: 40)
+                            
+                            Image(systemName: searchIconForFile(url))
+                                .font(.system(size: 16, weight: .medium))
+                                .foregroundStyle(.blue)
+                        }
+                        
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text(url.lastPathComponent)
+                                .font(.system(size: 15, weight: .medium))
+                                .foregroundStyle(.primary)
+                                .lineLimit(1)
+                            
+                            Text(url.deletingLastPathComponent().path)
+                                .font(.system(size: 12))
+                                .foregroundStyle(.secondary)
+                                .lineLimit(1)
+                        }
+                        
+                        Spacer()
+                        
+                        Image(systemName: "chevron.right")
+                            .font(.system(size: 12, weight: .semibold))
+                            .foregroundStyle(.tertiary)
+                    }
+                    .padding(12)
+                    
+                    if url != results.prefix(50).last {
+                        Divider()
+                            .padding(.leading, 64)
+                    }
+                }
+            }
+            .background(
+                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .fill(Color(UIColor.tertiarySystemBackground))
+            )
+            
+            if results.count > 50 {
+                Text(.localized("Showing first 50 of \(results.count) results"))
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .frame(maxWidth: .infinity, alignment: .center)
+            }
+        }
+        .padding(20)
+        .background(
+            RoundedRectangle(cornerRadius: 20, style: .continuous)
+                .fill(Color(UIColor.secondarySystemGroupedBackground))
+                .shadow(color: .black.opacity(colorScheme == .dark ? 0.3 : 0.08), radius: 15, x: 0, y: 8)
+        )
+    }
+    
+    // MARK: - Helper Views
+    private func searchModernToggle(title: String, icon: String, isOn: Binding<Bool>, color: Color) -> some View {
+        HStack(spacing: 12) {
+            ZStack {
+                Circle()
+                    .fill(color.opacity(0.15))
+                    .frame(width: 36, height: 36)
+                Image(systemName: icon)
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundStyle(color)
+            }
+            
+            Text(title)
+                .font(.body)
+            
+            Spacer()
+            
+            Toggle("", isOn: isOn)
+                .labelsHidden()
+                .tint(color)
+        }
+        .padding(.horizontal, 4)
+    }
+    
+    private func searchIconForFile(_ url: URL) -> String {
+        let ext = url.pathExtension.lowercased()
+        switch ext {
+        case "txt", "md", "rtf": return "doc.text.fill"
+        case "json", "xml", "plist": return "doc.badge.gearshape.fill"
+        case "swift", "js", "py", "html", "css": return "chevron.left.forwardslash.chevron.right"
+        case "png", "jpg", "jpeg", "gif", "heic": return "photo.fill"
+        case "mp3", "wav", "m4a": return "music.note"
+        case "mp4", "mov", "avi": return "film.fill"
+        case "zip", "rar", "7z": return "doc.zipper"
+        case "pdf": return "doc.richtext.fill"
+        default: return "doc.fill"
         }
     }
     
@@ -596,60 +891,33 @@ struct AdvancedFileSearchView: View {
 // MARK: - Disk Usage View
 struct DiskUsageView: View {
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.colorScheme) private var colorScheme
     @State private var isCalculating = true
     @State private var items: [(name: String, size: Int64, isDirectory: Bool)] = []
     @State private var totalSize: Int64 = 0
     let directory: URL
     
+    private var gradientColors: [Color] {
+        [Color.teal.opacity(0.8), Color.green.opacity(0.6)]
+    }
+    
     var body: some View {
         NavigationStack {
-            Group {
+            ZStack {
+                Color(UIColor.systemGroupedBackground)
+                    .ignoresSafeArea()
+                
                 if isCalculating {
-                    VStack(spacing: 16) {
-                        ProgressView()
-                        Text(.localized("Calculating disk usage..."))
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
-                    }
+                    loadingView
                 } else {
-                    List {
-                        Section {
-                            HStack {
-                                Text(.localized("Total Size"))
-                                    .font(.headline)
-                                Spacer()
-                                Text(ByteCountFormatter.string(fromByteCount: totalSize, countStyle: .file))
-                                    .font(.headline)
-                                    .foregroundStyle(.blue)
-                            }
+                    ScrollView {
+                        VStack(spacing: 20) {
+                            diskUsageHeaderSection
+                            totalSizeCard
+                            contentsSection
                         }
-                        
-                        Section {
-                            ForEach(items, id: \.name) { item in
-                                HStack {
-                                    Image(systemName: item.isDirectory ? "folder.fill" : "doc.fill")
-                                        .foregroundStyle(item.isDirectory ? .blue : .gray)
-                                    
-                                    Text(item.name)
-                                        .lineLimit(1)
-                                    
-                                    Spacer()
-                                    
-                                    VStack(alignment: .trailing, spacing: 2) {
-                                        Text(ByteCountFormatter.string(fromByteCount: item.size, countStyle: .file))
-                                            .font(.caption)
-                                        
-                                        if totalSize > 0 {
-                                            Text("\(Int(Double(item.size) / Double(totalSize) * 100))%")
-                                                .font(.caption2)
-                                                .foregroundStyle(.secondary)
-                                        }
-                                    }
-                                }
-                            }
-                        } header: {
-                            Text(.localized("Contents"))
-                        }
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 20)
                     }
                 }
             }
@@ -664,6 +932,235 @@ struct DiskUsageView: View {
                 calculateUsage()
             }
         }
+    }
+    
+    // MARK: - Loading View
+    private var loadingView: some View {
+        VStack(spacing: 20) {
+            ZStack {
+                Circle()
+                    .fill(
+                        RadialGradient(
+                            colors: [Color.teal.opacity(0.2), Color.clear],
+                            center: .center,
+                            startRadius: 20,
+                            endRadius: 60
+                        )
+                    )
+                    .frame(width: 120, height: 120)
+                
+                Circle()
+                    .fill(
+                        LinearGradient(
+                            colors: gradientColors,
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+                    .frame(width: 80, height: 80)
+                    .shadow(color: .teal.opacity(0.3), radius: 12, x: 0, y: 6)
+                
+                ProgressView()
+                    .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                    .scaleEffect(1.3)
+            }
+            
+            Text(.localized("Calculating disk usage..."))
+                .font(.headline)
+                .foregroundStyle(.primary)
+            
+            Text(.localized("Analyzing files and folders"))
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+        }
+    }
+    
+    // MARK: - Header Section
+    private var diskUsageHeaderSection: some View {
+        VStack(spacing: 12) {
+            ZStack {
+                Circle()
+                    .fill(
+                        RadialGradient(
+                            colors: [Color.teal.opacity(0.2), Color.clear],
+                            center: .center,
+                            startRadius: 20,
+                            endRadius: 50
+                        )
+                    )
+                    .frame(width: 100, height: 100)
+                
+                Circle()
+                    .fill(
+                        LinearGradient(
+                            colors: gradientColors,
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+                    .frame(width: 70, height: 70)
+                    .shadow(color: .teal.opacity(0.3), radius: 10, x: 0, y: 5)
+                
+                Image(systemName: "chart.pie.fill")
+                    .font(.system(size: 28, weight: .semibold))
+                    .foregroundStyle(.white)
+            }
+            
+            Text(.localized("Storage Analysis"))
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+        }
+        .padding(.bottom, 8)
+    }
+    
+    // MARK: - Total Size Card
+    private var totalSizeCard: some View {
+        VStack(spacing: 16) {
+            HStack {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(.localized("Total Size"))
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                    
+                    Text(ByteCountFormatter.string(fromByteCount: totalSize, countStyle: .file))
+                        .font(.system(size: 32, weight: .bold, design: .rounded))
+                        .foregroundStyle(
+                            LinearGradient(
+                                colors: gradientColors,
+                                startPoint: .leading,
+                                endPoint: .trailing
+                            )
+                        )
+                }
+                
+                Spacer()
+                
+                ZStack {
+                    Circle()
+                        .fill(
+                            LinearGradient(
+                                colors: [Color.teal.opacity(0.2), Color.green.opacity(0.1)],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                        )
+                        .frame(width: 60, height: 60)
+                    
+                    Image(systemName: "internaldrive.fill")
+                        .font(.system(size: 24, weight: .medium))
+                        .foregroundStyle(.teal)
+                }
+            }
+            
+            // Items count
+            HStack {
+                Label("\(items.count) items", systemImage: "doc.on.doc.fill")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                
+                Spacer()
+                
+                Text(directory.lastPathComponent)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
+            }
+        }
+        .padding(20)
+        .background(
+            RoundedRectangle(cornerRadius: 20, style: .continuous)
+                .fill(Color(UIColor.secondarySystemGroupedBackground))
+                .shadow(color: .black.opacity(colorScheme == .dark ? 0.3 : 0.08), radius: 15, x: 0, y: 8)
+        )
+    }
+    
+    // MARK: - Contents Section
+    private var contentsSection: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            Label(.localized("Contents"), systemImage: "folder.fill")
+                .font(.headline)
+                .foregroundStyle(.primary)
+            
+            VStack(spacing: 0) {
+                ForEach(items, id: \.name) { item in
+                    diskUsageItemRow(item: item)
+                    
+                    if item.name != items.last?.name {
+                        Divider()
+                            .padding(.leading, 64)
+                    }
+                }
+            }
+            .background(
+                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .fill(Color(UIColor.tertiarySystemBackground))
+            )
+        }
+        .padding(20)
+        .background(
+            RoundedRectangle(cornerRadius: 20, style: .continuous)
+                .fill(Color(UIColor.secondarySystemGroupedBackground))
+                .shadow(color: .black.opacity(colorScheme == .dark ? 0.3 : 0.08), radius: 15, x: 0, y: 8)
+        )
+    }
+    
+    // MARK: - Item Row
+    private func diskUsageItemRow(item: (name: String, size: Int64, isDirectory: Bool)) -> some View {
+        HStack(spacing: 12) {
+            ZStack {
+                RoundedRectangle(cornerRadius: 10, style: .continuous)
+                    .fill(item.isDirectory ? Color.blue.opacity(0.1) : Color.gray.opacity(0.1))
+                    .frame(width: 44, height: 44)
+                
+                Image(systemName: item.isDirectory ? "folder.fill" : "doc.fill")
+                    .font(.system(size: 18, weight: .medium))
+                    .foregroundStyle(item.isDirectory ? .blue : .gray)
+            }
+            
+            VStack(alignment: .leading, spacing: 4) {
+                Text(item.name)
+                    .font(.system(size: 15, weight: .medium))
+                    .foregroundStyle(.primary)
+                    .lineLimit(1)
+                
+                Text(ByteCountFormatter.string(fromByteCount: item.size, countStyle: .file))
+                    .font(.system(size: 13))
+                    .foregroundStyle(.secondary)
+            }
+            
+            Spacer()
+            
+            // Progress bar and percentage
+            VStack(alignment: .trailing, spacing: 6) {
+                let percentage = totalSize > 0 ? Double(item.size) / Double(totalSize) : 0
+                
+                Text("\(Int(percentage * 100))%")
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundStyle(percentage > 0.5 ? .orange : percentage > 0.25 ? .yellow : .green)
+                
+                GeometryReader { geometry in
+                    ZStack(alignment: .leading) {
+                        RoundedRectangle(cornerRadius: 3)
+                            .fill(Color.gray.opacity(0.2))
+                            .frame(height: 6)
+                        
+                        RoundedRectangle(cornerRadius: 3)
+                            .fill(
+                                LinearGradient(
+                                    colors: percentage > 0.5 ? [.orange, .red.opacity(0.8)] :
+                                            percentage > 0.25 ? [.yellow, .orange.opacity(0.8)] :
+                                            [.green, .teal.opacity(0.8)],
+                                    startPoint: .leading,
+                                    endPoint: .trailing
+                                )
+                            )
+                            .frame(width: geometry.size.width * CGFloat(percentage), height: 6)
+                    }
+                }
+                .frame(width: 60, height: 6)
+            }
+        }
+        .padding(12)
     }
     
     private func calculateUsage() {
@@ -831,64 +1328,55 @@ struct FileHashRow: View {
 // MARK: - Base64 Tool View
 struct Base64ToolView: View {
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.colorScheme) private var colorScheme
     @State private var inputText = ""
     @State private var outputText = ""
-    @State private var mode: Mode = .encode
+    @State private var mode: Base64Mode = .encode
+    @State private var showCopiedFeedback = false
+    @State private var isConverting = false
     
-    enum Mode: String, CaseIterable {
+    enum Base64Mode: String, CaseIterable {
         case encode = "Encode"
         case decode = "Decode"
+        
+        var icon: String {
+            switch self {
+            case .encode: return "lock.fill"
+            case .decode: return "lock.open.fill"
+            }
+        }
+        
+        var color: Color {
+            switch self {
+            case .encode: return .indigo
+            case .decode: return .cyan
+            }
+        }
+    }
+    
+    private var gradientColors: [Color] {
+        mode == .encode ? [Color.indigo.opacity(0.8), Color.purple.opacity(0.6)] : [Color.cyan.opacity(0.8), Color.blue.opacity(0.6)]
     }
     
     var body: some View {
         NavigationStack {
-            Form {
-                Section {
-                    Picker(.localized("Mode"), selection: $mode) {
-                        ForEach(Mode.allCases, id: \.self) { mode in
-                            Text(mode.rawValue).tag(mode)
+            ZStack {
+                Color(UIColor.systemGroupedBackground)
+                    .ignoresSafeArea()
+                
+                ScrollView {
+                    VStack(spacing: 20) {
+                        base64HeaderSection
+                        modeSelector
+                        inputCard
+                        convertButton
+                        
+                        if !outputText.isEmpty {
+                            outputCard
                         }
                     }
-                    .pickerStyle(.segmented)
-                }
-                
-                Section {
-                    TextEditor(text: $inputText)
-                        .font(.system(.body, design: .monospaced))
-                        .frame(minHeight: 100)
-                } header: {
-                    Text(.localized("Input"))
-                }
-                
-                Section {
-                    Button {
-                        convert()
-                    } label: {
-                        HStack {
-                            Spacer()
-                            Text(mode == .encode ? .localized("Encode") : .localized("Decode"))
-                            Spacer()
-                        }
-                    }
-                }
-                
-                if !outputText.isEmpty {
-                    Section {
-                        Text(outputText)
-                            .font(.system(.body, design: .monospaced))
-                            .textSelection(.enabled)
-                    } header: {
-                        HStack {
-                            Text(.localized("Output"))
-                            Spacer()
-                            Button {
-                                UIPasteboard.general.string = outputText
-                                HapticsManager.shared.success()
-                            } label: {
-                                Image(systemName: "doc.on.doc")
-                            }
-                        }
-                    }
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 20)
                 }
             }
             .navigationTitle(.localized("Base64 Tool"))
@@ -899,6 +1387,283 @@ struct Base64ToolView: View {
                 }
             }
         }
+    }
+    
+    // MARK: - Header Section
+    private var base64HeaderSection: some View {
+        VStack(spacing: 12) {
+            ZStack {
+                Circle()
+                    .fill(
+                        RadialGradient(
+                            colors: [mode.color.opacity(0.2), Color.clear],
+                            center: .center,
+                            startRadius: 20,
+                            endRadius: 50
+                        )
+                    )
+                    .frame(width: 100, height: 100)
+                
+                Circle()
+                    .fill(
+                        LinearGradient(
+                            colors: gradientColors,
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+                    .frame(width: 70, height: 70)
+                    .shadow(color: mode.color.opacity(0.3), radius: 10, x: 0, y: 5)
+                
+                Image(systemName: mode.icon)
+                    .font(.system(size: 28, weight: .semibold))
+                    .foregroundStyle(.white)
+            }
+            .animation(.spring(response: 0.4, dampingFraction: 0.7), value: mode)
+            
+            Text(mode == .encode ? .localized("Encode text to Base64") : .localized("Decode Base64 to text"))
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+                .animation(.easeInOut, value: mode)
+        }
+        .padding(.bottom, 8)
+    }
+    
+    // MARK: - Mode Selector
+    private var modeSelector: some View {
+        HStack(spacing: 12) {
+            ForEach(Base64Mode.allCases, id: \.self) { modeOption in
+                Button {
+                    withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                        mode = modeOption
+                        outputText = ""
+                        HapticsManager.shared.softImpact()
+                    }
+                } label: {
+                    HStack(spacing: 8) {
+                        Image(systemName: modeOption.icon)
+                            .font(.system(size: 14, weight: .semibold))
+                        Text(modeOption.rawValue)
+                            .font(.system(size: 15, weight: .semibold))
+                    }
+                    .foregroundStyle(mode == modeOption ? .white : .primary)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 14)
+                    .background(
+                        RoundedRectangle(cornerRadius: 14, style: .continuous)
+                            .fill(
+                                mode == modeOption
+                                ? AnyShapeStyle(LinearGradient(colors: [modeOption.color, modeOption.color.opacity(0.8)], startPoint: .leading, endPoint: .trailing))
+                                : AnyShapeStyle(Color(UIColor.tertiarySystemBackground))
+                            )
+                    )
+                    .shadow(color: mode == modeOption ? modeOption.color.opacity(0.3) : .clear, radius: 8, x: 0, y: 4)
+                }
+                .buttonStyle(.plain)
+            }
+        }
+        .padding(20)
+        .background(
+            RoundedRectangle(cornerRadius: 20, style: .continuous)
+                .fill(Color(UIColor.secondarySystemGroupedBackground))
+                .shadow(color: .black.opacity(colorScheme == .dark ? 0.3 : 0.08), radius: 15, x: 0, y: 8)
+        )
+    }
+    
+    // MARK: - Input Card
+    private var inputCard: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            HStack {
+                Label(.localized("Input"), systemImage: "text.alignleft")
+                    .font(.headline)
+                    .foregroundStyle(.primary)
+                
+                Spacer()
+                
+                if !inputText.isEmpty {
+                    Button {
+                        inputText = ""
+                        outputText = ""
+                    } label: {
+                        Image(systemName: "xmark.circle.fill")
+                            .foregroundStyle(.secondary)
+                    }
+                }
+                
+                Button {
+                    if let clipboard = UIPasteboard.general.string {
+                        inputText = clipboard
+                        HapticsManager.shared.softImpact()
+                    }
+                } label: {
+                    Image(systemName: "doc.on.clipboard")
+                        .foregroundStyle(mode.color)
+                }
+            }
+            
+            TextEditor(text: $inputText)
+                .font(.system(.body, design: .monospaced))
+                .frame(minHeight: 120)
+                .padding(12)
+                .background(
+                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                        .fill(Color(UIColor.tertiarySystemBackground))
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                        .stroke(mode.color.opacity(0.2), lineWidth: 1)
+                )
+            
+            // Character count
+            HStack {
+                Text("\(inputText.count) characters")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                
+                Spacer()
+                
+                if mode == .decode {
+                    let isValid = Data(base64Encoded: inputText) != nil
+                    HStack(spacing: 4) {
+                        Image(systemName: isValid || inputText.isEmpty ? "checkmark.circle.fill" : "xmark.circle.fill")
+                        Text(inputText.isEmpty ? "Enter Base64" : (isValid ? "Valid Base64" : "Invalid Base64"))
+                    }
+                    .font(.caption)
+                    .foregroundStyle(inputText.isEmpty ? .secondary : (isValid ? .green : .red))
+                }
+            }
+        }
+        .padding(20)
+        .background(
+            RoundedRectangle(cornerRadius: 20, style: .continuous)
+                .fill(Color(UIColor.secondarySystemGroupedBackground))
+                .shadow(color: .black.opacity(colorScheme == .dark ? 0.3 : 0.08), radius: 15, x: 0, y: 8)
+        )
+    }
+    
+    // MARK: - Convert Button
+    private var convertButton: some View {
+        Button {
+            withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                isConverting = true
+            }
+            
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                convert()
+                withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                    isConverting = false
+                }
+            }
+        } label: {
+            HStack(spacing: 12) {
+                if isConverting {
+                    ProgressView()
+                        .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                        .scaleEffect(0.9)
+                } else {
+                    Image(systemName: mode == .encode ? "arrow.right.circle.fill" : "arrow.left.circle.fill")
+                        .font(.system(size: 18, weight: .semibold))
+                }
+                
+                Text(mode == .encode ? .localized("Encode to Base64") : .localized("Decode from Base64"))
+                    .font(.system(size: 17, weight: .bold))
+            }
+            .foregroundStyle(.white)
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 18)
+            .background(
+                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .fill(
+                        inputText.isEmpty
+                        ? AnyShapeStyle(Color.gray.opacity(0.5))
+                        : AnyShapeStyle(LinearGradient(colors: gradientColors, startPoint: .leading, endPoint: .trailing))
+                    )
+            )
+            .shadow(color: inputText.isEmpty ? .clear : mode.color.opacity(0.3), radius: 10, x: 0, y: 5)
+        }
+        .disabled(inputText.isEmpty || isConverting)
+        .animation(.easeInOut(duration: 0.2), value: inputText.isEmpty)
+    }
+    
+    // MARK: - Output Card
+    private var outputCard: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            HStack {
+                Label(.localized("Output"), systemImage: "text.badge.checkmark")
+                    .font(.headline)
+                    .foregroundStyle(.primary)
+                
+                Spacer()
+                
+                Button {
+                    UIPasteboard.general.string = outputText
+                    HapticsManager.shared.success()
+                    withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                        showCopiedFeedback = true
+                    }
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                        withAnimation {
+                            showCopiedFeedback = false
+                        }
+                    }
+                } label: {
+                    HStack(spacing: 6) {
+                        Image(systemName: showCopiedFeedback ? "checkmark.circle.fill" : "doc.on.doc")
+                        if showCopiedFeedback {
+                            Text(.localized("Copied!"))
+                                .font(.caption)
+                        }
+                    }
+                    .foregroundStyle(showCopiedFeedback ? .green : mode.color)
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 6)
+                    .background(
+                        Capsule()
+                            .fill(showCopiedFeedback ? Color.green.opacity(0.15) : mode.color.opacity(0.15))
+                    )
+                }
+            }
+            
+            Text(outputText)
+                .font(.system(.body, design: .monospaced))
+                .textSelection(.enabled)
+                .padding(12)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(
+                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                        .fill(Color(UIColor.tertiarySystemBackground))
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                        .stroke(Color.green.opacity(0.3), lineWidth: 1)
+                )
+            
+            // Output info
+            HStack {
+                Text("\(outputText.count) characters")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                
+                Spacer()
+                
+                if mode == .encode {
+                    let ratio = inputText.isEmpty ? 0 : Double(outputText.count) / Double(inputText.count)
+                    Text(String(format: "%.1fx size", ratio))
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+            }
+        }
+        .padding(20)
+        .background(
+            RoundedRectangle(cornerRadius: 20, style: .continuous)
+                .fill(Color(UIColor.secondarySystemGroupedBackground))
+                .shadow(color: .black.opacity(colorScheme == .dark ? 0.3 : 0.08), radius: 15, x: 0, y: 8)
+        )
+        .transition(.asymmetric(
+            insertion: .scale(scale: 0.95).combined(with: .opacity),
+            removal: .opacity
+        ))
     }
     
     private func convert() {
@@ -914,6 +1679,7 @@ struct Base64ToolView: View {
                 outputText = .localized("Invalid Base64 input")
             }
         }
+        HapticsManager.shared.success()
     }
 }
 

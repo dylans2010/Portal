@@ -62,6 +62,8 @@ struct SourcesAddView: View {
 	// Export mode states
 	@State private var _isExportMode = false
 	@State private var _selectedSourcesForExport: Set<String> = []
+	@State private var _showPortalExport = false
+	@State private var _portalExportData = ""
 	
 	// MARK: Body
 	var body: some View {
@@ -76,6 +78,9 @@ struct SourcesAddView: View {
 			.animation(.default, value: _filteredRecommendedSourcesData.map { $0.data.id ?? "" })
 			.task {
 				await _fetchRecommendedRepositories()
+			}
+			.sheet(isPresented: $_showPortalExport) {
+				PortalExportView(exportData: $_portalExportData)
 			}
 		}
 	}
@@ -543,6 +548,33 @@ struct SourcesAddView: View {
 			}
 			.padding(.horizontal)
 			
+			// Export through Portal button
+			Button {
+				_exportThroughPortal()
+			} label: {
+				HStack(spacing: 10) {
+					Image(systemName: "arrow.up.doc.fill")
+						.font(.system(size: 16, weight: .semibold))
+					Text(.localized("Export through Portal"))
+						.font(.subheadline.bold())
+				}
+				.foregroundStyle(.white)
+				.frame(maxWidth: .infinity)
+				.padding(.vertical, 14)
+				.background(
+					LinearGradient(
+						colors: [Color.purple, Color.indigo.opacity(0.8)],
+						startPoint: .leading,
+						endPoint: .trailing
+					)
+				)
+				.clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+				.shadow(color: Color.purple.opacity(0.3), radius: 8, x: 0, y: 4)
+			}
+			.disabled(_selectedSourcesForExport.isEmpty)
+			.opacity(_selectedSourcesForExport.isEmpty ? 0.6 : 1)
+			.padding(.horizontal)
+			
 			// Sources list with checkmarks
 			VStack(spacing: 0) {
 				ForEach(sources, id: \.sourceURL?.absoluteString) { source in
@@ -586,6 +618,16 @@ struct SourcesAddView: View {
 			.clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
 		}
 		.padding(.horizontal)
+	}
+	
+	// MARK: - Export through Portal
+	private func _exportThroughPortal() {
+		let selectedUrls = Array(_selectedSourcesForExport)
+		let exportData = PortalSourceExport.encode(urls: selectedUrls)
+		_portalExportData = exportData
+		_showPortalExport = true
+		
+		Logger.misc.info("[Portal Export] Encoded \(selectedUrls.count) sources to Base64")
 	}
 	
 	private func _fetchRecommendedRepositories() async {
@@ -678,4 +720,447 @@ struct SourcesAddView: View {
 		return results
 	}
 
+}
+
+// MARK: - Portal Source Export Utility
+struct PortalSourceExport {
+	/// Portal export format version for compatibility
+	static let formatVersion = "1.0"
+	
+	/// Encodes source URLs to a Portal-compatible Base64 string
+	/// Format: PORTAL:v1.0:<base64_encoded_json>
+	static func encode(urls: [String]) -> String {
+		let exportData = PortalExportData(
+			version: formatVersion,
+			timestamp: Date().timeIntervalSince1970,
+			sources: urls
+		)
+		
+		guard let jsonData = try? JSONEncoder().encode(exportData),
+			  let jsonString = String(data: jsonData, encoding: .utf8) else {
+			Logger.misc.error("[Portal Export] Failed to encode sources to JSON")
+			return ""
+		}
+		
+		let base64 = Data(jsonString.utf8).base64EncodedString()
+		let portalString = "PORTAL:v\(formatVersion):\(base64)"
+		
+		Logger.misc.info("[Portal Export] Successfully encoded \(urls.count) sources")
+		Logger.misc.debug("[Portal Export] Format: PORTAL:v\(formatVersion):<base64>")
+		
+		return portalString
+	}
+	
+	/// Decodes a Portal-compatible Base64 string to source URLs
+	static func decode(_ portalString: String) -> [String]? {
+		Logger.misc.info("[Portal Import] Attempting to decode Portal string")
+		
+		// Check for Portal format prefix
+		guard portalString.hasPrefix("PORTAL:") else {
+			Logger.misc.warning("[Portal Import] Invalid format: missing PORTAL prefix")
+			return nil
+		}
+		
+		let components = portalString.split(separator: ":", maxSplits: 2)
+		guard components.count == 3 else {
+			Logger.misc.warning("[Portal Import] Invalid format: expected 3 components, got \(components.count)")
+			return nil
+		}
+		
+		let versionString = String(components[1])
+		let base64String = String(components[2])
+		
+		Logger.misc.debug("[Portal Import] Version: \(versionString)")
+		
+		guard let data = Data(base64Encoded: base64String),
+			  let jsonString = String(data: data, encoding: .utf8),
+			  let jsonData = jsonString.data(using: .utf8),
+			  let exportData = try? JSONDecoder().decode(PortalExportData.self, from: jsonData) else {
+			Logger.misc.error("[Portal Import] Failed to decode Base64 or parse JSON")
+			return nil
+		}
+		
+		Logger.misc.info("[Portal Import] Successfully decoded \(exportData.sources.count) sources")
+		Logger.misc.debug("[Portal Import] Export timestamp: \(Date(timeIntervalSince1970: exportData.timestamp))")
+		
+		return exportData.sources
+	}
+}
+
+/// Data structure for Portal export format
+struct PortalExportData: Codable {
+	let version: String
+	let timestamp: TimeInterval
+	let sources: [String]
+}
+
+// MARK: - Portal Export View
+struct PortalExportView: View {
+	@Environment(\.dismiss) private var dismiss
+	@Environment(\.colorScheme) private var colorScheme
+	@Binding var exportData: String
+	@State private var showCopiedFeedback = false
+	@State private var importText = ""
+	@State private var isImportMode = false
+	@State private var importResult: ImportResult?
+	
+	enum ImportResult {
+		case success(count: Int)
+		case error(message: String)
+	}
+	
+	private var gradientColors: [Color] {
+		[Color.purple.opacity(0.8), Color.indigo.opacity(0.6)]
+	}
+	
+	var body: some View {
+		NavigationStack {
+			ZStack {
+				Color(UIColor.systemGroupedBackground)
+					.ignoresSafeArea()
+				
+				ScrollView {
+					VStack(spacing: 20) {
+						headerSection
+						modeSelector
+						
+						if isImportMode {
+							importSection
+						} else {
+							exportSection
+						}
+					}
+					.padding(.horizontal, 16)
+					.padding(.vertical, 20)
+				}
+			}
+			.navigationTitle(.localized("Portal Export"))
+			.navigationBarTitleDisplayMode(.inline)
+			.toolbar {
+				ToolbarItem(placement: .cancellationAction) {
+					Button(.localized("Done")) { dismiss() }
+				}
+			}
+		}
+	}
+	
+	// MARK: - Header Section
+	private var headerSection: some View {
+		VStack(spacing: 12) {
+			ZStack {
+				Circle()
+					.fill(
+						RadialGradient(
+							colors: [Color.purple.opacity(0.2), Color.clear],
+							center: .center,
+							startRadius: 20,
+							endRadius: 50
+						)
+					)
+					.frame(width: 100, height: 100)
+				
+				Circle()
+					.fill(
+						LinearGradient(
+							colors: gradientColors,
+							startPoint: .topLeading,
+							endPoint: .bottomTrailing
+						)
+					)
+					.frame(width: 70, height: 70)
+					.shadow(color: .purple.opacity(0.3), radius: 10, x: 0, y: 5)
+				
+				Image(systemName: isImportMode ? "arrow.down.doc.fill" : "arrow.up.doc.fill")
+					.font(.system(size: 28, weight: .semibold))
+					.foregroundStyle(.white)
+			}
+			
+			Text(isImportMode ? .localized("Import sources using Base64") : .localized("Export sources using Base64"))
+				.font(.subheadline)
+				.foregroundStyle(.secondary)
+		}
+		.padding(.bottom, 8)
+	}
+	
+	// MARK: - Mode Selector
+	private var modeSelector: some View {
+		HStack(spacing: 12) {
+			Button {
+				withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+					isImportMode = false
+					importResult = nil
+				}
+			} label: {
+				HStack(spacing: 8) {
+					Image(systemName: "arrow.up.doc.fill")
+						.font(.system(size: 14, weight: .semibold))
+					Text(.localized("Export"))
+						.font(.system(size: 15, weight: .semibold))
+				}
+				.foregroundStyle(!isImportMode ? .white : .primary)
+				.frame(maxWidth: .infinity)
+				.padding(.vertical, 14)
+				.background(
+					RoundedRectangle(cornerRadius: 14, style: .continuous)
+						.fill(
+							!isImportMode
+							? AnyShapeStyle(LinearGradient(colors: gradientColors, startPoint: .leading, endPoint: .trailing))
+							: AnyShapeStyle(Color(UIColor.tertiarySystemBackground))
+						)
+				)
+				.shadow(color: !isImportMode ? Color.purple.opacity(0.3) : .clear, radius: 8, x: 0, y: 4)
+			}
+			.buttonStyle(.plain)
+			
+			Button {
+				withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+					isImportMode = true
+					importResult = nil
+				}
+			} label: {
+				HStack(spacing: 8) {
+					Image(systemName: "arrow.down.doc.fill")
+						.font(.system(size: 14, weight: .semibold))
+					Text(.localized("Import"))
+						.font(.system(size: 15, weight: .semibold))
+				}
+				.foregroundStyle(isImportMode ? .white : .primary)
+				.frame(maxWidth: .infinity)
+				.padding(.vertical, 14)
+				.background(
+					RoundedRectangle(cornerRadius: 14, style: .continuous)
+						.fill(
+							isImportMode
+							? AnyShapeStyle(LinearGradient(colors: [.cyan, .blue.opacity(0.8)], startPoint: .leading, endPoint: .trailing))
+							: AnyShapeStyle(Color(UIColor.tertiarySystemBackground))
+						)
+				)
+				.shadow(color: isImportMode ? Color.cyan.opacity(0.3) : .clear, radius: 8, x: 0, y: 4)
+			}
+			.buttonStyle(.plain)
+		}
+		.padding(20)
+		.background(
+			RoundedRectangle(cornerRadius: 20, style: .continuous)
+				.fill(Color(UIColor.secondarySystemGroupedBackground))
+				.shadow(color: .black.opacity(colorScheme == .dark ? 0.3 : 0.08), radius: 15, x: 0, y: 8)
+		)
+	}
+	
+	// MARK: - Export Section
+	private var exportSection: some View {
+		VStack(alignment: .leading, spacing: 16) {
+			HStack {
+				Label(.localized("Encoded Data"), systemImage: "lock.fill")
+					.font(.headline)
+					.foregroundStyle(.primary)
+				
+				Spacer()
+				
+				Button {
+					UIPasteboard.general.string = exportData
+					HapticsManager.shared.success()
+					withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+						showCopiedFeedback = true
+					}
+					DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+						withAnimation {
+							showCopiedFeedback = false
+						}
+					}
+				} label: {
+					HStack(spacing: 6) {
+						Image(systemName: showCopiedFeedback ? "checkmark.circle.fill" : "doc.on.doc")
+						if showCopiedFeedback {
+							Text(.localized("Copied!"))
+								.font(.caption)
+						}
+					}
+					.foregroundStyle(showCopiedFeedback ? .green : .purple)
+					.padding(.horizontal, 12)
+					.padding(.vertical, 6)
+					.background(
+						Capsule()
+							.fill(showCopiedFeedback ? Color.green.opacity(0.15) : Color.purple.opacity(0.15))
+					)
+				}
+			}
+			
+			Text(exportData)
+				.font(.system(.caption, design: .monospaced))
+				.textSelection(.enabled)
+				.padding(12)
+				.frame(maxWidth: .infinity, alignment: .leading)
+				.background(
+					RoundedRectangle(cornerRadius: 12, style: .continuous)
+						.fill(Color(UIColor.tertiarySystemBackground))
+				)
+				.overlay(
+					RoundedRectangle(cornerRadius: 12, style: .continuous)
+						.stroke(Color.purple.opacity(0.3), lineWidth: 1)
+				)
+			
+			// Info section
+			VStack(alignment: .leading, spacing: 8) {
+				Label(.localized("How to use"), systemImage: "info.circle.fill")
+					.font(.subheadline.bold())
+					.foregroundStyle(.purple)
+				
+				Text(.localized("1. Copy the encoded data above"))
+					.font(.caption)
+					.foregroundStyle(.secondary)
+				Text(.localized("2. Share it with others or save it"))
+					.font(.caption)
+					.foregroundStyle(.secondary)
+				Text(.localized("3. They can import using the Import tab"))
+					.font(.caption)
+					.foregroundStyle(.secondary)
+			}
+			.padding(12)
+			.background(
+				RoundedRectangle(cornerRadius: 10, style: .continuous)
+					.fill(Color.purple.opacity(0.08))
+			)
+		}
+		.padding(20)
+		.background(
+			RoundedRectangle(cornerRadius: 20, style: .continuous)
+				.fill(Color(UIColor.secondarySystemGroupedBackground))
+				.shadow(color: .black.opacity(colorScheme == .dark ? 0.3 : 0.08), radius: 15, x: 0, y: 8)
+		)
+	}
+	
+	// MARK: - Import Section
+	private var importSection: some View {
+		VStack(alignment: .leading, spacing: 16) {
+			HStack {
+				Label(.localized("Paste Portal Data"), systemImage: "doc.on.clipboard")
+					.font(.headline)
+					.foregroundStyle(.primary)
+				
+				Spacer()
+				
+				Button {
+					if let clipboard = UIPasteboard.general.string {
+						importText = clipboard
+						HapticsManager.shared.softImpact()
+					}
+				} label: {
+					Image(systemName: "doc.on.clipboard")
+						.foregroundStyle(.cyan)
+				}
+			}
+			
+			TextEditor(text: $importText)
+				.font(.system(.caption, design: .monospaced))
+				.frame(minHeight: 100)
+				.padding(12)
+				.background(
+					RoundedRectangle(cornerRadius: 12, style: .continuous)
+						.fill(Color(UIColor.tertiarySystemBackground))
+				)
+				.overlay(
+					RoundedRectangle(cornerRadius: 12, style: .continuous)
+						.stroke(Color.cyan.opacity(0.2), lineWidth: 1)
+				)
+			
+			// Import button
+			Button {
+				performImport()
+			} label: {
+				HStack(spacing: 12) {
+					Image(systemName: "arrow.down.circle.fill")
+						.font(.system(size: 18, weight: .semibold))
+					Text(.localized("Import Sources"))
+						.font(.system(size: 17, weight: .bold))
+				}
+				.foregroundStyle(.white)
+				.frame(maxWidth: .infinity)
+				.padding(.vertical, 18)
+				.background(
+					RoundedRectangle(cornerRadius: 16, style: .continuous)
+						.fill(
+							importText.isEmpty
+							? AnyShapeStyle(Color.gray.opacity(0.5))
+							: AnyShapeStyle(LinearGradient(colors: [.cyan, .blue.opacity(0.8)], startPoint: .leading, endPoint: .trailing))
+						)
+				)
+				.shadow(color: importText.isEmpty ? .clear : .cyan.opacity(0.3), radius: 10, x: 0, y: 5)
+			}
+			.disabled(importText.isEmpty)
+			
+			// Import result
+			if let result = importResult {
+				switch result {
+				case .success(let count):
+					HStack(spacing: 8) {
+						Image(systemName: "checkmark.circle.fill")
+							.foregroundStyle(.green)
+						Text(.localized("Successfully imported \(count) sources"))
+							.font(.subheadline)
+							.foregroundStyle(.green)
+					}
+					.padding(12)
+					.frame(maxWidth: .infinity)
+					.background(
+						RoundedRectangle(cornerRadius: 10, style: .continuous)
+							.fill(Color.green.opacity(0.1))
+					)
+					
+				case .error(let message):
+					HStack(spacing: 8) {
+						Image(systemName: "xmark.circle.fill")
+							.foregroundStyle(.red)
+						Text(message)
+							.font(.subheadline)
+							.foregroundStyle(.red)
+					}
+					.padding(12)
+					.frame(maxWidth: .infinity)
+					.background(
+						RoundedRectangle(cornerRadius: 10, style: .continuous)
+							.fill(Color.red.opacity(0.1))
+					)
+				}
+			}
+		}
+		.padding(20)
+		.background(
+			RoundedRectangle(cornerRadius: 20, style: .continuous)
+				.fill(Color(UIColor.secondarySystemGroupedBackground))
+				.shadow(color: .black.opacity(colorScheme == .dark ? 0.3 : 0.08), radius: 15, x: 0, y: 8)
+		)
+	}
+	
+	private func performImport() {
+		Logger.misc.info("[Portal Import] Starting import process")
+		
+		guard let urls = PortalSourceExport.decode(importText) else {
+			Logger.misc.error("[Portal Import] Failed to decode Portal data")
+			withAnimation {
+				importResult = .error(message: .localized("Invalid Portal data format"))
+			}
+			return
+		}
+		
+		Logger.misc.info("[Portal Import] Decoded \(urls.count) URLs, adding to sources")
+		
+		var addedCount = 0
+		for urlString in urls {
+			if !Storage.shared.sourceExists(urlString) {
+				Storage.shared.addSource(url: urlString)
+				addedCount += 1
+				Logger.misc.debug("[Portal Import] Added source: \(urlString)")
+			} else {
+				Logger.misc.debug("[Portal Import] Skipped existing source: \(urlString)")
+			}
+		}
+		
+		Logger.misc.info("[Portal Import] Import complete. Added \(addedCount) new sources")
+		
+		withAnimation {
+			importResult = .success(count: addedCount)
+		}
+		HapticsManager.shared.success()
+	}
 }

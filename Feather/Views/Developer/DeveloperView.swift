@@ -3181,6 +3181,7 @@ struct AppStateView: View {
 struct FeatureFlagsView: View {
     @AppStorage("feature_enhancedAnimations") var enhancedAnimations = false
     @AppStorage("feature_advancedSigning") var advancedSigning = false
+    @AppStorage("feature_usePortalCert") var usePortalCert = false
     
     var body: some View {
         List {
@@ -3194,6 +3195,14 @@ struct FeatureFlagsView: View {
                 Toggle("Advanced Signing Options", isOn: $advancedSigning)
             } header: {
                 Text("Signing")
+            }
+            
+            Section {
+                Toggle("Use .portalcert for certificates", isOn: $usePortalCert)
+            } header: {
+                Text("Certificates")
+            } footer: {
+                Text("When enabled, allows exporting and importing certificates as a single .portalcert file that bundles the P12 and provisioning profile together.")
             }
         }
         .navigationTitle("Feature Flags")
