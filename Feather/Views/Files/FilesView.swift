@@ -10,6 +10,8 @@ struct FilesView: View {
     @State private var showCreateFolder = false
     @State private var showCreateTextFile = false
     @State private var showCreatePlist = false
+    @State private var showCreateJSONFile = false
+    @State private var showCreateXMLFile = false
     @State private var showDocumentPicker = false
     @State private var showZipSheet = false
     @State private var showUnzipSheet = false
@@ -44,6 +46,15 @@ struct FilesView: View {
     @State private var quickInspectFile: FileItem?
     @State private var dismissedCertificateBanner = false
     @State private var showDownloadsPortal = false
+    // New tool states
+    @State private var showURLImport = false
+    @State private var showClipboardImport = false
+    @State private var showTerminal = false
+    @State private var showFileSearch = false
+    @State private var showDiskUsage = false
+    @State private var showFileHasher = false
+    @State private var showBase64Tool = false
+    @State private var showSymlinkCreator = false
     
     // Constants for Open in Signer
     private let importPollingIntervalSeconds: Double = 0.5
@@ -356,6 +367,37 @@ struct FilesView: View {
             }
             .sheet(isPresented: $showDownloadsPortal) {
                 DownloadsPortalView()
+            }
+            // New tool sheets
+            .sheet(isPresented: $showCreateJSONFile) {
+                CreateJSONFileView(directoryURL: fileManager.currentDirectory)
+            }
+            .sheet(isPresented: $showCreateXMLFile) {
+                CreateXMLFileView(directoryURL: fileManager.currentDirectory)
+            }
+            .sheet(isPresented: $showURLImport) {
+                URLImportView(directoryURL: fileManager.currentDirectory)
+            }
+            .sheet(isPresented: $showClipboardImport) {
+                ClipboardImportView(directoryURL: fileManager.currentDirectory)
+            }
+            .sheet(isPresented: $showTerminal) {
+                FileTerminalView(currentDirectory: fileManager.currentDirectory)
+            }
+            .sheet(isPresented: $showFileSearch) {
+                AdvancedFileSearchView(baseDirectory: fileManager.baseDirectory)
+            }
+            .sheet(isPresented: $showDiskUsage) {
+                DiskUsageView(directory: fileManager.currentDirectory)
+            }
+            .sheet(isPresented: $showFileHasher) {
+                FileHasherView()
+            }
+            .sheet(isPresented: $showBase64Tool) {
+                Base64ToolView()
+            }
+            .sheet(isPresented: $showSymlinkCreator) {
+                SymlinkCreatorView(directoryURL: fileManager.currentDirectory)
             }
             .alert(.localized("Rename File"), isPresented: $showRenameAlert) {
                 TextField(.localized("New Name"), text: $renameText)
@@ -725,41 +767,75 @@ struct FilesView: View {
     
     @ViewBuilder
     private var createMenuItems: some View {
-        Button {
-            HapticsManager.shared.impact()
-            showDocumentPicker = true
-        } label: {
-            Label(.localized("Import Files"), systemImage: "square.and.arrow.down")
+        // Import Section
+        Section {
+            Button {
+                HapticsManager.shared.impact()
+                showDocumentPicker = true
+            } label: {
+                Label(.localized("Import Files"), systemImage: "square.and.arrow.down")
+            }
+            
+            Button {
+                HapticsManager.shared.impact()
+                showURLImport = true
+            } label: {
+                Label(.localized("Import from URL"), systemImage: "link")
+            }
+            
+            Button {
+                HapticsManager.shared.impact()
+                showClipboardImport = true
+            } label: {
+                Label(.localized("Import from Clipboard"), systemImage: "doc.on.clipboard")
+            }
         }
         
         Divider()
         
-        Button {
-            HapticsManager.shared.impact()
-            showCreateTextFile = true
-        } label: {
-            Label(.localized("Text File"), systemImage: "doc.text")
-        }
-        
-        Button {
-            HapticsManager.shared.impact()
-            showCreatePlist = true
-        } label: {
-            Label(.localized("Plist File"), systemImage: "doc.badge.gearshape")
-        }
-        
-        Button {
-            HapticsManager.shared.impact()
-            showCreateFolder = true
-        } label: {
-            Label(.localized("Folder"), systemImage: "folder.badge.plus")
-        }
-        
-        Button {
-            HapticsManager.shared.impact()
-            showTemplatesSheet = true
-        } label: {
-            Label(.localized("From Template"), systemImage: "doc.badge.plus")
+        // Create Section
+        Section {
+            Button {
+                HapticsManager.shared.impact()
+                showCreateTextFile = true
+            } label: {
+                Label(.localized("Text File"), systemImage: "doc.text")
+            }
+            
+            Button {
+                HapticsManager.shared.impact()
+                showCreatePlist = true
+            } label: {
+                Label(.localized("Plist File"), systemImage: "doc.badge.gearshape")
+            }
+            
+            Button {
+                HapticsManager.shared.impact()
+                showCreateJSONFile = true
+            } label: {
+                Label(.localized("JSON File"), systemImage: "curlybraces")
+            }
+            
+            Button {
+                HapticsManager.shared.impact()
+                showCreateXMLFile = true
+            } label: {
+                Label(.localized("XML File"), systemImage: "chevron.left.forwardslash.chevron.right")
+            }
+            
+            Button {
+                HapticsManager.shared.impact()
+                showCreateFolder = true
+            } label: {
+                Label(.localized("Folder"), systemImage: "folder.badge.plus")
+            }
+            
+            Button {
+                HapticsManager.shared.impact()
+                showTemplatesSheet = true
+            } label: {
+                Label(.localized("From Template"), systemImage: "doc.badge.plus")
+            }
         }
         
         if !copiedFiles.isEmpty {
@@ -772,6 +848,7 @@ struct FilesView: View {
             }
         }
         
+        // Archive Section
         if !selectedFiles.isEmpty || fileManager.currentFiles.contains(where: { $0.url.pathExtension == "zip" }) {
             Divider()
             
@@ -792,6 +869,55 @@ struct FilesView: View {
                     Label(.localized("Unzip File"), systemImage: "arrow.up.doc")
                 }
             }
+        }
+        
+        // Tools Section
+        Divider()
+        
+        Menu {
+            Button {
+                HapticsManager.shared.impact()
+                showTerminal = true
+            } label: {
+                Label(.localized("Terminal"), systemImage: "terminal")
+            }
+            
+            Button {
+                HapticsManager.shared.impact()
+                showFileSearch = true
+            } label: {
+                Label(.localized("Advanced Search"), systemImage: "magnifyingglass")
+            }
+            
+            Button {
+                HapticsManager.shared.impact()
+                showDiskUsage = true
+            } label: {
+                Label(.localized("Disk Usage"), systemImage: "chart.pie")
+            }
+            
+            Button {
+                HapticsManager.shared.impact()
+                showFileHasher = true
+            } label: {
+                Label(.localized("Hash Calculator"), systemImage: "number.circle")
+            }
+            
+            Button {
+                HapticsManager.shared.impact()
+                showBase64Tool = true
+            } label: {
+                Label(.localized("Base64 Encoder"), systemImage: "textformat.abc")
+            }
+            
+            Button {
+                HapticsManager.shared.impact()
+                showSymlinkCreator = true
+            } label: {
+                Label(.localized("Create Symlink"), systemImage: "link")
+            }
+        } label: {
+            Label(.localized("Tools"), systemImage: "wrench.and.screwdriver")
         }
     }
     
