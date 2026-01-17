@@ -107,13 +107,9 @@ struct SettingsView: View {
                         NavigationLink(destination: AppIconView()) {
                             modernSettingsRow(icon: "app.badge.fill", title: "App Icons", color: .pink)
                         }
-                        NavigationLink(destination: CheckForUpdatesView()) {
+                        NavigationLink(destination: CheckForUpdatesView(), isActive: $navigateToCheckForUpdates) {
                             modernSettingsRow(icon: "arrow.triangle.2.circlepath", title: "Updates", color: .green)
                         }
-                        .background(
-                            NavigationLink(destination: CheckForUpdatesView(), isActive: $navigateToCheckForUpdates) { EmptyView() }
-                                .opacity(0)
-                        )
                     } header: {
                         sectionHeader("App", icon: "app.fill")
                     }
