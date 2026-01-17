@@ -2520,8 +2520,7 @@ struct IPAInspectorView: View {
             }
         }
         
-        // Find embedded binaries in Frameworks folder
-        let frameworksDir = appBundle.appendingPathComponent("Frameworks")
+        // Find embedded binaries in Frameworks folder (reuse existing frameworksDir)
         if fileManager.fileExists(atPath: frameworksDir.path) {
             if let contents = try? fileManager.contentsOfDirectory(at: frameworksDir, includingPropertiesForKeys: nil) {
                 for item in contents {
