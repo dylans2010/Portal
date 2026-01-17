@@ -1529,7 +1529,7 @@ struct Base64ToolView: View {
                         Text(inputText.isEmpty ? "Enter Base64" : (isValid ? "Valid Base64" : "Invalid Base64"))
                     }
                     .font(.caption)
-                    .foregroundStyle(inputText.isEmpty ? .secondary : (isValid ? .green : .red))
+                    .foregroundColor(inputText.isEmpty ? .secondary : (isValid ? .green : .red))
                 }
             }
         }

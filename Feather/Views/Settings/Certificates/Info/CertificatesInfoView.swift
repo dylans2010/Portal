@@ -506,7 +506,7 @@ struct CertificatesInfoView: View {
         }
         .sheet(isPresented: $showExportSheet) {
             if let url = exportedFileURL {
-                ShareSheet(activityItems: [url])
+                ShareSheet(urls: [url])
             }
         }
     }
