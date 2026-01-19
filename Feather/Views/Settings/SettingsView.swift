@@ -80,9 +80,6 @@ struct SettingsView: View {
                     NavigationLink(destination: FilesSettingsView()) {
                         modernSettingsRow(icon: "folder.fill", title: "Files", color: .blue)
                     }
-                    NavigationLink(destination: ArchiveView()) {
-                        modernSettingsRow(icon: "archivebox.fill", title: "Archive & Compression", color: .indigo)
-                    }
                     if certificateExperience != CertificateExperience.enterprise.rawValue {
                         NavigationLink(destination: ManageStorageView()) {
                             modernSettingsRow(icon: "internaldrive.fill", title: "Storage", color: .gray)
@@ -96,6 +93,9 @@ struct SettingsView: View {
                 Section {
                     NavigationLink(destination: GuidesSettingsView()) {
                         modernSettingsRow(icon: "book.fill", title: "Guides", color: .orange)
+                    }
+                    NavigationLink(destination: FeedbackView()) {
+                        modernSettingsRow(icon: "bubble.left.and.bubble.right.fill", title: "Feedback", color: .purple)
                     }
                 } header: {
                     sectionHeader("Resources", icon: "books.vertical.fill")

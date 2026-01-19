@@ -1,108 +1,145 @@
 import SwiftUI
 import IDeviceSwift
 
+// MARK: - Modern Install Progress View
 struct InstallProgressView: View {
     @State private var isPulsing = false
     @State private var dominantColor: Color = .accentColor
     @State private var rotationAngle: Double = 0
+    @State private var glowAnimation = false
     
     var app: AppInfoPresentable
     @ObservedObject var viewModel: InstallerStatusViewModel
     
     var body: some View {
-        VStack(spacing: 16) {
+        VStack(spacing: 14) {
             progressIndicator
-            statusLabel
+            statusInfo
         }
         .onAppear {
             isPulsing = true
             extractDominantColor()
             startRotation()
+            withAnimation(.easeInOut(duration: 2).repeatForever(autoreverses: true)) {
+                glowAnimation = true
+            }
         }
     }
     
     // MARK: - Progress Indicator
     private var progressIndicator: some View {
         ZStack {
-            // Subtle glow
+            // Outer glow ring
             Circle()
-                .fill(dominantColor.opacity(0.15))
-                .frame(width: 90, height: 90)
-                .blur(radius: 12)
-                .scaleEffect(isPulsing ? 1.1 : 1.0)
+                .fill(
+                    RadialGradient(
+                        colors: [
+                            dominantColor.opacity(glowAnimation ? 0.2 : 0.1),
+                            dominantColor.opacity(0.05),
+                            Color.clear
+                        ],
+                        center: .center,
+                        startRadius: 30,
+                        endRadius: 55
+                    )
+                )
+                .frame(width: 110, height: 110)
+                .scaleEffect(isPulsing ? 1.05 : 1.0)
                 .animation(.easeInOut(duration: 1.5).repeatForever(autoreverses: true), value: isPulsing)
             
-            // Progress track
+            // Background track
             Circle()
-                .stroke(dominantColor.opacity(0.12), lineWidth: 4)
-                .frame(width: 68, height: 68)
+                .stroke(dominantColor.opacity(0.1), lineWidth: 5)
+                .frame(width: 72, height: 72)
             
-            // Progress fill
+            // Progress arc
             Circle()
                 .trim(from: 0, to: viewModel.overallProgress)
-                .stroke(dominantColor, style: StrokeStyle(lineWidth: 4, lineCap: .round))
-                .frame(width: 68, height: 68)
+                .stroke(
+                    LinearGradient(
+                        colors: [dominantColor, dominantColor.opacity(0.7)],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    ),
+                    style: StrokeStyle(lineWidth: 5, lineCap: .round)
+                )
+                .frame(width: 72, height: 72)
                 .rotationEffect(.degrees(-90))
                 .animation(.spring(response: 0.4, dampingFraction: 0.8), value: viewModel.overallProgress)
             
-            // Rotating indicator (when not complete)
+            // Spinning indicator (when not complete)
             if !viewModel.isCompleted {
                 Circle()
-                    .trim(from: 0, to: 0.25)
-                    .stroke(dominantColor.opacity(0.4), style: StrokeStyle(lineWidth: 2, lineCap: .round))
-                    .frame(width: 78, height: 78)
+                    .trim(from: 0, to: 0.2)
+                    .stroke(
+                        dominantColor.opacity(0.3),
+                        style: StrokeStyle(lineWidth: 3, lineCap: .round)
+                    )
+                    .frame(width: 84, height: 84)
                     .rotationEffect(.degrees(rotationAngle))
             }
             
-            // App icon
-            FRAppIconView(app: app)
-                .frame(width: 44, height: 44)
-                .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
-                .shadow(color: dominantColor.opacity(0.3), radius: 6, x: 0, y: 3)
+            // App icon with glass effect
+            ZStack {
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .fill(.ultraThinMaterial)
+                    .frame(width: 48, height: 48)
+                
+                FRAppIconView(app: app)
+                    .frame(width: 44, height: 44)
+                    .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+            }
+            .shadow(color: dominantColor.opacity(0.3), radius: 8, x: 0, y: 4)
             
             // Success badge
             if viewModel.isCompleted {
-                Circle()
-                    .fill(.green)
-                    .frame(width: 22, height: 22)
-                    .overlay(
-                        Image(systemName: "checkmark")
-                            .font(.system(size: 11, weight: .bold))
-                            .foregroundStyle(.white)
-                    )
-                    .offset(x: 24, y: 24)
-                    .shadow(color: .green.opacity(0.4), radius: 4, x: 0, y: 2)
-                    .transition(.scale.combined(with: .opacity))
+                ZStack {
+                    Circle()
+                        .fill(.green)
+                        .frame(width: 24, height: 24)
+                    
+                    Image(systemName: "checkmark")
+                        .font(.system(size: 12, weight: .bold))
+                        .foregroundStyle(.white)
+                }
+                .offset(x: 26, y: 26)
+                .shadow(color: .green.opacity(0.5), radius: 6, x: 0, y: 3)
+                .transition(.scale.combined(with: .opacity))
             }
         }
+        .animation(.spring(response: 0.4, dampingFraction: 0.7), value: viewModel.isCompleted)
     }
     
-    // MARK: - Status Label
-    private var statusLabel: some View {
+    // MARK: - Status Info
+    private var statusInfo: some View {
         Group {
             if viewModel.isCompleted {
-                Label("Complete", systemImage: "checkmark.circle.fill")
-                    .font(.system(size: 13, weight: .semibold))
-                    .foregroundStyle(.green)
+                HStack(spacing: 6) {
+                    Image(systemName: "checkmark.circle.fill")
+                        .font(.system(size: 14, weight: .semibold))
+                    Text("Complete")
+                        .font(.system(size: 14, weight: .semibold))
+                }
+                .foregroundStyle(.green)
             } else {
                 VStack(spacing: 4) {
                     Text("\(Int(viewModel.overallProgress * 100))%")
-                        .font(.system(size: 14, weight: .bold, design: .rounded))
+                        .font(.system(size: 18, weight: .bold, design: .rounded))
                         .foregroundStyle(dominantColor)
                     
-                    Text("\(viewModel.currentStep)")
-                        .font(.system(size: 11, weight: .medium))
+                    Text(viewModel.currentStep)
+                        .font(.system(size: 12, weight: .medium))
                         .foregroundStyle(.secondary)
                         .lineLimit(1)
                 }
             }
         }
-        .animation(.easeInOut(duration: 0.2), value: viewModel.isCompleted)
+        .animation(.easeInOut(duration: 0.25), value: viewModel.isCompleted)
     }
     
     // MARK: - Helpers
     private func startRotation() {
-        withAnimation(.linear(duration: 1.5).repeatForever(autoreverses: false)) {
+        withAnimation(.linear(duration: 1.2).repeatForever(autoreverses: false)) {
             rotationAngle = 360
         }
     }
@@ -127,7 +164,9 @@ struct InstallProgressView: View {
                                format: .RGBA8, colorSpace: nil)
             
             await MainActor.run {
-                dominantColor = Color(red: Double(pixel[0])/255, green: Double(pixel[1])/255, blue: Double(pixel[2])/255)
+                withAnimation(.easeInOut(duration: 0.5)) {
+                    dominantColor = Color(red: Double(pixel[0])/255, green: Double(pixel[1])/255, blue: Double(pixel[2])/255)
+                }
             }
         }
     }

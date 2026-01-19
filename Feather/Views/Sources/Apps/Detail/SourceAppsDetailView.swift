@@ -81,33 +81,48 @@ struct SourceAppsDetailView: View {
         }
     }
     
-    // MARK: - Hero Header
+    // MARK: - Hero Header (Enhanced)
     @ViewBuilder
     private var heroHeader: some View {
         VStack(spacing: 20) {
-            // App Icon
-            Group {
-                if let iconURL = app.iconURL {
-                    LazyImage(url: iconURL) { state in
-                        if let image = state.image {
-                            image
-                                .resizable()
-                                .aspectRatio(contentMode: .fill)
-                        } else {
-                            iconPlaceholder
+            // App Icon with enhanced glow
+            ZStack {
+                // Glow effect
+                RoundedRectangle(cornerRadius: 28, style: .continuous)
+                    .fill(dominantColor.opacity(0.3))
+                    .frame(width: 130, height: 130)
+                    .blur(radius: 25)
+                
+                Group {
+                    if let iconURL = app.iconURL {
+                        LazyImage(url: iconURL) { state in
+                            if let image = state.image {
+                                image
+                                    .resizable()
+                                    .aspectRatio(contentMode: .fill)
+                            } else {
+                                iconPlaceholder
+                            }
                         }
+                    } else {
+                        iconPlaceholder
                     }
-                } else {
-                    iconPlaceholder
                 }
+                .frame(width: 120, height: 120)
+                .clipShape(RoundedRectangle(cornerRadius: 26, style: .continuous))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 26, style: .continuous)
+                        .stroke(
+                            LinearGradient(
+                                colors: [Color.white.opacity(0.4), Color.white.opacity(0.1)],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            ),
+                            lineWidth: 1
+                        )
+                )
+                .shadow(color: dominantColor.opacity(0.35), radius: 20, x: 0, y: 12)
             }
-            .frame(width: 120, height: 120)
-            .clipShape(RoundedRectangle(cornerRadius: 26, style: .continuous))
-            .shadow(color: dominantColor.opacity(0.4), radius: 20, x: 0, y: 10)
-            .overlay(
-                RoundedRectangle(cornerRadius: 26, style: .continuous)
-                    .stroke(Color.white.opacity(0.2), lineWidth: 1)
-            )
             
             // App Name & Developer
             VStack(spacing: 6) {
@@ -122,38 +137,47 @@ struct SourceAppsDetailView: View {
                         .foregroundStyle(.secondary)
                 }
                 
-                // Quick Info Pills
-                HStack(spacing: 12) {
+                // Quick Info Pills with glass effect
+                HStack(spacing: 10) {
                     if let version = app.currentVersion {
-                        infoPill(icon: "tag.fill", text: "v\(version)")
+                        modernInfoPill(icon: "tag.fill", text: "v\(version)")
                     }
                     if let size = app.size {
-                        infoPill(icon: "internaldrive.fill", text: size.formattedByteCount)
+                        modernInfoPill(icon: "internaldrive.fill", text: size.formattedByteCount)
                     }
                     if let category = app.category {
-                        infoPill(icon: "square.grid.2x2.fill", text: category.capitalized)
+                        modernInfoPill(icon: "square.grid.2x2.fill", text: category.capitalized)
                     }
                 }
-                .padding(.top, 8)
+                .padding(.top, 10)
             }
             
             // Download Button
             DownloadButtonView(app: app)
-                .padding(.top, 8)
+                .padding(.top, 10)
         }
-        .padding(.vertical, 30)
+        .padding(.vertical, 32)
         .padding(.horizontal, 20)
         .frame(maxWidth: .infinity)
+    }
+    
+    private func modernInfoPill(icon: String, text: String) -> some View {
+        HStack(spacing: 5) {
+            Image(systemName: icon)
+                .font(.system(size: 10, weight: .semibold))
+            Text(text)
+                .font(.system(size: 12, weight: .medium))
+        }
+        .foregroundStyle(.secondary)
+        .padding(.horizontal, 12)
+        .padding(.vertical, 7)
         .background(
-            LinearGradient(
-                colors: [
-                    dominantColor.opacity(0.25),
-                    dominantColor.opacity(0.1),
-                    Color(UIColor.systemBackground)
-                ],
-                startPoint: .top,
-                endPoint: .bottom
-            )
+            Capsule()
+                .fill(.ultraThinMaterial)
+                .overlay(
+                    Capsule()
+                        .stroke(Color.primary.opacity(0.06), lineWidth: 0.5)
+                )
         )
     }
     
@@ -450,24 +474,43 @@ struct SourceAppsDetailView: View {
         }
     }
     
-    // MARK: - Background
+    // MARK: - Background (Enhanced)
     @ViewBuilder
     private var backgroundView: some View {
-        VStack(spacing: 0) {
-            LinearGradient(
-                colors: [
-                    dominantColor.opacity(0.3),
-                    dominantColor.opacity(0.2),
-                    dominantColor.opacity(0.1),
-                    dominantColor.opacity(0.05),
-                    Color(UIColor.systemBackground)
-                ],
-                startPoint: .top,
-                endPoint: .bottom
-            )
-            .frame(height: 350)
-            
+        ZStack {
             Color(UIColor.systemBackground)
+            
+            VStack(spacing: 0) {
+                ZStack {
+                    // Primary gradient
+                    LinearGradient(
+                        colors: [
+                            dominantColor.opacity(0.25),
+                            dominantColor.opacity(0.15),
+                            dominantColor.opacity(0.08),
+                            dominantColor.opacity(0.03),
+                            Color.clear
+                        ],
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+                    
+                    // Subtle radial glow
+                    RadialGradient(
+                        colors: [
+                            dominantColor.opacity(0.2),
+                            dominantColor.opacity(0.05),
+                            Color.clear
+                        ],
+                        center: .top,
+                        startRadius: 0,
+                        endRadius: 300
+                    )
+                }
+                .frame(height: 380)
+                
+                Spacer()
+            }
         }
         .ignoresSafeArea()
     }
