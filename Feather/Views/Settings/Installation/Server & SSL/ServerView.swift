@@ -37,6 +37,111 @@ extension ServerView {
 			}
 		}
 	}
+	
+	enum ServerMethod: Int, CaseIterable {
+		case fullyLocal = 0
+		case semiLocal = 1
+		case custom = 2
+		
+		var name: String {
+			switch self {
+			case .fullyLocal: return .localized("Fully Local")
+			case .semiLocal: return .localized("Semi Local")
+			case .custom: return .localized("Custom")
+			}
+		}
+		
+		var description: String {
+			switch self {
+			case .fullyLocal: return .localized("Signs and installs apps entirely on your device without external servers")
+			case .semiLocal: return .localized("Signs locally but uses a local server for installation via Wi-Fi. This method is more reliable.")
+			case .custom: return .localized("Use your own custom API endpoint for remote signing and installation")
+			}
+		}
+		
+		var icon: String {
+			switch self {
+			case .fullyLocal: return "iphone"
+			case .semiLocal: return "wifi"
+			case .custom: return "link"
+			}
+		}
+		
+		var color: Color {
+			switch self {
+			case .fullyLocal: return .blue
+			case .semiLocal: return .green
+			case .custom: return .purple
+			}
+		}
+	}
+}
+
+// MARK: - Server Method Card View
+private struct ServerMethodCard: View {
+	let method: ServerView.ServerMethod
+	let isSelected: Bool
+	let action: () -> Void
+	
+	var body: some View {
+		Button(action: action) {
+			HStack(spacing: 14) {
+				ZStack {
+					RoundedRectangle(cornerRadius: 10, style: .continuous)
+						.fill(
+							LinearGradient(
+								colors: isSelected ? [method.color, method.color.opacity(0.8)] : [Color(.tertiarySystemFill), Color(.tertiarySystemFill)],
+								startPoint: .topLeading,
+								endPoint: .bottomTrailing
+							)
+						)
+						.frame(width: 40, height: 40)
+						.shadow(color: isSelected ? method.color.opacity(0.3) : .clear, radius: 6, x: 0, y: 3)
+					
+					Image(systemName: method.icon)
+						.font(.system(size: 16, weight: .semibold))
+						.foregroundStyle(isSelected ? .white : .secondary)
+				}
+				
+				VStack(alignment: .leading, spacing: 3) {
+					Text(method.name)
+						.font(.system(size: 15, weight: .semibold))
+						.foregroundStyle(isSelected ? .primary : .secondary)
+					
+					Text(method.description)
+						.font(.system(size: 12))
+						.foregroundStyle(.secondary)
+						.lineLimit(2)
+						.fixedSize(horizontal: false, vertical: true)
+				}
+				
+				Spacer()
+				
+				ZStack {
+					Circle()
+						.strokeBorder(isSelected ? method.color : Color(.tertiarySystemFill), lineWidth: 2)
+						.frame(width: 22, height: 22)
+					
+					if isSelected {
+						Circle()
+							.fill(method.color)
+							.frame(width: 14, height: 14)
+					}
+				}
+			}
+			.padding(14)
+			.background(
+				RoundedRectangle(cornerRadius: 14, style: .continuous)
+					.fill(isSelected ? method.color.opacity(0.08) : Color(.secondarySystemGroupedBackground))
+			)
+			.overlay(
+				RoundedRectangle(cornerRadius: 14, style: .continuous)
+					.strokeBorder(isSelected ? method.color.opacity(0.3) : Color.clear, lineWidth: 1.5)
+			)
+		}
+		.buttonStyle(.plain)
+		.animation(.spring(response: 0.35, dampingFraction: 0.7), value: isSelected)
+	}
 }
 
 // MARK: - View
@@ -45,16 +150,14 @@ struct ServerView: View {
 	@AppStorage("Feather.serverMethod") private var _serverMethod: Int = 0
 	@AppStorage("Feather.customSigningAPI") private var _customSigningAPI: String = ""
 	
-	private let _serverMethods: [(name: String, description: String)] = [
-		(.localized("Fully Local"), .localized("Signs and installs apps entirely on your device without external servers")),
-		(.localized("Semi Local"), .localized("Signs locally but uses a local server for installation via Wi-Fi. This method is more reliable.")),
-		(.localized("Custom"), .localized("Use your own custom API endpoint for remote signing and installation"))
-	]
-	
 	private let _dataService = NBFetchService()
 	private let _serverPackUrl = "https://backloop.dev/pack.json"
 	
 	@State private var _showSuccessAnimation = false
+	
+	private var selectedMethod: ServerMethod {
+		ServerMethod(rawValue: _serverMethod) ?? .fullyLocal
+	}
 	
 	// MARK: Body
 	var body: some View {
@@ -74,48 +177,56 @@ struct ServerView: View {
 	
 	private var serverTypeSection: some View {
 		Section {
-			Picker(.localized("Server Type"), systemImage: "server.rack", selection: $_serverMethod) {
-				ForEach(_serverMethods.indices, id: \.self) { index in
-					serverMethodItem(at: index)
-				}
-			}
-			.pickerStyle(.inline)
-			
-			Toggle(.localized("Only use localhost address"), systemImage: "lifepreserver", isOn: $_ipFix)
-				.disabled(_serverMethod != 1)
-		} footer: {
-			Text(_serverMethods[_serverMethod].description)
-				.font(.caption)
-		}
-	}
-	
-	@ViewBuilder
-	private func serverMethodItem(at index: Int) -> some View {
-		Button {
-			_serverMethod = index
-		} label: {
-			VStack(alignment: .leading, spacing: 6) {
-				HStack(spacing: 10) {
-					ZStack {
-						Circle()
-							.fill(Color.accentColor.opacity(0.12))
-							.frame(width: 32, height: 32)
-						Image(systemName: serverIconForMethod(index))
-							.foregroundStyle(Color.accentColor)
-							.font(.system(size: 14, weight: .semibold))
+			VStack(spacing: 10) {
+				ForEach(ServerMethod.allCases, id: \.rawValue) { method in
+					ServerMethodCard(
+						method: method,
+						isSelected: _serverMethod == method.rawValue
+					) {
+						withAnimation(.spring(response: 0.35, dampingFraction: 0.7)) {
+							_serverMethod = method.rawValue
+						}
+						HapticsManager.shared.softImpact()
 					}
-					Text(_serverMethods[index].name)
-						.font(.body)
-						.fontWeight(.medium)
 				}
-				Text(_serverMethods[index].description)
-					.font(.caption)
-					.foregroundStyle(.secondary)
-					.padding(.leading, 42)
 			}
-			.padding(.vertical, 6)
+			.padding(.vertical, 4)
+			
+			if _serverMethod == 1 {
+				Toggle(isOn: $_ipFix) {
+					HStack(spacing: 12) {
+						ZStack {
+							RoundedRectangle(cornerRadius: 8, style: .continuous)
+								.fill(Color.orange.opacity(0.15))
+								.frame(width: 32, height: 32)
+							
+							Image(systemName: "lifepreserver")
+								.font(.system(size: 14, weight: .semibold))
+								.foregroundStyle(.orange)
+						}
+						
+						VStack(alignment: .leading, spacing: 2) {
+							Text(.localized("Localhost Only"))
+								.font(.system(size: 14, weight: .medium))
+							Text(.localized("Only use localhost address"))
+								.font(.system(size: 11))
+								.foregroundStyle(.secondary)
+						}
+					}
+				}
+				.tint(.orange)
+				.padding(.top, 4)
+			}
+		} header: {
+			HStack(spacing: 6) {
+				Image(systemName: "server.rack")
+					.font(.system(size: 11, weight: .semibold))
+					.foregroundStyle(.secondary)
+				Text(.localized("SERVER TYPE"))
+					.font(.system(size: 12, weight: .semibold, design: .rounded))
+					.foregroundStyle(.secondary)
+			}
 		}
-		.tag(index)
 	}
 	
 	private var customAPISection: some View {
@@ -227,16 +338,6 @@ struct ServerView: View {
 					Spacer()
 				}
 			}
-		}
-	}
-	
-	// Helper function to return appropriate icon for each server method
-	private func serverIconForMethod(_ index: Int) -> String {
-		switch index {
-		case 0: return "iphone" // Fully Local
-		case 1: return "wifi" // Semi Local
-		case 2: return "link" // Custom
-		default: return "server.rack"
 		}
 	}
 }

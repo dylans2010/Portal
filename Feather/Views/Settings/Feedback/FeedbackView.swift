@@ -2,6 +2,168 @@ import SwiftUI
 import UIKit
 import PhotosUI
 
+// MARK: - Formatting Toolbar
+struct FormattingToolbar: View {
+    @Binding var text: String
+    @Environment(\.colorScheme) private var colorScheme
+    
+    private let toolbarHeight: CGFloat = 44
+    
+    enum FormatType {
+        case bold, italic, strikethrough, code, quote, link, list, heading
+        
+        var icon: String {
+            switch self {
+            case .bold: return "bold"
+            case .italic: return "italic"
+            case .strikethrough: return "strikethrough"
+            case .code: return "chevron.left.forwardslash.chevron.right"
+            case .quote: return "text.quote"
+            case .link: return "link"
+            case .list: return "list.bullet"
+            case .heading: return "number"
+            }
+        }
+        
+        var label: String {
+            switch self {
+            case .bold: return "Bold"
+            case .italic: return "Italic"
+            case .strikethrough: return "Strikethrough"
+            case .code: return "Code"
+            case .quote: return "Quote"
+            case .link: return "Link"
+            case .list: return "List"
+            case .heading: return "Heading"
+            }
+        }
+        
+        var prefix: String {
+            switch self {
+            case .bold: return "**"
+            case .italic: return "_"
+            case .strikethrough: return "~~"
+            case .code: return "`"
+            case .quote: return "> "
+            case .link: return "["
+            case .list: return "- "
+            case .heading: return "## "
+            }
+        }
+        
+        var suffix: String {
+            switch self {
+            case .bold: return "**"
+            case .italic: return "_"
+            case .strikethrough: return "~~"
+            case .code: return "`"
+            case .quote: return ""
+            case .link: return "](url)"
+            case .list: return ""
+            case .heading: return ""
+            }
+        }
+        
+        var isLineFormat: Bool {
+            switch self {
+            case .quote, .list, .heading: return true
+            default: return false
+            }
+        }
+    }
+    
+    var body: some View {
+        HStack(spacing: 0) {
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 6) {
+                    ForEach([FormatType.bold, .italic, .strikethrough, .code, .quote, .link, .list, .heading], id: \.icon) { format in
+                        FormattingButton(format: format) {
+                            applyFormatting(format)
+                            HapticsManager.shared.softImpact()
+                        }
+                    }
+                }
+                .padding(.horizontal, 8)
+            }
+            
+            Divider()
+                .frame(height: 24)
+                .padding(.horizontal, 4)
+            
+            Button {
+                UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+            } label: {
+                Image(systemName: "keyboard.chevron.compact.down")
+                    .font(.system(size: 16, weight: .medium))
+                    .foregroundStyle(.secondary)
+                    .frame(width: 36, height: 36)
+                    .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+        }
+        .frame(height: toolbarHeight)
+        .background(
+            Rectangle()
+                .fill(.ultraThinMaterial)
+                .overlay(
+                    Rectangle()
+                        .fill(Color.primary.opacity(0.04))
+                )
+        )
+    }
+    
+    private func applyFormatting(_ format: FormatType) {
+        if format.isLineFormat {
+            if text.isEmpty {
+                text = format.prefix
+            } else if text.hasSuffix("\n") {
+                text += format.prefix
+            } else {
+                text += "\n" + format.prefix
+            }
+        } else {
+            let placeholder = format == .link ? "text" : "text"
+            text += format.prefix + placeholder + format.suffix
+        }
+    }
+}
+
+// MARK: - Formatting Button
+private struct FormattingButton: View {
+    let format: FormattingToolbar.FormatType
+    let action: () -> Void
+    
+    @State private var isPressed = false
+    
+    var body: some View {
+        Button(action: action) {
+            VStack(spacing: 2) {
+                Image(systemName: format.icon)
+                    .font(.system(size: 15, weight: .semibold))
+                    .foregroundStyle(isPressed ? Color.accentColor : .primary)
+            }
+            .frame(width: 38, height: 34)
+            .background(
+                RoundedRectangle(cornerRadius: 8, style: .continuous)
+                    .fill(isPressed ? Color.accentColor.opacity(0.15) : Color(.tertiarySystemFill))
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 8, style: .continuous)
+                    .strokeBorder(isPressed ? Color.accentColor.opacity(0.3) : Color.clear, lineWidth: 1)
+            )
+        }
+        .buttonStyle(.plain)
+        .scaleEffect(isPressed ? 0.95 : 1.0)
+        .animation(.spring(response: 0.2, dampingFraction: 0.6), value: isPressed)
+        .simultaneousGesture(
+            DragGesture(minimumDistance: 0)
+                .onChanged { _ in isPressed = true }
+                .onEnded { _ in isPressed = false }
+        )
+        .accessibilityLabel(format.label)
+    }
+}
+
 // MARK: - GitHub Feedback Service
 actor GitHubFeedbackService {
     static let shared = GitHubFeedbackService()
@@ -191,6 +353,13 @@ struct FeedbackView: View {
             }
             .sheet(isPresented: $showErrorSheet) {
                 FeedbackErrorSheet(errorMessage: errorMessage, onRetry: { submitFeedback() }, onDismiss: { showErrorSheet = false })
+            }
+            .toolbar {
+                ToolbarItemGroup(placement: .keyboard) {
+                    if focusedField == .message {
+                        FormattingToolbar(text: $feedbackMessage)
+                    }
+                }
             }
     }
     
