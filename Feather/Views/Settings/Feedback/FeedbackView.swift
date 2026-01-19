@@ -2,15 +2,102 @@ import SwiftUI
 import UIKit
 import PhotosUI
 
-// MARK: - Formatting Toolbar
-struct FormattingToolbar: View {
-    @Binding var text: String
+// MARK: - Rich Text Format Model
+struct RichTextSegment: Identifiable, Equatable {
+    let id = UUID()
+    var text: String
+    var isBold: Bool = false
+    var isItalic: Bool = false
+    var isStrikethrough: Bool = false
+    var isCode: Bool = false
+    var linkURL: String? = nil
+    var linkTitle: String? = nil
+    
+    var toMarkdown: String {
+        var result = text
+        if let url = linkURL, let title = linkTitle {
+            result = "[\(title)](\(url))"
+        } else {
+            if isCode { result = "`\(result)`" }
+            if isStrikethrough { result = "~~\(result)~~" }
+            if isBold && isItalic { result = "***\(result)***" }
+            else if isBold { result = "**\(result)**" }
+            else if isItalic { result = "_\(result)_" }
+        }
+        return result
+    }
+}
+
+// MARK: - Rich Text Manager
+class RichTextManager: ObservableObject {
+    @Published var segments: [RichTextSegment] = []
+    @Published var activeFormats: Set<FormatType> = []
+    @Published var links: [(title: String, url: String)] = []
+    
+    enum FormatType: String, CaseIterable {
+        case bold, italic, strikethrough, code
+    }
+    
+    var displayText: String {
+        var result = ""
+        for segment in segments {
+            if let title = segment.linkTitle {
+                result += title
+            } else {
+                result += segment.text
+            }
+        }
+        return result
+    }
+    
+    var markdownText: String {
+        segments.map { $0.toMarkdown }.joined()
+    }
+    
+    func toggleFormat(_ format: FormatType) {
+        if activeFormats.contains(format) {
+            activeFormats.remove(format)
+        } else {
+            activeFormats.insert(format)
+        }
+    }
+    
+    func addText(_ text: String) {
+        guard !text.isEmpty else { return }
+        let segment = RichTextSegment(
+            text: text,
+            isBold: activeFormats.contains(.bold),
+            isItalic: activeFormats.contains(.italic),
+            isStrikethrough: activeFormats.contains(.strikethrough),
+            isCode: activeFormats.contains(.code)
+        )
+        segments.append(segment)
+    }
+    
+    func addLink(title: String, url: String) {
+        guard !title.isEmpty && !url.isEmpty else { return }
+        let segment = RichTextSegment(text: "", linkURL: url, linkTitle: title)
+        segments.append(segment)
+        links.append((title: title, url: url))
+    }
+    
+    func clear() {
+        segments.removeAll()
+        links.removeAll()
+        activeFormats.removeAll()
+    }
+}
+
+// MARK: - Modern Formatting Toolbar
+struct ModernFormattingToolbar: View {
+    @ObservedObject var richTextManager: RichTextManager
+    @Binding var showLinkDialog: Bool
     @Environment(\.colorScheme) private var colorScheme
     
-    private let toolbarHeight: CGFloat = 44
+    private let toolbarHeight: CGFloat = 52
     
-    enum FormatType {
-        case bold, italic, strikethrough, code, quote, link, list, heading
+    enum FormatButton: CaseIterable {
+        case bold, italic, strikethrough, code, link, dismiss
         
         var icon: String {
             switch self {
@@ -18,10 +105,8 @@ struct FormattingToolbar: View {
             case .italic: return "italic"
             case .strikethrough: return "strikethrough"
             case .code: return "chevron.left.forwardslash.chevron.right"
-            case .quote: return "text.quote"
             case .link: return "link"
-            case .list: return "list.bullet"
-            case .heading: return "number"
+            case .dismiss: return "keyboard.chevron.compact.down"
             }
         }
         
@@ -31,136 +116,459 @@ struct FormattingToolbar: View {
             case .italic: return "Italic"
             case .strikethrough: return "Strikethrough"
             case .code: return "Code"
-            case .quote: return "Quote"
             case .link: return "Link"
-            case .list: return "List"
-            case .heading: return "Heading"
+            case .dismiss: return "Dismiss"
             }
         }
         
-        var prefix: String {
+        var gradient: [Color] {
             switch self {
-            case .bold: return "**"
-            case .italic: return "_"
-            case .strikethrough: return "~~"
-            case .code: return "`"
-            case .quote: return "> "
-            case .link: return "["
-            case .list: return "- "
-            case .heading: return "## "
+            case .bold: return [Color(red: 0.98, green: 0.36, blue: 0.35), Color(red: 0.95, green: 0.25, blue: 0.45)]
+            case .italic: return [Color(red: 0.35, green: 0.78, blue: 0.98), Color(red: 0.25, green: 0.55, blue: 0.95)]
+            case .strikethrough: return [Color(red: 0.98, green: 0.72, blue: 0.35), Color(red: 0.95, green: 0.55, blue: 0.25)]
+            case .code: return [Color(red: 0.55, green: 0.35, blue: 0.98), Color(red: 0.75, green: 0.25, blue: 0.95)]
+            case .link: return [Color(red: 0.35, green: 0.98, blue: 0.65), Color(red: 0.25, green: 0.85, blue: 0.55)]
+            case .dismiss: return [Color(red: 0.5, green: 0.5, blue: 0.55), Color(red: 0.4, green: 0.4, blue: 0.45)]
             }
         }
         
-        var suffix: String {
+        var formatType: RichTextManager.FormatType? {
             switch self {
-            case .bold: return "**"
-            case .italic: return "_"
-            case .strikethrough: return "~~"
-            case .code: return "`"
-            case .quote: return ""
-            case .link: return "](url)"
-            case .list: return ""
-            case .heading: return ""
-            }
-        }
-        
-        var isLineFormat: Bool {
-            switch self {
-            case .quote, .list, .heading: return true
-            default: return false
+            case .bold: return .bold
+            case .italic: return .italic
+            case .strikethrough: return .strikethrough
+            case .code: return .code
+            default: return nil
             }
         }
     }
     
     var body: some View {
-        HStack(spacing: 0) {
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 6) {
-                    ForEach([FormatType.bold, .italic, .strikethrough, .code, .quote, .link, .list, .heading], id: \.icon) { format in
-                        FormattingButton(format: format) {
-                            applyFormatting(format)
-                            HapticsManager.shared.softImpact()
-                        }
-                    }
+        HStack(spacing: 8) {
+            ForEach([FormatButton.bold, .italic, .strikethrough, .code, .link], id: \.icon) { button in
+                ModernFormatButton(
+                    button: button,
+                    isActive: isButtonActive(button)
+                ) {
+                    handleButtonTap(button)
                 }
-                .padding(.horizontal, 8)
             }
             
-            Divider()
-                .frame(height: 24)
-                .padding(.horizontal, 4)
+            Spacer()
             
-            Button {
+            ModernFormatButton(button: .dismiss, isActive: false) {
                 UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
-            } label: {
-                Image(systemName: "keyboard.chevron.compact.down")
-                    .font(.system(size: 16, weight: .medium))
-                    .foregroundStyle(.secondary)
-                    .frame(width: 36, height: 36)
-                    .contentShape(Rectangle())
             }
-            .buttonStyle(.plain)
         }
+        .padding(.horizontal, 12)
         .frame(height: toolbarHeight)
         .background(
-            Rectangle()
+            RoundedRectangle(cornerRadius: 20, style: .continuous)
                 .fill(.ultraThinMaterial)
                 .overlay(
-                    Rectangle()
-                        .fill(Color.primary.opacity(0.04))
+                    RoundedRectangle(cornerRadius: 20, style: .continuous)
+                        .stroke(
+                            LinearGradient(
+                                colors: [Color.white.opacity(0.3), Color.white.opacity(0.1)],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            ),
+                            lineWidth: 1
+                        )
                 )
+                .shadow(color: Color.black.opacity(0.1), radius: 10, x: 0, y: 4)
         )
+        .padding(.horizontal, 8)
+        .padding(.vertical, 6)
     }
     
-    private func applyFormatting(_ format: FormatType) {
-        if format.isLineFormat {
-            if text.isEmpty {
-                text = format.prefix
-            } else if text.hasSuffix("\n") {
-                text += format.prefix
-            } else {
-                text += "\n" + format.prefix
-            }
-        } else {
-            let placeholder = format == .link ? "text" : "text"
-            text += format.prefix + placeholder + format.suffix
+    private func isButtonActive(_ button: FormatButton) -> Bool {
+        guard let formatType = button.formatType else { return false }
+        return richTextManager.activeFormats.contains(formatType)
+    }
+    
+    private func handleButtonTap(_ button: FormatButton) {
+        HapticsManager.shared.softImpact()
+        if button == .link {
+            showLinkDialog = true
+        } else if let formatType = button.formatType {
+            richTextManager.toggleFormat(formatType)
         }
     }
 }
 
-// MARK: - Formatting Button
-private struct FormattingButton: View {
-    let format: FormattingToolbar.FormatType
+// MARK: - Modern Format Button
+private struct ModernFormatButton: View {
+    let button: ModernFormattingToolbar.FormatButton
+    let isActive: Bool
     let action: () -> Void
     
     @State private var isPressed = false
     
     var body: some View {
         Button(action: action) {
-            VStack(spacing: 2) {
-                Image(systemName: format.icon)
-                    .font(.system(size: 15, weight: .semibold))
-                    .foregroundStyle(isPressed ? Color.accentColor : .primary)
+            ZStack {
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .fill(
+                        isActive ?
+                        LinearGradient(colors: button.gradient, startPoint: .topLeading, endPoint: .bottomTrailing) :
+                        LinearGradient(colors: [Color(.tertiarySystemFill), Color(.tertiarySystemFill)], startPoint: .topLeading, endPoint: .bottomTrailing)
+                    )
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 12, style: .continuous)
+                            .stroke(
+                                isActive ?
+                                LinearGradient(colors: [Color.white.opacity(0.4), Color.white.opacity(0.1)], startPoint: .topLeading, endPoint: .bottomTrailing) :
+                                LinearGradient(colors: [Color.clear, Color.clear], startPoint: .topLeading, endPoint: .bottomTrailing),
+                                lineWidth: 1
+                            )
+                    )
+                    .shadow(color: isActive ? button.gradient[0].opacity(0.4) : Color.clear, radius: 6, x: 0, y: 3)
+                
+                VStack(spacing: 2) {
+                    Image(systemName: button.icon)
+                        .font(.system(size: 15, weight: .semibold))
+                        .foregroundStyle(isActive ? .white : .primary)
+                    
+                    if isActive {
+                        Circle()
+                            .fill(.white)
+                            .frame(width: 4, height: 4)
+                    }
+                }
             }
-            .frame(width: 38, height: 34)
-            .background(
-                RoundedRectangle(cornerRadius: 8, style: .continuous)
-                    .fill(isPressed ? Color.accentColor.opacity(0.15) : Color(.tertiarySystemFill))
-            )
-            .overlay(
-                RoundedRectangle(cornerRadius: 8, style: .continuous)
-                    .strokeBorder(isPressed ? Color.accentColor.opacity(0.3) : Color.clear, lineWidth: 1)
-            )
+            .frame(width: 42, height: 38)
         }
         .buttonStyle(.plain)
-        .scaleEffect(isPressed ? 0.95 : 1.0)
-        .animation(.spring(response: 0.2, dampingFraction: 0.6), value: isPressed)
+        .scaleEffect(isPressed ? 0.92 : 1.0)
+        .animation(.spring(response: 0.25, dampingFraction: 0.6), value: isPressed)
+        .animation(.spring(response: 0.3, dampingFraction: 0.7), value: isActive)
         .simultaneousGesture(
             DragGesture(minimumDistance: 0)
                 .onChanged { _ in isPressed = true }
                 .onEnded { _ in isPressed = false }
         )
-        .accessibilityLabel(format.label)
+        .accessibilityLabel(button.label)
+    }
+}
+
+// MARK: - Link Dialog Sheet
+struct LinkDialogSheet: View {
+    @Environment(\.dismiss) private var dismiss
+    @ObservedObject var richTextManager: RichTextManager
+    
+    @State private var linkTitle: String = ""
+    @State private var linkURL: String = ""
+    @FocusState private var focusedField: Field?
+    
+    enum Field {
+        case title, url
+    }
+    
+    var isValid: Bool {
+        !linkTitle.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
+        !linkURL.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    }
+    
+    var body: some View {
+        NavigationStack {
+            VStack(spacing: 24) {
+                // Header Icon
+                ZStack {
+                    Circle()
+                        .fill(
+                            RadialGradient(
+                                colors: [Color.green.opacity(0.3), Color.green.opacity(0.1), Color.clear],
+                                center: .center,
+                                startRadius: 15,
+                                endRadius: 45
+                            )
+                        )
+                        .frame(width: 90, height: 90)
+                    
+                    Circle()
+                        .fill(
+                            LinearGradient(
+                                colors: [Color(red: 0.35, green: 0.98, blue: 0.65), Color(red: 0.25, green: 0.85, blue: 0.55)],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                        )
+                        .frame(width: 56, height: 56)
+                        .shadow(color: Color.green.opacity(0.4), radius: 10, x: 0, y: 5)
+                    
+                    Image(systemName: "link")
+                        .font(.system(size: 22, weight: .semibold))
+                        .foregroundStyle(.white)
+                }
+                .padding(.top, 20)
+                
+                VStack(spacing: 6) {
+                    Text("Add Link")
+                        .font(.system(size: 22, weight: .bold, design: .rounded))
+                    
+                    Text("Enter the title and URL for your link")
+                        .font(.system(size: 14))
+                        .foregroundStyle(.secondary)
+                }
+                
+                // Form Fields
+                VStack(spacing: 16) {
+                    VStack(alignment: .leading, spacing: 8) {
+                        HStack(spacing: 6) {
+                            Image(systemName: "textformat")
+                                .font(.system(size: 12, weight: .semibold))
+                                .foregroundStyle(.secondary)
+                            Text("Title")
+                                .font(.system(size: 13, weight: .semibold))
+                                .foregroundStyle(.secondary)
+                        }
+                        
+                        TextField("Link text to display", text: $linkTitle)
+                            .font(.system(size: 15))
+                            .padding(14)
+                            .background(
+                                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                    .fill(Color(.tertiarySystemGroupedBackground))
+                            )
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                    .stroke(focusedField == .title ? Color.green.opacity(0.5) : Color.clear, lineWidth: 2)
+                            )
+                            .focused($focusedField, equals: .title)
+                            .submitLabel(.next)
+                            .onSubmit { focusedField = .url }
+                    }
+                    
+                    VStack(alignment: .leading, spacing: 8) {
+                        HStack(spacing: 6) {
+                            Image(systemName: "link")
+                                .font(.system(size: 12, weight: .semibold))
+                                .foregroundStyle(.secondary)
+                            Text("URL")
+                                .font(.system(size: 13, weight: .semibold))
+                                .foregroundStyle(.secondary)
+                        }
+                        
+                        TextField("https://example.com", text: $linkURL)
+                            .font(.system(size: 15))
+                            .textInputAutocapitalization(.never)
+                            .autocorrectionDisabled()
+                            .keyboardType(.URL)
+                            .padding(14)
+                            .background(
+                                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                    .fill(Color(.tertiarySystemGroupedBackground))
+                            )
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                    .stroke(focusedField == .url ? Color.green.opacity(0.5) : Color.clear, lineWidth: 2)
+                            )
+                            .focused($focusedField, equals: .url)
+                            .submitLabel(.done)
+                    }
+                }
+                .padding(.horizontal, 20)
+                
+                Spacer()
+                
+                // Add Button
+                Button {
+                    richTextManager.addLink(title: linkTitle.trimmingCharacters(in: .whitespacesAndNewlines), url: linkURL.trimmingCharacters(in: .whitespacesAndNewlines))
+                    dismiss()
+                } label: {
+                    HStack(spacing: 8) {
+                        Image(systemName: "plus.circle.fill")
+                            .font(.system(size: 16, weight: .semibold))
+                        Text("Add Link")
+                            .font(.system(size: 16, weight: .semibold))
+                    }
+                    .foregroundStyle(.white)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 16)
+                    .background(
+                        LinearGradient(
+                            colors: isValid ? [Color(red: 0.35, green: 0.98, blue: 0.65), Color(red: 0.25, green: 0.85, blue: 0.55)] : [Color.gray, Color.gray.opacity(0.8)],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+                    .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+                    .shadow(color: isValid ? Color.green.opacity(0.4) : Color.clear, radius: 10, x: 0, y: 5)
+                }
+                .disabled(!isValid)
+                .padding(.horizontal, 20)
+                .padding(.bottom, 24)
+            }
+            .background(Color(.systemGroupedBackground))
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .topBarLeading) {
+                    Button("Cancel") { dismiss() }
+                }
+            }
+        }
+        .onAppear {
+            focusedField = .title
+        }
+    }
+}
+
+// MARK: - Rich Text Editor View
+struct RichTextEditorView: View {
+    @Binding var plainText: String
+    @ObservedObject var richTextManager: RichTextManager
+    var isFocused: FocusState<FeedbackView.FocusedField?>.Binding
+    let placeholder: String
+    
+    var body: some View {
+        ZStack(alignment: .topLeading) {
+            // Display formatted text preview
+            if !richTextManager.displayText.isEmpty || !plainText.isEmpty {
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 4) {
+                        // Show formatted segments
+                        if !richTextManager.segments.isEmpty {
+                            formattedTextView
+                        }
+                        
+                        // Plain text input
+                        TextEditor(text: $plainText)
+                            .font(.system(size: 15))
+                            .scrollContentBackground(.hidden)
+                            .focused(isFocused, equals: .message)
+                            .frame(minHeight: 100)
+                    }
+                    .padding(12)
+                }
+            } else {
+                TextEditor(text: $plainText)
+                    .font(.system(size: 15))
+                    .scrollContentBackground(.hidden)
+                    .focused(isFocused, equals: .message)
+                    .padding(12)
+            }
+            
+            if plainText.isEmpty && richTextManager.segments.isEmpty {
+                Text(placeholder)
+                    .font(.system(size: 15))
+                    .foregroundStyle(.tertiary)
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 20)
+                    .allowsHitTesting(false)
+            }
+        }
+        .frame(minHeight: 150)
+        .background(
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .fill(Color(.tertiarySystemGroupedBackground))
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .stroke(isFocused.wrappedValue == .message ? Color.accentColor.opacity(0.5) : Color.clear, lineWidth: 2)
+        )
+    }
+    
+    @ViewBuilder
+    private var formattedTextView: some View {
+        FlowLayout(spacing: 0) {
+            ForEach(richTextManager.segments) { segment in
+                if let title = segment.linkTitle, let _ = segment.linkURL {
+                    LinkBadgeView(title: title, url: segment.linkURL ?? "") {
+                        if let index = richTextManager.segments.firstIndex(where: { $0.id == segment.id }) {
+                            richTextManager.segments.remove(at: index)
+                        }
+                    }
+                } else {
+                    Text(segment.text)
+                        .font(.system(size: 15, weight: segment.isBold ? .bold : .regular))
+                        .italic(segment.isItalic)
+                        .strikethrough(segment.isStrikethrough)
+                        .foregroundStyle(segment.isCode ? Color.purple : Color.primary)
+                        .padding(.horizontal, segment.isCode ? 4 : 0)
+                        .background(segment.isCode ? Color.purple.opacity(0.1) : Color.clear)
+                        .cornerRadius(4)
+                }
+            }
+        }
+    }
+}
+
+// MARK: - Flow Layout for formatted text
+struct FlowLayout: Layout {
+    var spacing: CGFloat = 0
+    
+    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
+        let result = FlowResult(in: proposal.width ?? 0, subviews: subviews, spacing: spacing)
+        return result.size
+    }
+    
+    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
+        let result = FlowResult(in: bounds.width, subviews: subviews, spacing: spacing)
+        for (index, subview) in subviews.enumerated() {
+            subview.place(at: CGPoint(x: bounds.minX + result.positions[index].x, y: bounds.minY + result.positions[index].y), proposal: .unspecified)
+        }
+    }
+    
+    struct FlowResult {
+        var size: CGSize = .zero
+        var positions: [CGPoint] = []
+        
+        init(in maxWidth: CGFloat, subviews: Subviews, spacing: CGFloat) {
+            var x: CGFloat = 0
+            var y: CGFloat = 0
+            var rowHeight: CGFloat = 0
+            
+            for subview in subviews {
+                let size = subview.sizeThatFits(.unspecified)
+                if x + size.width > maxWidth && x > 0 {
+                    x = 0
+                    y += rowHeight + spacing
+                    rowHeight = 0
+                }
+                positions.append(CGPoint(x: x, y: y))
+                rowHeight = max(rowHeight, size.height)
+                x += size.width + spacing
+                self.size.width = max(self.size.width, x)
+            }
+            self.size.height = y + rowHeight
+        }
+    }
+}
+
+// MARK: - Link Badge View
+struct LinkBadgeView: View {
+    let title: String
+    let url: String
+    let onRemove: () -> Void
+    
+    var body: some View {
+        HStack(spacing: 4) {
+            Image(systemName: "link")
+                .font(.system(size: 10, weight: .semibold))
+            Text(title)
+                .font(.system(size: 13, weight: .medium))
+            Button(action: onRemove) {
+                Image(systemName: "xmark.circle.fill")
+                    .font(.system(size: 12))
+                    .foregroundStyle(.white.opacity(0.8))
+            }
+        }
+        .foregroundStyle(.white)
+        .padding(.horizontal, 8)
+        .padding(.vertical, 4)
+        .background(
+            Capsule()
+                .fill(
+                    LinearGradient(
+                        colors: [Color(red: 0.35, green: 0.98, blue: 0.65), Color(red: 0.25, green: 0.85, blue: 0.55)],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                )
+        )
+        .padding(.trailing, 4)
+        .padding(.bottom, 4)
     }
 }
 
@@ -281,6 +689,8 @@ struct FeedbackView: View {
     @State private var showCodeEditor: Bool = false
     @State private var createdIssueURL: String = ""
     @State private var createdIssueNumber: Int = 0
+    @State private var showLinkDialog: Bool = false
+    @StateObject private var richTextManager = RichTextManager()
     
     @FocusState private var focusedField: FocusedField?
     
@@ -332,7 +742,19 @@ struct FeedbackView: View {
     
     private var isFormValid: Bool {
         !feedbackTitle.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
-        !feedbackMessage.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        (!feedbackMessage.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || !richTextManager.segments.isEmpty)
+    }
+    
+    private var combinedMessage: String {
+        let richText = richTextManager.markdownText
+        let plainText = feedbackMessage.trimmingCharacters(in: .whitespacesAndNewlines)
+        if richText.isEmpty {
+            return plainText
+        } else if plainText.isEmpty {
+            return richText
+        } else {
+            return richText + plainText
+        }
     }
     
     var body: some View {
@@ -354,10 +776,14 @@ struct FeedbackView: View {
             .sheet(isPresented: $showErrorSheet) {
                 FeedbackErrorSheet(errorMessage: errorMessage, onRetry: { submitFeedback() }, onDismiss: { showErrorSheet = false })
             }
+            .sheet(isPresented: $showLinkDialog) {
+                LinkDialogSheet(richTextManager: richTextManager)
+                    .presentationDetents([.medium])
+            }
             .toolbar {
                 ToolbarItemGroup(placement: .keyboard) {
                     if focusedField == .message {
-                        FormattingToolbar(text: $feedbackMessage)
+                        ModernFormattingToolbar(richTextManager: richTextManager, showLinkDialog: $showLinkDialog)
                     }
                 }
             }
@@ -365,7 +791,7 @@ struct FeedbackView: View {
     
     private var mainScrollView: some View {
         ScrollView {
-            VStack(spacing: 20) {
+            VStack(spacing: 24) {
                 headerSection
                     .opacity(appearAnimation ? 1 : 0)
                     .offset(y: appearAnimation ? 0 : 20)
@@ -562,7 +988,7 @@ struct FeedbackView: View {
     }
     
     private var messageField: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: 12) {
             HStack {
                 HStack(spacing: 6) {
                     Image(systemName: "text.alignleft")
@@ -576,35 +1002,110 @@ struct FeedbackView: View {
                         .foregroundStyle(.red)
                 }
                 Spacer()
-            }
-            
-            ZStack(alignment: .topLeading) {
-                TextEditor(text: $feedbackMessage)
-                    .font(.system(size: 15))
-                    .frame(minHeight: 150)
-                    .padding(10)
-                    .scrollContentBackground(.hidden)
-                    .background(inputBackground)
-                    .overlay(inputOverlay(focused: focusedField == .message))
-                    .focused($focusedField, equals: .message)
                 
-                if feedbackMessage.isEmpty {
-                    Text("Describe your feedback in detail...")
-                        .font(.system(size: 15))
-                        .foregroundStyle(.tertiary)
-                        .padding(.horizontal, 14)
-                        .padding(.vertical, 18)
-                        .allowsHitTesting(false)
+                // Active formats indicator
+                if !richTextManager.activeFormats.isEmpty {
+                    HStack(spacing: 4) {
+                        ForEach(Array(richTextManager.activeFormats), id: \.self) { format in
+                            activeFormatBadge(for: format)
+                        }
+                    }
                 }
             }
             
+            // Rich Text Editor
+            RichTextEditorView(
+                plainText: $feedbackMessage,
+                richTextManager: richTextManager,
+                isFocused: $focusedField,
+                placeholder: "Describe your feedback in detail..."
+            )
+            
+            // Links preview
+            if !richTextManager.links.isEmpty {
+                linksPreview
+            }
+            
             HStack {
+                if !richTextManager.activeFormats.isEmpty {
+                    Text("Formatting active")
+                        .font(.system(size: 11, weight: .medium))
+                        .foregroundStyle(.secondary)
+                }
                 Spacer()
-                Text("\(feedbackMessage.count) characters")
+                Text("\(combinedMessage.count) characters")
                     .font(.system(size: 11))
                     .foregroundStyle(.tertiary)
             }
         }
+    }
+    
+    @ViewBuilder
+    private func activeFormatBadge(for format: RichTextManager.FormatType) -> some View {
+        let (icon, color): (String, Color) = {
+            switch format {
+            case .bold: return ("bold", Color(red: 0.98, green: 0.36, blue: 0.35))
+            case .italic: return ("italic", Color(red: 0.35, green: 0.78, blue: 0.98))
+            case .strikethrough: return ("strikethrough", Color(red: 0.98, green: 0.72, blue: 0.35))
+            case .code: return ("chevron.left.forwardslash.chevron.right", Color(red: 0.55, green: 0.35, blue: 0.98))
+            }
+        }()
+        
+        Image(systemName: icon)
+            .font(.system(size: 10, weight: .bold))
+            .foregroundStyle(.white)
+            .frame(width: 20, height: 20)
+            .background(
+                Circle()
+                    .fill(
+                        LinearGradient(
+                            colors: [color, color.opacity(0.8)],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+            )
+    }
+    
+    private var linksPreview: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(spacing: 6) {
+                Image(systemName: "link")
+                    .font(.system(size: 11, weight: .semibold))
+                    .foregroundStyle(.secondary)
+                Text("Added Links")
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundStyle(.secondary)
+            }
+            
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 8) {
+                    ForEach(richTextManager.links.indices, id: \.self) { index in
+                        HStack(spacing: 6) {
+                            Image(systemName: "link")
+                                .font(.system(size: 11, weight: .semibold))
+                            Text(richTextManager.links[index].title)
+                                .font(.system(size: 12, weight: .medium))
+                                .lineLimit(1)
+                        }
+                        .foregroundStyle(.white)
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 6)
+                        .background(
+                            Capsule()
+                                .fill(
+                                    LinearGradient(
+                                        colors: [Color(red: 0.35, green: 0.98, blue: 0.65), Color(red: 0.25, green: 0.85, blue: 0.55)],
+                                        startPoint: .topLeading,
+                                        endPoint: .bottomTrailing
+                                    )
+                                )
+                        )
+                    }
+                }
+            }
+        }
+        .padding(.top, 4)
     }
     
     // MARK: - Attachments Section (Combined)
@@ -925,7 +1426,7 @@ struct FeedbackView: View {
     }
     
     private func buildIssueBody() -> String {
-        var body = "## Description\n\(feedbackMessage.trimmingCharacters(in: .whitespacesAndNewlines))\n\n"
+        var body = "## Description\n\(combinedMessage)\n\n"
         
         if includeCode && !codeSnippet.isEmpty {
             body += "\n## Code Snippet\n```\n\(codeSnippet)\n```\n\n"
