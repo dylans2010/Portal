@@ -881,22 +881,11 @@ struct FeedbackView: View {
         }
     }
     
-    private func sendFeedback(_ feedback: FeedbackPayload) async throws {
-        guard let url = URL(string: "http://194.41.112.28:3000/token") else {
-            throw FeedbackError.invalidURL
-        }
-        
-        """
+    private func buildIssueBody() -> String {
+        var body = "## Description\n\(feedbackMessage.trimmingCharacters(in: .whitespacesAndNewlines))\n\n"
         
         if !codeSnippet.isEmpty {
-            body += """
-            
-            ## Code Snippet
-            ```
-            \(codeSnippet)
-            ```
-            
-            """
+            body += "\n## Code Snippet\n```\n\(codeSnippet)\n```\n\n"
         }
         
         if includeDeviceInfo {
@@ -905,51 +894,31 @@ struct FeedbackView: View {
             let device = UIDevice.current.modelName
             let iosVersion = UIDevice.current.systemVersion
             
-            body += """
-            
-            ## Device Information
-            | Property | Value |
-            |----------|-------|
-            | App Version | \(version) (\(build)) |
-            | Device | \(device) |
-            | iOS Version | \(iosVersion) |
-            
-            """
+            body += "\n## Device Information\n"
+            body += "| Property | Value |\n"
+            body += "|----------|-------|\n"
+            body += "| App Version | \(version) (\(build)) |\n"
+            body += "| Device | \(device) |\n"
+            body += "| iOS Version | \(iosVersion) |\n\n"
         }
         
         if includeLogs {
             let logs = AppLogManager.shared.exportLogs()
             if !logs.isEmpty {
-                body += """
-                
-                ## App Logs
-                <details>
-                <summary>Click to expand logs</summary>
-                
-                ```
-                \(logs.prefix(10000))
-                ```
-                
-                </details>
-                
-                """
+                body += "\n## App Logs\n"
+                body += "<details>\n"
+                body += "<summary>Click to expand logs</summary>\n\n"
+                body += "```\n\(logs.prefix(10000))\n```\n\n"
+                body += "</details>\n\n"
             }
         }
         
         if !selectedImages.isEmpty {
-            body += """
-            
-            ## Screenshots
-            _\(selectedImages.count) screenshot(s) were attached but cannot be uploaded via API._
-            
-            """
+            body += "\n## Screenshots\n"
+            body += "_\(selectedImages.count) screenshot(s) were attached but cannot be uploaded via API._\n\n"
         }
         
-        body += """
-        
-        ---
-        _Submitted via Portal app feedback system_
-        """
+        body += "\n---\n_Submitted via Portal app feedback system_"
         
         return body
     }
