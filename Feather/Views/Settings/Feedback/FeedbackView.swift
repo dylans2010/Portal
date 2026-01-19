@@ -2,6 +2,127 @@ import SwiftUI
 import UIKit
 import PhotosUI
 
+// MARK: - Text Formatting Coordinator
+@available(iOS 18.0, *)
+final class TextFormattingCoordinator: NSObject, UITextFormattingViewControllerDelegate {
+    weak var textView: UITextView?
+    
+    func textFormattingViewController(
+        _ viewController: UITextFormattingViewController,
+        updateTextAttributesForSelectedRangeWith updateHandler: (inout [NSAttributedString.Key : Any]) -> Void
+    ) {
+        guard let textView = textView else { return }
+        let selectedRange = textView.selectedRange
+        guard selectedRange.length > 0 else { return }
+        
+        let mutableAttrString = NSMutableAttributedString(attributedString: textView.attributedText)
+        mutableAttrString.enumerateAttributes(in: selectedRange, options: []) { attrs, range, _ in
+            var newAttrs = attrs
+            updateHandler(&newAttrs)
+            mutableAttrString.setAttributes(newAttrs, range: range)
+        }
+        textView.attributedText = mutableAttrString
+        textView.selectedRange = selectedRange
+    }
+}
+
+// MARK: - Formatted Text Editor (UITextView wrapper)
+struct FormattedTextEditor: UIViewRepresentable {
+    @Binding var attributedText: NSAttributedString
+    var placeholder: String
+    var onTextViewReady: ((UITextView) -> Void)?
+    
+    func makeCoordinator() -> Coordinator {
+        Coordinator(self)
+    }
+    
+    func makeUIView(context: Context) -> UITextView {
+        let textView = UITextView()
+        textView.delegate = context.coordinator
+        textView.font = UIFont.systemFont(ofSize: 15)
+        textView.backgroundColor = .clear
+        textView.textContainerInset = UIEdgeInsets(top: 14, left: 10, bottom: 14, right: 10)
+        textView.isScrollEnabled = true
+        textView.allowsEditingTextAttributes = true
+        
+        context.coordinator.setupPlaceholder(for: textView, placeholder: placeholder)
+        onTextViewReady?(textView)
+        
+        return textView
+    }
+    
+    func updateUIView(_ textView: UITextView, context: Context) {
+        if textView.attributedText != attributedText {
+            textView.attributedText = attributedText
+        }
+        context.coordinator.updatePlaceholder(for: textView, isEmpty: attributedText.length == 0)
+    }
+    
+    class Coordinator: NSObject, UITextViewDelegate {
+        var parent: FormattedTextEditor
+        weak var placeholderLabel: UILabel?
+        
+        init(_ parent: FormattedTextEditor) {
+            self.parent = parent
+        }
+        
+        func setupPlaceholder(for textView: UITextView, placeholder: String) {
+            let label = UILabel()
+            label.text = placeholder
+            label.font = UIFont.systemFont(ofSize: 15)
+            label.textColor = .tertiaryLabel
+            label.translatesAutoresizingMaskIntoConstraints = false
+            textView.addSubview(label)
+            
+            NSLayoutConstraint.activate([
+                label.topAnchor.constraint(equalTo: textView.topAnchor, constant: 14),
+                label.leadingAnchor.constraint(equalTo: textView.leadingAnchor, constant: 15)
+            ])
+            
+            placeholderLabel = label
+        }
+        
+        func updatePlaceholder(for textView: UITextView, isEmpty: Bool) {
+            placeholderLabel?.isHidden = !isEmpty
+        }
+        
+        func textViewDidChange(_ textView: UITextView) {
+            parent.attributedText = textView.attributedText
+            placeholderLabel?.isHidden = textView.text.count > 0
+        }
+    }
+}
+
+// MARK: - Text Formatting Sheet Presenter
+@available(iOS 18.0, *)
+struct TextFormattingPresenter {
+    static func present(for textView: UITextView, coordinator: TextFormattingCoordinator) {
+        guard let windowScene = UIApplication.shared.connectedScenes
+            .compactMap({ $0 as? UIWindowScene })
+            .first(where: { $0.activationState == .foregroundActive }),
+              let rootVC = windowScene.windows.first(where: { $0.isKeyWindow })?.rootViewController else {
+            return
+        }
+        
+        var topVC = rootVC
+        while let presented = topVC.presentedViewController {
+            topVC = presented
+        }
+        
+        let config = UITextFormattingViewController.Configuration()
+        let formattingVC = UITextFormattingViewController(configuration: config)
+        formattingVC.delegate = coordinator
+        coordinator.textView = textView
+        
+        if let sheet = formattingVC.sheetPresentationController {
+            sheet.detents = [.medium(), .large()]
+            sheet.prefersGrabberVisible = true
+        }
+        
+        topVC.present(formattingVC, animated: true)
+    }
+}
+
 // MARK: - Rich Text Span Model
 struct RichTextSpan: Identifiable, Equatable {
     let id = UUID()
@@ -151,6 +272,11 @@ class RichTextEditorManager: ObservableObject {
     
     var characterCount: Int {
         spans.reduce(0) { $0 + $1.text.count } + currentText.count
+    }
+    
+    func removeSpan(at index: Int) {
+        guard spans.indices.contains(index) else { return }
+        spans.remove(at: index)
     }
 }
 
@@ -827,6 +953,16 @@ struct FeedbackView: View {
     @State private var showLinkDialog: Bool = false
     @StateObject private var richTextManager = RichTextEditorManager()
     
+    // Text formatting state
+    @State private var descriptionAttributedText: NSAttributedString = NSAttributedString()
+    @State private var descriptionTextView: UITextView?
+    private let formattingCoordinator: Any? = {
+        if #available(iOS 18.0, *) {
+            return TextFormattingCoordinator()
+        }
+        return nil
+    }()
+    
     @FocusState private var focusedField: FocusedField?
     
     enum FocusedField {
@@ -877,11 +1013,11 @@ struct FeedbackView: View {
     
     private var isFormValid: Bool {
         !feedbackTitle.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
-        !richTextManager.isEmpty
+        descriptionAttributedText.length > 0
     }
     
     private var combinedMessage: String {
-        richTextManager.markdownOutput
+        descriptionAttributedText.string
     }
     
     var body: some View {
@@ -906,13 +1042,6 @@ struct FeedbackView: View {
             .sheet(isPresented: $showLinkDialog) {
                 LinkDialogSheet(manager: richTextManager)
                     .presentationDetents([.medium])
-            }
-            .toolbar {
-                ToolbarItemGroup(placement: .keyboard) {
-                    if focusedField == .message {
-                        ModernFormattingToolbar(manager: richTextManager, showLinkDialog: $showLinkDialog)
-                    }
-                }
             }
     }
     
@@ -1130,44 +1259,61 @@ struct FeedbackView: View {
                 }
                 Spacer()
                 
-                // Active formats indicator
-                if !richTextManager.activeFormats.isEmpty {
-                    HStack(spacing: 4) {
-                        ForEach(Array(richTextManager.activeFormats), id: \.self) { format in
-                            activeFormatBadge(for: format)
+                // Format button (iOS 18+)
+                if #available(iOS 18.0, *) {
+                    Button {
+                        presentTextFormatting()
+                    } label: {
+                        HStack(spacing: 4) {
+                            Image(systemName: "textformat")
+                                .font(.system(size: 14, weight: .semibold))
+                            Text("Format")
+                                .font(.system(size: 13, weight: .medium))
                         }
+                        .foregroundStyle(.accentColor)
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 6)
+                        .background(
+                            RoundedRectangle(cornerRadius: 8, style: .continuous)
+                                .fill(Color.accentColor.opacity(0.12))
+                        )
                     }
-                    .transition(.scale.combined(with: .opacity))
+                    .buttonStyle(.plain)
                 }
             }
-            .animation(.spring(response: 0.3, dampingFraction: 0.7), value: richTextManager.activeFormats)
             
-            // Rich Text Editor
-            RichTextEditorView(
-                plainText: .constant(""),
-                manager: richTextManager,
-                isFocused: $focusedField,
-                placeholder: "Describe your feedback in detail..."
+            // Formatted Text Editor
+            FormattedTextEditor(
+                attributedText: $descriptionAttributedText,
+                placeholder: "Describe your feedback in detail...",
+                onTextViewReady: { textView in
+                    descriptionTextView = textView
+                }
+            )
+            .frame(minHeight: 150)
+            .background(
+                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .fill(Color(.tertiarySystemGroupedBackground))
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .stroke(Color.clear, lineWidth: 2)
             )
             
             HStack {
-                if !richTextManager.activeFormats.isEmpty {
-                    HStack(spacing: 4) {
-                        Image(systemName: "textformat")
-                            .font(.system(size: 10, weight: .bold))
-                        Text("Formatting active")
-                            .font(.system(size: 11, weight: .medium))
-                    }
-                    .foregroundStyle(.secondary)
-                    .transition(.opacity)
-                }
                 Spacer()
-                Text("\(richTextManager.characterCount) characters")
+                Text("\(descriptionAttributedText.length) characters")
                     .font(.system(size: 11))
                     .foregroundStyle(.tertiary)
             }
-            .animation(.easeInOut(duration: 0.2), value: richTextManager.activeFormats.isEmpty)
         }
+    }
+    
+    @available(iOS 18.0, *)
+    private func presentTextFormatting() {
+        guard let textView = descriptionTextView,
+              let coordinator = formattingCoordinator as? TextFormattingCoordinator else { return }
+        TextFormattingPresenter.present(for: textView, coordinator: coordinator)
     }
     
     @ViewBuilder
