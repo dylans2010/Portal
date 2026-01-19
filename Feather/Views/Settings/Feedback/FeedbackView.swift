@@ -2,56 +2,114 @@ import SwiftUI
 import UIKit
 import PhotosUI
 
-// MARK: - Rich Text Format Model
-struct RichTextSegment: Identifiable, Equatable {
+// MARK: - Rich Text Span Model
+struct RichTextSpan: Identifiable, Equatable {
     let id = UUID()
     var text: String
     var isBold: Bool = false
     var isItalic: Bool = false
     var isStrikethrough: Bool = false
     var isCode: Bool = false
+    var isLink: Bool = false
     var linkURL: String? = nil
-    var linkTitle: String? = nil
     
     var toMarkdown: String {
         var result = text
-        if let url = linkURL, let title = linkTitle {
-            result = "[\(title)](\(url))"
-        } else {
-            if isCode { result = "`\(result)`" }
-            if isStrikethrough { result = "~~\(result)~~" }
-            if isBold && isItalic { result = "***\(result)***" }
-            else if isBold { result = "**\(result)**" }
-            else if isItalic { result = "_\(result)_" }
+        if isLink, let url = linkURL {
+            return "[\(text)](\(url))"
         }
+        if isCode { result = "`\(result)`" }
+        if isStrikethrough { result = "~~\(result)~~" }
+        if isBold && isItalic { result = "***\(result)***" }
+        else if isBold { result = "**\(result)**" }
+        else if isItalic { result = "_\(result)_" }
         return result
     }
 }
 
-// MARK: - Rich Text Manager
-class RichTextManager: ObservableObject {
-    @Published var segments: [RichTextSegment] = []
+// MARK: - Rich Text Editor Manager
+class RichTextEditorManager: ObservableObject {
+    @Published var spans: [RichTextSpan] = []
     @Published var activeFormats: Set<FormatType> = []
-    @Published var links: [(title: String, url: String)] = []
+    @Published var currentText: String = ""
     
-    enum FormatType: String, CaseIterable {
+    enum FormatType: String, CaseIterable, Hashable {
         case bold, italic, strikethrough, code
+        
+        var icon: String {
+            switch self {
+            case .bold: return "bold"
+            case .italic: return "italic"
+            case .strikethrough: return "strikethrough"
+            case .code: return "chevron.left.forwardslash.chevron.right"
+            }
+        }
+        
+        var color: Color {
+            switch self {
+            case .bold: return Color(red: 0.98, green: 0.36, blue: 0.35)
+            case .italic: return Color(red: 0.35, green: 0.78, blue: 0.98)
+            case .strikethrough: return Color(red: 0.98, green: 0.72, blue: 0.35)
+            case .code: return Color(red: 0.55, green: 0.35, blue: 0.98)
+            }
+        }
+        
+        var gradient: [Color] {
+            switch self {
+            case .bold: return [Color(red: 0.98, green: 0.36, blue: 0.35), Color(red: 0.95, green: 0.25, blue: 0.45)]
+            case .italic: return [Color(red: 0.35, green: 0.78, blue: 0.98), Color(red: 0.25, green: 0.55, blue: 0.95)]
+            case .strikethrough: return [Color(red: 0.98, green: 0.72, blue: 0.35), Color(red: 0.95, green: 0.55, blue: 0.25)]
+            case .code: return [Color(red: 0.55, green: 0.35, blue: 0.98), Color(red: 0.75, green: 0.25, blue: 0.95)]
+            }
+        }
     }
     
-    var displayText: String {
-        var result = ""
-        for segment in segments {
-            if let title = segment.linkTitle {
-                result += title
-            } else {
-                result += segment.text
-            }
+    var markdownOutput: String {
+        var result = spans.map { $0.toMarkdown }.joined()
+        if !currentText.isEmpty {
+            var current = currentText
+            if activeFormats.contains(.code) { current = "`\(current)`" }
+            if activeFormats.contains(.strikethrough) { current = "~~\(current)~~" }
+            if activeFormats.contains(.bold) && activeFormats.contains(.italic) { current = "***\(current)***" }
+            else if activeFormats.contains(.bold) { current = "**\(current)**" }
+            else if activeFormats.contains(.italic) { current = "_\(current)_" }
+            result += current
         }
         return result
     }
     
-    var markdownText: String {
-        segments.map { $0.toMarkdown }.joined()
+    var displayAttributedString: AttributedString {
+        var result = AttributedString()
+        
+        for span in spans {
+            var attr = AttributedString(span.text)
+            
+            if span.isBold {
+                attr.font = .system(size: 15, weight: .bold)
+            }
+            if span.isItalic {
+                attr.font = .system(size: 15).italic()
+            }
+            if span.isBold && span.isItalic {
+                attr.font = .system(size: 15, weight: .bold).italic()
+            }
+            if span.isStrikethrough {
+                attr.strikethroughStyle = .single
+            }
+            if span.isCode {
+                attr.font = .system(size: 14, design: .monospaced)
+                attr.backgroundColor = Color.purple.opacity(0.15)
+                attr.foregroundColor = .purple
+            }
+            if span.isLink {
+                attr.foregroundColor = Color(red: 0.25, green: 0.85, blue: 0.55)
+                attr.underlineStyle = .single
+            }
+            
+            result.append(attr)
+        }
+        
+        return result
     }
     
     func toggleFormat(_ format: FormatType) {
@@ -62,144 +120,111 @@ class RichTextManager: ObservableObject {
         }
     }
     
-    func addText(_ text: String) {
-        guard !text.isEmpty else { return }
-        let segment = RichTextSegment(
-            text: text,
+    func commitCurrentText() {
+        guard !currentText.isEmpty else { return }
+        let span = RichTextSpan(
+            text: currentText,
             isBold: activeFormats.contains(.bold),
             isItalic: activeFormats.contains(.italic),
             isStrikethrough: activeFormats.contains(.strikethrough),
             isCode: activeFormats.contains(.code)
         )
-        segments.append(segment)
+        spans.append(span)
+        currentText = ""
     }
     
     func addLink(title: String, url: String) {
-        guard !title.isEmpty && !url.isEmpty else { return }
-        let segment = RichTextSegment(text: "", linkURL: url, linkTitle: title)
-        segments.append(segment)
-        links.append((title: title, url: url))
+        commitCurrentText()
+        let span = RichTextSpan(text: title, isLink: true, linkURL: url)
+        spans.append(span)
     }
     
     func clear() {
-        segments.removeAll()
-        links.removeAll()
+        spans.removeAll()
+        currentText = ""
         activeFormats.removeAll()
+    }
+    
+    var isEmpty: Bool {
+        spans.isEmpty && currentText.isEmpty
+    }
+    
+    var characterCount: Int {
+        spans.reduce(0) { $0 + $1.text.count } + currentText.count
     }
 }
 
 // MARK: - Modern Formatting Toolbar
 struct ModernFormattingToolbar: View {
-    @ObservedObject var richTextManager: RichTextManager
+    @ObservedObject var manager: RichTextEditorManager
     @Binding var showLinkDialog: Bool
     @Environment(\.colorScheme) private var colorScheme
     
-    private let toolbarHeight: CGFloat = 52
-    
-    enum FormatButton: CaseIterable {
-        case bold, italic, strikethrough, code, link, dismiss
-        
-        var icon: String {
-            switch self {
-            case .bold: return "bold"
-            case .italic: return "italic"
-            case .strikethrough: return "strikethrough"
-            case .code: return "chevron.left.forwardslash.chevron.right"
-            case .link: return "link"
-            case .dismiss: return "keyboard.chevron.compact.down"
-            }
-        }
-        
-        var label: String {
-            switch self {
-            case .bold: return "Bold"
-            case .italic: return "Italic"
-            case .strikethrough: return "Strikethrough"
-            case .code: return "Code"
-            case .link: return "Link"
-            case .dismiss: return "Dismiss"
-            }
-        }
-        
-        var gradient: [Color] {
-            switch self {
-            case .bold: return [Color(red: 0.98, green: 0.36, blue: 0.35), Color(red: 0.95, green: 0.25, blue: 0.45)]
-            case .italic: return [Color(red: 0.35, green: 0.78, blue: 0.98), Color(red: 0.25, green: 0.55, blue: 0.95)]
-            case .strikethrough: return [Color(red: 0.98, green: 0.72, blue: 0.35), Color(red: 0.95, green: 0.55, blue: 0.25)]
-            case .code: return [Color(red: 0.55, green: 0.35, blue: 0.98), Color(red: 0.75, green: 0.25, blue: 0.95)]
-            case .link: return [Color(red: 0.35, green: 0.98, blue: 0.65), Color(red: 0.25, green: 0.85, blue: 0.55)]
-            case .dismiss: return [Color(red: 0.5, green: 0.5, blue: 0.55), Color(red: 0.4, green: 0.4, blue: 0.45)]
-            }
-        }
-        
-        var formatType: RichTextManager.FormatType? {
-            switch self {
-            case .bold: return .bold
-            case .italic: return .italic
-            case .strikethrough: return .strikethrough
-            case .code: return .code
-            default: return nil
-            }
-        }
-    }
+    private let toolbarHeight: CGFloat = 56
     
     var body: some View {
-        HStack(spacing: 8) {
-            ForEach([FormatButton.bold, .italic, .strikethrough, .code, .link], id: \.icon) { button in
-                ModernFormatButton(
-                    button: button,
-                    isActive: isButtonActive(button)
+        HStack(spacing: 10) {
+            ForEach(RichTextEditorManager.FormatType.allCases, id: \.self) { format in
+                FormatToolbarButton(
+                    format: format,
+                    isActive: manager.activeFormats.contains(format)
                 ) {
-                    handleButtonTap(button)
+                    withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                        manager.toggleFormat(format)
+                    }
+                    HapticsManager.shared.softImpact()
                 }
+            }
+            
+            // Link button
+            LinkToolbarButton(isActive: false) {
+                showLinkDialog = true
+                HapticsManager.shared.softImpact()
             }
             
             Spacer()
             
-            ModernFormatButton(button: .dismiss, isActive: false) {
+            // Dismiss button
+            Button {
                 UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+            } label: {
+                Image(systemName: "keyboard.chevron.compact.down")
+                    .font(.system(size: 18, weight: .medium))
+                    .foregroundStyle(.secondary)
+                    .frame(width: 44, height: 40)
+                    .background(
+                        RoundedRectangle(cornerRadius: 12, style: .continuous)
+                            .fill(Color(.tertiarySystemFill))
+                    )
             }
+            .buttonStyle(.plain)
         }
-        .padding(.horizontal, 12)
+        .padding(.horizontal, 14)
         .frame(height: toolbarHeight)
         .background(
-            RoundedRectangle(cornerRadius: 20, style: .continuous)
+            RoundedRectangle(cornerRadius: 22, style: .continuous)
                 .fill(.ultraThinMaterial)
                 .overlay(
-                    RoundedRectangle(cornerRadius: 20, style: .continuous)
+                    RoundedRectangle(cornerRadius: 22, style: .continuous)
                         .stroke(
                             LinearGradient(
-                                colors: [Color.white.opacity(0.3), Color.white.opacity(0.1)],
+                                colors: [Color.white.opacity(0.35), Color.white.opacity(0.1)],
                                 startPoint: .topLeading,
                                 endPoint: .bottomTrailing
                             ),
                             lineWidth: 1
                         )
                 )
-                .shadow(color: Color.black.opacity(0.1), radius: 10, x: 0, y: 4)
+                .shadow(color: Color.black.opacity(0.12), radius: 12, x: 0, y: 5)
         )
-        .padding(.horizontal, 8)
-        .padding(.vertical, 6)
-    }
-    
-    private func isButtonActive(_ button: FormatButton) -> Bool {
-        guard let formatType = button.formatType else { return false }
-        return richTextManager.activeFormats.contains(formatType)
-    }
-    
-    private func handleButtonTap(_ button: FormatButton) {
-        HapticsManager.shared.softImpact()
-        if button == .link {
-            showLinkDialog = true
-        } else if let formatType = button.formatType {
-            richTextManager.toggleFormat(formatType)
-        }
+        .padding(.horizontal, 10)
+        .padding(.vertical, 8)
     }
 }
 
-// MARK: - Modern Format Button
-private struct ModernFormatButton: View {
-    let button: ModernFormattingToolbar.FormatButton
+// MARK: - Format Toolbar Button
+private struct FormatToolbarButton: View {
+    let format: RichTextEditorManager.FormatType
     let isActive: Bool
     let action: () -> Void
     
@@ -208,54 +233,97 @@ private struct ModernFormatButton: View {
     var body: some View {
         Button(action: action) {
             ZStack {
-                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                RoundedRectangle(cornerRadius: 14, style: .continuous)
                     .fill(
                         isActive ?
-                        LinearGradient(colors: button.gradient, startPoint: .topLeading, endPoint: .bottomTrailing) :
-                        LinearGradient(colors: [Color(.tertiarySystemFill), Color(.tertiarySystemFill)], startPoint: .topLeading, endPoint: .bottomTrailing)
+                        LinearGradient(colors: format.gradient, startPoint: .topLeading, endPoint: .bottomTrailing) :
+                        LinearGradient(colors: [Color(.tertiarySystemFill), Color(.quaternarySystemFill)], startPoint: .topLeading, endPoint: .bottomTrailing)
                     )
                     .overlay(
-                        RoundedRectangle(cornerRadius: 12, style: .continuous)
+                        RoundedRectangle(cornerRadius: 14, style: .continuous)
                             .stroke(
                                 isActive ?
-                                LinearGradient(colors: [Color.white.opacity(0.4), Color.white.opacity(0.1)], startPoint: .topLeading, endPoint: .bottomTrailing) :
+                                LinearGradient(colors: [Color.white.opacity(0.5), Color.white.opacity(0.15)], startPoint: .topLeading, endPoint: .bottomTrailing) :
                                 LinearGradient(colors: [Color.clear, Color.clear], startPoint: .topLeading, endPoint: .bottomTrailing),
-                                lineWidth: 1
+                                lineWidth: 1.5
                             )
                     )
-                    .shadow(color: isActive ? button.gradient[0].opacity(0.4) : Color.clear, radius: 6, x: 0, y: 3)
+                    .shadow(color: isActive ? format.gradient[0].opacity(0.5) : Color.clear, radius: 8, x: 0, y: 4)
                 
-                VStack(spacing: 2) {
-                    Image(systemName: button.icon)
-                        .font(.system(size: 15, weight: .semibold))
+                VStack(spacing: 3) {
+                    Image(systemName: format.icon)
+                        .font(.system(size: 16, weight: .bold))
                         .foregroundStyle(isActive ? .white : .primary)
                     
                     if isActive {
                         Circle()
                             .fill(.white)
-                            .frame(width: 4, height: 4)
+                            .frame(width: 5, height: 5)
+                            .transition(.scale.combined(with: .opacity))
                     }
                 }
             }
-            .frame(width: 42, height: 38)
+            .frame(width: 46, height: 42)
         }
         .buttonStyle(.plain)
-        .scaleEffect(isPressed ? 0.92 : 1.0)
-        .animation(.spring(response: 0.25, dampingFraction: 0.6), value: isPressed)
-        .animation(.spring(response: 0.3, dampingFraction: 0.7), value: isActive)
+        .scaleEffect(isPressed ? 0.9 : 1.0)
+        .animation(.spring(response: 0.2, dampingFraction: 0.6), value: isPressed)
+        .animation(.spring(response: 0.35, dampingFraction: 0.7), value: isActive)
         .simultaneousGesture(
             DragGesture(minimumDistance: 0)
                 .onChanged { _ in isPressed = true }
                 .onEnded { _ in isPressed = false }
         )
-        .accessibilityLabel(button.label)
+    }
+}
+
+// MARK: - Link Toolbar Button
+private struct LinkToolbarButton: View {
+    let isActive: Bool
+    let action: () -> Void
+    
+    @State private var isPressed = false
+    
+    private let gradient: [Color] = [Color(red: 0.35, green: 0.98, blue: 0.65), Color(red: 0.25, green: 0.85, blue: 0.55)]
+    
+    var body: some View {
+        Button(action: action) {
+            ZStack {
+                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                    .fill(
+                        LinearGradient(colors: [Color(.tertiarySystemFill), Color(.quaternarySystemFill)], startPoint: .topLeading, endPoint: .bottomTrailing)
+                    )
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 14, style: .continuous)
+                            .stroke(
+                                LinearGradient(colors: [gradient[0].opacity(0.3), gradient[1].opacity(0.1)], startPoint: .topLeading, endPoint: .bottomTrailing),
+                                lineWidth: 1.5
+                            )
+                    )
+                
+                Image(systemName: "link")
+                    .font(.system(size: 16, weight: .bold))
+                    .foregroundStyle(
+                        LinearGradient(colors: gradient, startPoint: .topLeading, endPoint: .bottomTrailing)
+                    )
+            }
+            .frame(width: 46, height: 42)
+        }
+        .buttonStyle(.plain)
+        .scaleEffect(isPressed ? 0.9 : 1.0)
+        .animation(.spring(response: 0.2, dampingFraction: 0.6), value: isPressed)
+        .simultaneousGesture(
+            DragGesture(minimumDistance: 0)
+                .onChanged { _ in isPressed = true }
+                .onEnded { _ in isPressed = false }
+        )
     }
 }
 
 // MARK: - Link Dialog Sheet
 struct LinkDialogSheet: View {
     @Environment(\.dismiss) private var dismiss
-    @ObservedObject var richTextManager: RichTextManager
+    @ObservedObject var manager: RichTextEditorManager
     
     @State private var linkTitle: String = ""
     @State private var linkURL: String = ""
@@ -374,7 +442,8 @@ struct LinkDialogSheet: View {
                 
                 // Add Button
                 Button {
-                    richTextManager.addLink(title: linkTitle.trimmingCharacters(in: .whitespacesAndNewlines), url: linkURL.trimmingCharacters(in: .whitespacesAndNewlines))
+                    manager.addLink(title: linkTitle.trimmingCharacters(in: .whitespacesAndNewlines), url: linkURL.trimmingCharacters(in: .whitespacesAndNewlines))
+                    HapticsManager.shared.success()
                     dismiss()
                 } label: {
                     HStack(spacing: 8) {
@@ -414,47 +483,157 @@ struct LinkDialogSheet: View {
     }
 }
 
+// MARK: - Rich Text Display View
+struct RichTextDisplayView: View {
+    @ObservedObject var manager: RichTextEditorManager
+    
+    var body: some View {
+        if manager.spans.isEmpty {
+            EmptyView()
+        } else {
+            FlowLayout(spacing: 4) {
+                ForEach(Array(manager.spans.enumerated()), id: \.element.id) { index, span in
+                    SpanView(span: span) {
+                        withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                            manager.removeSpan(at: index)
+                        }
+                        HapticsManager.shared.softImpact()
+                    }
+                }
+            }
+            .padding(.bottom, 8)
+        }
+    }
+}
+
+// MARK: - Span View
+private struct SpanView: View {
+    let span: RichTextSpan
+    let onRemove: () -> Void
+    
+    @State private var showRemove = false
+    
+    var body: some View {
+        Group {
+            if span.isLink {
+                linkView
+            } else {
+                textView
+            }
+        }
+        .onTapGesture {
+            withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                showRemove.toggle()
+            }
+        }
+    }
+    
+    private var textView: some View {
+        HStack(spacing: 4) {
+            Text(span.text)
+                .font(fontForSpan)
+                .strikethrough(span.isStrikethrough)
+                .foregroundStyle(span.isCode ? Color.purple : Color.primary)
+            
+            if showRemove {
+                Button(action: onRemove) {
+                    Image(systemName: "xmark.circle.fill")
+                        .font(.system(size: 14))
+                        .foregroundStyle(.red)
+                }
+                .transition(.scale.combined(with: .opacity))
+            }
+        }
+        .padding(.horizontal, span.isCode ? 6 : 2)
+        .padding(.vertical, span.isCode ? 3 : 0)
+        .background(
+            span.isCode ?
+            RoundedRectangle(cornerRadius: 6, style: .continuous)
+                .fill(Color.purple.opacity(0.12)) :
+            nil
+        )
+    }
+    
+    private var linkView: some View {
+        HStack(spacing: 6) {
+            Image(systemName: "link")
+                .font(.system(size: 11, weight: .bold))
+            Text(span.text)
+                .font(.system(size: 14, weight: .medium))
+            
+            if showRemove {
+                Button(action: onRemove) {
+                    Image(systemName: "xmark.circle.fill")
+                        .font(.system(size: 12))
+                        .foregroundStyle(.white.opacity(0.8))
+                }
+                .transition(.scale.combined(with: .opacity))
+            }
+        }
+        .foregroundStyle(.white)
+        .padding(.horizontal, 10)
+        .padding(.vertical, 6)
+        .background(
+            Capsule()
+                .fill(
+                    LinearGradient(
+                        colors: [Color(red: 0.35, green: 0.98, blue: 0.65), Color(red: 0.25, green: 0.85, blue: 0.55)],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                )
+                .shadow(color: Color.green.opacity(0.3), radius: 4, x: 0, y: 2)
+        )
+    }
+    
+    private var fontForSpan: Font {
+        var font: Font = .system(size: 15)
+        if span.isBold && span.isItalic {
+            font = .system(size: 15, weight: .bold).italic()
+        } else if span.isBold {
+            font = .system(size: 15, weight: .bold)
+        } else if span.isItalic {
+            font = .system(size: 15).italic()
+        }
+        if span.isCode {
+            font = .system(size: 14, design: .monospaced)
+        }
+        return font
+    }
+}
+
 // MARK: - Rich Text Editor View
 struct RichTextEditorView: View {
     @Binding var plainText: String
-    @ObservedObject var richTextManager: RichTextManager
+    @ObservedObject var manager: RichTextEditorManager
     var isFocused: FocusState<FeedbackView.FocusedField?>.Binding
     let placeholder: String
     
     var body: some View {
         ZStack(alignment: .topLeading) {
-            // Display formatted text preview
-            if !richTextManager.displayText.isEmpty || !plainText.isEmpty {
-                ScrollView {
-                    VStack(alignment: .leading, spacing: 4) {
-                        // Show formatted segments
-                        if !richTextManager.segments.isEmpty {
-                            formattedTextView
-                        }
-                        
-                        // Plain text input
-                        TextEditor(text: $plainText)
-                            .font(.system(size: 15))
-                            .scrollContentBackground(.hidden)
-                            .focused(isFocused, equals: .message)
-                            .frame(minHeight: 100)
-                    }
-                    .padding(12)
+            VStack(alignment: .leading, spacing: 8) {
+                // Display formatted spans
+                if !manager.spans.isEmpty {
+                    RichTextDisplayView(manager: manager)
                 }
-            } else {
-                TextEditor(text: $plainText)
-                    .font(.system(size: 15))
+                
+                // Plain text input with current formatting
+                TextEditor(text: $manager.currentText)
+                    .font(currentFont)
+                    .strikethrough(manager.activeFormats.contains(.strikethrough))
+                    .foregroundStyle(manager.activeFormats.contains(.code) ? Color.purple : Color.primary)
                     .scrollContentBackground(.hidden)
                     .focused(isFocused, equals: .message)
-                    .padding(12)
+                    .frame(minHeight: manager.spans.isEmpty ? 130 : 80)
             }
+            .padding(14)
             
-            if plainText.isEmpty && richTextManager.segments.isEmpty {
+            if manager.isEmpty {
                 Text(placeholder)
                     .font(.system(size: 15))
                     .foregroundStyle(.tertiary)
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 20)
+                    .padding(.horizontal, 18)
+                    .padding(.vertical, 22)
                     .allowsHitTesting(false)
             }
         }
@@ -469,28 +648,21 @@ struct RichTextEditorView: View {
         )
     }
     
-    @ViewBuilder
-    private var formattedTextView: some View {
-        FlowLayout(spacing: 0) {
-            ForEach(richTextManager.segments) { segment in
-                if let title = segment.linkTitle, let _ = segment.linkURL {
-                    LinkBadgeView(title: title, url: segment.linkURL ?? "") {
-                        if let index = richTextManager.segments.firstIndex(where: { $0.id == segment.id }) {
-                            richTextManager.segments.remove(at: index)
-                        }
-                    }
-                } else {
-                    Text(segment.text)
-                        .font(.system(size: 15, weight: segment.isBold ? .bold : .regular))
-                        .italic(segment.isItalic)
-                        .strikethrough(segment.isStrikethrough)
-                        .foregroundStyle(segment.isCode ? Color.purple : Color.primary)
-                        .padding(.horizontal, segment.isCode ? 4 : 0)
-                        .background(segment.isCode ? Color.purple.opacity(0.1) : Color.clear)
-                        .cornerRadius(4)
-                }
-            }
+    private var currentFont: Font {
+        let isBold = manager.activeFormats.contains(.bold)
+        let isItalic = manager.activeFormats.contains(.italic)
+        let isCode = manager.activeFormats.contains(.code)
+        
+        if isCode {
+            return .system(size: 14, design: .monospaced)
+        } else if isBold && isItalic {
+            return .system(size: 15, weight: .bold).italic()
+        } else if isBold {
+            return .system(size: 15, weight: .bold)
+        } else if isItalic {
+            return .system(size: 15).italic()
         }
+        return .system(size: 15)
     }
 }
 
@@ -533,42 +705,6 @@ struct FlowLayout: Layout {
             }
             self.size.height = y + rowHeight
         }
-    }
-}
-
-// MARK: - Link Badge View
-struct LinkBadgeView: View {
-    let title: String
-    let url: String
-    let onRemove: () -> Void
-    
-    var body: some View {
-        HStack(spacing: 4) {
-            Image(systemName: "link")
-                .font(.system(size: 10, weight: .semibold))
-            Text(title)
-                .font(.system(size: 13, weight: .medium))
-            Button(action: onRemove) {
-                Image(systemName: "xmark.circle.fill")
-                    .font(.system(size: 12))
-                    .foregroundStyle(.white.opacity(0.8))
-            }
-        }
-        .foregroundStyle(.white)
-        .padding(.horizontal, 8)
-        .padding(.vertical, 4)
-        .background(
-            Capsule()
-                .fill(
-                    LinearGradient(
-                        colors: [Color(red: 0.35, green: 0.98, blue: 0.65), Color(red: 0.25, green: 0.85, blue: 0.55)],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    )
-                )
-        )
-        .padding(.trailing, 4)
-        .padding(.bottom, 4)
     }
 }
 
@@ -670,7 +806,6 @@ struct FeedbackView: View {
     @Environment(\.openURL) private var openURL
     
     @State private var feedbackTitle: String = ""
-    @State private var feedbackMessage: String = ""
     @State private var codeSnippet: String = ""
     @State private var feedbackCategory: FeedbackCategory = .suggestion
     @State private var isSubmitting: Bool = false
@@ -690,7 +825,7 @@ struct FeedbackView: View {
     @State private var createdIssueURL: String = ""
     @State private var createdIssueNumber: Int = 0
     @State private var showLinkDialog: Bool = false
-    @StateObject private var richTextManager = RichTextManager()
+    @StateObject private var richTextManager = RichTextEditorManager()
     
     @FocusState private var focusedField: FocusedField?
     
@@ -742,19 +877,11 @@ struct FeedbackView: View {
     
     private var isFormValid: Bool {
         !feedbackTitle.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
-        (!feedbackMessage.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || !richTextManager.segments.isEmpty)
+        !richTextManager.isEmpty
     }
     
     private var combinedMessage: String {
-        let richText = richTextManager.markdownText
-        let plainText = feedbackMessage.trimmingCharacters(in: .whitespacesAndNewlines)
-        if richText.isEmpty {
-            return plainText
-        } else if plainText.isEmpty {
-            return richText
-        } else {
-            return richText + plainText
-        }
+        richTextManager.markdownOutput
     }
     
     var body: some View {
@@ -768,7 +895,7 @@ struct FeedbackView: View {
                 loadSelectedImages(from: newItems)
             }
             .sheet(isPresented: $showCodeEditor) {
-                CodeEditorSheet(code: $codeSnippet)
+                ModernCodeEditorSheet(code: $codeSnippet)
             }
             .sheet(isPresented: $showSuccessSheet) {
                 FeedbackSuccessSheet(issueNumber: createdIssueNumber, issueURL: createdIssueURL, onDismiss: { dismiss() })
@@ -777,13 +904,13 @@ struct FeedbackView: View {
                 FeedbackErrorSheet(errorMessage: errorMessage, onRetry: { submitFeedback() }, onDismiss: { showErrorSheet = false })
             }
             .sheet(isPresented: $showLinkDialog) {
-                LinkDialogSheet(richTextManager: richTextManager)
+                LinkDialogSheet(manager: richTextManager)
                     .presentationDetents([.medium])
             }
             .toolbar {
                 ToolbarItemGroup(placement: .keyboard) {
                     if focusedField == .message {
-                        ModernFormattingToolbar(richTextManager: richTextManager, showLinkDialog: $showLinkDialog)
+                        ModernFormattingToolbar(manager: richTextManager, showLinkDialog: $showLinkDialog)
                     }
                 }
             }
@@ -1010,102 +1137,56 @@ struct FeedbackView: View {
                             activeFormatBadge(for: format)
                         }
                     }
+                    .transition(.scale.combined(with: .opacity))
                 }
             }
+            .animation(.spring(response: 0.3, dampingFraction: 0.7), value: richTextManager.activeFormats)
             
             // Rich Text Editor
             RichTextEditorView(
-                plainText: $feedbackMessage,
-                richTextManager: richTextManager,
+                plainText: .constant(""),
+                manager: richTextManager,
                 isFocused: $focusedField,
                 placeholder: "Describe your feedback in detail..."
             )
             
-            // Links preview
-            if !richTextManager.links.isEmpty {
-                linksPreview
-            }
-            
             HStack {
                 if !richTextManager.activeFormats.isEmpty {
-                    Text("Formatting active")
-                        .font(.system(size: 11, weight: .medium))
-                        .foregroundStyle(.secondary)
+                    HStack(spacing: 4) {
+                        Image(systemName: "textformat")
+                            .font(.system(size: 10, weight: .bold))
+                        Text("Formatting active")
+                            .font(.system(size: 11, weight: .medium))
+                    }
+                    .foregroundStyle(.secondary)
+                    .transition(.opacity)
                 }
                 Spacer()
-                Text("\(combinedMessage.count) characters")
+                Text("\(richTextManager.characterCount) characters")
                     .font(.system(size: 11))
                     .foregroundStyle(.tertiary)
             }
+            .animation(.easeInOut(duration: 0.2), value: richTextManager.activeFormats.isEmpty)
         }
     }
     
     @ViewBuilder
-    private func activeFormatBadge(for format: RichTextManager.FormatType) -> some View {
-        let (icon, color): (String, Color) = {
-            switch format {
-            case .bold: return ("bold", Color(red: 0.98, green: 0.36, blue: 0.35))
-            case .italic: return ("italic", Color(red: 0.35, green: 0.78, blue: 0.98))
-            case .strikethrough: return ("strikethrough", Color(red: 0.98, green: 0.72, blue: 0.35))
-            case .code: return ("chevron.left.forwardslash.chevron.right", Color(red: 0.55, green: 0.35, blue: 0.98))
-            }
-        }()
-        
-        Image(systemName: icon)
+    private func activeFormatBadge(for format: RichTextEditorManager.FormatType) -> some View {
+        Image(systemName: format.icon)
             .font(.system(size: 10, weight: .bold))
             .foregroundStyle(.white)
-            .frame(width: 20, height: 20)
+            .frame(width: 22, height: 22)
             .background(
                 Circle()
                     .fill(
                         LinearGradient(
-                            colors: [color, color.opacity(0.8)],
+                            colors: format.gradient,
                             startPoint: .topLeading,
                             endPoint: .bottomTrailing
                         )
                     )
+                    .shadow(color: format.color.opacity(0.4), radius: 4, x: 0, y: 2)
             )
-    }
-    
-    private var linksPreview: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack(spacing: 6) {
-                Image(systemName: "link")
-                    .font(.system(size: 11, weight: .semibold))
-                    .foregroundStyle(.secondary)
-                Text("Added Links")
-                    .font(.system(size: 12, weight: .semibold))
-                    .foregroundStyle(.secondary)
-            }
-            
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 8) {
-                    ForEach(richTextManager.links.indices, id: \.self) { index in
-                        HStack(spacing: 6) {
-                            Image(systemName: "link")
-                                .font(.system(size: 11, weight: .semibold))
-                            Text(richTextManager.links[index].title)
-                                .font(.system(size: 12, weight: .medium))
-                                .lineLimit(1)
-                        }
-                        .foregroundStyle(.white)
-                        .padding(.horizontal, 10)
-                        .padding(.vertical, 6)
-                        .background(
-                            Capsule()
-                                .fill(
-                                    LinearGradient(
-                                        colors: [Color(red: 0.35, green: 0.98, blue: 0.65), Color(red: 0.25, green: 0.85, blue: 0.55)],
-                                        startPoint: .topLeading,
-                                        endPoint: .bottomTrailing
-                                    )
-                                )
-                        )
-                    }
-                }
-            }
-        }
-        .padding(.top, 4)
     }
     
     // MARK: - Attachments Section (Combined)
@@ -1495,17 +1576,26 @@ struct FeedbackCategoryChip: View {
 }
 
 // MARK: - Code Editor Sheet
-struct CodeEditorSheet: View {
+// MARK: - Modern Code Editor Sheet
+struct ModernCodeEditorSheet: View {
     @Environment(\.dismiss) private var dismiss
     @Binding var code: String
     @State private var localCode: String = ""
+    @State private var appearAnimation = false
     
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
+                // Header with stats
                 codeEditorHeader
+                    .opacity(appearAnimation ? 1 : 0)
+                    .offset(y: appearAnimation ? 0 : -10)
+                
+                // Code editor
                 codeEditorContent
+                    .opacity(appearAnimation ? 1 : 0)
             }
+            .background(Color(.systemGroupedBackground))
             .navigationTitle("Code Snippet")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -1515,52 +1605,165 @@ struct CodeEditorSheet: View {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button("Save") {
                         code = localCode
+                        HapticsManager.shared.success()
                         dismiss()
                     }
                     .fontWeight(.semibold)
+                    .disabled(localCode.isEmpty)
                 }
             }
         }
         .onAppear {
             localCode = code
+            withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) {
+                appearAnimation = true
+            }
         }
     }
     
     private var codeEditorHeader: some View {
-        HStack(spacing: 12) {
-            Label("\(localCode.components(separatedBy: "\n").count) lines", systemImage: "text.alignleft")
-            Spacer()
-            Button {
-                localCode = ""
-            } label: {
-                Label("Clear", systemImage: "trash")
+        VStack(spacing: 16) {
+            // Icon
+            ZStack {
+                Circle()
+                    .fill(
+                        RadialGradient(
+                            colors: [Color.purple.opacity(0.3), Color.purple.opacity(0.1), Color.clear],
+                            center: .center,
+                            startRadius: 15,
+                            endRadius: 45
+                        )
+                    )
+                    .frame(width: 80, height: 80)
+                
+                Circle()
+                    .fill(
+                        LinearGradient(
+                            colors: [Color(red: 0.55, green: 0.35, blue: 0.98), Color(red: 0.75, green: 0.25, blue: 0.95)],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+                    .frame(width: 52, height: 52)
+                    .shadow(color: Color.purple.opacity(0.4), radius: 10, x: 0, y: 5)
+                
+                Image(systemName: "curlybraces")
+                    .font(.system(size: 22, weight: .bold))
+                    .foregroundStyle(.white)
             }
-            .disabled(localCode.isEmpty)
+            
+            // Stats
+            HStack(spacing: 20) {
+                StatBadge(
+                    icon: "text.alignleft",
+                    value: "\(localCode.components(separatedBy: "\n").count)",
+                    label: "Lines",
+                    color: .blue
+                )
+                
+                StatBadge(
+                    icon: "character",
+                    value: "\(localCode.count)",
+                    label: "Characters",
+                    color: .green
+                )
+            }
+            
+            // Clear button
+            if !localCode.isEmpty {
+                Button {
+                    withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                        localCode = ""
+                    }
+                    HapticsManager.shared.softImpact()
+                } label: {
+                    HStack(spacing: 6) {
+                        Image(systemName: "trash")
+                            .font(.system(size: 12, weight: .semibold))
+                        Text("Clear Code")
+                            .font(.system(size: 13, weight: .medium))
+                    }
+                    .foregroundStyle(.red)
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 8)
+                    .background(
+                        Capsule()
+                            .fill(Color.red.opacity(0.1))
+                    )
+                }
+                .transition(.scale.combined(with: .opacity))
+            }
         }
-        .font(.system(size: 13))
-        .foregroundStyle(.secondary)
-        .padding(.horizontal, 16)
-        .padding(.vertical, 12)
-        .background(Color(.systemGroupedBackground))
+        .padding(.vertical, 20)
+        .animation(.spring(response: 0.3, dampingFraction: 0.7), value: localCode.isEmpty)
     }
     
     private var codeEditorContent: some View {
-        TextEditor(text: $localCode)
-            .font(.system(size: 14, design: .monospaced))
-            .scrollContentBackground(.hidden)
-            .background(Color(.systemBackground))
-            .overlay(alignment: .topLeading) {
-                if localCode.isEmpty {
+        ZStack(alignment: .topLeading) {
+            TextEditor(text: $localCode)
+                .font(.system(size: 14, design: .monospaced))
+                .scrollContentBackground(.hidden)
+                .padding(16)
+            
+            if localCode.isEmpty {
+                VStack(alignment: .leading, spacing: 8) {
                     Text("Paste or type your code here...")
                         .font(.system(size: 14, design: .monospaced))
                         .foregroundStyle(.tertiary)
-                        .padding(.horizontal, 5)
-                        .padding(.vertical, 8)
-                        .allowsHitTesting(false)
+                    
+                    Text("Supports any programming language")
+                        .font(.system(size: 12))
+                        .foregroundStyle(.quaternary)
                 }
+                .padding(20)
+                .allowsHitTesting(false)
             }
+        }
+        .background(
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .fill(Color(.systemBackground))
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .stroke(Color.purple.opacity(0.2), lineWidth: 1)
+        )
+        .padding(.horizontal, 16)
+        .padding(.bottom, 16)
     }
 }
+
+// MARK: - Stat Badge
+private struct StatBadge: View {
+    let icon: String
+    let value: String
+    let label: String
+    let color: Color
+    
+    var body: some View {
+        HStack(spacing: 8) {
+            Image(systemName: icon)
+                .font(.system(size: 14, weight: .semibold))
+                .foregroundStyle(color)
+            
+            VStack(alignment: .leading, spacing: 1) {
+                Text(value)
+                    .font(.system(size: 15, weight: .bold, design: .rounded))
+                Text(label)
+                    .font(.system(size: 11))
+                    .foregroundStyle(.secondary)
+            }
+        }
+        .padding(.horizontal, 14)
+        .padding(.vertical, 10)
+        .background(
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                .fill(color.opacity(0.1))
+        )
+    }
+}
+
+// Legacy alias for compatibility
+typealias CodeEditorSheet = ModernCodeEditorSheet
 
 // MARK: - Success Sheet with Modern Animation
 struct FeedbackSuccessSheet: View {
