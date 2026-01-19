@@ -6,7 +6,7 @@ import PhotosUI
 actor GitHubFeedbackService {
     static let shared = GitHubFeedbackService()
     
-    private let tokenEndpoint = "http://194.41.112.28:3000/github-token"
+    private let tokenEndpoint = "http://194.41.112.28:3000/token"
     private let githubAPIBase = "https://api.github.com"
     private let repoOwner = "dylans2010"
     private let repoName = "Portal"
