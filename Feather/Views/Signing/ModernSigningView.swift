@@ -217,16 +217,16 @@ struct ModernSigningView: View {
         }
     }
     
-    // MARK: - Modern Background
+    // MARK: - Modern Background (Enhanced)
     @ViewBuilder
     private var modernBackground: some View {
         ZStack {
-            // Base gradient
+            // Base gradient with smoother transitions
             LinearGradient(
                 colors: [
-                    Color.accentColor.opacity(0.15),
-                    Color.accentColor.opacity(0.05),
-                    Color(UIColor.systemBackground),
+                    Color.accentColor.opacity(0.12),
+                    Color.accentColor.opacity(0.06),
+                    Color(UIColor.systemBackground).opacity(0.95),
                     Color(UIColor.systemBackground)
                 ],
                 startPoint: .topLeading,
@@ -234,40 +234,68 @@ struct ModernSigningView: View {
             )
             .ignoresSafeArea()
             
-            // Animated floating orbs
+            // Animated floating orbs with enhanced effects
             GeometryReader { geo in
+                // Primary accent orb
                 Circle()
                     .fill(
                         RadialGradient(
-                            colors: [Color.accentColor.opacity(0.3), Color.accentColor.opacity(0)],
+                            colors: [
+                                Color.accentColor.opacity(0.25),
+                                Color.accentColor.opacity(0.1),
+                                Color.accentColor.opacity(0)
+                            ],
                             center: .center,
                             startRadius: 0,
-                            endRadius: 150
+                            endRadius: 160
                         )
                     )
-                    .frame(width: 300, height: 300)
-                    .blur(radius: 60)
-                    .offset(x: _floatingAnimation ? -50 : 50, y: _floatingAnimation ? -30 : 30)
-                    .position(x: geo.size.width * 0.2, y: geo.size.height * 0.15)
+                    .frame(width: 320, height: 320)
+                    .blur(radius: 70)
+                    .offset(x: _floatingAnimation ? -40 : 40, y: _floatingAnimation ? -25 : 25)
+                    .position(x: geo.size.width * 0.15, y: geo.size.height * 0.12)
                 
+                // Secondary purple orb
                 Circle()
                     .fill(
                         RadialGradient(
-                            colors: [Color.purple.opacity(0.2), Color.purple.opacity(0)],
+                            colors: [
+                                Color.purple.opacity(0.18),
+                                Color.purple.opacity(0.08),
+                                Color.purple.opacity(0)
+                            ],
                             center: .center,
                             startRadius: 0,
-                            endRadius: 120
+                            endRadius: 130
                         )
                     )
-                    .frame(width: 250, height: 250)
-                    .blur(radius: 50)
-                    .offset(x: _floatingAnimation ? 40 : -40, y: _floatingAnimation ? 20 : -20)
-                    .position(x: geo.size.width * 0.85, y: geo.size.height * 0.7)
+                    .frame(width: 260, height: 260)
+                    .blur(radius: 55)
+                    .offset(x: _floatingAnimation ? 35 : -35, y: _floatingAnimation ? 15 : -15)
+                    .position(x: geo.size.width * 0.88, y: geo.size.height * 0.65)
+                
+                // Tertiary subtle orb
+                Circle()
+                    .fill(
+                        RadialGradient(
+                            colors: [
+                                Color.cyan.opacity(0.1),
+                                Color.cyan.opacity(0)
+                            ],
+                            center: .center,
+                            startRadius: 0,
+                            endRadius: 100
+                        )
+                    )
+                    .frame(width: 200, height: 200)
+                    .blur(radius: 45)
+                    .offset(x: _floatingAnimation ? -20 : 20, y: _floatingAnimation ? 30 : -30)
+                    .position(x: geo.size.width * 0.5, y: geo.size.height * 0.85)
             }
             .ignoresSafeArea()
         }
         .onAppear {
-            withAnimation(.easeInOut(duration: 4).repeatForever(autoreverses: true)) {
+            withAnimation(.easeInOut(duration: 5).repeatForever(autoreverses: true)) {
                 _floatingAnimation = true
             }
         }
@@ -957,16 +985,46 @@ struct ModernSigningView: View {
             .foregroundStyle(.white)
             .frame(maxWidth: .infinity)
             .padding(.vertical, 16)
-            .background(Color.accentColor)
+            .background(
+                ZStack {
+                    LinearGradient(
+                        colors: [Color.accentColor, Color.accentColor.opacity(0.85)],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                    
+                    // Subtle shimmer effect
+                    LinearGradient(
+                        colors: [
+                            Color.white.opacity(0),
+                            Color.white.opacity(0.15),
+                            Color.white.opacity(0)
+                        ],
+                        startPoint: .leading,
+                        endPoint: .trailing
+                    )
+                    .offset(x: _glowAnimation ? 200 : -200)
+                    .animation(.easeInOut(duration: 2).repeatForever(autoreverses: false), value: _glowAnimation)
+                }
+            )
             .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+            .shadow(color: Color.accentColor.opacity(0.4), radius: 12, x: 0, y: 6)
         }
+        .buttonStyle(SignButtonStyle())
         .padding(.horizontal, 20)
         .padding(.bottom, 20)
         .padding(.top, 8)
         .background(
-            Color(UIColor.systemBackground)
-                .opacity(0.95)
-                .ignoresSafeArea()
+            LinearGradient(
+                colors: [
+                    Color(UIColor.systemBackground).opacity(0),
+                    Color(UIColor.systemBackground).opacity(0.95),
+                    Color(UIColor.systemBackground)
+                ],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+            .ignoresSafeArea()
         )
     }
     
@@ -1405,6 +1463,16 @@ struct ModernSigningOptionsView: View {
         }
         .padding(.horizontal, 14)
         .padding(.vertical, 10)
+    }
+}
+
+// MARK: - Sign Button Style
+struct SignButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .scaleEffect(configuration.isPressed ? 0.97 : 1.0)
+            .opacity(configuration.isPressed ? 0.9 : 1.0)
+            .animation(.spring(response: 0.25, dampingFraction: 0.7), value: configuration.isPressed)
     }
 }
 

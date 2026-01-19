@@ -430,30 +430,33 @@ extension LibraryView {
         .padding(.bottom, 20)
     }
     
-    // MARK: - Filter Chips
+    // MARK: - Filter Chips (Modern Glass Design)
     private var filterChips: some View {
-        HStack(spacing: 12) {
+        HStack(spacing: 6) {
             ForEach(FilterMode.allCases, id: \.self) { mode in
-                Button {
-                    withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                ModernFilterChip(
+                    title: mode.rawValue,
+                    isSelected: _filterMode == mode,
+                    namespace: _namespace
+                ) {
+                    withAnimation(.spring(response: 0.4, dampingFraction: 0.75)) {
                         _filterMode = mode
                     }
-                } label: {
-                    Text(mode.rawValue)
-                        .font(.system(size: 14, weight: .semibold, design: .rounded))
-                        .foregroundStyle(_filterMode == mode ? .white : .white.opacity(0.6))
-                        .padding(.horizontal, 18)
-                        .padding(.vertical, 10)
-                        .background(
-                            Capsule()
-                                .fill(_filterMode == mode ? Color.accentColor : Color.secondary.opacity(0.2))
-                        )
-                        .shadow(color: .clear, radius: 0)
+                    HapticsManager.shared.softImpact()
                 }
             }
             
             Spacer()
         }
+        .padding(4)
+        .background(
+            Capsule()
+                .fill(.ultraThinMaterial)
+                .overlay(
+                    Capsule()
+                        .stroke(Color.white.opacity(0.1), lineWidth: 0.5)
+                )
+        )
     }
     
     // MARK: - Apps Content
@@ -685,6 +688,51 @@ struct LibraryAppRow: View {
             selectedSigningAppPresenting: $selectedSigningAppPresenting,
             selectedInstallAppPresenting: $selectedInstallAppPresenting
         )
+    }
+}
+
+// MARK: - Modern Filter Chip
+struct ModernFilterChip: View {
+    let title: String
+    let isSelected: Bool
+    let namespace: Namespace.ID
+    let action: () -> Void
+    
+    @State private var isPressed = false
+    
+    var body: some View {
+        Button(action: action) {
+            Text(title)
+                .font(.system(size: 13, weight: .semibold, design: .rounded))
+                .foregroundStyle(isSelected ? .white : .primary.opacity(0.7))
+                .padding(.horizontal, 16)
+                .padding(.vertical, 8)
+                .background {
+                    if isSelected {
+                        Capsule()
+                            .fill(
+                                LinearGradient(
+                                    colors: [Color.accentColor, Color.accentColor.opacity(0.85)],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                )
+                            )
+                            .shadow(color: Color.accentColor.opacity(0.4), radius: 6, x: 0, y: 3)
+                            .matchedGeometryEffect(id: "filterBackground", in: namespace)
+                    }
+                }
+                .contentShape(Capsule())
+        }
+        .buttonStyle(FilterChipButtonStyle())
+    }
+}
+
+// MARK: - Filter Chip Button Style
+struct FilterChipButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .scaleEffect(configuration.isPressed ? 0.95 : 1.0)
+            .animation(.spring(response: 0.25, dampingFraction: 0.7), value: configuration.isPressed)
     }
 }
 

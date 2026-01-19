@@ -1,6 +1,6 @@
 import SwiftUI
 
-// MARK: - Custom Tab Bar View
+// MARK: - Custom Tab Bar View (Liquid Glass Design)
 struct CustomTabBarUI: View {
     @AppStorage("Feather.tabBar.home") private var showHome = true
     @AppStorage("Feather.tabBar.library") private var showLibrary = true
@@ -13,6 +13,7 @@ struct CustomTabBarUI: View {
     @State private var selectedTab: TabEnum = .home
     @State private var showInstallModifySheet = false
     @State private var appToInstall: (any AppInfoPresentable)?
+    @State private var hoverScale: CGFloat = 1.0
     @Namespace private var animation
     
     private var orderedTabIds: [String] {
@@ -51,12 +52,10 @@ struct CustomTabBarUI: View {
     
     var body: some View {
         ZStack(alignment: .bottom) {
-            // Content
             TabEnum.view(for: selectedTab)
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             
-            // Custom Tab Bar
-            modernTabBar
+            liquidGlassTabBar
         }
         .ignoresSafeArea(.keyboard)
         .sheet(isPresented: $showInstallModifySheet) {
@@ -85,66 +84,123 @@ struct CustomTabBarUI: View {
         }
     }
     
-    // MARK: - Modern Tab Bar (Compact)
-    private var modernTabBar: some View {
+    // MARK: - Liquid Glass Tab Bar
+    private var liquidGlassTabBar: some View {
         HStack(spacing: 0) {
             ForEach(visibleTabs, id: \.self) { tab in
-                compactTabButton(for: tab)
+                liquidGlassTabButton(for: tab)
             }
         }
-        .padding(.horizontal, 6)
+        .padding(.horizontal, 8)
         .padding(.vertical, 6)
         .background(
-            Capsule()
-                .fill(.ultraThinMaterial)
-                .overlay(
-                    Capsule()
-                        .stroke(Color.white.opacity(0.15), lineWidth: 0.5)
-                )
+            ZStack {
+                // Frosted glass effect
+                RoundedRectangle(cornerRadius: 22, style: .continuous)
+                    .fill(.ultraThinMaterial)
+                
+                // Subtle inner glow
+                RoundedRectangle(cornerRadius: 22, style: .continuous)
+                    .fill(
+                        LinearGradient(
+                            colors: [
+                                Color.white.opacity(0.15),
+                                Color.white.opacity(0.05),
+                                Color.clear
+                            ],
+                            startPoint: .top,
+                            endPoint: .bottom
+                        )
+                    )
+                
+                // Border with gradient
+                RoundedRectangle(cornerRadius: 22, style: .continuous)
+                    .stroke(
+                        LinearGradient(
+                            colors: [
+                                Color.white.opacity(0.3),
+                                Color.white.opacity(0.1),
+                                Color.white.opacity(0.05)
+                            ],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        ),
+                        lineWidth: 0.5
+                    )
+            }
         )
-        .shadow(color: .black.opacity(0.1), radius: 12, x: 0, y: 4)
-        .padding(.horizontal, 24)
-        .padding(.bottom, 8)
+        .shadow(color: .black.opacity(0.15), radius: 20, x: 0, y: 8)
+        .shadow(color: .black.opacity(0.05), radius: 4, x: 0, y: 2)
+        .padding(.horizontal, 40)
+        .padding(.bottom, 6)
     }
     
-    // MARK: - Compact Tab Button
+    // MARK: - Liquid Glass Tab Button
     @ViewBuilder
-    private func compactTabButton(for tab: TabEnum) -> some View {
+    private func liquidGlassTabButton(for tab: TabEnum) -> some View {
         let isSelected = selectedTab == tab
         
         Button {
-            withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+            withAnimation(.spring(response: 0.35, dampingFraction: 0.7)) {
                 selectedTab = tab
             }
             HapticsManager.shared.softImpact()
         } label: {
-            VStack(spacing: 2) {
+            VStack(spacing: 3) {
                 ZStack {
+                    // Selection indicator with glow
                     if isSelected {
                         Circle()
+                            .fill(
+                                RadialGradient(
+                                    colors: [
+                                        Color.accentColor.opacity(0.25),
+                                        Color.accentColor.opacity(0.1),
+                                        Color.clear
+                                    ],
+                                    center: .center,
+                                    startRadius: 0,
+                                    endRadius: 20
+                                )
+                            )
+                            .frame(width: 40, height: 40)
+                            .matchedGeometryEffect(id: "tabGlow", in: animation)
+                        
+                        RoundedRectangle(cornerRadius: 10, style: .continuous)
                             .fill(Color.accentColor.opacity(0.15))
-                            .frame(width: 36, height: 36)
+                            .frame(width: 32, height: 32)
                             .matchedGeometryEffect(id: "tabBackground", in: animation)
                     }
                     
                     Image(systemName: isSelected ? tab.selectedIcon : tab.icon)
-                        .font(.system(size: 17, weight: isSelected ? .semibold : .regular))
+                        .font(.system(size: 18, weight: isSelected ? .semibold : .regular))
                         .foregroundStyle(isSelected ? Color.accentColor : .secondary)
+                        .scaleEffect(isSelected ? 1.05 : 1.0)
                 }
-                .frame(width: 36, height: 36)
+                .frame(width: 32, height: 32)
                 
                 Text(tab.title)
-                    .font(.system(size: 9, weight: isSelected ? .semibold : .medium))
+                    .font(.system(size: 10, weight: isSelected ? .semibold : .medium))
                     .foregroundStyle(isSelected ? Color.accentColor : .secondary)
             }
             .frame(maxWidth: .infinity)
             .contentShape(Rectangle())
         }
-        .buttonStyle(TabButtonStyle())
+        .buttonStyle(LiquidGlassButtonStyle())
     }
 }
 
-// MARK: - Tab Button Style
+// MARK: - Liquid Glass Button Style
+struct LiquidGlassButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .scaleEffect(configuration.isPressed ? 0.9 : 1.0)
+            .opacity(configuration.isPressed ? 0.8 : 1.0)
+            .animation(.spring(response: 0.25, dampingFraction: 0.6), value: configuration.isPressed)
+    }
+}
+
+// MARK: - Tab Button Style (Legacy)
 struct TabButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
