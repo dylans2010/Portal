@@ -106,7 +106,7 @@ struct FeedbackView: View {
                     } label: {
                         Image(systemName: showMarkdownPreview ? "eye.fill" : "eye")
                             .font(.system(size: 16))
-                            .foregroundStyle(.accentColor)
+                            .foregroundStyle(Color.accentColor)
                     }
                 }
             }
@@ -395,7 +395,7 @@ struct FeedbackView: View {
             Spacer()
             Image(systemName: "plus.circle.fill")
                 .font(.system(size: 22))
-                .foregroundStyle(.accentColor)
+                .foregroundStyle(Color.accentColor)
         }
         .padding(14)
         .background(
@@ -450,7 +450,7 @@ struct FeedbackView: View {
             Text("Add")
                 .font(.system(size: 11, weight: .medium))
         }
-        .foregroundStyle(.accentColor)
+        .foregroundStyle(Color.accentColor)
         .frame(width: 80, height: 80)
         .background(
             RoundedRectangle(cornerRadius: 10, style: .continuous)

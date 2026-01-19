@@ -2488,7 +2488,7 @@ struct IPAInspectorView: View {
         
         // Analyze main executable binary
         var binaryInfo: MachOAnalyzer.BinaryInfo? = nil
-        var signatureInfo: CodeSignatureAnalyzer.SignatureInfo? = nil
+        let signatureInfo: CodeSignatureAnalyzer.SignatureInfo? = nil
         var executableName: String? = nil
         var supportedArchitectures: [String] = []
         var isEncrypted = false
