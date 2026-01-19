@@ -3,8 +3,9 @@ import UIKit
 import PhotosUI
 
 // MARK: - Text Formatting Coordinator
+#if compiler(>=6.0)
 @available(iOS 18.0, *)
-final class TextFormattingCoordinator: NSObject, UITextFormattingViewControllerDelegate {
+final class TextFormattingCoordinator: NSObject, UITextFormattingViewController.Delegate {
     weak var textView: UITextView?
     
     func textFormattingViewController(
@@ -25,6 +26,7 @@ final class TextFormattingCoordinator: NSObject, UITextFormattingViewControllerD
         textView.selectedRange = selectedRange
     }
 }
+#endif
 
 // MARK: - Formatted Text Editor (UITextView wrapper)
 struct FormattedTextEditor: UIViewRepresentable {
@@ -94,6 +96,7 @@ struct FormattedTextEditor: UIViewRepresentable {
 }
 
 // MARK: - Text Formatting Sheet Presenter
+#if compiler(>=6.0)
 @available(iOS 18.0, *)
 struct TextFormattingPresenter {
     static func present(for textView: UITextView, coordinator: TextFormattingCoordinator) {
@@ -122,6 +125,7 @@ struct TextFormattingPresenter {
         topVC.present(formattingVC, animated: true)
     }
 }
+#endif
 
 // MARK: - Rich Text Span Model
 struct RichTextSpan: Identifiable, Equatable {
@@ -956,12 +960,14 @@ struct FeedbackView: View {
     // Text formatting state
     @State private var descriptionAttributedText: NSAttributedString = NSAttributedString()
     @State private var descriptionTextView: UITextView?
+    #if compiler(>=6.0)
     private let formattingCoordinator: Any? = {
         if #available(iOS 18.0, *) {
             return TextFormattingCoordinator()
         }
         return nil
     }()
+    #endif
     
     @FocusState private var focusedField: FocusedField?
     
@@ -1260,6 +1266,7 @@ struct FeedbackView: View {
                 Spacer()
                 
                 // Format button (iOS 18+)
+                #if compiler(>=6.0)
                 if #available(iOS 18.0, *) {
                     Button {
                         presentTextFormatting()
@@ -1270,7 +1277,7 @@ struct FeedbackView: View {
                             Text("Format")
                                 .font(.system(size: 13, weight: .medium))
                         }
-                        .foregroundStyle(.accentColor)
+                        .foregroundStyle(Color.accentColor)
                         .padding(.horizontal, 10)
                         .padding(.vertical, 6)
                         .background(
@@ -1280,6 +1287,7 @@ struct FeedbackView: View {
                     }
                     .buttonStyle(.plain)
                 }
+                #endif
             }
             
             // Formatted Text Editor
@@ -1309,12 +1317,14 @@ struct FeedbackView: View {
         }
     }
     
+    #if compiler(>=6.0)
     @available(iOS 18.0, *)
     private func presentTextFormatting() {
         guard let textView = descriptionTextView,
               let coordinator = formattingCoordinator as? TextFormattingCoordinator else { return }
         TextFormattingPresenter.present(for: textView, coordinator: coordinator)
     }
+    #endif
     
     @ViewBuilder
     private func activeFormatBadge(for format: RichTextEditorManager.FormatType) -> some View {
