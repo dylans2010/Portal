@@ -528,7 +528,7 @@ struct FeedbackView: View {
                     
                     Image(systemName: isOn.wrappedValue ? "checkmark.circle.fill" : "circle")
                         .font(.system(size: 18))
-                        .foregroundStyle(isOn.wrappedValue ? color : .tertiary)
+                        .foregroundStyle(isOn.wrappedValue ? color : Color.gray.opacity(0.4))
                 }
                 
                 VStack(alignment: .leading, spacing: 2) {
