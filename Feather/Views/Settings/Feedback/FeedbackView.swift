@@ -2,6 +2,450 @@ import SwiftUI
 import UIKit
 import PhotosUI
 
+// MARK: - Category Info Dialog
+struct CategoryInfoDialog: View {
+    @Binding var isPresented: Bool
+    @State private var appearAnimation: Bool = false
+    
+    private let categories: [(FeedbackView.FeedbackCategory, String)] = [
+        (.bug, "Report issues where something isn't working as expected. Include steps to reproduce the bug, what you expected to happen, and what actually happened."),
+        (.suggestion, "Share ideas for improving existing features. Tell us what could be better and how you'd like to see it improved."),
+        (.feature, "Request entirely new features or capabilities. Describe what you'd like to see added and why it would be useful."),
+        (.question, "Ask questions about how to use the app or clarify functionality. We're here to help!"),
+        (.crash, "Report app crashes or freezes. Include what you were doing when the crash occurred and any error messages you saw."),
+        (.other, "For feedback that doesn't fit other categories. General comments, praise, or anything else you'd like to share.")
+    ]
+    
+    var body: some View {
+        ZStack {
+            Color.black.opacity(appearAnimation ? 0.5 : 0)
+                .ignoresSafeArea()
+                .onTapGesture { dismissDialog() }
+            
+            VStack(spacing: 0) {
+                // Header
+                VStack(spacing: 16) {
+                    ZStack {
+                        Circle()
+                            .fill(Color.blue.opacity(0.15))
+                            .frame(width: 80, height: 80)
+                        
+                        Circle()
+                            .fill(
+                                LinearGradient(
+                                    colors: [Color.blue, Color.blue.opacity(0.8)],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                )
+                            )
+                            .frame(width: 60, height: 60)
+                            .shadow(color: .blue.opacity(0.3), radius: 12, x: 0, y: 6)
+                        
+                        Image(systemName: "info.circle.fill")
+                            .font(.system(size: 28, weight: .semibold))
+                            .foregroundStyle(.white)
+                    }
+                    .scaleEffect(appearAnimation ? 1 : 0.5)
+                    .opacity(appearAnimation ? 1 : 0)
+                    
+                    VStack(spacing: 6) {
+                        Text("Category Guide")
+                            .font(.system(size: 24, weight: .bold, design: .rounded))
+                        
+                        Text("Choose the right category for your feedback")
+                            .font(.system(size: 14))
+                            .foregroundStyle(.secondary)
+                    }
+                    .opacity(appearAnimation ? 1 : 0)
+                    .offset(y: appearAnimation ? 0 : 10)
+                }
+                .padding(.top, 28)
+                .padding(.bottom, 20)
+                
+                // Categories List
+                ScrollView {
+                    VStack(spacing: 12) {
+                        ForEach(Array(categories.enumerated()), id: \.offset) { index, item in
+                            CategoryInfoCard(category: item.0, description: item.1)
+                                .opacity(appearAnimation ? 1 : 0)
+                                .offset(y: appearAnimation ? 0 : 20)
+                                .animation(.spring(response: 0.5, dampingFraction: 0.8).delay(Double(index) * 0.05), value: appearAnimation)
+                        }
+                    }
+                    .padding(.horizontal, 20)
+                }
+                .frame(maxHeight: 380)
+                
+                // Close Button
+                Button {
+                    dismissDialog()
+                } label: {
+                    Text("Got It")
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundStyle(.white)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 16)
+                        .background(
+                            LinearGradient(
+                                colors: [.blue, .blue.opacity(0.8)],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                        )
+                        .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+                        .shadow(color: .blue.opacity(0.3), radius: 10, x: 0, y: 5)
+                }
+                .padding(.horizontal, 20)
+                .padding(.top, 16)
+                .padding(.bottom, 24)
+                .opacity(appearAnimation ? 1 : 0)
+                .offset(y: appearAnimation ? 0 : 20)
+            }
+            .background(
+                RoundedRectangle(cornerRadius: 28, style: .continuous)
+                    .fill(Color(.systemBackground))
+                    .shadow(color: .black.opacity(0.2), radius: 40, x: 0, y: 20)
+            )
+            .padding(.horizontal, 20)
+            .scaleEffect(appearAnimation ? 1 : 0.9)
+            .opacity(appearAnimation ? 1 : 0)
+        }
+        .onAppear {
+            withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+                appearAnimation = true
+            }
+        }
+    }
+    
+    private func dismissDialog() {
+        withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+            appearAnimation = false
+        }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+            isPresented = false
+        }
+    }
+}
+
+// MARK: - Category Info Card
+private struct CategoryInfoCard: View {
+    let category: FeedbackView.FeedbackCategory
+    let description: String
+    
+    var body: some View {
+        HStack(alignment: .top, spacing: 14) {
+            ZStack {
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .fill(category.color.opacity(0.15))
+                    .frame(width: 44, height: 44)
+                
+                Image(systemName: category.icon)
+                    .font(.system(size: 18, weight: .semibold))
+                    .foregroundStyle(category.color)
+            }
+            
+            VStack(alignment: .leading, spacing: 4) {
+                Text(category.rawValue)
+                    .font(.system(size: 15, weight: .semibold))
+                    .foregroundStyle(.primary)
+                
+                Text(description)
+                    .font(.system(size: 13))
+                    .foregroundStyle(.secondary)
+                    .lineLimit(3)
+            }
+            
+            Spacer(minLength: 0)
+        }
+        .padding(14)
+        .background(
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .fill(Color(.secondarySystemGroupedBackground))
+        )
+    }
+}
+
+// MARK: - Preview Dialog
+struct FeedbackPreviewDialog: View {
+    @Binding var isPresented: Bool
+    let title: String
+    let message: String
+    let category: FeedbackView.FeedbackCategory
+    let includeDeviceInfo: Bool
+    let includeLogs: Bool
+    let includeCode: Bool
+    let codeSnippet: String
+    let onSubmit: () -> Void
+    let onEdit: () -> Void
+    
+    @State private var appearAnimation: Bool = false
+    
+    var body: some View {
+        ZStack {
+            Color.black.opacity(appearAnimation ? 0.5 : 0)
+                .ignoresSafeArea()
+                .onTapGesture { onEdit(); dismissDialog() }
+            
+            VStack(spacing: 0) {
+                // Header
+                VStack(spacing: 12) {
+                    ZStack {
+                        Circle()
+                            .fill(category.color.opacity(0.15))
+                            .frame(width: 72, height: 72)
+                        
+                        Circle()
+                            .fill(
+                                LinearGradient(
+                                    colors: [category.color, category.color.opacity(0.8)],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                )
+                            )
+                            .frame(width: 56, height: 56)
+                            .shadow(color: category.color.opacity(0.3), radius: 12, x: 0, y: 6)
+                        
+                        Image(systemName: "eye.fill")
+                            .font(.system(size: 24, weight: .semibold))
+                            .foregroundStyle(.white)
+                    }
+                    .scaleEffect(appearAnimation ? 1 : 0.5)
+                    
+                    Text("Preview Your Feedback")
+                        .font(.system(size: 22, weight: .bold, design: .rounded))
+                    
+                    Text("Here is a preview of your feedback report, proceed?")
+                        .font(.system(size: 14))
+                        .foregroundStyle(.secondary)
+                        .multilineTextAlignment(.center)
+                }
+                .padding(.top, 28)
+                .padding(.horizontal, 20)
+                .padding(.bottom, 20)
+                .opacity(appearAnimation ? 1 : 0)
+                .offset(y: appearAnimation ? 0 : 10)
+                
+                // Preview Content
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 16) {
+                        // Category Badge
+                        HStack(spacing: 8) {
+                            Image(systemName: category.icon)
+                                .font(.system(size: 12, weight: .semibold))
+                            Text(category.rawValue)
+                                .font(.system(size: 13, weight: .semibold))
+                        }
+                        .foregroundStyle(.white)
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 6)
+                        .background(
+                            Capsule()
+                                .fill(category.color)
+                        )
+                        
+                        // Title
+                        VStack(alignment: .leading, spacing: 6) {
+                            Text("Title")
+                                .font(.system(size: 12, weight: .medium))
+                                .foregroundStyle(.secondary)
+                            Text(title)
+                                .font(.system(size: 16, weight: .semibold))
+                        }
+                        
+                        Divider()
+                        
+                        // Description with rendered markdown
+                        VStack(alignment: .leading, spacing: 6) {
+                            Text("Description")
+                                .font(.system(size: 12, weight: .medium))
+                                .foregroundStyle(.secondary)
+                            
+                            MarkdownTextView(text: message)
+                        }
+                        
+                        // Attachments Info
+                        if includeDeviceInfo || includeLogs || includeCode {
+                            Divider()
+                            
+                            VStack(alignment: .leading, spacing: 8) {
+                                Text("Attachments")
+                                    .font(.system(size: 12, weight: .medium))
+                                    .foregroundStyle(.secondary)
+                                
+                                HStack(spacing: 8) {
+                                    if includeDeviceInfo {
+                                        AttachmentBadge(icon: "iphone", text: "Device Info", color: .blue)
+                                    }
+                                    if includeLogs {
+                                        AttachmentBadge(icon: "doc.text.fill", text: "Logs", color: .orange)
+                                    }
+                                    if includeCode {
+                                        AttachmentBadge(icon: "curlybraces", text: "Code", color: .purple)
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    .padding(16)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .background(
+                        RoundedRectangle(cornerRadius: 16, style: .continuous)
+                            .fill(Color(.secondarySystemGroupedBackground))
+                    )
+                    .padding(.horizontal, 20)
+                }
+                .frame(maxHeight: 300)
+                .opacity(appearAnimation ? 1 : 0)
+                .offset(y: appearAnimation ? 0 : 20)
+                
+                // Buttons
+                HStack(spacing: 12) {
+                    Button {
+                        onEdit()
+                        dismissDialog()
+                    } label: {
+                        HStack(spacing: 8) {
+                            Image(systemName: "pencil")
+                                .font(.system(size: 14, weight: .semibold))
+                            Text("Edit")
+                                .font(.system(size: 16, weight: .semibold))
+                        }
+                        .foregroundStyle(category.color)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 16)
+                        .background(
+                            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                                .fill(category.color.opacity(0.15))
+                        )
+                    }
+                    
+                    Button {
+                        onSubmit()
+                        dismissDialog()
+                    } label: {
+                        HStack(spacing: 8) {
+                            Image(systemName: "paperplane.fill")
+                                .font(.system(size: 14, weight: .semibold))
+                            Text("Submit")
+                                .font(.system(size: 16, weight: .semibold))
+                        }
+                        .foregroundStyle(.white)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 16)
+                        .background(
+                            LinearGradient(
+                                colors: [category.color, category.color.opacity(0.8)],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                        )
+                        .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+                        .shadow(color: category.color.opacity(0.3), radius: 10, x: 0, y: 5)
+                    }
+                }
+                .padding(.horizontal, 20)
+                .padding(.top, 20)
+                .padding(.bottom, 24)
+                .opacity(appearAnimation ? 1 : 0)
+                .offset(y: appearAnimation ? 0 : 20)
+            }
+            .background(
+                RoundedRectangle(cornerRadius: 28, style: .continuous)
+                    .fill(Color(.systemBackground))
+                    .shadow(color: .black.opacity(0.2), radius: 40, x: 0, y: 20)
+            )
+            .padding(.horizontal, 16)
+            .scaleEffect(appearAnimation ? 1 : 0.9)
+            .opacity(appearAnimation ? 1 : 0)
+        }
+        .onAppear {
+            withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+                appearAnimation = true
+            }
+        }
+    }
+    
+    private func dismissDialog() {
+        withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+            appearAnimation = false
+        }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+            isPresented = false
+        }
+    }
+}
+
+// MARK: - Attachment Badge
+private struct AttachmentBadge: View {
+    let icon: String
+    let text: String
+    let color: Color
+    
+    var body: some View {
+        HStack(spacing: 4) {
+            Image(systemName: icon)
+                .font(.system(size: 10, weight: .semibold))
+            Text(text)
+                .font(.system(size: 11, weight: .medium))
+        }
+        .foregroundStyle(color)
+        .padding(.horizontal, 8)
+        .padding(.vertical, 4)
+        .background(
+            Capsule()
+                .fill(color.opacity(0.15))
+        )
+    }
+}
+
+// MARK: - Markdown Text View
+struct MarkdownTextView: View {
+    let text: String
+    
+    var body: some View {
+        Text(renderMarkdown(text))
+            .font(.system(size: 15))
+            .foregroundStyle(.primary)
+    }
+    
+    private func renderMarkdown(_ input: String) -> AttributedString {
+        var result = input
+        
+        // Convert markdown to plain text with basic formatting hints
+        // Bold: **text** or __text__
+        result = result.replacingOccurrences(of: "\\*\\*(.+?)\\*\\*", with: "$1", options: .regularExpression)
+        result = result.replacingOccurrences(of: "__(.+?)__", with: "$1", options: .regularExpression)
+        
+        // Italic: *text* or _text_
+        result = result.replacingOccurrences(of: "\\*(.+?)\\*", with: "$1", options: .regularExpression)
+        result = result.replacingOccurrences(of: "_(.+?)_", with: "$1", options: .regularExpression)
+        
+        // Strikethrough: ~~text~~
+        result = result.replacingOccurrences(of: "~~(.+?)~~", with: "$1", options: .regularExpression)
+        
+        // Code: `text`
+        result = result.replacingOccurrences(of: "`(.+?)`", with: "$1", options: .regularExpression)
+        
+        // Links: [text](url)
+        result = result.replacingOccurrences(of: "\\[(.+?)\\]\\(.+?\\)", with: "$1", options: .regularExpression)
+        
+        // Headers: ## text
+        result = result.replacingOccurrences(of: "^#{1,6}\\s*", with: "", options: .regularExpression)
+        
+        // Quote: > text
+        result = result.replacingOccurrences(of: "^>\\s*", with: "", options: [.regularExpression, .anchorsMatchLines])
+        
+        // List: - text
+        result = result.replacingOccurrences(of: "^-\\s*", with: "• ", options: [.regularExpression, .anchorsMatchLines])
+        
+        do {
+            return try AttributedString(markdown: input, options: AttributedString.MarkdownParsingOptions(interpretedSyntax: .inlineOnlyPreservingWhitespace))
+        } catch {
+            return AttributedString(result)
+        }
+    }
+}
+
 // MARK: - Link Dialog
 struct LinkInsertDialog: View {
     @Binding var isPresented: Bool
@@ -474,6 +918,191 @@ private struct FormattingButton: View {
     }
 }
 
+// MARK: - Modern Formatting Toolbar
+struct ModernFormattingToolbar: View {
+    @Binding var text: String
+    @Binding var showLinkDialog: Bool
+    @Environment(\.colorScheme) private var colorScheme
+    
+    private let toolbarHeight: CGFloat = 52
+    
+    enum FormatType: CaseIterable {
+        case bold, italic, strikethrough, code, quote, link, list, heading
+        
+        var icon: String {
+            switch self {
+            case .bold: return "bold"
+            case .italic: return "italic"
+            case .strikethrough: return "strikethrough"
+            case .code: return "chevron.left.forwardslash.chevron.right"
+            case .quote: return "text.quote"
+            case .link: return "link"
+            case .list: return "list.bullet"
+            case .heading: return "number"
+            }
+        }
+        
+        var label: String {
+            switch self {
+            case .bold: return "Bold"
+            case .italic: return "Italic"
+            case .strikethrough: return "Strikethrough"
+            case .code: return "Code"
+            case .quote: return "Quote"
+            case .link: return "Link"
+            case .list: return "List"
+            case .heading: return "Heading"
+            }
+        }
+        
+        var color: Color {
+            switch self {
+            case .bold: return .blue
+            case .italic: return .purple
+            case .strikethrough: return .red
+            case .code: return .orange
+            case .quote: return .teal
+            case .link: return .blue
+            case .list: return .green
+            case .heading: return .indigo
+            }
+        }
+        
+        var prefix: String {
+            switch self {
+            case .bold: return "**"
+            case .italic: return "_"
+            case .strikethrough: return "~~"
+            case .code: return "`"
+            case .quote: return "> "
+            case .link: return "["
+            case .list: return "- "
+            case .heading: return "## "
+            }
+        }
+        
+        var suffix: String {
+            switch self {
+            case .bold: return "**"
+            case .italic: return "_"
+            case .strikethrough: return "~~"
+            case .code: return "`"
+            case .quote: return ""
+            case .link: return "](url)"
+            case .list: return ""
+            case .heading: return ""
+            }
+        }
+        
+        var isLineFormat: Bool {
+            switch self {
+            case .quote, .list, .heading: return true
+            default: return false
+            }
+        }
+    }
+    
+    var body: some View {
+        HStack(spacing: 8) {
+            // Formatting buttons in a pill container
+            HStack(spacing: 2) {
+                ForEach(FormatType.allCases, id: \.icon) { format in
+                    ModernFormatButton(format: format) {
+                        if format == .link {
+                            showLinkDialog = true
+                        } else {
+                            applyFormatting(format)
+                        }
+                        HapticsManager.shared.softImpact()
+                    }
+                }
+            }
+            .padding(.horizontal, 6)
+            .padding(.vertical, 6)
+            .background(
+                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                    .fill(Color(.secondarySystemGroupedBackground))
+            )
+            
+            Spacer()
+            
+            // Dismiss keyboard button
+            Button {
+                UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+            } label: {
+                Image(systemName: "keyboard.chevron.compact.down")
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundStyle(.white)
+                    .frame(width: 40, height: 40)
+                    .background(
+                        Circle()
+                            .fill(
+                                LinearGradient(
+                                    colors: [Color.gray, Color.gray.opacity(0.8)],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                )
+                            )
+                    )
+            }
+            .buttonStyle(.plain)
+        }
+        .padding(.horizontal, 12)
+        .frame(height: toolbarHeight)
+        .background(
+            Rectangle()
+                .fill(Color(.systemBackground))
+                .shadow(color: Color.black.opacity(0.05), radius: 8, x: 0, y: -4)
+        )
+    }
+    
+    private func applyFormatting(_ format: FormatType) {
+        if format.isLineFormat {
+            if text.isEmpty {
+                text = format.prefix
+            } else if text.hasSuffix("\n") {
+                text += format.prefix
+            } else {
+                text += "\n" + format.prefix
+            }
+        } else {
+            let placeholder = "text"
+            text += format.prefix + placeholder + format.suffix
+        }
+    }
+}
+
+// MARK: - Modern Format Button
+private struct ModernFormatButton: View {
+    let format: ModernFormattingToolbar.FormatType
+    let action: () -> Void
+    
+    @State private var isPressed = false
+    
+    var body: some View {
+        Button(action: action) {
+            Image(systemName: format.icon)
+                .font(.system(size: 14, weight: .semibold))
+                .foregroundStyle(isPressed ? .white : format.color)
+                .frame(width: 34, height: 34)
+                .background(
+                    RoundedRectangle(cornerRadius: 10, style: .continuous)
+                        .fill(isPressed ? format.color : Color.clear)
+                )
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .scaleEffect(isPressed ? 0.92 : 1.0)
+        .animation(.spring(response: 0.2, dampingFraction: 0.7), value: isPressed)
+        .simultaneousGesture(
+            DragGesture(minimumDistance: 0)
+                .onChanged { _ in isPressed = true }
+                .onEnded { _ in isPressed = false }
+        )
+        .accessibilityLabel(format.label)
+    }
+}
+
 // MARK: - GitHub Feedback Service
 actor GitHubFeedbackService {
     static let shared = GitHubFeedbackService()
@@ -593,6 +1222,8 @@ struct FeedbackView: View {
     @State private var createdIssueNumber: Int = 0
     @State private var showLinkDialog: Bool = false
     @State private var showScreenshotError: Bool = false
+    @State private var showCategoryInfo: Bool = false
+    @State private var showPreview: Bool = false
     
     @FocusState private var focusedField: FocusedField?
     
@@ -666,7 +1297,7 @@ struct FeedbackView: View {
                 .toolbar {
                     ToolbarItemGroup(placement: .keyboard) {
                         if focusedField == .message {
-                            FormattingToolbar(text: $feedbackMessage, showLinkDialog: $showLinkDialog)
+                            ModernFormattingToolbar(text: $feedbackMessage, showLinkDialog: $showLinkDialog)
                         }
                     }
                 }
@@ -684,9 +1315,36 @@ struct FeedbackView: View {
                     .transition(.opacity.combined(with: .scale(scale: 0.95)))
                     .zIndex(100)
             }
+            
+            // Category Info Dialog Overlay
+            if showCategoryInfo {
+                CategoryInfoDialog(isPresented: $showCategoryInfo)
+                    .transition(.opacity.combined(with: .scale(scale: 0.95)))
+                    .zIndex(100)
+            }
+            
+            // Preview Dialog Overlay
+            if showPreview {
+                FeedbackPreviewDialog(
+                    isPresented: $showPreview,
+                    title: feedbackTitle,
+                    message: feedbackMessage,
+                    category: feedbackCategory,
+                    includeDeviceInfo: includeDeviceInfo,
+                    includeLogs: includeLogs,
+                    includeCode: includeCode,
+                    codeSnippet: codeSnippet,
+                    onSubmit: { submitFeedback() },
+                    onEdit: { /* Just close the preview */ }
+                )
+                .transition(.opacity.combined(with: .scale(scale: 0.95)))
+                .zIndex(100)
+            }
         }
         .animation(.spring(response: 0.3, dampingFraction: 0.8), value: showLinkDialog)
         .animation(.spring(response: 0.3, dampingFraction: 0.8), value: showScreenshotError)
+        .animation(.spring(response: 0.3, dampingFraction: 0.8), value: showCategoryInfo)
+        .animation(.spring(response: 0.3, dampingFraction: 0.8), value: showPreview)
     }
     
     private var mainScrollView: some View {
@@ -808,6 +1466,31 @@ struct FeedbackView: View {
                 Text("Category")
                     .font(.system(size: 15, weight: .semibold))
                     .foregroundStyle(.primary)
+                
+                Spacer()
+                
+                // Info Button
+                Button {
+                    withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+                        showCategoryInfo = true
+                    }
+                    HapticsManager.shared.softImpact()
+                } label: {
+                    HStack(spacing: 4) {
+                        Image(systemName: "info.circle.fill")
+                            .font(.system(size: 14, weight: .medium))
+                        Text("Guide")
+                            .font(.system(size: 12, weight: .medium))
+                    }
+                    .foregroundStyle(Color.blue)
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 6)
+                    .background(
+                        Capsule()
+                            .fill(Color.blue.opacity(0.12))
+                    )
+                }
+                .buttonStyle(.plain)
             }
             
             ScrollView(.horizontal, showsIndicators: false) {
@@ -1245,13 +1928,17 @@ struct FeedbackView: View {
     
     private var submitButton: some View {
         Button {
-            submitFeedback()
+            focusedField = nil
+            withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+                showPreview = true
+            }
+            HapticsManager.shared.softImpact()
         } label: {
             HStack(spacing: 10) {
-                Image(systemName: "paperplane.fill")
+                Image(systemName: "eye.fill")
                     .font(.system(size: 16, weight: .semibold))
                 
-                Text("Submit Feedback")
+                Text("Preview & Submit")
                     .font(.system(size: 16, weight: .semibold))
             }
             .foregroundStyle(.white)
