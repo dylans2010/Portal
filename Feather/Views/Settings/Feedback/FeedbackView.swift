@@ -93,19 +93,6 @@ actor GitHubFeedbackService {
     }
 }
 
-// MARK: - Appearance Modifier
-struct AppearanceModifier: ViewModifier {
-    let appearAnimation: Bool
-    let delay: Double
-    
-    func body(content: Content) -> some View {
-        content
-            .offset(y: appearAnimation ? 0 : 20)
-            .opacity(appearAnimation ? 1 : 0)
-            .animation(.spring(response: 0.5, dampingFraction: 0.8).delay(delay), value: appearAnimation)
-    }
-}
-
 // MARK: - Modern Feedback View
 struct FeedbackView: View {
     @Environment(\.dismiss) private var dismiss
@@ -119,15 +106,16 @@ struct FeedbackView: View {
     @State private var isSubmitting: Bool = false
     @State private var submissionStep: String = ""
     @State private var showSuccessSheet: Bool = false
-    @State private var showErrorAlert: Bool = false
+    @State private var showErrorSheet: Bool = false
     @State private var errorMessage: String = ""
     @State private var appearAnimation: Bool = false
     @State private var includeLogs: Bool = false
     @State private var includeDeviceInfo: Bool = true
+    @State private var includeScreenshots: Bool = false
+    @State private var includeCode: Bool = false
     @State private var selectedImages: [UIImage] = []
     @State private var showImagePicker: Bool = false
     @State private var selectedPhotoItems: [PhotosPickerItem] = []
-    @State private var showMarkdownPreview: Bool = false
     @State private var showCodeEditor: Bool = false
     @State private var createdIssueURL: String = ""
     @State private var createdIssueNumber: Int = 0
@@ -135,7 +123,7 @@ struct FeedbackView: View {
     @FocusState private var focusedField: FocusedField?
     
     enum FocusedField {
-        case title, message, code
+        case title, message
     }
     
     enum FeedbackCategory: String, CaseIterable {
@@ -190,26 +178,19 @@ struct FeedbackView: View {
             .background(Color(.systemGroupedBackground))
             .navigationTitle("Feedback")
             .navigationBarTitleDisplayMode(.inline)
-            .toolbar { toolbarContent }
             .onAppear { animateAppearance() }
             .photosPicker(isPresented: $showImagePicker, selection: $selectedPhotoItems, maxSelectionCount: 3, matching: .images)
             .onChange(of: selectedPhotoItems) { newItems in
                 loadSelectedImages(from: newItems)
             }
-            .sheet(isPresented: $showMarkdownPreview) {
-                MarkdownPreviewSheet(content: feedbackMessage)
-            }
             .sheet(isPresented: $showCodeEditor) {
                 CodeEditorSheet(code: $codeSnippet)
             }
             .sheet(isPresented: $showSuccessSheet) {
-                SuccessSheet(issueNumber: createdIssueNumber, issueURL: createdIssueURL, onDismiss: { dismiss() })
+                FeedbackSuccessSheet(issueNumber: createdIssueNumber, issueURL: createdIssueURL, onDismiss: { dismiss() })
             }
-            .alert("Error", isPresented: $showErrorAlert) {
-                Button("OK", role: .cancel) {}
-                Button("Retry") { submitFeedback() }
-            } message: {
-                Text(errorMessage)
+            .sheet(isPresented: $showErrorSheet) {
+                FeedbackErrorSheet(errorMessage: errorMessage, onRetry: { submitFeedback() }, onDismiss: { showErrorSheet = false })
             }
     }
     
@@ -217,43 +198,31 @@ struct FeedbackView: View {
         ScrollView {
             VStack(spacing: 20) {
                 headerSection
-                    .modifier(AppearanceModifier(appearAnimation: appearAnimation, delay: 0))
+                    .opacity(appearAnimation ? 1 : 0)
+                    .offset(y: appearAnimation ? 0 : 20)
                 
                 categorySelector
-                    .modifier(AppearanceModifier(appearAnimation: appearAnimation, delay: 0.05))
+                    .opacity(appearAnimation ? 1 : 0)
+                    .offset(y: appearAnimation ? 0 : 20)
+                    .animation(.spring(response: 0.5, dampingFraction: 0.8).delay(0.05), value: appearAnimation)
                 
                 formSection
-                    .modifier(AppearanceModifier(appearAnimation: appearAnimation, delay: 0.1))
-                
-                codeSection
-                    .modifier(AppearanceModifier(appearAnimation: appearAnimation, delay: 0.15))
+                    .opacity(appearAnimation ? 1 : 0)
+                    .offset(y: appearAnimation ? 0 : 20)
+                    .animation(.spring(response: 0.5, dampingFraction: 0.8).delay(0.1), value: appearAnimation)
                 
                 attachmentsSection
-                    .modifier(AppearanceModifier(appearAnimation: appearAnimation, delay: 0.2))
-                
-                optionsSection
-                    .modifier(AppearanceModifier(appearAnimation: appearAnimation, delay: 0.25))
+                    .opacity(appearAnimation ? 1 : 0)
+                    .offset(y: appearAnimation ? 0 : 20)
+                    .animation(.spring(response: 0.5, dampingFraction: 0.8).delay(0.15), value: appearAnimation)
                 
                 submitSection
-                    .modifier(AppearanceModifier(appearAnimation: appearAnimation, delay: 0.3))
+                    .opacity(appearAnimation ? 1 : 0)
+                    .offset(y: appearAnimation ? 0 : 20)
+                    .animation(.spring(response: 0.5, dampingFraction: 0.8).delay(0.2), value: appearAnimation)
             }
             .padding(.horizontal, 16)
             .padding(.vertical, 12)
-        }
-    }
-    
-    @ToolbarContentBuilder
-    private var toolbarContent: some ToolbarContent {
-        ToolbarItem(placement: .topBarTrailing) {
-            if !feedbackMessage.isEmpty {
-                Button {
-                    showMarkdownPreview.toggle()
-                } label: {
-                    Image(systemName: "eye")
-                        .font(.system(size: 16))
-                        .foregroundStyle(Color.accentColor)
-                }
-            }
         }
     }
     
@@ -271,6 +240,9 @@ struct FeedbackView: View {
                    let image = UIImage(data: data) {
                     selectedImages.append(image)
                 }
+            }
+            if !selectedImages.isEmpty {
+                includeScreenshots = true
             }
         }
     }
@@ -361,7 +333,7 @@ struct FeedbackView: View {
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 10) {
                     ForEach(FeedbackCategory.allCases, id: \.self) { category in
-                        CategoryChip(
+                        FeedbackCategoryChip(
                             category: category,
                             isSelected: feedbackCategory == category
                         ) {
@@ -435,7 +407,6 @@ struct FeedbackView: View {
                         .foregroundStyle(.red)
                 }
                 Spacer()
-                markdownTools
             }
             
             ZStack(alignment: .topLeading) {
@@ -449,7 +420,7 @@ struct FeedbackView: View {
                     .focused($focusedField, equals: .message)
                 
                 if feedbackMessage.isEmpty {
-                    Text("Describe your feedback in detail...\n\nSupports **Markdown** formatting")
+                    Text("Describe your feedback in detail...")
                         .font(.system(size: 15))
                         .foregroundStyle(.tertiary)
                         .padding(.horizontal, 14)
@@ -459,11 +430,6 @@ struct FeedbackView: View {
             }
             
             HStack {
-                if feedbackMessage.count > 5000 {
-                    Label("Message is quite long", systemImage: "exclamationmark.triangle.fill")
-                        .font(.system(size: 11))
-                        .foregroundStyle(.orange)
-                }
                 Spacer()
                 Text("\(feedbackMessage.count) characters")
                     .font(.system(size: 11))
@@ -472,43 +438,62 @@ struct FeedbackView: View {
         }
     }
     
-    private var markdownTools: some View {
-        HStack(spacing: 8) {
-            MarkdownToolButton(icon: "bold", tooltip: "Bold") { insertMarkdown("**", "**") }
-            MarkdownToolButton(icon: "italic", tooltip: "Italic") { insertMarkdown("_", "_") }
-            MarkdownToolButton(icon: "list.bullet", tooltip: "List") { insertMarkdown("\n- ", "") }
-            MarkdownToolButton(icon: "chevron.left.forwardslash.chevron.right", tooltip: "Code") { insertMarkdown("`", "`") }
-        }
-    }
-    
-    private func insertMarkdown(_ prefix: String, _ suffix: String) {
-        feedbackMessage += prefix + suffix
-        HapticsManager.shared.softImpact()
-    }
-    
-    // MARK: - Code Section
-    private var codeSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
+    // MARK: - Attachments Section (Combined)
+    private var attachmentsSection: some View {
+        VStack(alignment: .leading, spacing: 16) {
             HStack(spacing: 6) {
-                Image(systemName: "curlybraces")
+                Image(systemName: "paperclip")
                     .font(.system(size: 12, weight: .semibold))
                     .foregroundStyle(.secondary)
-                Text("Code Snippet")
+                Text("Attachments & Info")
                     .font(.system(size: 13, weight: .semibold))
                     .foregroundStyle(.secondary)
-                
-                Spacer()
-                
-                if !codeSnippet.isEmpty {
-                    Text("\(codeSnippet.components(separatedBy: "\n").count) lines")
-                        .font(.system(size: 12, weight: .medium))
-                        .foregroundStyle(.tertiary)
-                }
             }
             
-            if codeSnippet.isEmpty {
-                codeEmptyState
-            } else {
+            // Toggle Options Grid
+            LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
+                attachmentToggle(
+                    icon: "doc.text.fill",
+                    title: "App Logs",
+                    subtitle: "\(AppLogManager.shared.logs.count) entries",
+                    color: .orange,
+                    isOn: $includeLogs
+                )
+                
+                attachmentToggle(
+                    icon: "iphone",
+                    title: "Device Info",
+                    subtitle: UIDevice.current.modelName,
+                    color: .blue,
+                    isOn: $includeDeviceInfo
+                )
+                
+                attachmentToggle(
+                    icon: "photo.stack",
+                    title: "Screenshots",
+                    subtitle: selectedImages.isEmpty ? "Add images" : "\(selectedImages.count) selected",
+                    color: .green,
+                    isOn: $includeScreenshots,
+                    action: { showImagePicker = true }
+                )
+                
+                attachmentToggle(
+                    icon: "curlybraces",
+                    title: "Code Snippet",
+                    subtitle: codeSnippet.isEmpty ? "Add code" : "\(codeSnippet.components(separatedBy: "\n").count) lines",
+                    color: .purple,
+                    isOn: $includeCode,
+                    action: { showCodeEditor = true }
+                )
+            }
+            
+            // Screenshots Preview
+            if includeScreenshots && !selectedImages.isEmpty {
+                screenshotsPreview
+            }
+            
+            // Code Preview
+            if includeCode && !codeSnippet.isEmpty {
                 codePreview
             }
         }
@@ -516,47 +501,128 @@ struct FeedbackView: View {
         .background(sectionBackground)
     }
     
-    private var codeEmptyState: some View {
+    private func attachmentToggle(icon: String, title: String, subtitle: String, color: Color, isOn: Binding<Bool>, action: (() -> Void)? = nil) -> some View {
         Button {
-            showCodeEditor = true
-        } label: {
-            HStack(spacing: 10) {
-                Image(systemName: "plus.square.on.square")
-                    .font(.system(size: 20))
-                    .foregroundStyle(Color.accentColor)
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("Add Code Snippet")
-                        .font(.system(size: 14, weight: .medium))
-                    Text("Include relevant code for context")
-                        .font(.system(size: 12))
-                        .foregroundStyle(.secondary)
+            if let action = action {
+                action()
+            } else {
+                withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                    isOn.wrappedValue.toggle()
                 }
-                Spacer()
-                Image(systemName: "chevron.right")
-                    .font(.system(size: 14, weight: .medium))
-                    .foregroundStyle(.tertiary)
             }
-            .padding(14)
-            .background(inputBackground)
+            HapticsManager.shared.softImpact()
+        } label: {
+            VStack(alignment: .leading, spacing: 8) {
+                HStack {
+                    ZStack {
+                        RoundedRectangle(cornerRadius: 8, style: .continuous)
+                            .fill(isOn.wrappedValue ? color : color.opacity(0.15))
+                            .frame(width: 32, height: 32)
+                        
+                        Image(systemName: icon)
+                            .font(.system(size: 14, weight: .medium))
+                            .foregroundStyle(isOn.wrappedValue ? .white : color)
+                    }
+                    
+                    Spacer()
+                    
+                    Image(systemName: isOn.wrappedValue ? "checkmark.circle.fill" : "circle")
+                        .font(.system(size: 18))
+                        .foregroundStyle(isOn.wrappedValue ? color : .tertiary)
+                }
+                
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(title)
+                        .font(.system(size: 13, weight: .medium))
+                        .foregroundStyle(.primary)
+                    Text(subtitle)
+                        .font(.system(size: 11))
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                }
+            }
+            .padding(12)
+            .background(
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .fill(isOn.wrappedValue ? color.opacity(0.1) : Color(.tertiarySystemGroupedBackground))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 12, style: .continuous)
+                            .stroke(isOn.wrappedValue ? color.opacity(0.3) : Color.clear, lineWidth: 1)
+                    )
+            )
         }
         .buttonStyle(.plain)
+    }
+    
+    private var screenshotsPreview: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 10) {
+                ForEach(selectedImages.indices, id: \.self) { index in
+                    ZStack(alignment: .topTrailing) {
+                        Image(uiImage: selectedImages[index])
+                            .resizable()
+                            .aspectRatio(contentMode: .fill)
+                            .frame(width: 60, height: 60)
+                            .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+                        
+                        Button {
+                            withAnimation(.spring(response: 0.3)) {
+                                selectedImages.remove(at: index)
+                                if index < selectedPhotoItems.count {
+                                    selectedPhotoItems.remove(at: index)
+                                }
+                                if selectedImages.isEmpty {
+                                    includeScreenshots = false
+                                }
+                            }
+                        } label: {
+                            Image(systemName: "xmark.circle.fill")
+                                .font(.system(size: 16))
+                                .foregroundStyle(.white)
+                                .background(Circle().fill(Color.black.opacity(0.5)))
+                        }
+                        .offset(x: 4, y: -4)
+                    }
+                }
+                
+                if selectedImages.count < 3 {
+                    Button {
+                        showImagePicker = true
+                    } label: {
+                        VStack(spacing: 4) {
+                            Image(systemName: "plus")
+                                .font(.system(size: 16, weight: .medium))
+                        }
+                        .foregroundStyle(.green)
+                        .frame(width: 60, height: 60)
+                        .background(
+                            RoundedRectangle(cornerRadius: 8, style: .continuous)
+                                .strokeBorder(style: StrokeStyle(lineWidth: 1, dash: [4]))
+                                .foregroundStyle(Color.green.opacity(0.4))
+                        )
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+            .padding(.top, 8)
+        }
     }
     
     private var codePreview: some View {
         VStack(alignment: .leading, spacing: 8) {
             ScrollView(.horizontal, showsIndicators: false) {
-                Text(codeSnippet.prefix(500) + (codeSnippet.count > 500 ? "..." : ""))
-                    .font(.system(size: 12, design: .monospaced))
+                Text(codeSnippet.prefix(200) + (codeSnippet.count > 200 ? "..." : ""))
+                    .font(.system(size: 11, design: .monospaced))
                     .foregroundStyle(.primary)
-                    .padding(12)
+                    .padding(10)
             }
-            .frame(maxHeight: 120)
+            .frame(maxHeight: 80)
             .background(
-                RoundedRectangle(cornerRadius: 10, style: .continuous)
+                RoundedRectangle(cornerRadius: 8, style: .continuous)
                     .fill(Color(.systemBackground))
             )
             .overlay(
-                RoundedRectangle(cornerRadius: 10, style: .continuous)
+                RoundedRectangle(cornerRadius: 8, style: .continuous)
                     .stroke(Color.primary.opacity(0.1), lineWidth: 1)
             )
             
@@ -565,215 +631,23 @@ struct FeedbackView: View {
                     showCodeEditor = true
                 } label: {
                     Label("Edit", systemImage: "pencil")
-                        .font(.system(size: 13, weight: .medium))
+                        .font(.system(size: 12, weight: .medium))
                 }
                 
                 Button(role: .destructive) {
                     withAnimation(.spring(response: 0.3)) {
                         codeSnippet = ""
+                        includeCode = false
                     }
                 } label: {
                     Label("Remove", systemImage: "trash")
-                        .font(.system(size: 13, weight: .medium))
+                        .font(.system(size: 12, weight: .medium))
                 }
                 
                 Spacer()
             }
         }
-    }
-    
-    // MARK: - Attachments Section
-    private var attachmentsSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack(spacing: 6) {
-                Image(systemName: "photo.stack")
-                    .font(.system(size: 12, weight: .semibold))
-                    .foregroundStyle(.secondary)
-                Text("Screenshots")
-                    .font(.system(size: 13, weight: .semibold))
-                    .foregroundStyle(.secondary)
-                
-                Spacer()
-                
-                Text("\(selectedImages.count)/3")
-                    .font(.system(size: 12, weight: .medium))
-                    .foregroundStyle(.tertiary)
-            }
-            
-            if selectedImages.isEmpty {
-                attachmentsEmptyState
-            } else {
-                attachmentsImageList
-            }
-        }
-        .padding(14)
-        .background(sectionBackground)
-    }
-    
-    private var attachmentsEmptyState: some View {
-        Button {
-            showImagePicker = true
-        } label: {
-            HStack(spacing: 10) {
-                Image(systemName: "photo.on.rectangle.angled")
-                    .font(.system(size: 20))
-                    .foregroundStyle(Color.accentColor)
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("Add Screenshots")
-                        .font(.system(size: 14, weight: .medium))
-                    Text("Up to 3 images")
-                        .font(.system(size: 12))
-                        .foregroundStyle(.secondary)
-                }
-                Spacer()
-                Image(systemName: "plus.circle.fill")
-                    .font(.system(size: 22))
-                    .foregroundStyle(Color.accentColor)
-            }
-            .padding(14)
-            .background(
-                RoundedRectangle(cornerRadius: 12, style: .continuous)
-                    .fill(Color(.tertiarySystemGroupedBackground))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 12, style: .continuous)
-                            .strokeBorder(style: StrokeStyle(lineWidth: 1, dash: [6]))
-                            .foregroundStyle(Color.accentColor.opacity(0.3))
-                    )
-            )
-        }
-        .buttonStyle(.plain)
-    }
-    
-    private var attachmentsImageList: some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 12) {
-                ForEach(selectedImages.indices, id: \.self) { index in
-                    attachmentThumbnail(at: index)
-                }
-                
-                if selectedImages.count < 3 {
-                    addMoreButton
-                }
-            }
-            .padding(.horizontal, 2)
-        }
-    }
-    
-    private func attachmentThumbnail(at index: Int) -> some View {
-        ZStack(alignment: .topTrailing) {
-            Image(uiImage: selectedImages[index])
-                .resizable()
-                .aspectRatio(contentMode: .fill)
-                .frame(width: 80, height: 80)
-                .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
-            
-            Button {
-                withAnimation(.spring(response: 0.3)) {
-                    selectedImages.remove(at: index)
-                    if index < selectedPhotoItems.count {
-                        selectedPhotoItems.remove(at: index)
-                    }
-                }
-            } label: {
-                Image(systemName: "xmark.circle.fill")
-                    .font(.system(size: 20))
-                    .foregroundStyle(.white)
-                    .background(Circle().fill(Color.black.opacity(0.5)))
-            }
-            .offset(x: 6, y: -6)
-        }
-    }
-    
-    private var addMoreButton: some View {
-        Button {
-            showImagePicker = true
-        } label: {
-            VStack(spacing: 6) {
-                Image(systemName: "plus")
-                    .font(.system(size: 20, weight: .medium))
-                Text("Add")
-                    .font(.system(size: 11, weight: .medium))
-            }
-            .foregroundStyle(Color.accentColor)
-            .frame(width: 80, height: 80)
-            .background(
-                RoundedRectangle(cornerRadius: 10, style: .continuous)
-                    .fill(Color.accentColor.opacity(0.1))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 10, style: .continuous)
-                            .strokeBorder(style: StrokeStyle(lineWidth: 1, dash: [4]))
-                            .foregroundStyle(Color.accentColor.opacity(0.4))
-                    )
-            )
-        }
-        .buttonStyle(.plain)
-    }
-    
-    // MARK: - Options Section
-    private var optionsSection: some View {
-        VStack(spacing: 12) {
-            optionRow(
-                icon: "doc.text.fill",
-                iconColor: .orange,
-                title: "Include App Logs",
-                subtitle: "Attach diagnostic logs to help us debug",
-                isOn: $includeLogs
-            )
-            
-            if includeLogs {
-                HStack(spacing: 8) {
-                    Image(systemName: "info.circle.fill")
-                        .font(.system(size: 14))
-                        .foregroundStyle(.blue)
-                    Text("\(AppLogManager.shared.logs.count) log entries will be attached")
-                        .font(.system(size: 13))
-                        .foregroundStyle(.secondary)
-                    Spacer()
-                }
-                .padding(.horizontal, 4)
-                .transition(.opacity.combined(with: .move(edge: .top)))
-            }
-            
-            optionRow(
-                icon: "iphone",
-                iconColor: .blue,
-                title: "Include Device Info",
-                subtitle: "Add device model and iOS version",
-                isOn: $includeDeviceInfo
-            )
-        }
-        .padding(14)
-        .background(sectionBackground)
-        .animation(.spring(response: 0.35, dampingFraction: 0.8), value: includeLogs)
-    }
-    
-    private func optionRow(icon: String, iconColor: Color, title: String, subtitle: String, isOn: Binding<Bool>) -> some View {
-        HStack(spacing: 14) {
-            ZStack {
-                RoundedRectangle(cornerRadius: 8, style: .continuous)
-                    .fill(iconColor.opacity(0.15))
-                    .frame(width: 36, height: 36)
-                Image(systemName: icon)
-                    .font(.system(size: 16))
-                    .foregroundStyle(iconColor)
-            }
-            
-            VStack(alignment: .leading, spacing: 2) {
-                Text(title)
-                    .font(.system(size: 15, weight: .medium))
-                Text(subtitle)
-                    .font(.system(size: 12))
-                    .foregroundStyle(.secondary)
-            }
-            
-            Spacer()
-            
-            Toggle("", isOn: isOn)
-                .labelsHidden()
-                .tint(iconColor)
-        }
-        .padding(14)
-        .background(inputBackground)
+        .padding(.top, 8)
     }
     
     // MARK: - Submit Section
@@ -875,7 +749,7 @@ struct FeedbackView: View {
                     isSubmitting = false
                     errorMessage = error.localizedDescription
                     HapticsManager.shared.error()
-                    showErrorAlert = true
+                    showErrorSheet = true
                 }
             }
         }
@@ -884,7 +758,7 @@ struct FeedbackView: View {
     private func buildIssueBody() -> String {
         var body = "## Description\n\(feedbackMessage.trimmingCharacters(in: .whitespacesAndNewlines))\n\n"
         
-        if !codeSnippet.isEmpty {
+        if includeCode && !codeSnippet.isEmpty {
             body += "\n## Code Snippet\n```\n\(codeSnippet)\n```\n\n"
         }
         
@@ -913,7 +787,7 @@ struct FeedbackView: View {
             }
         }
         
-        if !selectedImages.isEmpty {
+        if includeScreenshots && !selectedImages.isEmpty {
             body += "\n## Screenshots\n"
             body += "_\(selectedImages.count) screenshot(s) were attached but cannot be uploaded via API._\n\n"
         }
@@ -925,7 +799,7 @@ struct FeedbackView: View {
 }
 
 // MARK: - Category Chip
-struct CategoryChip: View {
+struct FeedbackCategoryChip: View {
     let category: FeedbackView.FeedbackCategory
     let isSelected: Bool
     let action: () -> Void
@@ -947,57 +821,6 @@ struct CategoryChip: View {
             .foregroundStyle(isSelected ? .white : .primary)
         }
         .buttonStyle(.plain)
-    }
-}
-
-// MARK: - Markdown Tool Button
-struct MarkdownToolButton: View {
-    let icon: String
-    let tooltip: String
-    let action: () -> Void
-    
-    var body: some View {
-        Button(action: action) {
-            Image(systemName: icon)
-                .font(.system(size: 12, weight: .medium))
-                .foregroundStyle(.secondary)
-                .frame(width: 28, height: 28)
-                .background(Circle().fill(Color(.tertiarySystemGroupedBackground)))
-        }
-        .buttonStyle(.plain)
-        .help(tooltip)
-    }
-}
-
-// MARK: - Markdown Preview Sheet
-struct MarkdownPreviewSheet: View {
-    @Environment(\.dismiss) private var dismiss
-    let content: String
-    
-    var body: some View {
-        NavigationStack {
-            ScrollView {
-                VStack(alignment: .leading, spacing: 12) {
-                    if let attributed = try? AttributedString(markdown: content, options: AttributedString.MarkdownParsingOptions(interpretedSyntax: .inlineOnlyPreservingWhitespace)) {
-                        Text(attributed)
-                            .font(.system(size: 15))
-                            .padding()
-                    } else {
-                        Text(content)
-                            .font(.system(size: 15))
-                            .padding()
-                    }
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
-            }
-            .navigationTitle("Preview")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button("Done") { dismiss() }
-                }
-            }
-        }
     }
 }
 
@@ -1069,8 +892,8 @@ struct CodeEditorSheet: View {
     }
 }
 
-// MARK: - Success Sheet
-struct SuccessSheet: View {
+// MARK: - Success Sheet with Modern Animation
+struct FeedbackSuccessSheet: View {
     let issueNumber: Int
     let issueURL: String
     let onDismiss: () -> Void
@@ -1078,24 +901,82 @@ struct SuccessSheet: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.openURL) private var openURL
     @State private var showCheckmark = false
+    @State private var showContent = false
+    @State private var pulseAnimation = false
     
     var body: some View {
-        VStack(spacing: 24) {
+        VStack(spacing: 0) {
             Spacer()
             
-            successIcon
+            // Animated Success Icon
+            ZStack {
+                // Pulse rings
+                ForEach(0..<3) { i in
+                    Circle()
+                        .stroke(Color.green.opacity(0.2 - Double(i) * 0.05), lineWidth: 2)
+                        .frame(width: 120 + CGFloat(i) * 40, height: 120 + CGFloat(i) * 40)
+                        .scaleEffect(pulseAnimation ? 1.1 : 1.0)
+                        .opacity(pulseAnimation ? 0 : 1)
+                        .animation(
+                            .easeOut(duration: 1.5)
+                            .repeatForever(autoreverses: false)
+                            .delay(Double(i) * 0.3),
+                            value: pulseAnimation
+                        )
+                }
+                
+                Circle()
+                    .fill(Color.green.opacity(0.15))
+                    .frame(width: 120, height: 120)
+                    .scaleEffect(showCheckmark ? 1 : 0.5)
+                    .opacity(showCheckmark ? 1 : 0)
+                
+                Circle()
+                    .fill(
+                        LinearGradient(
+                            colors: [.green, .green.opacity(0.8)],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+                    .frame(width: 80, height: 80)
+                    .shadow(color: .green.opacity(0.4), radius: 16, x: 0, y: 8)
+                    .scaleEffect(showCheckmark ? 1 : 0)
+                
+                Image(systemName: "checkmark")
+                    .font(.system(size: 36, weight: .bold))
+                    .foregroundStyle(.white)
+                    .scaleEffect(showCheckmark ? 1 : 0)
+                    .rotationEffect(.degrees(showCheckmark ? 0 : -90))
+            }
+            .animation(.spring(response: 0.6, dampingFraction: 0.6), value: showCheckmark)
             
-            VStack(spacing: 8) {
+            Spacer().frame(height: 32)
+            
+            // Content
+            VStack(spacing: 12) {
                 Text("Feedback Submitted!")
-                    .font(.system(size: 24, weight: .bold, design: .rounded))
+                    .font(.system(size: 26, weight: .bold, design: .rounded))
+                    .opacity(showContent ? 1 : 0)
+                    .offset(y: showContent ? 0 : 20)
                 
                 Text("Issue #\(issueNumber) has been created")
                     .font(.system(size: 16))
                     .foregroundStyle(.secondary)
+                    .opacity(showContent ? 1 : 0)
+                    .offset(y: showContent ? 0 : 20)
+                
+                Text("Thank you for helping us improve!")
+                    .font(.system(size: 14))
+                    .foregroundStyle(.tertiary)
+                    .opacity(showContent ? 1 : 0)
+                    .offset(y: showContent ? 0 : 20)
             }
+            .animation(.spring(response: 0.5, dampingFraction: 0.8).delay(0.3), value: showContent)
             
             Spacer()
             
+            // Buttons
             VStack(spacing: 12) {
                 Button {
                     if let url = URL(string: issueURL) {
@@ -1110,8 +991,15 @@ struct SuccessSheet: View {
                     .foregroundStyle(.white)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 16)
-                    .background(Color.accentColor)
+                    .background(
+                        LinearGradient(
+                            colors: [.green, .green.opacity(0.8)],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
                     .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+                    .shadow(color: .green.opacity(0.3), radius: 12, x: 0, y: 6)
                 }
                 
                 Button {
@@ -1127,35 +1015,142 @@ struct SuccessSheet: View {
             }
             .padding(.horizontal, 24)
             .padding(.bottom, 24)
+            .opacity(showContent ? 1 : 0)
+            .offset(y: showContent ? 0 : 30)
+            .animation(.spring(response: 0.5, dampingFraction: 0.8).delay(0.5), value: showContent)
         }
         .onAppear {
-            withAnimation(.spring(response: 0.5, dampingFraction: 0.6).delay(0.2)) {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
                 showCheckmark = true
+                pulseAnimation = true
+            }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                showContent = true
             }
         }
     }
+}
+
+// MARK: - Error Sheet with Modern Animation
+struct FeedbackErrorSheet: View {
+    let errorMessage: String
+    let onRetry: () -> Void
+    let onDismiss: () -> Void
     
-    private var successIcon: some View {
-        ZStack {
-            Circle()
-                .fill(Color.green.opacity(0.15))
-                .frame(width: 120, height: 120)
+    @Environment(\.dismiss) private var dismiss
+    @State private var showIcon = false
+    @State private var showContent = false
+    @State private var shakeAnimation = false
+    
+    var body: some View {
+        VStack(spacing: 0) {
+            Spacer()
             
-            Circle()
-                .fill(
-                    LinearGradient(
-                        colors: [.green, .green.opacity(0.8)],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
+            // Animated Error Icon
+            ZStack {
+                Circle()
+                    .fill(Color.red.opacity(0.15))
+                    .frame(width: 120, height: 120)
+                    .scaleEffect(showIcon ? 1 : 0.5)
+                    .opacity(showIcon ? 1 : 0)
+                
+                Circle()
+                    .fill(
+                        LinearGradient(
+                            colors: [.red, .red.opacity(0.8)],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
                     )
-                )
-                .frame(width: 80, height: 80)
-                .shadow(color: .green.opacity(0.4), radius: 16, x: 0, y: 8)
+                    .frame(width: 80, height: 80)
+                    .shadow(color: .red.opacity(0.4), radius: 16, x: 0, y: 8)
+                    .scaleEffect(showIcon ? 1 : 0)
+                
+                Image(systemName: "xmark")
+                    .font(.system(size: 36, weight: .bold))
+                    .foregroundStyle(.white)
+                    .scaleEffect(showIcon ? 1 : 0)
+            }
+            .offset(x: shakeAnimation ? -10 : 0)
+            .animation(.spring(response: 0.6, dampingFraction: 0.6), value: showIcon)
             
-            Image(systemName: "checkmark")
-                .font(.system(size: 36, weight: .bold))
-                .foregroundStyle(.white)
-                .scaleEffect(showCheckmark ? 1 : 0)
+            Spacer().frame(height: 32)
+            
+            // Content
+            VStack(spacing: 12) {
+                Text("Something Went Wrong")
+                    .font(.system(size: 26, weight: .bold, design: .rounded))
+                    .opacity(showContent ? 1 : 0)
+                    .offset(y: showContent ? 0 : 20)
+                
+                Text(errorMessage)
+                    .font(.system(size: 14))
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, 32)
+                    .opacity(showContent ? 1 : 0)
+                    .offset(y: showContent ? 0 : 20)
+            }
+            .animation(.spring(response: 0.5, dampingFraction: 0.8).delay(0.3), value: showContent)
+            
+            Spacer()
+            
+            // Buttons
+            VStack(spacing: 12) {
+                Button {
+                    dismiss()
+                    onRetry()
+                } label: {
+                    HStack(spacing: 8) {
+                        Image(systemName: "arrow.clockwise")
+                        Text("Try Again")
+                    }
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundStyle(.white)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 16)
+                    .background(
+                        LinearGradient(
+                            colors: [.red, .red.opacity(0.8)],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+                    .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+                    .shadow(color: .red.opacity(0.3), radius: 12, x: 0, y: 6)
+                }
+                
+                Button {
+                    dismiss()
+                    onDismiss()
+                } label: {
+                    Text("Cancel")
+                        .font(.system(size: 16, weight: .medium))
+                        .foregroundStyle(.secondary)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 16)
+                }
+            }
+            .padding(.horizontal, 24)
+            .padding(.bottom, 24)
+            .opacity(showContent ? 1 : 0)
+            .offset(y: showContent ? 0 : 30)
+            .animation(.spring(response: 0.5, dampingFraction: 0.8).delay(0.5), value: showContent)
+        }
+        .onAppear {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                showIcon = true
+            }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                showContent = true
+                // Shake animation
+                withAnimation(.default.repeatCount(3, autoreverses: true).speed(6)) {
+                    shakeAnimation = true
+                }
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                    shakeAnimation = false
+                }
+            }
         }
     }
 }
