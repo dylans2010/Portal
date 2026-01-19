@@ -2493,7 +2493,7 @@ struct IPAInspectorView: View {
         var supportedArchitectures: [String] = []
         var isEncrypted = false
         var linkedFrameworksList: [String] = []
-        var weakLinkedFrameworksList: [String] = []
+        let weakLinkedFrameworksList: [String] = []
         var embeddedBinaries: [String] = []
         
         // Get executable name from Info.plist

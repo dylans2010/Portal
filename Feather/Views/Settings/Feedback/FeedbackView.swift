@@ -228,218 +228,292 @@ struct FeedbackView: View {
     }
     
     // MARK: - Form Section
-    private var formSection: some View {
-        VStack(spacing: 16) {
-            VStack(alignment: .leading, spacing: 8) {
-                HStack(spacing: 6) {
-                    Image(systemName: "text.cursor")
-                        .font(.system(size: 12, weight: .semibold))
-                        .foregroundStyle(.secondary)
-                    Text("Title")
-                        .font(.system(size: 13, weight: .semibold))
-                        .foregroundStyle(.secondary)
-                }
-                
-                HStack(spacing: 12) {
-                    Image(systemName: "pencil.line")
-                        .font(.system(size: 16))
-                        .foregroundStyle(focusedField == .title ? .accentColor : .secondary)
-                    
-                    TextField("Brief summary of your feedback", text: $feedbackTitle)
-                        .font(.system(size: 15))
-                        .focused($focusedField, equals: .title)
-                }
-                .padding(14)
-                .background(
-                    RoundedRectangle(cornerRadius: 12, style: .continuous)
-                        .fill(Color(.tertiarySystemGroupedBackground))
-                )
-                .overlay(
-                    RoundedRectangle(cornerRadius: 12, style: .continuous)
-                        .stroke(focusedField == .title ? Color.accentColor.opacity(0.5) : Color.clear, lineWidth: 2)
-                )
-            }
+    private var formSectionTitleLabel: some View {
+        HStack(spacing: 6) {
+            Image(systemName: "text.cursor")
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundStyle(.secondary)
+            Text("Title")
+                .font(.system(size: 13, weight: .semibold))
+                .foregroundStyle(.secondary)
+        }
+    }
+    
+    private var formSectionTitleInput: some View {
+        HStack(spacing: 12) {
+            Image(systemName: "pencil.line")
+                .font(.system(size: 16))
+                .foregroundStyle(focusedField == .title ? .accentColor : .secondary)
             
-            VStack(alignment: .leading, spacing: 8) {
-                HStack {
-                    HStack(spacing: 6) {
-                        Image(systemName: "text.alignleft")
-                            .font(.system(size: 12, weight: .semibold))
-                            .foregroundStyle(.secondary)
-                        Text("Message")
-                            .font(.system(size: 13, weight: .semibold))
-                            .foregroundStyle(.secondary)
-                    }
-                    
-                    Spacer()
-                    
-                    HStack(spacing: 8) {
-                        MarkdownToolButton(icon: "bold", action: { insertMarkdown("**", "**") })
-                        MarkdownToolButton(icon: "italic", action: { insertMarkdown("_", "_") })
-                        MarkdownToolButton(icon: "list.bullet", action: { insertMarkdown("\n- ", "") })
-                        MarkdownToolButton(icon: "chevron.left.forwardslash.chevron.right", action: { insertMarkdown("`", "`") })
-                    }
-                }
-                
-                TextEditor(text: $feedbackMessage)
-                    .font(.system(size: 15, design: .monospaced))
-                    .frame(minHeight: 150)
-                    .padding(10)
-                    .scrollContentBackground(.hidden)
-                    .background(
-                        RoundedRectangle(cornerRadius: 12, style: .continuous)
-                            .fill(Color(.tertiarySystemGroupedBackground))
-                    )
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 12, style: .continuous)
-                            .stroke(focusedField == .message ? Color.accentColor.opacity(0.5) : Color.clear, lineWidth: 2)
-                    )
-                    .overlay(alignment: .topLeading) {
-                        if feedbackMessage.isEmpty {
-                            Text("Describe your feedback in detail...\n\nSupports **Markdown** formatting")
-                                .font(.system(size: 15))
-                                .foregroundStyle(.tertiary)
-                                .padding(.horizontal, 14)
-                                .padding(.vertical, 18)
-                                .allowsHitTesting(false)
-                        }
-                    }
-                    .focused($focusedField, equals: .message)
-                
-                HStack {
-                    Spacer()
-                    Text("\(feedbackMessage.count) characters")
-                        .font(.system(size: 11))
-                        .foregroundStyle(.tertiary)
-                }
+            TextField("Brief summary of your feedback", text: $feedbackTitle)
+                .font(.system(size: 15))
+                .focused($focusedField, equals: .title)
+        }
+        .padding(14)
+        .background(
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                .fill(Color(.tertiarySystemGroupedBackground))
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                .stroke(focusedField == .title ? Color.accentColor.opacity(0.5) : Color.clear, lineWidth: 2)
+        )
+    }
+    
+    private var formSectionTitleField: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            formSectionTitleLabel
+            formSectionTitleInput
+        }
+    }
+    
+    private var formSectionMessageLabel: some View {
+        HStack(spacing: 6) {
+            Image(systemName: "text.alignleft")
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundStyle(.secondary)
+            Text("Message")
+                .font(.system(size: 13, weight: .semibold))
+                .foregroundStyle(.secondary)
+        }
+    }
+    
+    private var formSectionMarkdownTools: some View {
+        HStack(spacing: 8) {
+            MarkdownToolButton(icon: "bold", action: { insertMarkdown("**", "**") })
+            MarkdownToolButton(icon: "italic", action: { insertMarkdown("_", "_") })
+            MarkdownToolButton(icon: "list.bullet", action: { insertMarkdown("\n- ", "") })
+            MarkdownToolButton(icon: "chevron.left.forwardslash.chevron.right", action: { insertMarkdown("`", "`") })
+        }
+    }
+    
+    private var formSectionMessageHeader: some View {
+        HStack {
+            formSectionMessageLabel
+            Spacer()
+            formSectionMarkdownTools
+        }
+    }
+    
+    private var formSectionMessagePlaceholder: some View {
+        Group {
+            if feedbackMessage.isEmpty {
+                Text("Describe your feedback in detail...\n\nSupports **Markdown** formatting")
+                    .font(.system(size: 15))
+                    .foregroundStyle(.tertiary)
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 18)
+                    .allowsHitTesting(false)
             }
         }
+    }
+    
+    private var formSectionMessageEditor: some View {
+        TextEditor(text: $feedbackMessage)
+            .font(.system(size: 15, design: .monospaced))
+            .frame(minHeight: 150)
+            .padding(10)
+            .scrollContentBackground(.hidden)
+            .background(
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .fill(Color(.tertiarySystemGroupedBackground))
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .stroke(focusedField == .message ? Color.accentColor.opacity(0.5) : Color.clear, lineWidth: 2)
+            )
+            .overlay(alignment: .topLeading) {
+                formSectionMessagePlaceholder
+            }
+            .focused($focusedField, equals: .message)
+    }
+    
+    private var formSectionCharacterCount: some View {
+        HStack {
+            Spacer()
+            Text("\(feedbackMessage.count) characters")
+                .font(.system(size: 11))
+                .foregroundStyle(.tertiary)
+        }
+    }
+    
+    private var formSectionMessageField: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            formSectionMessageHeader
+            formSectionMessageEditor
+            formSectionCharacterCount
+        }
+    }
+    
+    private var formSectionBackground: some View {
+        RoundedRectangle(cornerRadius: 16, style: .continuous)
+            .fill(.ultraThinMaterial)
+            .overlay(
+                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .stroke(Color.primary.opacity(0.06), lineWidth: 1)
+            )
+    }
+    
+    private var formSection: some View {
+        VStack(spacing: 16) {
+            formSectionTitleField
+            formSectionMessageField
+        }
         .padding(16)
+        .background(formSectionBackground)
+    }
+    
+    // MARK: - Attachments Section
+    private var attachmentsSectionHeader: some View {
+        HStack(spacing: 6) {
+            Image(systemName: "paperclip")
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundStyle(.secondary)
+            Text("Attachments")
+                .font(.system(size: 13, weight: .semibold))
+                .foregroundStyle(.secondary)
+            
+            Spacer()
+            
+            Text("\(selectedImages.count)/3")
+                .font(.system(size: 12, weight: .medium))
+                .foregroundStyle(.tertiary)
+        }
+    }
+    
+    private var attachmentsEmptyButtonLabel: some View {
+        HStack(spacing: 10) {
+            Image(systemName: "photo.on.rectangle.angled")
+                .font(.system(size: 20))
+            VStack(alignment: .leading, spacing: 2) {
+                Text("Add Screenshots")
+                    .font(.system(size: 14, weight: .medium))
+                Text("Up to 3 images")
+                    .font(.system(size: 12))
+                    .foregroundStyle(.secondary)
+            }
+            Spacer()
+            Image(systemName: "plus.circle.fill")
+                .font(.system(size: 22))
+                .foregroundStyle(.accentColor)
+        }
+        .padding(14)
         .background(
-            RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .fill(.ultraThinMaterial)
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                .fill(Color(.tertiarySystemGroupedBackground))
                 .overlay(
-                    RoundedRectangle(cornerRadius: 16, style: .continuous)
-                        .stroke(Color.primary.opacity(0.06), lineWidth: 1)
+                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                        .strokeBorder(style: StrokeStyle(lineWidth: 1, dash: [6]))
+                        .foregroundStyle(Color.accentColor.opacity(0.3))
                 )
         )
     }
     
-    // MARK: - Attachments Section
-    private var attachmentsSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack(spacing: 6) {
-                Image(systemName: "paperclip")
-                    .font(.system(size: 12, weight: .semibold))
-                    .foregroundStyle(.secondary)
-                Text("Attachments")
-                    .font(.system(size: 13, weight: .semibold))
-                    .foregroundStyle(.secondary)
-                
-                Spacer()
-                
-                Text("\(selectedImages.count)/3")
-                    .font(.system(size: 12, weight: .medium))
-                    .foregroundStyle(.tertiary)
-            }
+    private var attachmentsEmptyState: some View {
+        Button {
+            showImagePicker = true
+        } label: {
+            attachmentsEmptyButtonLabel
+        }
+        .buttonStyle(.plain)
+    }
+    
+    private func attachmentImageThumbnail(at index: Int) -> some View {
+        ZStack(alignment: .topTrailing) {
+            Image(uiImage: selectedImages[index])
+                .resizable()
+                .aspectRatio(contentMode: .fill)
+                .frame(width: 80, height: 80)
+                .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
             
-            if selectedImages.isEmpty {
+            Button {
+                withAnimation(.spring(response: 0.3)) {
+                    selectedImages.remove(at: index)
+                    if index < selectedPhotoItems.count {
+                        selectedPhotoItems.remove(at: index)
+                    }
+                }
+            } label: {
+                Image(systemName: "xmark.circle.fill")
+                    .font(.system(size: 20))
+                    .foregroundStyle(.white)
+                    .background(Circle().fill(Color.black.opacity(0.5)))
+            }
+            .offset(x: 6, y: -6)
+        }
+    }
+    
+    private var attachmentsAddMoreButtonLabel: some View {
+        VStack(spacing: 6) {
+            Image(systemName: "plus")
+                .font(.system(size: 20, weight: .medium))
+            Text("Add")
+                .font(.system(size: 11, weight: .medium))
+        }
+        .foregroundStyle(.accentColor)
+        .frame(width: 80, height: 80)
+        .background(
+            RoundedRectangle(cornerRadius: 10, style: .continuous)
+                .fill(Color.accentColor.opacity(0.1))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 10, style: .continuous)
+                        .strokeBorder(style: StrokeStyle(lineWidth: 1, dash: [4]))
+                        .foregroundStyle(Color.accentColor.opacity(0.4))
+                )
+        )
+    }
+    
+    private var attachmentsAddMoreButton: some View {
+        Group {
+            if selectedImages.count < 3 {
                 Button {
                     showImagePicker = true
                 } label: {
-                    HStack(spacing: 10) {
-                        Image(systemName: "photo.on.rectangle.angled")
-                            .font(.system(size: 20))
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text("Add Screenshots")
-                                .font(.system(size: 14, weight: .medium))
-                            Text("Up to 3 images")
-                                .font(.system(size: 12))
-                                .foregroundStyle(.secondary)
-                        }
-                        Spacer()
-                        Image(systemName: "plus.circle.fill")
-                            .font(.system(size: 22))
-                            .foregroundStyle(.accentColor)
-                    }
-                    .padding(14)
-                    .background(
-                        RoundedRectangle(cornerRadius: 12, style: .continuous)
-                            .fill(Color(.tertiarySystemGroupedBackground))
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 12, style: .continuous)
-                                    .strokeBorder(style: StrokeStyle(lineWidth: 1, dash: [6]))
-                                    .foregroundStyle(Color.accentColor.opacity(0.3))
-                            )
-                    )
+                    attachmentsAddMoreButtonLabel
                 }
                 .buttonStyle(.plain)
-            } else {
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 12) {
-                        ForEach(selectedImages.indices, id: \.self) { index in
-                            ZStack(alignment: .topTrailing) {
-                                Image(uiImage: selectedImages[index])
-                                    .resizable()
-                                    .aspectRatio(contentMode: .fill)
-                                    .frame(width: 80, height: 80)
-                                    .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
-                                
-                                Button {
-                                    withAnimation(.spring(response: 0.3)) {
-                                        selectedImages.remove(at: index)
-                                        if index < selectedPhotoItems.count {
-                                            selectedPhotoItems.remove(at: index)
-                                        }
-                                    }
-                                } label: {
-                                    Image(systemName: "xmark.circle.fill")
-                                        .font(.system(size: 20))
-                                        .foregroundStyle(.white)
-                                        .background(Circle().fill(Color.black.opacity(0.5)))
-                                }
-                                .offset(x: 6, y: -6)
-                            }
-                        }
-                        
-                        if selectedImages.count < 3 {
-                            Button {
-                                showImagePicker = true
-                            } label: {
-                                VStack(spacing: 6) {
-                                    Image(systemName: "plus")
-                                        .font(.system(size: 20, weight: .medium))
-                                    Text("Add")
-                                        .font(.system(size: 11, weight: .medium))
-                                }
-                                .foregroundStyle(.accentColor)
-                                .frame(width: 80, height: 80)
-                                .background(
-                                    RoundedRectangle(cornerRadius: 10, style: .continuous)
-                                        .fill(Color.accentColor.opacity(0.1))
-                                        .overlay(
-                                            RoundedRectangle(cornerRadius: 10, style: .continuous)
-                                                .strokeBorder(style: StrokeStyle(lineWidth: 1, dash: [4]))
-                                                .foregroundStyle(Color.accentColor.opacity(0.4))
-                                        )
-                                )
-                            }
-                            .buttonStyle(.plain)
-                        }
-                    }
-                    .padding(.horizontal, 2)
-                }
             }
         }
+    }
+    
+    private var attachmentsImageList: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 12) {
+                ForEach(selectedImages.indices, id: \.self) { index in
+                    attachmentImageThumbnail(at: index)
+                }
+                attachmentsAddMoreButton
+            }
+            .padding(.horizontal, 2)
+        }
+    }
+    
+    private var attachmentsSectionContent: some View {
+        Group {
+            if selectedImages.isEmpty {
+                attachmentsEmptyState
+            } else {
+                attachmentsImageList
+            }
+        }
+    }
+    
+    private var attachmentsSectionBackground: some View {
+        RoundedRectangle(cornerRadius: 16, style: .continuous)
+            .fill(.ultraThinMaterial)
+            .overlay(
+                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .stroke(Color.primary.opacity(0.06), lineWidth: 1)
+            )
+    }
+    
+    private var attachmentsSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            attachmentsSectionHeader
+            attachmentsSectionContent
+        }
         .padding(14)
-        .background(
-            RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .fill(.ultraThinMaterial)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 16, style: .continuous)
-                        .stroke(Color.primary.opacity(0.06), lineWidth: 1)
-                )
-        )
+        .background(attachmentsSectionBackground)
     }
     
     // MARK: - Options Section
