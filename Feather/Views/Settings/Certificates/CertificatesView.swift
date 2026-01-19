@@ -4,6 +4,8 @@ import NimbleViews
 // MARK: - View
 struct CertificatesView: View {
 	@AppStorage("feather.selectedCert") private var _storedSelectedCert: Int = 0
+	@AppStorage("Feather.certificateExperience") private var certificateExperience: String = CertificateExperience.developer.rawValue
+	@AppStorage("forceShowGuides") private var forceShowGuides = false
 	
 	@State private var _isAddingPresenting = false
 	@State private var _isSelectedInfoPresenting: CertificatePair?
@@ -29,13 +31,18 @@ struct CertificatesView: View {
 	var body: some View {
 		ScrollView {
 			LazyVStack(spacing: 14) {
+				// Certificate Type Picker Card
+				certificateTypeCard
+					.opacity(appearAnimation ? 1 : 0)
+					.offset(y: appearAnimation ? 0 : 20)
+				
 				ForEach(Array(_certificates.enumerated()), id: \.element.uuid) { index, cert in
 					modernCertificateCard(for: cert, at: index)
 						.opacity(appearAnimation ? 1 : 0)
 						.offset(y: appearAnimation ? 0 : 20)
 						.animation(
 							.spring(response: 0.5, dampingFraction: 0.8)
-							.delay(Double(index) * 0.05),
+							.delay(Double(index + 1) * 0.05),
 							value: appearAnimation
 						)
 				}
@@ -74,6 +81,60 @@ struct CertificatesView: View {
 				appearAnimation = true
 			}
 		}
+	}
+	
+	// MARK: - Certificate Type Card
+	private var certificateTypeCard: some View {
+		VStack(alignment: .leading, spacing: 12) {
+			HStack(spacing: 8) {
+				Image(systemName: "person.badge.shield.checkmark.fill")
+					.font(.system(size: 14, weight: .semibold))
+					.foregroundStyle(.blue)
+				Text("CERTIFICATE TYPE")
+					.font(.system(size: 12, weight: .semibold, design: .rounded))
+					.foregroundStyle(.secondary)
+			}
+			
+			HStack(spacing: 12) {
+				ForEach(CertificateExperience.allCases, id: \.rawValue) { exp in
+					Button {
+						withAnimation(.spring(response: 0.35, dampingFraction: 0.7)) {
+							certificateExperience = exp.rawValue
+							if exp == .enterprise {
+								forceShowGuides = true
+							}
+						}
+						HapticsManager.shared.softImpact()
+					} label: {
+						HStack(spacing: 8) {
+							Image(systemName: exp == .developer ? "person.fill" : "building.2.fill")
+								.font(.system(size: 14, weight: .medium))
+							Text(exp.displayName)
+								.font(.system(size: 14, weight: .medium))
+						}
+						.foregroundStyle(certificateExperience == exp.rawValue ? .white : .primary)
+						.padding(.horizontal, 16)
+						.padding(.vertical, 10)
+						.frame(maxWidth: .infinity)
+						.background(
+							RoundedRectangle(cornerRadius: 10, style: .continuous)
+								.fill(certificateExperience == exp.rawValue ? Color.blue : Color(.tertiarySystemGroupedBackground))
+						)
+					}
+					.buttonStyle(.plain)
+				}
+			}
+		}
+		.padding(16)
+		.background(
+			RoundedRectangle(cornerRadius: 18, style: .continuous)
+				.fill(Color(UIColor.secondarySystemGroupedBackground))
+				.overlay(
+					RoundedRectangle(cornerRadius: 18, style: .continuous)
+						.stroke(Color(UIColor.separator).opacity(0.2), lineWidth: 0.5)
+				)
+		)
+		.shadow(color: Color.black.opacity(0.06), radius: 10, x: 0, y: 4)
 	}
 	
 	// MARK: - Empty State

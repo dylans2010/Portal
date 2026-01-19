@@ -11,6 +11,7 @@ struct AppearanceView: View {
     @AppStorage("Feather.showIconsInAppearance") private var showIconsInAppearance: Bool = true
     @AppStorage("Feather.useNewAllAppsView") private var useNewAllAppsView: Bool = true
     @AppStorage("Feather.greetingsName") private var greetingsName: String = ""
+    @StateObject private var hapticsManager = HapticsManager.shared
     
     var body: some View {
         List {
@@ -40,6 +41,53 @@ struct AppearanceView: View {
                 settingToggle(icon: "newspaper", title: "Show News", isOn: $showNews, color: .orange)
             } header: {
                 sectionHeader("Display", icon: "eye.fill")
+            }
+            
+            // Haptics
+            Section {
+                Toggle(isOn: $hapticsManager.isEnabled) {
+                    HStack(spacing: 12) {
+                        Image(systemName: "iphone.radiowaves.left.and.right")
+                            .font(.system(size: 16, weight: .medium))
+                            .foregroundStyle(.purple)
+                            .frame(width: 24)
+                        Text("Enable Haptics")
+                            .font(.system(size: 15))
+                    }
+                }
+                .onChange(of: hapticsManager.isEnabled) { newValue in
+                    if newValue {
+                        HapticsManager.shared.impact()
+                    }
+                }
+                
+                if hapticsManager.isEnabled {
+                    ForEach(HapticsManager.HapticIntensity.allCases, id: \.self) { intensity in
+                        Button {
+                            hapticsManager.intensity = intensity
+                            HapticsManager.shared.impact()
+                        } label: {
+                            HStack(spacing: 12) {
+                                Image(systemName: iconForIntensity(intensity))
+                                    .foregroundStyle(hapticsManager.intensity == intensity ? Color.accentColor : Color.secondary)
+                                    .font(.body)
+                                    .frame(width: 24)
+                                Text(intensity.title)
+                                    .foregroundStyle(.primary)
+                                Spacer()
+                                if hapticsManager.intensity == intensity {
+                                    Image(systemName: "checkmark")
+                                        .foregroundStyle(Color.accentColor)
+                                }
+                            }
+                        }
+                    }
+                }
+            } header: {
+                sectionHeader("Haptics", icon: "waveform")
+            } footer: {
+                Text("Enable haptic feedback throughout the app")
+                    .font(.caption)
             }
             
             // Personalization
@@ -87,7 +135,7 @@ struct AppearanceView: View {
                 }
             }
         }
-        .navigationTitle("Appearance")
+        .navigationTitle("Appearance & Haptics")
         .onChange(of: userInterfaceStyle) { value in
             if let style = UIUserInterfaceStyle(rawValue: value) {
                 UIApplication.topViewController()?.view.window?.overrideUserInterfaceStyle = style
@@ -148,6 +196,16 @@ struct AppearanceView: View {
                 Text(title)
                     .font(.system(size: 15))
             }
+        }
+    }
+    
+    // MARK: - Haptic Intensity Icon
+    private func iconForIntensity(_ intensity: HapticsManager.HapticIntensity) -> String {
+        switch intensity {
+        case .slow: return "waveform.path.ecg"
+        case .defaultIntensity: return "waveform.path.ecg"
+        case .hard: return "waveform.path.ecg.rectangle"
+        case .extreme: return "waveform.path.ecg.rectangle"
         }
     }
 }
