@@ -1,9 +1,9 @@
 import SwiftUI
 import UIKit
 
-// MARK: - Formatting Option
+// MARK: - Format Option
 enum FormatOption: String, CaseIterable, Identifiable, Hashable {
-    case bold, italic, underline, strikethrough, code, link
+    case bold, italic, underline, strikethrough, code, link, header, quote, list
     
     var id: String { rawValue }
     
@@ -15,6 +15,9 @@ enum FormatOption: String, CaseIterable, Identifiable, Hashable {
         case .strikethrough: return "strikethrough"
         case .code: return "chevron.left.forwardslash.chevron.right"
         case .link: return "link"
+        case .header: return "textformat.size"
+        case .quote: return "text.quote"
+        case .list: return "list.bullet"
         }
     }
     
@@ -26,137 +29,461 @@ enum FormatOption: String, CaseIterable, Identifiable, Hashable {
         case .strikethrough: return .orange
         case .code: return .purple
         case .link: return .teal
+        case .header: return .pink
+        case .quote: return .indigo
+        case .list: return .mint
+        }
+    }
+    
+    var markdownPrefix: String {
+        switch self {
+        case .bold: return "**"
+        case .italic: return "_"
+        case .underline: return "__"
+        case .strikethrough: return "~~"
+        case .code: return "`"
+        case .link: return "["
+        case .header: return "# "
+        case .quote: return "> "
+        case .list: return "• "
+        }
+    }
+    
+    var markdownSuffix: String {
+        switch self {
+        case .bold: return "**"
+        case .italic: return "_"
+        case .underline: return "__"
+        case .strikethrough: return "~~"
+        case .code: return "`"
+        case .link: return "](url)"
+        case .header, .quote, .list: return ""
         }
     }
 }
 
-// MARK: - Formatted Text Manager
-class FormattedTextManager: ObservableObject {
-    @Published var attributedText = NSMutableAttributedString()
+// MARK: - Markdown Text Manager
+class MarkdownTextManager: ObservableObject {
+    @Published var rawText: String = ""
+    @Published var attributedText: NSAttributedString = NSAttributedString()
     @Published var activeFormats: Set<FormatOption> = []
-    weak var textView: UITextView?
     
-    var plainText: String { attributedText.string }
-    var characterCount: Int { attributedText.length }
+    weak var textView: UITextView? {
+        didSet { setupTextView() }
+    }
     
-    func applyFormat(_ option: FormatOption) {
+    var plainText: String { rawText }
+    var characterCount: Int { rawText.count }
+    
+    private func setupTextView() {
         guard let textView = textView else { return }
-        let range = textView.selectedRange
-        guard range.length > 0, range.location + range.length <= textView.attributedText.length else { return }
+        textView.attributedText = attributedText
+    }
+    
+    func insertFormat(_ option: FormatOption) {
+        guard let textView = textView else { return }
         
-        let mutable = NSMutableAttributedString(attributedString: textView.attributedText)
+        let selectedRange = textView.selectedRange
+        let currentText = rawText
         
-        switch option {
-        case .bold: toggleTrait(.traitBold, in: mutable, range: range)
-        case .italic: toggleTrait(.traitItalic, in: mutable, range: range)
-        case .underline: toggleStyle(.underlineStyle, in: mutable, range: range)
-        case .strikethrough: toggleStyle(.strikethroughStyle, in: mutable, range: range)
-        case .code: applyCode(to: mutable, range: range)
-        case .link: break
+        if selectedRange.length > 0 {
+            // Wrap selected text
+            let start = currentText.index(currentText.startIndex, offsetBy: selectedRange.location)
+            let end = currentText.index(start, offsetBy: selectedRange.length)
+            let selectedText = String(currentText[start..<end])
+            
+            let wrappedText = option.markdownPrefix + selectedText + option.markdownSuffix
+            
+            let mutableText = NSMutableString(string: currentText)
+            mutableText.replaceCharacters(in: selectedRange, with: wrappedText)
+            rawText = mutableText as String
+            
+            // Update cursor position
+            let newPosition = selectedRange.location + wrappedText.count
+            updateTextView()
+            textView.selectedRange = NSRange(location: newPosition, length: 0)
+        } else {
+            // Insert at cursor
+            let insertText = option.markdownPrefix + option.markdownSuffix
+            let location = selectedRange.location
+            
+            let mutableText = NSMutableString(string: currentText)
+            mutableText.insert(insertText, at: location)
+            rawText = mutableText as String
+            
+            // Position cursor between prefix and suffix
+            let cursorPosition = location + option.markdownPrefix.count
+            updateTextView()
+            textView.selectedRange = NSRange(location: cursorPosition, length: 0)
         }
         
-        textView.attributedText = mutable
-        textView.selectedRange = range
-        attributedText = mutable
-        updateActiveFormats()
         HapticsManager.shared.softImpact()
     }
     
-    func applyLink(_ url: String) {
-        guard let textView = textView, let link = URL(string: url) else { return }
-        let range = textView.selectedRange
-        guard range.length > 0 else { return }
+    func updateFromTextView() {
+        guard let textView = textView else { return }
+        rawText = textView.text ?? ""
+        parseAndRender()
+    }
+    
+    func updateTextView() {
+        parseAndRender()
+        guard let textView = textView else { return }
+        let selectedRange = textView.selectedRange
+        textView.attributedText = attributedText
+        textView.selectedRange = selectedRange
+    }
+    
+    private func parseAndRender() {
+        attributedText = parseMarkdown(rawText)
+    }
+    
+    private func parseMarkdown(_ text: String) -> NSAttributedString {
+        let result = NSMutableAttributedString()
+        let defaultFont = UIFont.systemFont(ofSize: 16)
+        let defaultAttrs: [NSAttributedString.Key: Any] = [
+            .font: defaultFont,
+            .foregroundColor: UIColor.label
+        ]
         
-        let mutable = NSMutableAttributedString(attributedString: textView.attributedText)
-        mutable.addAttributes([.link: link, .foregroundColor: UIColor.systemBlue, .underlineStyle: NSUnderlineStyle.single.rawValue], range: range)
-        textView.attributedText = mutable
-        textView.selectedRange = range
-        attributedText = mutable
-    }
-    
-    private func toggleTrait(_ trait: UIFontDescriptor.SymbolicTraits, in str: NSMutableAttributedString, range: NSRange) {
-        str.enumerateAttribute(.font, in: range, options: []) { val, r, _ in
-            let font = (val as? UIFont) ?? UIFont.systemFont(ofSize: 15)
-            var traits = font.fontDescriptor.symbolicTraits
-            if traits.contains(trait) { traits.remove(trait) } else { traits.insert(trait) }
-            if let desc = font.fontDescriptor.withSymbolicTraits(traits) {
-                str.addAttribute(.font, value: UIFont(descriptor: desc, size: font.pointSize), range: r)
-            }
-        }
-    }
-    
-    private func toggleStyle(_ key: NSAttributedString.Key, in str: NSMutableAttributedString, range: NSRange) {
-        var has = false
-        str.enumerateAttribute(key, in: range, options: []) { v, _, stop in if v != nil { has = true; stop.pointee = true } }
-        if has { str.removeAttribute(key, range: range) }
-        else { str.addAttribute(key, value: NSUnderlineStyle.single.rawValue, range: range) }
-    }
-    
-    private func applyCode(to str: NSMutableAttributedString, range: NSRange) {
-        str.addAttributes([
-            .font: UIFont.monospacedSystemFont(ofSize: 14, weight: .regular),
-            .backgroundColor: UIColor.systemPurple.withAlphaComponent(0.15),
-            .foregroundColor: UIColor.systemPurple
-        ], range: range)
-    }
-    
-    func updateActiveFormats() {
-        guard let textView = textView else { activeFormats.removeAll(); return }
-        let range = textView.selectedRange
-        guard range.length > 0, range.location + range.length <= textView.attributedText.length else { activeFormats.removeAll(); return }
+        var currentIndex = text.startIndex
+        let endIndex = text.endIndex
         
-        var formats: Set<FormatOption> = []
-        textView.attributedText.enumerateAttributes(in: range, options: []) { attrs, _, _ in
-            if let font = attrs[.font] as? UIFont {
-                if font.fontDescriptor.symbolicTraits.contains(.traitBold) { formats.insert(.bold) }
-                if font.fontDescriptor.symbolicTraits.contains(.traitItalic) { formats.insert(.italic) }
+        while currentIndex < endIndex {
+            // Check for bold **text**
+            if let match = matchPattern(in: text, from: currentIndex, prefix: "**", suffix: "**") {
+                let boldFont = UIFont.boldSystemFont(ofSize: 16)
+                let attrs: [NSAttributedString.Key: Any] = [.font: boldFont, .foregroundColor: UIColor.label]
+                result.append(NSAttributedString(string: match.content, attributes: attrs))
+                currentIndex = match.endIndex
+                continue
             }
-            if attrs[.underlineStyle] != nil { formats.insert(.underline) }
-            if attrs[.strikethroughStyle] != nil { formats.insert(.strikethrough) }
+            
+            // Check for italic _text_
+            if let match = matchPattern(in: text, from: currentIndex, prefix: "_", suffix: "_") {
+                let italicFont = UIFont.italicSystemFont(ofSize: 16)
+                let attrs: [NSAttributedString.Key: Any] = [.font: italicFont, .foregroundColor: UIColor.label]
+                result.append(NSAttributedString(string: match.content, attributes: attrs))
+                currentIndex = match.endIndex
+                continue
+            }
+            
+            // Check for underline __text__
+            if let match = matchPattern(in: text, from: currentIndex, prefix: "__", suffix: "__") {
+                let attrs: [NSAttributedString.Key: Any] = [
+                    .font: defaultFont,
+                    .foregroundColor: UIColor.label,
+                    .underlineStyle: NSUnderlineStyle.single.rawValue
+                ]
+                result.append(NSAttributedString(string: match.content, attributes: attrs))
+                currentIndex = match.endIndex
+                continue
+            }
+            
+            // Check for strikethrough ~~text~~
+            if let match = matchPattern(in: text, from: currentIndex, prefix: "~~", suffix: "~~") {
+                let attrs: [NSAttributedString.Key: Any] = [
+                    .font: defaultFont,
+                    .foregroundColor: UIColor.label,
+                    .strikethroughStyle: NSUnderlineStyle.single.rawValue
+                ]
+                result.append(NSAttributedString(string: match.content, attributes: attrs))
+                currentIndex = match.endIndex
+                continue
+            }
+            
+            // Check for code `text`
+            if let match = matchPattern(in: text, from: currentIndex, prefix: "`", suffix: "`") {
+                let codeFont = UIFont.monospacedSystemFont(ofSize: 14, weight: .regular)
+                let attrs: [NSAttributedString.Key: Any] = [
+                    .font: codeFont,
+                    .foregroundColor: UIColor.systemPurple,
+                    .backgroundColor: UIColor.systemPurple.withAlphaComponent(0.1)
+                ]
+                result.append(NSAttributedString(string: match.content, attributes: attrs))
+                currentIndex = match.endIndex
+                continue
+            }
+            
+            // Check for header # text (at line start)
+            if currentIndex == text.startIndex || text[text.index(before: currentIndex)] == "\n" {
+                if text[currentIndex...].hasPrefix("# ") {
+                    if let lineEnd = text[currentIndex...].firstIndex(of: "\n") ?? (currentIndex < endIndex ? endIndex : nil) {
+                        let headerStart = text.index(currentIndex, offsetBy: 2)
+                        if headerStart < lineEnd {
+                            let headerText = String(text[headerStart..<lineEnd])
+                            let headerFont = UIFont.boldSystemFont(ofSize: 22)
+                            let attrs: [NSAttributedString.Key: Any] = [.font: headerFont, .foregroundColor: UIColor.label]
+                            result.append(NSAttributedString(string: headerText, attributes: attrs))
+                            if lineEnd < endIndex {
+                                result.append(NSAttributedString(string: "\n", attributes: defaultAttrs))
+                                currentIndex = text.index(after: lineEnd)
+                            } else {
+                                currentIndex = endIndex
+                            }
+                            continue
+                        }
+                    }
+                }
+                
+                // Check for quote > text
+                if text[currentIndex...].hasPrefix("> ") {
+                    if let lineEnd = text[currentIndex...].firstIndex(of: "\n") ?? (currentIndex < endIndex ? endIndex : nil) {
+                        let quoteStart = text.index(currentIndex, offsetBy: 2)
+                        if quoteStart < lineEnd {
+                            let quoteText = String(text[quoteStart..<lineEnd])
+                            let quoteFont = UIFont.italicSystemFont(ofSize: 16)
+                            let attrs: [NSAttributedString.Key: Any] = [
+                                .font: quoteFont,
+                                .foregroundColor: UIColor.secondaryLabel
+                            ]
+                            result.append(NSAttributedString(string: "│ " + quoteText, attributes: attrs))
+                            if lineEnd < endIndex {
+                                result.append(NSAttributedString(string: "\n", attributes: defaultAttrs))
+                                currentIndex = text.index(after: lineEnd)
+                            } else {
+                                currentIndex = endIndex
+                            }
+                            continue
+                        }
+                    }
+                }
+                
+                // Check for list • text
+                if text[currentIndex...].hasPrefix("• ") {
+                    if let lineEnd = text[currentIndex...].firstIndex(of: "\n") ?? (currentIndex < endIndex ? endIndex : nil) {
+                        let listStart = text.index(currentIndex, offsetBy: 2)
+                        if listStart <= lineEnd {
+                            let listText = String(text[listStart..<lineEnd])
+                            let attrs: [NSAttributedString.Key: Any] = [.font: defaultFont, .foregroundColor: UIColor.label]
+                            result.append(NSAttributedString(string: "  • " + listText, attributes: attrs))
+                            if lineEnd < endIndex {
+                                result.append(NSAttributedString(string: "\n", attributes: defaultAttrs))
+                                currentIndex = text.index(after: lineEnd)
+                            } else {
+                                currentIndex = endIndex
+                            }
+                            continue
+                        }
+                    }
+                }
+            }
+            
+            // Regular character
+            let char = String(text[currentIndex])
+            result.append(NSAttributedString(string: char, attributes: defaultAttrs))
+            currentIndex = text.index(after: currentIndex)
         }
-        activeFormats = formats
+        
+        return result
+    }
+    
+    private struct PatternMatch {
+        let content: String
+        let endIndex: String.Index
+    }
+    
+    private func matchPattern(in text: String, from start: String.Index, prefix: String, suffix: String) -> PatternMatch? {
+        let remaining = text[start...]
+        guard remaining.hasPrefix(prefix) else { return nil }
+        
+        let contentStart = text.index(start, offsetBy: prefix.count)
+        guard contentStart < text.endIndex else { return nil }
+        
+        // Find the suffix
+        if let suffixRange = text[contentStart...].range(of: suffix) {
+            let content = String(text[contentStart..<suffixRange.lowerBound])
+            guard !content.isEmpty else { return nil }
+            return PatternMatch(content: content, endIndex: suffixRange.upperBound)
+        }
+        
+        return nil
     }
 }
 
-// MARK: - Compact Format Button
-struct CompactFormatButton: View {
+// MARK: - Format Toolbar Button
+struct FormatToolbarButton: View {
     let option: FormatOption
-    let isActive: Bool
     let action: () -> Void
     
     var body: some View {
         Button(action: action) {
-            Image(systemName: option.icon)
-                .font(.system(size: 15, weight: .semibold))
-                .foregroundStyle(isActive ? .white : .primary)
-                .frame(width: 36, height: 32)
-                .background(
-                    RoundedRectangle(cornerRadius: 8, style: .continuous)
-                        .fill(isActive ? option.color : Color(.tertiarySystemFill))
-                )
+            VStack(spacing: 2) {
+                Image(systemName: option.icon)
+                    .font(.system(size: 18, weight: .medium))
+                    .foregroundStyle(option.color)
+                    .frame(width: 44, height: 36)
+                    .background(
+                        RoundedRectangle(cornerRadius: 8, style: .continuous)
+                            .fill(option.color.opacity(0.12))
+                    )
+            }
         }
         .buttonStyle(.plain)
     }
 }
 
-// MARK: - Feedback Format Controller
-struct FeedbackFormatController: View {
-    @ObservedObject var manager: FormattedTextManager
-    @Environment(\.dismiss) private var dismiss
-    @State private var linkURL = ""
-    @State private var showLink = false
+// MARK: - Keyboard Format Toolbar
+struct KeyboardFormatToolbar: View {
+    @ObservedObject var manager: MarkdownTextManager
+    let onDismissKeyboard: () -> Void
     
-    private let options: [FormatOption] = [.bold, .italic, .underline, .strikethrough, .code, .link]
+    var body: some View {
+        HStack(spacing: 0) {
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 8) {
+                    ForEach(FormatOption.allCases) { option in
+                        FormatToolbarButton(option: option) {
+                            manager.insertFormat(option)
+                        }
+                    }
+                }
+                .padding(.horizontal, 12)
+            }
+            
+            Divider()
+                .frame(height: 30)
+                .padding(.horizontal, 8)
+            
+            Button(action: onDismissKeyboard) {
+                Image(systemName: "keyboard.chevron.compact.down")
+                    .font(.system(size: 18, weight: .medium))
+                    .foregroundStyle(.secondary)
+                    .frame(width: 44, height: 36)
+            }
+            .padding(.trailing, 8)
+        }
+        .frame(height: 52)
+        .background(.bar)
+    }
+}
+
+// MARK: - UIKit Toolbar View
+class FormatToolbarUIView: UIView {
+    var manager: MarkdownTextManager?
+    private var hostingController: UIHostingController<KeyboardFormatToolbar>?
+    
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+        backgroundColor = .systemBackground
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+    
+    func configure(with manager: MarkdownTextManager, dismissAction: @escaping () -> Void) {
+        self.manager = manager
+        
+        let toolbar = KeyboardFormatToolbar(manager: manager, onDismissKeyboard: dismissAction)
+        let hosting = UIHostingController(rootView: toolbar)
+        hosting.view.backgroundColor = .clear
+        hosting.view.translatesAutoresizingMaskIntoConstraints = false
+        
+        addSubview(hosting.view)
+        NSLayoutConstraint.activate([
+            hosting.view.topAnchor.constraint(equalTo: topAnchor),
+            hosting.view.bottomAnchor.constraint(equalTo: bottomAnchor),
+            hosting.view.leadingAnchor.constraint(equalTo: leadingAnchor),
+            hosting.view.trailingAnchor.constraint(equalTo: trailingAnchor)
+        ])
+        
+        hostingController = hosting
+    }
+    
+    override var intrinsicContentSize: CGSize {
+        CGSize(width: UIView.noIntrinsicMetric, height: 52)
+    }
+}
+
+// MARK: - Markdown Description Editor
+struct MarkdownDescriptionEditor: UIViewRepresentable {
+    @ObservedObject var manager: MarkdownTextManager
+    let placeholder: String
+    
+    func makeCoordinator() -> Coordinator {
+        Coordinator(self)
+    }
+    
+    func makeUIView(context: Context) -> UITextView {
+        let textView = UITextView()
+        textView.delegate = context.coordinator
+        textView.font = .systemFont(ofSize: 16)
+        textView.backgroundColor = .clear
+        textView.textContainerInset = UIEdgeInsets(top: 12, left: 8, bottom: 12, right: 8)
+        textView.allowsEditingTextAttributes = false
+        textView.autocorrectionType = .default
+        textView.autocapitalizationType = .sentences
+        
+        // Setup toolbar
+        let toolbar = FormatToolbarUIView(frame: CGRect(x: 0, y: 0, width: UIScreen.main.bounds.width, height: 52))
+        toolbar.configure(with: manager) {
+            textView.resignFirstResponder()
+        }
+        textView.inputAccessoryView = toolbar
+        
+        // Setup placeholder
+        context.coordinator.setupPlaceholder(textView, placeholder)
+        
+        manager.textView = textView
+        
+        return textView
+    }
+    
+    func updateUIView(_ textView: UITextView, context: Context) {
+        context.coordinator.placeholder?.isHidden = !manager.rawText.isEmpty
+    }
+    
+    class Coordinator: NSObject, UITextViewDelegate {
+        var parent: MarkdownDescriptionEditor
+        weak var placeholder: UILabel?
+        
+        init(_ parent: MarkdownDescriptionEditor) {
+            self.parent = parent
+        }
+        
+        func setupPlaceholder(_ textView: UITextView, _ text: String) {
+            let label = UILabel()
+            label.text = text
+            label.font = .systemFont(ofSize: 16)
+            label.textColor = .tertiaryLabel
+            label.translatesAutoresizingMaskIntoConstraints = false
+            textView.addSubview(label)
+            NSLayoutConstraint.activate([
+                label.topAnchor.constraint(equalTo: textView.topAnchor, constant: 12),
+                label.leadingAnchor.constraint(equalTo: textView.leadingAnchor, constant: 13)
+            ])
+            placeholder = label
+        }
+        
+        func textViewDidChange(_ textView: UITextView) {
+            parent.manager.rawText = textView.text ?? ""
+            parent.manager.updateTextView()
+            placeholder?.isHidden = !textView.text.isEmpty
+        }
+        
+        func textViewDidBeginEditing(_ textView: UITextView) {
+            placeholder?.isHidden = true
+        }
+        
+        func textViewDidEndEditing(_ textView: UITextView) {
+            placeholder?.isHidden = !textView.text.isEmpty
+        }
+    }
+}
+
+// MARK: - Legacy Support (Sheet version for fallback)
+struct FeedbackFormatController: View {
+    @ObservedObject var manager: MarkdownTextManager
+    @Environment(\.dismiss) private var dismiss
     
     var body: some View {
         VStack(spacing: 12) {
-            // Drag handle
             Capsule()
                 .fill(Color.secondary.opacity(0.4))
                 .frame(width: 36, height: 4)
                 .padding(.top, 8)
             
-            // Title row
             HStack {
                 Label("Format", systemImage: "textformat")
                     .font(.system(size: 15, weight: .semibold))
@@ -169,79 +496,22 @@ struct FeedbackFormatController: View {
             }
             .padding(.horizontal, 16)
             
-            // Format buttons
-            HStack(spacing: 8) {
-                ForEach(options) { opt in
-                    CompactFormatButton(option: opt, isActive: manager.activeFormats.contains(opt)) {
-                        if opt == .link { showLink = true }
-                        else { manager.applyFormat(opt) }
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 8) {
+                    ForEach(FormatOption.allCases) { option in
+                        FormatToolbarButton(option: option) {
+                            manager.insertFormat(option)
+                        }
                     }
                 }
+                .padding(.horizontal, 16)
             }
-            .padding(.horizontal, 16)
             .padding(.bottom, 16)
         }
         .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 20, style: .continuous))
-        .alert("Add Link", isPresented: $showLink) {
-            TextField("https://", text: $linkURL)
-                .textInputAutocapitalization(.never)
-                .keyboardType(.URL)
-            Button("Cancel", role: .cancel) { linkURL = "" }
-            Button("Add") { manager.applyLink(linkURL); linkURL = "" }
-        }
     }
 }
 
-// MARK: - Formatted Description Editor
-struct FormattedDescriptionEditor: UIViewRepresentable {
-    @ObservedObject var manager: FormattedTextManager
-    let placeholder: String
-    
-    func makeCoordinator() -> Coordinator { Coordinator(self) }
-    
-    func makeUIView(context: Context) -> UITextView {
-        let tv = UITextView()
-        tv.delegate = context.coordinator
-        tv.font = .systemFont(ofSize: 15)
-        tv.backgroundColor = .clear
-        tv.textContainerInset = UIEdgeInsets(top: 12, left: 8, bottom: 12, right: 8)
-        tv.allowsEditingTextAttributes = true
-        context.coordinator.addPlaceholder(tv, placeholder)
-        manager.textView = tv
-        return tv
-    }
-    
-    func updateUIView(_ tv: UITextView, context: Context) {
-        context.coordinator.placeholder?.isHidden = tv.text.count > 0
-    }
-    
-    class Coordinator: NSObject, UITextViewDelegate {
-        var parent: FormattedDescriptionEditor
-        weak var placeholder: UILabel?
-        
-        init(_ parent: FormattedDescriptionEditor) { self.parent = parent }
-        
-        func addPlaceholder(_ tv: UITextView, _ text: String) {
-            let lbl = UILabel()
-            lbl.text = text
-            lbl.font = .systemFont(ofSize: 15)
-            lbl.textColor = .tertiaryLabel
-            lbl.translatesAutoresizingMaskIntoConstraints = false
-            tv.addSubview(lbl)
-            NSLayoutConstraint.activate([
-                lbl.topAnchor.constraint(equalTo: tv.topAnchor, constant: 12),
-                lbl.leadingAnchor.constraint(equalTo: tv.leadingAnchor, constant: 13)
-            ])
-            placeholder = lbl
-        }
-        
-        func textViewDidChange(_ tv: UITextView) {
-            parent.manager.attributedText = NSMutableAttributedString(attributedString: tv.attributedText)
-            placeholder?.isHidden = tv.text.count > 0
-        }
-        
-        func textViewDidChangeSelection(_ tv: UITextView) {
-            parent.manager.updateActiveFormats()
-        }
-    }
-}
+// MARK: - Backward Compatibility Aliases
+typealias FormattedTextManager = MarkdownTextManager
+typealias FormattedDescriptionEditor = MarkdownDescriptionEditor

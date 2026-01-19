@@ -832,9 +832,8 @@ struct FeedbackView: View {
     @State private var showLinkDialog: Bool = false
     @StateObject private var richTextManager = RichTextEditorManager()
     
-    // Text formatting state
-    @StateObject private var formattedTextManager = FormattedTextManager()
-    @State private var showFormatController: Bool = false
+    // Markdown text formatting state
+    @StateObject private var markdownManager = MarkdownTextManager()
     
     @FocusState private var focusedField: FocusedField?
     
@@ -886,11 +885,11 @@ struct FeedbackView: View {
     
     private var isFormValid: Bool {
         !feedbackTitle.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
-        formattedTextManager.characterCount > 0
+        markdownManager.characterCount > 0
     }
     
     private var combinedMessage: String {
-        formattedTextManager.plainText
+        markdownManager.plainText
     }
     
     var body: some View {
@@ -915,17 +914,6 @@ struct FeedbackView: View {
             .sheet(isPresented: $showLinkDialog) {
                 LinkDialogSheet(manager: richTextManager)
                     .presentationDetents([.medium])
-            }
-            .sheet(isPresented: $showFormatController) {
-                if #available(iOS 16.4, *) {
-                    FeedbackFormatController(manager: formattedTextManager)
-                        .presentationDetents([.height(140)])
-                        .presentationCornerRadius(20)
-                        .presentationBackgroundInteraction(.enabled)
-                } else {
-                    FeedbackFormatController(manager: formattedTextManager)
-                        .presentationDetents([.height(140)])
-                }
             }
     }
     
@@ -1129,86 +1117,41 @@ struct FeedbackView: View {
     
     private var messageField: some View {
         VStack(alignment: .leading, spacing: 12) {
-            HStack {
-                HStack(spacing: 6) {
-                    Image(systemName: "text.alignleft")
-                        .font(.system(size: 12, weight: .semibold))
-                        .foregroundStyle(.secondary)
-                    Text("Description")
-                        .font(.system(size: 13, weight: .semibold))
-                        .foregroundStyle(.secondary)
-                    Text("*")
-                        .font(.system(size: 13, weight: .bold))
-                        .foregroundStyle(.red)
-                }
+            HStack(spacing: 6) {
+                Image(systemName: "text.alignleft")
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundStyle(.secondary)
+                Text("Description")
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundStyle(.secondary)
+                Text("*")
+                    .font(.system(size: 13, weight: .bold))
+                    .foregroundStyle(.red)
+                
                 Spacer()
                 
-                // Format button
-                Button {
-                    showFormatController = true
-                    HapticsManager.shared.softImpact()
-                } label: {
-                    HStack(spacing: 4) {
-                        Image(systemName: "textformat")
-                            .font(.system(size: 14, weight: .semibold))
-                        Text("Format")
-                            .font(.system(size: 13, weight: .medium))
-                    }
-                    .foregroundStyle(Color.accentColor)
-                    .padding(.horizontal, 10)
-                    .padding(.vertical, 6)
-                    .background(
-                        RoundedRectangle(cornerRadius: 8, style: .continuous)
-                            .fill(.ultraThinMaterial)
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 8, style: .continuous)
-                                    .stroke(
-                                        LinearGradient(
-                                            colors: [Color.white.opacity(0.3), Color.white.opacity(0.1)],
-                                            startPoint: .topLeading,
-                                            endPoint: .bottomTrailing
-                                        ),
-                                        lineWidth: 1
-                                    )
-                            )
-                    )
-                }
-                .buttonStyle(.plain)
-                
-                // Active formats indicator
-                if !formattedTextManager.activeFormats.isEmpty {
-                    HStack(spacing: 2) {
-                        ForEach(Array(formattedTextManager.activeFormats.prefix(3)), id: \.self) { format in
-                            Image(systemName: format.icon)
-                                .font(.system(size: 10, weight: .bold))
-                                .foregroundStyle(.white)
-                                .frame(width: 18, height: 18)
-                                .background(Circle().fill(format.color))
-                        }
-                    }
-                    .transition(.scale.combined(with: .opacity))
-                }
+                Text("Tap to format with toolbar")
+                    .font(.system(size: 11))
+                    .foregroundStyle(.tertiary)
             }
-            .animation(.spring(response: 0.3, dampingFraction: 0.7), value: formattedTextManager.activeFormats.count)
             
-            // Formatted Text Editor
-            FormattedDescriptionEditor(
-                manager: formattedTextManager,
-                placeholder: "Describe your feedback in detail..."
+            // Markdown Description Editor with keyboard toolbar
+            MarkdownDescriptionEditor(
+                manager: markdownManager,
+                placeholder: "Describe your feedback in detail... Use **bold**, _italic_, `code`"
             )
             .frame(minHeight: 150)
             .background(
                 RoundedRectangle(cornerRadius: 16, style: .continuous)
                     .fill(Color(.tertiarySystemGroupedBackground))
             )
-            .overlay(
-                RoundedRectangle(cornerRadius: 16, style: .continuous)
-                    .stroke(Color.clear, lineWidth: 2)
-            )
             
             HStack {
+                Text("Supports markdown formatting")
+                    .font(.system(size: 11))
+                    .foregroundStyle(.quaternary)
                 Spacer()
-                Text("\(formattedTextManager.characterCount) characters")
+                Text("\(markdownManager.characterCount) characters")
                     .font(.system(size: 11))
                     .foregroundStyle(.tertiary)
             }
