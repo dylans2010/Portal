@@ -2,12 +2,320 @@ import SwiftUI
 import UIKit
 import PhotosUI
 
+// MARK: - Link Dialog
+struct LinkInsertDialog: View {
+    @Binding var isPresented: Bool
+    @Binding var text: String
+    @State private var linkTitle: String = ""
+    @State private var linkURL: String = ""
+    @FocusState private var focusedField: Field?
+    
+    enum Field {
+        case title, url
+    }
+    
+    var body: some View {
+        ZStack {
+            Color.black.opacity(0.4)
+                .ignoresSafeArea()
+                .onTapGesture { dismissDialog() }
+            
+            VStack(spacing: 0) {
+                // Header
+                VStack(spacing: 12) {
+                    ZStack {
+                        Circle()
+                            .fill(
+                                LinearGradient(
+                                    colors: [Color.blue, Color.blue.opacity(0.7)],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                )
+                            )
+                            .frame(width: 56, height: 56)
+                            .shadow(color: .blue.opacity(0.3), radius: 12, x: 0, y: 6)
+                        
+                        Image(systemName: "link.badge.plus")
+                            .font(.system(size: 24, weight: .semibold))
+                            .foregroundStyle(.white)
+                    }
+                    
+                    Text("Insert Link")
+                        .font(.system(size: 20, weight: .bold, design: .rounded))
+                    
+                    Text("Add a hyperlink to your feedback")
+                        .font(.system(size: 14))
+                        .foregroundStyle(.secondary)
+                }
+                .padding(.top, 24)
+                .padding(.bottom, 20)
+                
+                // Input Fields
+                VStack(spacing: 16) {
+                    VStack(alignment: .leading, spacing: 8) {
+                        HStack(spacing: 6) {
+                            Image(systemName: "textformat")
+                                .font(.system(size: 12, weight: .semibold))
+                                .foregroundStyle(.blue)
+                            Text("Link Title")
+                                .font(.system(size: 13, weight: .medium))
+                                .foregroundStyle(.secondary)
+                        }
+                        
+                        HStack(spacing: 12) {
+                            Image(systemName: "character.cursor.ibeam")
+                                .font(.system(size: 16))
+                                .foregroundStyle(focusedField == .title ? .blue : .secondary)
+                            
+                            TextField("Display text", text: $linkTitle)
+                                .font(.system(size: 15))
+                                .focused($focusedField, equals: .title)
+                                .submitLabel(.next)
+                                .onSubmit { focusedField = .url }
+                        }
+                        .padding(14)
+                        .background(
+                            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                .fill(Color(.tertiarySystemGroupedBackground))
+                        )
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                .stroke(focusedField == .title ? Color.blue.opacity(0.5) : Color.clear, lineWidth: 2)
+                        )
+                    }
+                    
+                    VStack(alignment: .leading, spacing: 8) {
+                        HStack(spacing: 6) {
+                            Image(systemName: "globe")
+                                .font(.system(size: 12, weight: .semibold))
+                                .foregroundStyle(.blue)
+                            Text("URL")
+                                .font(.system(size: 13, weight: .medium))
+                                .foregroundStyle(.secondary)
+                        }
+                        
+                        HStack(spacing: 12) {
+                            Image(systemName: "link")
+                                .font(.system(size: 16))
+                                .foregroundStyle(focusedField == .url ? .blue : .secondary)
+                            
+                            TextField("https://example.com", text: $linkURL)
+                                .font(.system(size: 15))
+                                .keyboardType(.URL)
+                                .autocapitalization(.none)
+                                .autocorrectionDisabled()
+                                .focused($focusedField, equals: .url)
+                                .submitLabel(.done)
+                                .onSubmit { insertLink() }
+                        }
+                        .padding(14)
+                        .background(
+                            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                .fill(Color(.tertiarySystemGroupedBackground))
+                        )
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                .stroke(focusedField == .url ? Color.blue.opacity(0.5) : Color.clear, lineWidth: 2)
+                        )
+                    }
+                }
+                .padding(.horizontal, 20)
+                
+                // Buttons
+                HStack(spacing: 12) {
+                    Button {
+                        dismissDialog()
+                    } label: {
+                        Text("Cancel")
+                            .font(.system(size: 16, weight: .medium))
+                            .foregroundStyle(.secondary)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 14)
+                            .background(
+                                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                    .fill(Color(.tertiarySystemGroupedBackground))
+                            )
+                    }
+                    
+                    Button {
+                        insertLink()
+                    } label: {
+                        HStack(spacing: 8) {
+                            Image(systemName: "plus.circle.fill")
+                                .font(.system(size: 16))
+                            Text("Insert")
+                                .font(.system(size: 16, weight: .semibold))
+                        }
+                        .foregroundStyle(.white)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 14)
+                        .background(
+                            LinearGradient(
+                                colors: isValidInput ? [.blue, .blue.opacity(0.8)] : [.gray, .gray.opacity(0.8)],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                        )
+                        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                        .shadow(color: isValidInput ? .blue.opacity(0.3) : .clear, radius: 8, x: 0, y: 4)
+                    }
+                    .disabled(!isValidInput)
+                }
+                .padding(.horizontal, 20)
+                .padding(.top, 24)
+                .padding(.bottom, 20)
+            }
+            .background(
+                RoundedRectangle(cornerRadius: 24, style: .continuous)
+                    .fill(Color(.systemBackground))
+                    .shadow(color: .black.opacity(0.15), radius: 30, x: 0, y: 10)
+            )
+            .padding(.horizontal, 24)
+        }
+        .onAppear { focusedField = .title }
+    }
+    
+    private var isValidInput: Bool {
+        !linkTitle.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
+        !linkURL.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    }
+    
+    private func insertLink() {
+        guard isValidInput else { return }
+        let markdown = "[\(linkTitle.trimmingCharacters(in: .whitespacesAndNewlines))](\(linkURL.trimmingCharacters(in: .whitespacesAndNewlines)))"
+        text += markdown
+        HapticsManager.shared.softImpact()
+        dismissDialog()
+    }
+    
+    private func dismissDialog() {
+        withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+            isPresented = false
+        }
+    }
+}
+
+// MARK: - Screenshot Error Dialog
+struct ScreenshotErrorDialog: View {
+    @Binding var isPresented: Bool
+    
+    var body: some View {
+        ZStack {
+            Color.black.opacity(0.4)
+                .ignoresSafeArea()
+                .onTapGesture { dismissDialog() }
+            
+            VStack(spacing: 0) {
+                // Header
+                VStack(spacing: 12) {
+                    ZStack {
+                        Circle()
+                            .fill(Color.orange.opacity(0.15))
+                            .frame(width: 72, height: 72)
+                        
+                        Circle()
+                            .fill(
+                                LinearGradient(
+                                    colors: [Color.orange, Color.orange.opacity(0.8)],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                )
+                            )
+                            .frame(width: 56, height: 56)
+                            .shadow(color: .orange.opacity(0.3), radius: 12, x: 0, y: 6)
+                        
+                        Image(systemName: "exclamationmark.triangle.fill")
+                            .font(.system(size: 24, weight: .semibold))
+                            .foregroundStyle(.white)
+                    }
+                    
+                    Text("Image Upload Unavailable")
+                        .font(.system(size: 20, weight: .bold, design: .rounded))
+                    
+                    Text("Due to API constraints, you cannot upload images directly. Please upload your images to a file hoster like CatBox and then share the link in your feedback description.")
+                        .font(.system(size: 14))
+                        .foregroundStyle(.secondary)
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal, 8)
+                }
+                .padding(.top, 24)
+                .padding(.horizontal, 20)
+                .padding(.bottom, 20)
+                
+                // Suggestion Box
+                HStack(spacing: 12) {
+                    Image(systemName: "lightbulb.fill")
+                        .font(.system(size: 16))
+                        .foregroundStyle(.yellow)
+                    
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Tip")
+                            .font(.system(size: 12, weight: .semibold))
+                            .foregroundStyle(.secondary)
+                        Text("Use catbox.moe or imgur.com to host your images")
+                            .font(.system(size: 13))
+                            .foregroundStyle(.primary)
+                    }
+                    
+                    Spacer()
+                }
+                .padding(14)
+                .background(
+                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                        .fill(Color.yellow.opacity(0.1))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                .stroke(Color.yellow.opacity(0.2), lineWidth: 1)
+                        )
+                )
+                .padding(.horizontal, 20)
+                
+                // Button
+                Button {
+                    dismissDialog()
+                } label: {
+                    Text("Got It")
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundStyle(.white)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 14)
+                        .background(
+                            LinearGradient(
+                                colors: [.orange, .orange.opacity(0.8)],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                        )
+                        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                        .shadow(color: .orange.opacity(0.3), radius: 8, x: 0, y: 4)
+                }
+                .padding(.horizontal, 20)
+                .padding(.top, 20)
+                .padding(.bottom, 20)
+            }
+            .background(
+                RoundedRectangle(cornerRadius: 24, style: .continuous)
+                    .fill(Color(.systemBackground))
+                    .shadow(color: .black.opacity(0.15), radius: 30, x: 0, y: 10)
+            )
+            .padding(.horizontal, 24)
+        }
+    }
+    
+    private func dismissDialog() {
+        withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+            isPresented = false
+        }
+    }
+}
+
 // MARK: - Formatting Toolbar
 struct FormattingToolbar: View {
     @Binding var text: String
+    @Binding var showLinkDialog: Bool
     @Environment(\.colorScheme) private var colorScheme
     
-    private let toolbarHeight: CGFloat = 44
+    private let toolbarHeight: CGFloat = 48
     
     enum FormatType {
         case bold, italic, strikethrough, code, quote, link, list, heading
@@ -35,6 +343,19 @@ struct FormattingToolbar: View {
             case .link: return "Link"
             case .list: return "List"
             case .heading: return "Heading"
+            }
+        }
+        
+        var color: Color {
+            switch self {
+            case .bold: return .primary
+            case .italic: return .primary
+            case .strikethrough: return .primary
+            case .code: return .orange
+            case .quote: return .purple
+            case .link: return .blue
+            case .list: return .green
+            case .heading: return .indigo
             }
         }
         
@@ -75,41 +396,39 @@ struct FormattingToolbar: View {
     var body: some View {
         HStack(spacing: 0) {
             ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 6) {
+                HStack(spacing: 4) {
                     ForEach([FormatType.bold, .italic, .strikethrough, .code, .quote, .link, .list, .heading], id: \.icon) { format in
                         FormattingButton(format: format) {
-                            applyFormatting(format)
+                            if format == .link {
+                                showLinkDialog = true
+                            } else {
+                                applyFormatting(format)
+                            }
                             HapticsManager.shared.softImpact()
                         }
                     }
                 }
-                .padding(.horizontal, 8)
+                .padding(.horizontal, 12)
             }
             
-            Divider()
-                .frame(height: 24)
-                .padding(.horizontal, 4)
+            Rectangle()
+                .fill(Color.primary.opacity(0.1))
+                .frame(width: 1, height: 28)
+                .padding(.horizontal, 8)
             
             Button {
                 UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
             } label: {
                 Image(systemName: "keyboard.chevron.compact.down")
-                    .font(.system(size: 16, weight: .medium))
+                    .font(.system(size: 18, weight: .medium))
                     .foregroundStyle(.secondary)
-                    .frame(width: 36, height: 36)
+                    .frame(width: 44, height: 44)
                     .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
         }
         .frame(height: toolbarHeight)
-        .background(
-            Rectangle()
-                .fill(.ultraThinMaterial)
-                .overlay(
-                    Rectangle()
-                        .fill(Color.primary.opacity(0.04))
-                )
-        )
+        .background(Color(.systemBackground))
     }
     
     private func applyFormatting(_ format: FormatType) {
@@ -122,7 +441,7 @@ struct FormattingToolbar: View {
                 text += "\n" + format.prefix
             }
         } else {
-            let placeholder = format == .link ? "text" : "text"
+            let placeholder = "text"
             text += format.prefix + placeholder + format.suffix
         }
     }
@@ -137,23 +456,14 @@ private struct FormattingButton: View {
     
     var body: some View {
         Button(action: action) {
-            VStack(spacing: 2) {
-                Image(systemName: format.icon)
-                    .font(.system(size: 15, weight: .semibold))
-                    .foregroundStyle(isPressed ? Color.accentColor : .primary)
-            }
-            .frame(width: 38, height: 34)
-            .background(
-                RoundedRectangle(cornerRadius: 8, style: .continuous)
-                    .fill(isPressed ? Color.accentColor.opacity(0.15) : Color(.tertiarySystemFill))
-            )
-            .overlay(
-                RoundedRectangle(cornerRadius: 8, style: .continuous)
-                    .strokeBorder(isPressed ? Color.accentColor.opacity(0.3) : Color.clear, lineWidth: 1)
-            )
+            Image(systemName: format.icon)
+                .font(.system(size: 17, weight: .medium))
+                .foregroundStyle(isPressed ? format.color : .primary.opacity(0.7))
+                .frame(width: 40, height: 40)
+                .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-        .scaleEffect(isPressed ? 0.95 : 1.0)
+        .scaleEffect(isPressed ? 0.9 : 1.0)
         .animation(.spring(response: 0.2, dampingFraction: 0.6), value: isPressed)
         .simultaneousGesture(
             DragGesture(minimumDistance: 0)
@@ -281,6 +591,8 @@ struct FeedbackView: View {
     @State private var showCodeEditor: Bool = false
     @State private var createdIssueURL: String = ""
     @State private var createdIssueNumber: Int = 0
+    @State private var showLinkDialog: Bool = false
+    @State private var showScreenshotError: Bool = false
     
     @FocusState private var focusedField: FocusedField?
     
@@ -336,31 +648,45 @@ struct FeedbackView: View {
     }
     
     var body: some View {
-        mainScrollView
-            .background(Color(.systemGroupedBackground))
-            .navigationTitle("Feedback")
-            .navigationBarTitleDisplayMode(.inline)
-            .onAppear { animateAppearance() }
-            .photosPicker(isPresented: $showImagePicker, selection: $selectedPhotoItems, maxSelectionCount: 3, matching: .images)
-            .onChange(of: selectedPhotoItems) { newItems in
-                loadSelectedImages(from: newItems)
-            }
-            .sheet(isPresented: $showCodeEditor) {
-                CodeEditorSheet(code: $codeSnippet)
-            }
-            .sheet(isPresented: $showSuccessSheet) {
-                FeedbackSuccessSheet(issueNumber: createdIssueNumber, issueURL: createdIssueURL, onDismiss: { dismiss() })
-            }
-            .sheet(isPresented: $showErrorSheet) {
-                FeedbackErrorSheet(errorMessage: errorMessage, onRetry: { submitFeedback() }, onDismiss: { showErrorSheet = false })
-            }
-            .toolbar {
-                ToolbarItemGroup(placement: .keyboard) {
-                    if focusedField == .message {
-                        FormattingToolbar(text: $feedbackMessage)
+        ZStack {
+            mainScrollView
+                .background(Color(.systemGroupedBackground))
+                .navigationTitle("Feedback")
+                .navigationBarTitleDisplayMode(.inline)
+                .onAppear { animateAppearance() }
+                .sheet(isPresented: $showCodeEditor) {
+                    CodeEditorSheet(code: $codeSnippet)
+                }
+                .sheet(isPresented: $showSuccessSheet) {
+                    FeedbackSuccessSheet(issueNumber: createdIssueNumber, issueURL: createdIssueURL, onDismiss: { dismiss() })
+                }
+                .sheet(isPresented: $showErrorSheet) {
+                    FeedbackErrorSheet(errorMessage: errorMessage, onRetry: { submitFeedback() }, onDismiss: { showErrorSheet = false })
+                }
+                .toolbar {
+                    ToolbarItemGroup(placement: .keyboard) {
+                        if focusedField == .message {
+                            FormattingToolbar(text: $feedbackMessage, showLinkDialog: $showLinkDialog)
+                        }
                     }
                 }
+            
+            // Link Dialog Overlay
+            if showLinkDialog {
+                LinkInsertDialog(isPresented: $showLinkDialog, text: $feedbackMessage)
+                    .transition(.opacity.combined(with: .scale(scale: 0.95)))
+                    .zIndex(100)
             }
+            
+            // Screenshot Error Dialog Overlay
+            if showScreenshotError {
+                ScreenshotErrorDialog(isPresented: $showScreenshotError)
+                    .transition(.opacity.combined(with: .scale(scale: 0.95)))
+                    .zIndex(100)
+            }
+        }
+        .animation(.spring(response: 0.3, dampingFraction: 0.8), value: showLinkDialog)
+        .animation(.spring(response: 0.3, dampingFraction: 0.8), value: showScreenshotError)
     }
     
     private var mainScrollView: some View {
@@ -416,26 +742,6 @@ struct FeedbackView: View {
         }
     }
     
-    // MARK: - Section Background
-    private var sectionBackground: some View {
-        RoundedRectangle(cornerRadius: 16, style: .continuous)
-            .fill(.ultraThinMaterial)
-            .overlay(
-                RoundedRectangle(cornerRadius: 16, style: .continuous)
-                    .stroke(Color.primary.opacity(0.06), lineWidth: 1)
-            )
-    }
-    
-    private var inputBackground: some View {
-        RoundedRectangle(cornerRadius: 12, style: .continuous)
-            .fill(Color(.tertiarySystemGroupedBackground))
-    }
-    
-    private func inputOverlay(focused: Bool) -> some View {
-        RoundedRectangle(cornerRadius: 12, style: .continuous)
-            .stroke(focused ? Color.accentColor.opacity(0.5) : Color.clear, lineWidth: 2)
-    }
-    
     // MARK: - Header Section
     private var headerSection: some View {
         VStack(spacing: 14) {
@@ -489,20 +795,25 @@ struct FeedbackView: View {
     
     // MARK: - Category Selector
     private var categorySelector: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            HStack(spacing: 6) {
-                Image(systemName: "tag.fill")
-                    .font(.system(size: 12, weight: .semibold))
-                    .foregroundStyle(.secondary)
+        VStack(alignment: .leading, spacing: 14) {
+            HStack(spacing: 8) {
+                ZStack {
+                    Circle()
+                        .fill(feedbackCategory.color.opacity(0.15))
+                        .frame(width: 28, height: 28)
+                    Image(systemName: "tag.fill")
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundStyle(feedbackCategory.color)
+                }
                 Text("Category")
-                    .font(.system(size: 13, weight: .semibold))
-                    .foregroundStyle(.secondary)
+                    .font(.system(size: 15, weight: .semibold))
+                    .foregroundStyle(.primary)
             }
             
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 10) {
                     ForEach(FeedbackCategory.allCases, id: \.self) { category in
-                        FeedbackCategoryChip(
+                        ModernCategoryChip(
                             category: category,
                             isSelected: feedbackCategory == category
                         ) {
@@ -513,96 +824,137 @@ struct FeedbackView: View {
                         }
                     }
                 }
-                .padding(.horizontal, 2)
+                .padding(.horizontal, 4)
+                .padding(.vertical, 2)
             }
         }
-        .padding(14)
-        .background(sectionBackground)
+        .padding(18)
+        .background(modernSectionBackground)
     }
     
     // MARK: - Form Section
     private var formSection: some View {
-        VStack(spacing: 16) {
+        VStack(spacing: 20) {
             titleField
+            Divider()
+                .padding(.horizontal, 4)
             messageField
         }
-        .padding(16)
-        .background(sectionBackground)
+        .padding(18)
+        .background(modernSectionBackground)
     }
     
     private var titleField: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack(spacing: 6) {
-                Image(systemName: "text.cursor")
-                    .font(.system(size: 12, weight: .semibold))
-                    .foregroundStyle(.secondary)
+        VStack(alignment: .leading, spacing: 10) {
+            HStack(spacing: 8) {
+                ZStack {
+                    Circle()
+                        .fill(Color.accentColor.opacity(0.15))
+                        .frame(width: 28, height: 28)
+                    Image(systemName: "pencil")
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundStyle(Color.accentColor)
+                }
                 Text("Title")
-                    .font(.system(size: 13, weight: .semibold))
-                    .foregroundStyle(.secondary)
-                Text("*")
-                    .font(.system(size: 13, weight: .bold))
-                    .foregroundStyle(.red)
+                    .font(.system(size: 15, weight: .semibold))
+                    .foregroundStyle(.primary)
+                Text("Required")
+                    .font(.system(size: 11, weight: .medium))
+                    .foregroundStyle(.white)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 3)
+                    .background(Capsule().fill(Color.red.opacity(0.8)))
             }
             
-            HStack(spacing: 12) {
-                Image(systemName: "pencil.line")
-                    .font(.system(size: 16))
-                    .foregroundStyle(focusedField == .title ? Color.accentColor : Color.secondary)
-                
-                TextField("Brief summary of your feedback", text: $feedbackTitle)
-                    .font(.system(size: 15))
-                    .focused($focusedField, equals: .title)
-                    .submitLabel(.next)
-                    .onSubmit { focusedField = .message }
-            }
-            .padding(14)
-            .background(inputBackground)
-            .overlay(inputOverlay(focused: focusedField == .title))
+            TextField("Brief summary of your feedback", text: $feedbackTitle)
+                .font(.system(size: 16))
+                .focused($focusedField, equals: .title)
+                .submitLabel(.next)
+                .onSubmit { focusedField = .message }
+                .padding(16)
+                .background(
+                    RoundedRectangle(cornerRadius: 14, style: .continuous)
+                        .fill(Color(.secondarySystemGroupedBackground))
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: 14, style: .continuous)
+                        .stroke(focusedField == .title ? Color.accentColor : Color.clear, lineWidth: 2)
+                )
+                .animation(.easeInOut(duration: 0.2), value: focusedField == .title)
         }
     }
     
     private var messageField: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack {
-                HStack(spacing: 6) {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack(spacing: 8) {
+                ZStack {
+                    Circle()
+                        .fill(Color.purple.opacity(0.15))
+                        .frame(width: 28, height: 28)
                     Image(systemName: "text.alignleft")
                         .font(.system(size: 12, weight: .semibold))
-                        .foregroundStyle(.secondary)
-                    Text("Description")
-                        .font(.system(size: 13, weight: .semibold))
-                        .foregroundStyle(.secondary)
-                    Text("*")
-                        .font(.system(size: 13, weight: .bold))
-                        .foregroundStyle(.red)
+                        .foregroundStyle(Color.purple)
                 }
+                Text("Description")
+                    .font(.system(size: 15, weight: .semibold))
+                    .foregroundStyle(.primary)
+                Text("Required")
+                    .font(.system(size: 11, weight: .medium))
+                    .foregroundStyle(.white)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 3)
+                    .background(Capsule().fill(Color.red.opacity(0.8)))
                 Spacer()
             }
             
             ZStack(alignment: .topLeading) {
                 TextEditor(text: $feedbackMessage)
-                    .font(.system(size: 15))
-                    .frame(minHeight: 150)
-                    .padding(10)
+                    .font(.system(size: 16))
+                    .frame(minHeight: 160)
+                    .padding(12)
                     .scrollContentBackground(.hidden)
-                    .background(inputBackground)
-                    .overlay(inputOverlay(focused: focusedField == .message))
+                    .background(
+                        RoundedRectangle(cornerRadius: 14, style: .continuous)
+                            .fill(Color(.secondarySystemGroupedBackground))
+                    )
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 14, style: .continuous)
+                            .stroke(focusedField == .message ? Color.purple : Color.clear, lineWidth: 2)
+                    )
                     .focused($focusedField, equals: .message)
+                    .animation(.easeInOut(duration: 0.2), value: focusedField == .message)
                 
                 if feedbackMessage.isEmpty {
-                    Text("Describe your feedback in detail...")
-                        .font(.system(size: 15))
+                    Text("Describe your feedback in detail. You can use markdown formatting...")
+                        .font(.system(size: 16))
                         .foregroundStyle(.tertiary)
-                        .padding(.horizontal, 14)
-                        .padding(.vertical, 18)
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 20)
                         .allowsHitTesting(false)
                 }
             }
             
-            HStack {
+            // Character count with visual indicator
+            HStack(spacing: 12) {
                 Spacer()
-                Text("\(feedbackMessage.count) characters")
-                    .font(.system(size: 11))
-                    .foregroundStyle(.tertiary)
+                
+                HStack(spacing: 6) {
+                    Circle()
+                        .fill(feedbackMessage.count > 0 ? Color.green : Color.gray.opacity(0.3))
+                        .frame(width: 6, height: 6)
+                    Text("\(feedbackMessage.count)")
+                        .font(.system(size: 12, weight: .medium, design: .rounded))
+                        .foregroundStyle(feedbackMessage.count > 0 ? .primary : .tertiary)
+                    Text("characters")
+                        .font(.system(size: 12))
+                        .foregroundStyle(.tertiary)
+                }
+                .padding(.horizontal, 10)
+                .padding(.vertical, 5)
+                .background(
+                    Capsule()
+                        .fill(Color(.tertiarySystemGroupedBackground))
+                )
             }
         }
     }
@@ -610,55 +962,77 @@ struct FeedbackView: View {
     // MARK: - Attachments Section (Combined)
     private var attachmentsSection: some View {
         VStack(alignment: .leading, spacing: 16) {
-            HStack(spacing: 6) {
-                Image(systemName: "paperclip")
-                    .font(.system(size: 12, weight: .semibold))
-                    .foregroundStyle(.secondary)
+            HStack(spacing: 8) {
+                ZStack {
+                    Circle()
+                        .fill(Color.indigo.opacity(0.15))
+                        .frame(width: 28, height: 28)
+                    Image(systemName: "paperclip")
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundStyle(Color.indigo)
+                }
                 Text("Attachments & Info")
-                    .font(.system(size: 13, weight: .semibold))
-                    .foregroundStyle(.secondary)
+                    .font(.system(size: 15, weight: .semibold))
+                    .foregroundStyle(.primary)
+                
+                Spacer()
+                
+                // Active count badge
+                let activeCount = [includeLogs, includeDeviceInfo, includeCode].filter { $0 }.count
+                if activeCount > 0 {
+                    Text("\(activeCount) active")
+                        .font(.system(size: 11, weight: .medium))
+                        .foregroundStyle(.white)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 4)
+                        .background(Capsule().fill(Color.indigo))
+                }
             }
             
             // Toggle Options Grid
             LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
-                attachmentToggle(
+                modernAttachmentToggle(
                     icon: "doc.text.fill",
                     title: "App Logs",
                     subtitle: "\(AppLogManager.shared.logs.count) entries",
                     color: .orange,
-                    isOn: $includeLogs
+                    isOn: $includeLogs,
+                    isDisabled: false
                 )
                 
-                attachmentToggle(
+                modernAttachmentToggle(
                     icon: "iphone",
                     title: "Device Info",
                     subtitle: UIDevice.current.modelName,
                     color: .blue,
-                    isOn: $includeDeviceInfo
+                    isOn: $includeDeviceInfo,
+                    isDisabled: false
                 )
                 
-                attachmentToggle(
+                modernAttachmentToggle(
                     icon: "photo.stack",
                     title: "Screenshots",
-                    subtitle: selectedImages.isEmpty ? "Add images" : "\(selectedImages.count) selected",
+                    subtitle: "Unavailable",
                     color: .green,
-                    isOn: $includeScreenshots,
-                    action: { showImagePicker = true }
+                    isOn: .constant(false),
+                    isDisabled: true,
+                    action: { 
+                        withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+                            showScreenshotError = true
+                        }
+                        HapticsManager.shared.error()
+                    }
                 )
                 
-                attachmentToggle(
+                modernAttachmentToggle(
                     icon: "curlybraces",
                     title: "Code Snippet",
                     subtitle: codeSnippet.isEmpty ? "Add code" : "\(codeSnippet.components(separatedBy: "\n").count) lines",
                     color: .purple,
                     isOn: $includeCode,
+                    isDisabled: false,
                     action: { showCodeEditor = true }
                 )
-            }
-            
-            // Screenshots Preview
-            if includeScreenshots && !selectedImages.isEmpty {
-                screenshotsPreview
             }
             
             // Code Preview
@@ -666,61 +1040,80 @@ struct FeedbackView: View {
                 codePreview
             }
         }
-        .padding(14)
-        .background(sectionBackground)
+        .padding(18)
+        .background(modernSectionBackground)
     }
     
-    private func attachmentToggle(icon: String, title: String, subtitle: String, color: Color, isOn: Binding<Bool>, action: (() -> Void)? = nil) -> some View {
+    private func modernAttachmentToggle(icon: String, title: String, subtitle: String, color: Color, isOn: Binding<Bool>, isDisabled: Bool, action: (() -> Void)? = nil) -> some View {
         Button {
             if let action = action {
                 action()
-            } else {
+            } else if !isDisabled {
                 withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
                     isOn.wrappedValue.toggle()
                 }
+                HapticsManager.shared.softImpact()
             }
-            HapticsManager.shared.softImpact()
         } label: {
-            VStack(alignment: .leading, spacing: 8) {
+            VStack(alignment: .leading, spacing: 10) {
                 HStack {
                     ZStack {
-                        RoundedRectangle(cornerRadius: 8, style: .continuous)
-                            .fill(isOn.wrappedValue ? color : color.opacity(0.15))
-                            .frame(width: 32, height: 32)
+                        RoundedRectangle(cornerRadius: 10, style: .continuous)
+                            .fill(
+                                isDisabled ? Color.gray.opacity(0.2) :
+                                (isOn.wrappedValue ? 
+                                    LinearGradient(colors: [color, color.opacity(0.8)], startPoint: .topLeading, endPoint: .bottomTrailing) :
+                                    LinearGradient(colors: [color.opacity(0.15), color.opacity(0.1)], startPoint: .topLeading, endPoint: .bottomTrailing))
+                            )
+                            .frame(width: 36, height: 36)
                         
                         Image(systemName: icon)
-                            .font(.system(size: 14, weight: .medium))
-                            .foregroundStyle(isOn.wrappedValue ? .white : color)
+                            .font(.system(size: 15, weight: .semibold))
+                            .foregroundStyle(isDisabled ? .gray : (isOn.wrappedValue ? .white : color))
                     }
                     
                     Spacer()
                     
-                    Image(systemName: isOn.wrappedValue ? "checkmark.circle.fill" : "circle")
-                        .font(.system(size: 18))
-                        .foregroundStyle(isOn.wrappedValue ? color : Color.gray.opacity(0.4))
+                    if isDisabled {
+                        Image(systemName: "xmark.circle.fill")
+                            .font(.system(size: 20))
+                            .foregroundStyle(.gray.opacity(0.5))
+                    } else {
+                        Image(systemName: isOn.wrappedValue ? "checkmark.circle.fill" : "circle")
+                            .font(.system(size: 20))
+                            .foregroundStyle(isOn.wrappedValue ? color : Color.gray.opacity(0.3))
+                    }
                 }
                 
-                VStack(alignment: .leading, spacing: 2) {
+                VStack(alignment: .leading, spacing: 3) {
                     Text(title)
-                        .font(.system(size: 13, weight: .medium))
-                        .foregroundStyle(.primary)
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundStyle(isDisabled ? .secondary : .primary)
                     Text(subtitle)
-                        .font(.system(size: 11))
-                        .foregroundStyle(.secondary)
+                        .font(.system(size: 12))
+                        .foregroundStyle(isDisabled ? .tertiary : .secondary)
                         .lineLimit(1)
                 }
             }
-            .padding(12)
+            .padding(14)
             .background(
-                RoundedRectangle(cornerRadius: 12, style: .continuous)
-                    .fill(isOn.wrappedValue ? color.opacity(0.1) : Color(.tertiarySystemGroupedBackground))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 12, style: .continuous)
-                            .stroke(isOn.wrappedValue ? color.opacity(0.3) : Color.clear, lineWidth: 1)
+                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                    .fill(
+                        isDisabled ? Color(.tertiarySystemGroupedBackground).opacity(0.5) :
+                        (isOn.wrappedValue ? color.opacity(0.08) : Color(.secondarySystemGroupedBackground))
+                    )
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                    .stroke(
+                        isDisabled ? Color.gray.opacity(0.2) :
+                        (isOn.wrappedValue ? color.opacity(0.4) : Color.clear),
+                        lineWidth: isOn.wrappedValue ? 1.5 : 0
                     )
             )
         }
         .buttonStyle(.plain)
+        .opacity(isDisabled ? 0.7 : 1)
     }
     
     private var screenshotsPreview: some View {
@@ -731,8 +1124,8 @@ struct FeedbackView: View {
                         Image(uiImage: selectedImages[index])
                             .resizable()
                             .aspectRatio(contentMode: .fill)
-                            .frame(width: 60, height: 60)
-                            .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+                            .frame(width: 70, height: 70)
+                            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
                         
                         Button {
                             withAnimation(.spring(response: 0.3)) {
@@ -746,35 +1139,26 @@ struct FeedbackView: View {
                             }
                         } label: {
                             Image(systemName: "xmark.circle.fill")
-                                .font(.system(size: 16))
+                                .font(.system(size: 18))
                                 .foregroundStyle(.white)
-                                .background(Circle().fill(Color.black.opacity(0.5)))
+                                .background(Circle().fill(Color.black.opacity(0.6)))
                         }
-                        .offset(x: 4, y: -4)
+                        .offset(x: 6, y: -6)
                     }
-                }
-                
-                if selectedImages.count < 3 {
-                    Button {
-                        showImagePicker = true
-                    } label: {
-                        VStack(spacing: 4) {
-                            Image(systemName: "plus")
-                                .font(.system(size: 16, weight: .medium))
-                        }
-                        .foregroundStyle(.green)
-                        .frame(width: 60, height: 60)
-                        .background(
-                            RoundedRectangle(cornerRadius: 8, style: .continuous)
-                                .strokeBorder(style: StrokeStyle(lineWidth: 1, dash: [4]))
-                                .foregroundStyle(Color.green.opacity(0.4))
-                        )
-                    }
-                    .buttonStyle(.plain)
                 }
             }
             .padding(.top, 8)
         }
+    }
+    
+    private var modernSectionBackground: some View {
+        RoundedRectangle(cornerRadius: 20, style: .continuous)
+            .fill(Color(.systemBackground))
+            .shadow(color: Color.black.opacity(0.04), radius: 12, x: 0, y: 4)
+            .overlay(
+                RoundedRectangle(cornerRadius: 20, style: .continuous)
+                    .stroke(Color.primary.opacity(0.04), lineWidth: 1)
+            )
     }
     
     private var codePreview: some View {
@@ -993,71 +1377,315 @@ struct FeedbackCategoryChip: View {
     }
 }
 
+// MARK: - Modern Category Chip
+struct ModernCategoryChip: View {
+    let category: FeedbackView.FeedbackCategory
+    let isSelected: Bool
+    let action: () -> Void
+    
+    @State private var isPressed = false
+    
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: 8) {
+                ZStack {
+                    Circle()
+                        .fill(isSelected ? .white.opacity(0.2) : category.color.opacity(0.15))
+                        .frame(width: 28, height: 28)
+                    
+                    Image(systemName: category.icon)
+                        .font(.system(size: 12, weight: .bold))
+                        .foregroundStyle(isSelected ? .white : category.color)
+                }
+                
+                Text(category.rawValue)
+                    .font(.system(size: 14, weight: .semibold))
+            }
+            .padding(.leading, 6)
+            .padding(.trailing, 14)
+            .padding(.vertical, 8)
+            .background(
+                Capsule()
+                    .fill(
+                        isSelected ?
+                        LinearGradient(colors: [category.color, category.color.opacity(0.85)], startPoint: .topLeading, endPoint: .bottomTrailing) :
+                        LinearGradient(colors: [Color(.secondarySystemGroupedBackground), Color(.secondarySystemGroupedBackground)], startPoint: .topLeading, endPoint: .bottomTrailing)
+                    )
+            )
+            .overlay(
+                Capsule()
+                    .stroke(isSelected ? Color.clear : Color.primary.opacity(0.06), lineWidth: 1)
+            )
+            .foregroundStyle(isSelected ? .white : .primary)
+            .shadow(color: isSelected ? category.color.opacity(0.3) : Color.clear, radius: 8, x: 0, y: 4)
+        }
+        .buttonStyle(.plain)
+        .scaleEffect(isPressed ? 0.95 : 1.0)
+        .animation(.spring(response: 0.2, dampingFraction: 0.6), value: isPressed)
+        .simultaneousGesture(
+            DragGesture(minimumDistance: 0)
+                .onChanged { _ in isPressed = true }
+                .onEnded { _ in isPressed = false }
+        )
+    }
+}
+
 // MARK: - Code Editor Sheet
 struct CodeEditorSheet: View {
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.colorScheme) private var colorScheme
     @Binding var code: String
     @State private var localCode: String = ""
+    @State private var showCopiedToast: Bool = false
+    
+    private var lineCount: Int {
+        localCode.isEmpty ? 0 : localCode.components(separatedBy: "\n").count
+    }
+    
+    private var characterCount: Int {
+        localCode.count
+    }
+    
+    private var wordCount: Int {
+        localCode.split { $0.isWhitespace || $0.isNewline }.count
+    }
     
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
                 codeEditorHeader
                 codeEditorContent
+                codeEditorFooter
             }
+            .background(Color(.systemGroupedBackground))
             .navigationTitle("Code Snippet")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
-                    Button("Cancel") { dismiss() }
+                    Button {
+                        dismiss()
+                    } label: {
+                        Text("Cancel")
+                            .foregroundStyle(.secondary)
+                    }
                 }
                 ToolbarItem(placement: .topBarTrailing) {
-                    Button("Save") {
+                    Button {
                         code = localCode
+                        HapticsManager.shared.softImpact()
                         dismiss()
+                    } label: {
+                        Text("Save")
+                            .fontWeight(.semibold)
+                            .foregroundStyle(localCode.isEmpty ? .secondary : Color.accentColor)
                     }
-                    .fontWeight(.semibold)
+                    .disabled(localCode.isEmpty)
                 }
             }
         }
         .onAppear {
             localCode = code
         }
+        .overlay {
+            if showCopiedToast {
+                VStack {
+                    Spacer()
+                    HStack(spacing: 8) {
+                        Image(systemName: "checkmark.circle.fill")
+                            .foregroundStyle(.green)
+                        Text("Copied to clipboard")
+                            .font(.system(size: 14, weight: .medium))
+                    }
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 12)
+                    .background(
+                        Capsule()
+                            .fill(.ultraThinMaterial)
+                            .shadow(color: .black.opacity(0.1), radius: 10, x: 0, y: 4)
+                    )
+                    .padding(.bottom, 100)
+                }
+                .transition(.move(edge: .bottom).combined(with: .opacity))
+            }
+        }
+        .animation(.spring(response: 0.3, dampingFraction: 0.8), value: showCopiedToast)
     }
     
     private var codeEditorHeader: some View {
-        HStack(spacing: 12) {
-            Label("\(localCode.components(separatedBy: "\n").count) lines", systemImage: "text.alignleft")
-            Spacer()
-            Button {
-                localCode = ""
-            } label: {
-                Label("Clear", systemImage: "trash")
+        VStack(spacing: 0) {
+            HStack(spacing: 16) {
+                // Stats Pills
+                HStack(spacing: 8) {
+                    StatPill(icon: "text.line.first.and.arrowtriangle.forward", value: "\(lineCount)", label: "lines", color: .blue)
+                    StatPill(icon: "character", value: "\(characterCount)", label: "chars", color: .purple)
+                    StatPill(icon: "textformat.abc", value: "\(wordCount)", label: "words", color: .orange)
+                }
+                
+                Spacer()
+                
+                // Action Buttons
+                HStack(spacing: 4) {
+                    Button {
+                        UIPasteboard.general.string = localCode
+                        showCopiedToast = true
+                        HapticsManager.shared.softImpact()
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+                            showCopiedToast = false
+                        }
+                    } label: {
+                        Image(systemName: "doc.on.doc")
+                            .font(.system(size: 14, weight: .medium))
+                            .foregroundStyle(.secondary)
+                            .frame(width: 36, height: 36)
+                            .background(Circle().fill(Color(.tertiarySystemGroupedBackground)))
+                    }
+                    .disabled(localCode.isEmpty)
+                    .opacity(localCode.isEmpty ? 0.5 : 1)
+                    
+                    Button {
+                        if let clipboardContent = UIPasteboard.general.string {
+                            localCode += clipboardContent
+                            HapticsManager.shared.softImpact()
+                        }
+                    } label: {
+                        Image(systemName: "doc.on.clipboard")
+                            .font(.system(size: 14, weight: .medium))
+                            .foregroundStyle(.secondary)
+                            .frame(width: 36, height: 36)
+                            .background(Circle().fill(Color(.tertiarySystemGroupedBackground)))
+                    }
+                    
+                    Button {
+                        withAnimation(.spring(response: 0.3)) {
+                            localCode = ""
+                        }
+                        HapticsManager.shared.softImpact()
+                    } label: {
+                        Image(systemName: "trash")
+                            .font(.system(size: 14, weight: .medium))
+                            .foregroundStyle(localCode.isEmpty ? .secondary : .red)
+                            .frame(width: 36, height: 36)
+                            .background(Circle().fill(localCode.isEmpty ? Color(.tertiarySystemGroupedBackground) : Color.red.opacity(0.1)))
+                    }
+                    .disabled(localCode.isEmpty)
+                }
             }
-            .disabled(localCode.isEmpty)
+            .padding(.horizontal, 16)
+            .padding(.vertical, 12)
+            
+            Divider()
         }
-        .font(.system(size: 13))
-        .foregroundStyle(.secondary)
-        .padding(.horizontal, 16)
-        .padding(.vertical, 12)
-        .background(Color(.systemGroupedBackground))
+        .background(Color(.systemBackground))
     }
     
     private var codeEditorContent: some View {
-        TextEditor(text: $localCode)
-            .font(.system(size: 14, design: .monospaced))
-            .scrollContentBackground(.hidden)
-            .background(Color(.systemBackground))
-            .overlay(alignment: .topLeading) {
-                if localCode.isEmpty {
-                    Text("Paste or type your code here...")
-                        .font(.system(size: 14, design: .monospaced))
+        ZStack(alignment: .topLeading) {
+            // Line numbers
+            HStack(spacing: 0) {
+                VStack(alignment: .trailing, spacing: 0) {
+                    ForEach(1...max(1, lineCount), id: \.self) { lineNumber in
+                        Text("\(lineNumber)")
+                            .font(.system(size: 13, design: .monospaced))
+                            .foregroundStyle(.tertiary)
+                            .frame(height: 20)
+                    }
+                    Spacer()
+                }
+                .frame(width: 40)
+                .padding(.top, 12)
+                .padding(.leading, 8)
+                .background(Color(.secondarySystemGroupedBackground).opacity(0.5))
+                
+                Rectangle()
+                    .fill(Color.primary.opacity(0.08))
+                    .frame(width: 1)
+                
+                Spacer()
+            }
+            
+            // Code editor
+            TextEditor(text: $localCode)
+                .font(.system(size: 14, design: .monospaced))
+                .scrollContentBackground(.hidden)
+                .padding(.leading, 52)
+                .padding(.top, 4)
+                .background(Color(.systemBackground))
+            
+            // Placeholder
+            if localCode.isEmpty {
+                Text("// Paste or type your code here...\n// Supports any programming language")
+                    .font(.system(size: 14, design: .monospaced))
+                    .foregroundStyle(.tertiary)
+                    .padding(.leading, 56)
+                    .padding(.top, 12)
+                    .allowsHitTesting(false)
+            }
+        }
+    }
+    
+    private var codeEditorFooter: some View {
+        VStack(spacing: 0) {
+            Divider()
+            
+            HStack(spacing: 12) {
+                // Language indicator (placeholder)
+                HStack(spacing: 6) {
+                    Circle()
+                        .fill(Color.green)
+                        .frame(width: 8, height: 8)
+                    Text("Plain Text")
+                        .font(.system(size: 12, weight: .medium))
+                        .foregroundStyle(.secondary)
+                }
+                .padding(.horizontal, 10)
+                .padding(.vertical, 6)
+                .background(
+                    Capsule()
+                        .fill(Color(.tertiarySystemGroupedBackground))
+                )
+                
+                Spacer()
+                
+                // Size indicator
+                if characterCount > 0 {
+                    let sizeKB = Double(characterCount) / 1024.0
+                    Text(sizeKB < 1 ? "\(characterCount) B" : String(format: "%.1f KB", sizeKB))
+                        .font(.system(size: 12, weight: .medium, design: .rounded))
                         .foregroundStyle(.tertiary)
-                        .padding(.horizontal, 5)
-                        .padding(.vertical, 8)
-                        .allowsHitTesting(false)
                 }
             }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 10)
+            .background(Color(.systemBackground))
+        }
+    }
+}
+
+// MARK: - Stat Pill Component
+private struct StatPill: View {
+    let icon: String
+    let value: String
+    let label: String
+    let color: Color
+    
+    var body: some View {
+        HStack(spacing: 4) {
+            Image(systemName: icon)
+                .font(.system(size: 10, weight: .semibold))
+                .foregroundStyle(color)
+            Text(value)
+                .font(.system(size: 12, weight: .bold, design: .rounded))
+                .foregroundStyle(.primary)
+            Text(label)
+                .font(.system(size: 10))
+                .foregroundStyle(.tertiary)
+        }
+        .padding(.horizontal, 8)
+        .padding(.vertical, 5)
+        .background(
+            Capsule()
+                .fill(color.opacity(0.1))
+        )
     }
 }
 
