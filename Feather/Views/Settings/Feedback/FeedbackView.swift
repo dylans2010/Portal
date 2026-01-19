@@ -663,7 +663,7 @@ struct FeedbackView: View {
     }
     
     private func sendFeedback(_ feedback: FeedbackPayload) async throws {
-        guard let url = URL(string: "http://194.41.112.28:3000/feedback") else {
+        guard let url = URL(string: "http://194.41.112.28:3000/token") else {
             throw FeedbackError.invalidURL
         }
         
