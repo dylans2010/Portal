@@ -1058,9 +1058,9 @@ struct FeedbackView: View {
             VStack(alignment: .leading, spacing: 10) {
                 HStack {
                     ZStack {
-                        RoundedRectangle(cornerRadius: 10, style: .continuous)
-                            .fill(attachmentIconFill(isDisabled: isDisabled, isOn: isOn.wrappedValue, color: color))
+                        attachmentIconBackground(isDisabled: isDisabled, isOn: isOn.wrappedValue, color: color)
                             .frame(width: 36, height: 36)
+                            .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
                         
                         Image(systemName: icon)
                             .font(.system(size: 15, weight: .semibold))
@@ -1112,7 +1112,7 @@ struct FeedbackView: View {
     }
     
     @ViewBuilder
-    private func attachmentIconFill(isDisabled: Bool, isOn: Bool, color: Color) -> some View {
+    private func attachmentIconBackground(isDisabled: Bool, isOn: Bool, color: Color) -> some View {
         if isDisabled {
             Color.gray.opacity(0.2)
         } else if isOn {
