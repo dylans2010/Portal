@@ -432,11 +432,15 @@ struct MarkdownTextView: View {
         // Headers: ## text
         result = result.replacingOccurrences(of: "^#{1,6}\\s*", with: "", options: .regularExpression)
         
-        // Quote: > text
-        result = result.replacingOccurrences(of: "^>\\s*", with: "", options: [.regularExpression, .anchorsMatchLines])
+        // Quote: > text (multiline)
+        if let regex = try? NSRegularExpression(pattern: "^>\\s*", options: [.anchorsMatchLines]) {
+            result = regex.stringByReplacingMatches(in: result, options: [], range: NSRange(result.startIndex..., in: result), withTemplate: "")
+        }
         
-        // List: - text
-        result = result.replacingOccurrences(of: "^-\\s*", with: "• ", options: [.regularExpression, .anchorsMatchLines])
+        // List: - text (multiline)
+        if let regex = try? NSRegularExpression(pattern: "^-\\s*", options: [.anchorsMatchLines]) {
+            result = regex.stringByReplacingMatches(in: result, options: [], range: NSRange(result.startIndex..., in: result), withTemplate: "• ")
+        }
         
         do {
             return try AttributedString(markdown: input, options: AttributedString.MarkdownParsingOptions(interpretedSyntax: .inlineOnlyPreservingWhitespace))
