@@ -1608,7 +1608,7 @@ struct MachOAnalyzer {
         var segments: [SegmentInfo] = []
         var minOSVersion: String? = nil
         var sdkVersion: String? = nil
-        var buildVersion: String? = nil
+        let buildVersion: String? = nil
         
         guard data.count >= 32 else {
             return BinaryInfo(architectures: [], isUniversal: false, is64Bit: true, linkedLibraries: [], rpaths: [], hasCodeSignature: false, isEncrypted: false, encryptionInfo: nil, segments: [], minOSVersion: nil, sdkVersion: nil, buildVersion: nil)
