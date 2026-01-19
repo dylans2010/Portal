@@ -5,8 +5,16 @@ import PhotosUI
 // MARK: - Text Formatting Coordinator
 #if compiler(>=6.0)
 @available(iOS 18.0, *)
+@MainActor
 final class TextFormattingCoordinator: NSObject, UITextFormattingViewController.Delegate {
     weak var textView: UITextView?
+    
+    func textFormattingViewController(
+        _ viewController: UITextFormattingViewController,
+        didChangeValue changeValue: UITextFormattingViewController.ChangeValue
+    ) {
+        // Handle formatting value changes if needed
+    }
     
     func textFormattingViewController(
         _ viewController: UITextFormattingViewController,
@@ -98,6 +106,7 @@ struct FormattedTextEditor: UIViewRepresentable {
 // MARK: - Text Formatting Sheet Presenter
 #if compiler(>=6.0)
 @available(iOS 18.0, *)
+@MainActor
 struct TextFormattingPresenter {
     static func present(for textView: UITextView, coordinator: TextFormattingCoordinator) {
         guard let windowScene = UIApplication.shared.connectedScenes
