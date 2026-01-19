@@ -243,7 +243,7 @@ struct FeedbackView: View {
         HStack(spacing: 12) {
             Image(systemName: "pencil.line")
                 .font(.system(size: 16))
-                .foregroundStyle(focusedField == .title ? .accentColor : .secondary)
+                .foregroundStyle(focusedField == .title ? Color.accentColor : Color.secondary)
             
             TextField("Brief summary of your feedback", text: $feedbackTitle)
                 .font(.system(size: 15))
