@@ -111,30 +111,30 @@ struct InstallProgressView: View {
     }
     
     // MARK: - Status Info
+    @ViewBuilder
     private var statusInfo: some View {
-        Group {
-            if viewModel.isCompleted {
-                HStack(spacing: 6) {
-                    Image(systemName: "checkmark.circle.fill")
-                        .font(.system(size: 14, weight: .semibold))
-                    Text("Complete")
-                        .font(.system(size: 14, weight: .semibold))
-                }
-                .foregroundStyle(.green)
-            } else {
-                VStack(spacing: 4) {
-                    Text("\(Int(viewModel.overallProgress * 100))%")
-                        .font(.system(size: 18, weight: .bold, design: .rounded))
-                        .foregroundStyle(dominantColor)
-                    
-                    Text(viewModel.currentStep)
-                        .font(.system(size: 12, weight: .medium))
-                        .foregroundStyle(.secondary)
-                        .lineLimit(1)
-                }
+        if viewModel.isCompleted {
+            HStack(spacing: 6) {
+                Image(systemName: "checkmark.circle.fill")
+                    .font(.system(size: 14, weight: .semibold))
+                Text("Complete")
+                    .font(.system(size: 14, weight: .semibold))
             }
+            .foregroundStyle(.green)
+            .animation(.easeInOut(duration: 0.25), value: viewModel.isCompleted)
+        } else {
+            VStack(spacing: 4) {
+                Text("\(Int(viewModel.overallProgress * 100))%")
+                    .font(.system(size: 18, weight: .bold, design: .rounded))
+                    .foregroundStyle(dominantColor)
+                
+                Text(viewModel.statusLabel)
+                    .font(.system(size: 12, weight: .medium))
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
+            }
+            .animation(.easeInOut(duration: 0.25), value: viewModel.isCompleted)
         }
-        .animation(.easeInOut(duration: 0.25), value: viewModel.isCompleted)
     }
     
     // MARK: - Helpers

@@ -114,7 +114,7 @@ struct InstallPreviewView: View {
     private var statusColor: Color {
         if viewModel.isCompleted {
             return .green
-        } else if case .failed = viewModel.status {
+        } else if case .broken = viewModel.status {
             return .red
         }
         return .accentColor
