@@ -2,140 +2,6 @@ import SwiftUI
 import UIKit
 import PhotosUI
 
-// MARK: - Text Formatting Coordinator
-#if compiler(>=6.0)
-@available(iOS 18.0, *)
-@MainActor
-final class TextFormattingCoordinator: NSObject, UITextFormattingViewController.Delegate {
-    weak var textView: UITextView?
-    
-    func textFormattingViewController(
-        _ viewController: UITextFormattingViewController,
-        didChangeValue changeValue: UITextFormattingViewController.ChangeValue
-    ) {
-        // Handle formatting value changes if needed
-    }
-    
-    func textFormattingViewController(
-        _ viewController: UITextFormattingViewController,
-        updateTextAttributesForSelectedRangeWith updateHandler: (inout [NSAttributedString.Key : Any]) -> Void
-    ) {
-        guard let textView = textView else { return }
-        let selectedRange = textView.selectedRange
-        guard selectedRange.length > 0 else { return }
-        
-        let mutableAttrString = NSMutableAttributedString(attributedString: textView.attributedText)
-        mutableAttrString.enumerateAttributes(in: selectedRange, options: []) { attrs, range, _ in
-            var newAttrs = attrs
-            updateHandler(&newAttrs)
-            mutableAttrString.setAttributes(newAttrs, range: range)
-        }
-        textView.attributedText = mutableAttrString
-        textView.selectedRange = selectedRange
-    }
-}
-#endif
-
-// MARK: - Formatted Text Editor (UITextView wrapper)
-struct FormattedTextEditor: UIViewRepresentable {
-    @Binding var attributedText: NSAttributedString
-    var placeholder: String
-    var onTextViewReady: ((UITextView) -> Void)?
-    
-    func makeCoordinator() -> Coordinator {
-        Coordinator(self)
-    }
-    
-    func makeUIView(context: Context) -> UITextView {
-        let textView = UITextView()
-        textView.delegate = context.coordinator
-        textView.font = UIFont.systemFont(ofSize: 15)
-        textView.backgroundColor = .clear
-        textView.textContainerInset = UIEdgeInsets(top: 14, left: 10, bottom: 14, right: 10)
-        textView.isScrollEnabled = true
-        textView.allowsEditingTextAttributes = true
-        
-        context.coordinator.setupPlaceholder(for: textView, placeholder: placeholder)
-        onTextViewReady?(textView)
-        
-        return textView
-    }
-    
-    func updateUIView(_ textView: UITextView, context: Context) {
-        if textView.attributedText != attributedText {
-            textView.attributedText = attributedText
-        }
-        context.coordinator.updatePlaceholder(for: textView, isEmpty: attributedText.length == 0)
-    }
-    
-    class Coordinator: NSObject, UITextViewDelegate {
-        var parent: FormattedTextEditor
-        weak var placeholderLabel: UILabel?
-        
-        init(_ parent: FormattedTextEditor) {
-            self.parent = parent
-        }
-        
-        func setupPlaceholder(for textView: UITextView, placeholder: String) {
-            let label = UILabel()
-            label.text = placeholder
-            label.font = UIFont.systemFont(ofSize: 15)
-            label.textColor = .tertiaryLabel
-            label.translatesAutoresizingMaskIntoConstraints = false
-            textView.addSubview(label)
-            
-            NSLayoutConstraint.activate([
-                label.topAnchor.constraint(equalTo: textView.topAnchor, constant: 14),
-                label.leadingAnchor.constraint(equalTo: textView.leadingAnchor, constant: 15)
-            ])
-            
-            placeholderLabel = label
-        }
-        
-        func updatePlaceholder(for textView: UITextView, isEmpty: Bool) {
-            placeholderLabel?.isHidden = !isEmpty
-        }
-        
-        func textViewDidChange(_ textView: UITextView) {
-            parent.attributedText = textView.attributedText
-            placeholderLabel?.isHidden = textView.text.count > 0
-        }
-    }
-}
-
-// MARK: - Text Formatting Sheet Presenter
-#if compiler(>=6.0)
-@available(iOS 18.0, *)
-@MainActor
-struct TextFormattingPresenter {
-    static func present(for textView: UITextView, coordinator: TextFormattingCoordinator) {
-        guard let windowScene = UIApplication.shared.connectedScenes
-            .compactMap({ $0 as? UIWindowScene })
-            .first(where: { $0.activationState == .foregroundActive }),
-              let rootVC = windowScene.windows.first(where: { $0.isKeyWindow })?.rootViewController else {
-            return
-        }
-        
-        var topVC = rootVC
-        while let presented = topVC.presentedViewController {
-            topVC = presented
-        }
-        
-        let config = UITextFormattingViewController.Configuration()
-        let formattingVC = UITextFormattingViewController(configuration: config)
-        formattingVC.delegate = coordinator
-        coordinator.textView = textView
-        
-        if let sheet = formattingVC.sheetPresentationController {
-            sheet.detents = [.medium(), .large()]
-            sheet.prefersGrabberVisible = true
-        }
-        
-        topVC.present(formattingVC, animated: true)
-    }
-}
-#endif
-
 // MARK: - Rich Text Span Model
 struct RichTextSpan: Identifiable, Equatable {
     let id = UUID()
@@ -967,16 +833,8 @@ struct FeedbackView: View {
     @StateObject private var richTextManager = RichTextEditorManager()
     
     // Text formatting state
-    @State private var descriptionAttributedText: NSAttributedString = NSAttributedString()
-    @State private var descriptionTextView: UITextView?
-    #if compiler(>=6.0)
-    private let formattingCoordinator: Any? = {
-        if #available(iOS 18.0, *) {
-            return TextFormattingCoordinator()
-        }
-        return nil
-    }()
-    #endif
+    @StateObject private var formattedTextManager = FormattedTextManager()
+    @State private var showFormatController: Bool = false
     
     @FocusState private var focusedField: FocusedField?
     
@@ -1028,11 +886,11 @@ struct FeedbackView: View {
     
     private var isFormValid: Bool {
         !feedbackTitle.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
-        descriptionAttributedText.length > 0
+        formattedTextManager.characterCount > 0
     }
     
     private var combinedMessage: String {
-        descriptionAttributedText.string
+        formattedTextManager.plainText
     }
     
     var body: some View {
@@ -1057,6 +915,11 @@ struct FeedbackView: View {
             .sheet(isPresented: $showLinkDialog) {
                 LinkDialogSheet(manager: richTextManager)
                     .presentationDetents([.medium])
+            }
+            .sheet(isPresented: $showFormatController) {
+                FeedbackFormatController(manager: formattedTextManager)
+                    .presentationDetents([.height(320), .medium])
+                    .presentationCornerRadius(24)
             }
     }
     
@@ -1274,38 +1137,67 @@ struct FeedbackView: View {
                 }
                 Spacer()
                 
-                // Format button (iOS 18+)
-                #if compiler(>=6.0)
-                if #available(iOS 18.0, *) {
-                    Button {
-                        presentTextFormatting()
-                    } label: {
-                        HStack(spacing: 4) {
-                            Image(systemName: "textformat")
-                                .font(.system(size: 14, weight: .semibold))
-                            Text("Format")
-                                .font(.system(size: 13, weight: .medium))
-                        }
-                        .foregroundStyle(Color.accentColor)
-                        .padding(.horizontal, 10)
-                        .padding(.vertical, 6)
-                        .background(
-                            RoundedRectangle(cornerRadius: 8, style: .continuous)
-                                .fill(Color.accentColor.opacity(0.12))
-                        )
+                // Format button
+                Button {
+                    showFormatController = true
+                    HapticsManager.shared.softImpact()
+                } label: {
+                    HStack(spacing: 4) {
+                        Image(systemName: "textformat")
+                            .font(.system(size: 14, weight: .semibold))
+                        Text("Format")
+                            .font(.system(size: 13, weight: .medium))
                     }
-                    .buttonStyle(.plain)
+                    .foregroundStyle(Color.accentColor)
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 6)
+                    .background(
+                        RoundedRectangle(cornerRadius: 8, style: .continuous)
+                            .fill(.ultraThinMaterial)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 8, style: .continuous)
+                                    .stroke(
+                                        LinearGradient(
+                                            colors: [Color.white.opacity(0.3), Color.white.opacity(0.1)],
+                                            startPoint: .topLeading,
+                                            endPoint: .bottomTrailing
+                                        ),
+                                        lineWidth: 1
+                                    )
+                            )
+                    )
                 }
-                #endif
+                .buttonStyle(.plain)
+                
+                // Active formats indicator
+                if !formattedTextManager.activeFormats.isEmpty {
+                    HStack(spacing: 2) {
+                        ForEach(Array(formattedTextManager.activeFormats.prefix(3)), id: \.self) { format in
+                            Image(systemName: format.icon)
+                                .font(.system(size: 10, weight: .bold))
+                                .foregroundStyle(.white)
+                                .frame(width: 18, height: 18)
+                                .background(
+                                    Circle()
+                                        .fill(
+                                            LinearGradient(
+                                                colors: format.gradient,
+                                                startPoint: .topLeading,
+                                                endPoint: .bottomTrailing
+                                            )
+                                        )
+                                )
+                        }
+                    }
+                    .transition(.scale.combined(with: .opacity))
+                }
             }
+            .animation(.spring(response: 0.3, dampingFraction: 0.7), value: formattedTextManager.activeFormats)
             
             // Formatted Text Editor
-            FormattedTextEditor(
-                attributedText: $descriptionAttributedText,
-                placeholder: "Describe your feedback in detail...",
-                onTextViewReady: { textView in
-                    descriptionTextView = textView
-                }
+            FormattedDescriptionEditor(
+                manager: formattedTextManager,
+                placeholder: "Describe your feedback in detail..."
             )
             .frame(minHeight: 150)
             .background(
@@ -1319,21 +1211,12 @@ struct FeedbackView: View {
             
             HStack {
                 Spacer()
-                Text("\(descriptionAttributedText.length) characters")
+                Text("\(formattedTextManager.characterCount) characters")
                     .font(.system(size: 11))
                     .foregroundStyle(.tertiary)
             }
         }
     }
-    
-    #if compiler(>=6.0)
-    @available(iOS 18.0, *)
-    private func presentTextFormatting() {
-        guard let textView = descriptionTextView,
-              let coordinator = formattingCoordinator as? TextFormattingCoordinator else { return }
-        TextFormattingPresenter.present(for: textView, coordinator: coordinator)
-    }
-    #endif
     
     @ViewBuilder
     private func activeFormatBadge(for format: RichTextEditorManager.FormatType) -> some View {
