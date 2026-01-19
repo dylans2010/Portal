@@ -917,9 +917,14 @@ struct FeedbackView: View {
                     .presentationDetents([.medium])
             }
             .sheet(isPresented: $showFormatController) {
-                FeedbackFormatController(manager: formattedTextManager)
-                    .presentationDetents([.height(320), .medium])
-                    .presentationCornerRadius(24)
+                if #available(iOS 16.4, *) {
+                    FeedbackFormatController(manager: formattedTextManager)
+                        .presentationDetents([.height(320), .medium])
+                        .presentationCornerRadius(24)
+                } else {
+                    FeedbackFormatController(manager: formattedTextManager)
+                        .presentationDetents([.height(320), .medium])
+                }
             }
     }
     

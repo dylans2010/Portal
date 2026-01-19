@@ -253,8 +253,8 @@ class FormattedTextManager: ObservableObject {
     }
 }
 
-// MARK: - Liquid Glass Button Style
-struct LiquidGlassButtonStyle: ButtonStyle {
+// MARK: - Format Button Style
+struct FormatButtonStyle: ButtonStyle {
     let isActive: Bool
     let gradient: [Color]
     
@@ -306,7 +306,7 @@ struct FormatButton: View {
             }
             .frame(width: 40, height: 36)
         }
-        .buttonStyle(LiquidGlassButtonStyle(isActive: isActive, gradient: option.gradient))
+        .buttonStyle(FormatButtonStyle(isActive: isActive, gradient: option.gradient))
     }
 }
 
