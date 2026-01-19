@@ -39,22 +39,7 @@ struct SettingsView: View {
                 // Preferences
                 Section {
                     NavigationLink(destination: AppearanceView()) {
-                        modernSettingsRow(icon: "paintbrush.fill", title: "Appearance", color: .pink)
-                    }
-                    NavigationLink(destination: HapticsView()) {
-                        modernSettingsRow(icon: "waveform", title: "Haptics", color: .purple)
-                    }
-                    Picker(selection: $certificateExperience) {
-                        ForEach(CertificateExperience.allCases, id: \.rawValue) { exp in
-                            Text(exp.displayName).tag(exp.rawValue)
-                        }
-                    } label: {
-                        modernSettingsRow(icon: "person.badge.shield.checkmark.fill", title: "Certificate Type", color: .blue)
-                    }
-                    .onChange(of: certificateExperience) { newValue in
-                        if newValue == CertificateExperience.enterprise.rawValue {
-                            forceShowGuides = true
-                        }
+                        modernSettingsRow(icon: "paintbrush.fill", title: "Appearance & Haptics", color: .pink)
                     }
                 } header: {
                     sectionHeader("Preferences", icon: "slider.horizontal.3")
@@ -67,9 +52,6 @@ struct SettingsView: View {
                     }
                     NavigationLink(destination: ConfigurationView()) {
                         modernSettingsRow(icon: "signature", title: "Signing Options", color: .orange)
-                    }
-                    NavigationLink(destination: InstallationView()) {
-                        modernSettingsRow(icon: "arrow.down.app.fill", title: "Installation", color: .cyan)
                     }
                 } header: {
                     sectionHeader("Signing & Security", icon: "lock.shield.fill")
