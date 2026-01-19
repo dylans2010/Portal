@@ -919,11 +919,12 @@ struct FeedbackView: View {
             .sheet(isPresented: $showFormatController) {
                 if #available(iOS 16.4, *) {
                     FeedbackFormatController(manager: formattedTextManager)
-                        .presentationDetents([.height(320), .medium])
-                        .presentationCornerRadius(24)
+                        .presentationDetents([.height(140)])
+                        .presentationCornerRadius(20)
+                        .presentationBackgroundInteraction(.enabled)
                 } else {
                     FeedbackFormatController(manager: formattedTextManager)
-                        .presentationDetents([.height(320), .medium])
+                        .presentationDetents([.height(140)])
                 }
             }
     }
@@ -1182,22 +1183,13 @@ struct FeedbackView: View {
                                 .font(.system(size: 10, weight: .bold))
                                 .foregroundStyle(.white)
                                 .frame(width: 18, height: 18)
-                                .background(
-                                    Circle()
-                                        .fill(
-                                            LinearGradient(
-                                                colors: format.gradient,
-                                                startPoint: .topLeading,
-                                                endPoint: .bottomTrailing
-                                            )
-                                        )
-                                )
+                                .background(Circle().fill(format.color))
                         }
                     }
                     .transition(.scale.combined(with: .opacity))
                 }
             }
-            .animation(.spring(response: 0.3, dampingFraction: 0.7), value: formattedTextManager.activeFormats)
+            .animation(.spring(response: 0.3, dampingFraction: 0.7), value: formattedTextManager.activeFormats.count)
             
             // Formatted Text Editor
             FormattedDescriptionEditor(
@@ -1634,188 +1626,95 @@ struct ModernCodeEditorSheet: View {
     @Environment(\.dismiss) private var dismiss
     @Binding var code: String
     @State private var localCode: String = ""
-    @State private var appearAnimation = false
+    
+    private var lineCount: Int { max(1, localCode.components(separatedBy: "\n").count) }
     
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
-                // Header with stats
-                codeEditorHeader
-                    .opacity(appearAnimation ? 1 : 0)
-                    .offset(y: appearAnimation ? 0 : -10)
+                // Stats bar
+                HStack(spacing: 16) {
+                    Label("\(lineCount) lines", systemImage: "text.alignleft")
+                    Label("\(localCode.count) chars", systemImage: "character")
+                    Spacer()
+                    if !localCode.isEmpty {
+                        Button { localCode = ""; HapticsManager.shared.softImpact() } label: {
+                            Label("Clear", systemImage: "trash")
+                                .font(.system(size: 13, weight: .medium))
+                                .foregroundStyle(.red)
+                        }
+                    }
+                }
+                .font(.system(size: 12, weight: .medium))
+                .foregroundStyle(.secondary)
+                .padding(.horizontal, 16)
+                .padding(.vertical, 10)
+                .background(Color(.secondarySystemGroupedBackground))
                 
-                // Code editor
-                codeEditorContent
-                    .opacity(appearAnimation ? 1 : 0)
+                // Editor
+                ZStack(alignment: .topLeading) {
+                    // Line numbers
+                    HStack(alignment: .top, spacing: 0) {
+                        VStack(alignment: .trailing, spacing: 0) {
+                            ForEach(1...max(lineCount, 20), id: \.self) { num in
+                                Text("\(num)")
+                                    .font(.system(size: 13, design: .monospaced))
+                                    .foregroundStyle(.tertiary)
+                                    .frame(height: 20)
+                            }
+                        }
+                        .frame(width: 32)
+                        .padding(.top, 12)
+                        .padding(.trailing, 8)
+                        .background(Color(.tertiarySystemGroupedBackground))
+                        
+                        Rectangle()
+                            .fill(Color.purple.opacity(0.3))
+                            .frame(width: 1)
+                        
+                        Spacer()
+                    }
+                    
+                    // Text editor
+                    TextEditor(text: $localCode)
+                        .font(.system(size: 14, design: .monospaced))
+                        .scrollContentBackground(.hidden)
+                        .padding(.leading, 48)
+                        .padding(.top, 8)
+                    
+                    // Placeholder
+                    if localCode.isEmpty {
+                        Text("// Paste or type code here...")
+                            .font(.system(size: 14, design: .monospaced))
+                            .foregroundStyle(.quaternary)
+                            .padding(.leading, 52)
+                            .padding(.top, 16)
+                            .allowsHitTesting(false)
+                    }
+                }
+                .background(Color(.systemBackground))
             }
             .background(Color(.systemGroupedBackground))
-            .navigationTitle("Code Snippet")
+            .navigationTitle("Code")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .topBarLeading) {
+                ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") { dismiss() }
                 }
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button("Save") {
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Done") {
                         code = localCode
                         HapticsManager.shared.success()
                         dismiss()
                     }
                     .fontWeight(.semibold)
-                    .disabled(localCode.isEmpty)
                 }
             }
         }
-        .onAppear {
-            localCode = code
-            withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) {
-                appearAnimation = true
-            }
-        }
-    }
-    
-    private var codeEditorHeader: some View {
-        VStack(spacing: 16) {
-            // Icon
-            ZStack {
-                Circle()
-                    .fill(
-                        RadialGradient(
-                            colors: [Color.purple.opacity(0.3), Color.purple.opacity(0.1), Color.clear],
-                            center: .center,
-                            startRadius: 15,
-                            endRadius: 45
-                        )
-                    )
-                    .frame(width: 80, height: 80)
-                
-                Circle()
-                    .fill(
-                        LinearGradient(
-                            colors: [Color(red: 0.55, green: 0.35, blue: 0.98), Color(red: 0.75, green: 0.25, blue: 0.95)],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        )
-                    )
-                    .frame(width: 52, height: 52)
-                    .shadow(color: Color.purple.opacity(0.4), radius: 10, x: 0, y: 5)
-                
-                Image(systemName: "curlybraces")
-                    .font(.system(size: 22, weight: .bold))
-                    .foregroundStyle(.white)
-            }
-            
-            // Stats
-            HStack(spacing: 20) {
-                StatBadge(
-                    icon: "text.alignleft",
-                    value: "\(localCode.components(separatedBy: "\n").count)",
-                    label: "Lines",
-                    color: .blue
-                )
-                
-                StatBadge(
-                    icon: "character",
-                    value: "\(localCode.count)",
-                    label: "Characters",
-                    color: .green
-                )
-            }
-            
-            // Clear button
-            if !localCode.isEmpty {
-                Button {
-                    withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-                        localCode = ""
-                    }
-                    HapticsManager.shared.softImpact()
-                } label: {
-                    HStack(spacing: 6) {
-                        Image(systemName: "trash")
-                            .font(.system(size: 12, weight: .semibold))
-                        Text("Clear Code")
-                            .font(.system(size: 13, weight: .medium))
-                    }
-                    .foregroundStyle(.red)
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 8)
-                    .background(
-                        Capsule()
-                            .fill(Color.red.opacity(0.1))
-                    )
-                }
-                .transition(.scale.combined(with: .opacity))
-            }
-        }
-        .padding(.vertical, 20)
-        .animation(.spring(response: 0.3, dampingFraction: 0.7), value: localCode.isEmpty)
-    }
-    
-    private var codeEditorContent: some View {
-        ZStack(alignment: .topLeading) {
-            TextEditor(text: $localCode)
-                .font(.system(size: 14, design: .monospaced))
-                .scrollContentBackground(.hidden)
-                .padding(16)
-            
-            if localCode.isEmpty {
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("Paste or type your code here...")
-                        .font(.system(size: 14, design: .monospaced))
-                        .foregroundStyle(.tertiary)
-                    
-                    Text("Supports any programming language")
-                        .font(.system(size: 12))
-                        .foregroundStyle(.quaternary)
-                }
-                .padding(20)
-                .allowsHitTesting(false)
-            }
-        }
-        .background(
-            RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .fill(Color(.systemBackground))
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .stroke(Color.purple.opacity(0.2), lineWidth: 1)
-        )
-        .padding(.horizontal, 16)
-        .padding(.bottom, 16)
+        .onAppear { localCode = code }
     }
 }
 
-// MARK: - Stat Badge
-private struct StatBadge: View {
-    let icon: String
-    let value: String
-    let label: String
-    let color: Color
-    
-    var body: some View {
-        HStack(spacing: 8) {
-            Image(systemName: icon)
-                .font(.system(size: 14, weight: .semibold))
-                .foregroundStyle(color)
-            
-            VStack(alignment: .leading, spacing: 1) {
-                Text(value)
-                    .font(.system(size: 15, weight: .bold, design: .rounded))
-                Text(label)
-                    .font(.system(size: 11))
-                    .foregroundStyle(.secondary)
-            }
-        }
-        .padding(.horizontal, 14)
-        .padding(.vertical, 10)
-        .background(
-            RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .fill(color.opacity(0.1))
-        )
-    }
-}
-
-// Legacy alias for compatibility
 typealias CodeEditorSheet = ModernCodeEditorSheet
 
 // MARK: - Success Sheet with Modern Animation
