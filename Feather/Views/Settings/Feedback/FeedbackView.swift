@@ -65,7 +65,7 @@ struct LinkInsertDialog: View {
                         HStack(spacing: 12) {
                             Image(systemName: "character.cursor.ibeam")
                                 .font(.system(size: 16))
-                                .foregroundStyle(focusedField == .title ? .blue : .secondary)
+                                .foregroundStyle(focusedField == .title ? Color.blue : Color.secondary)
                             
                             TextField("Display text", text: $linkTitle)
                                 .font(.system(size: 15))
@@ -88,16 +88,16 @@ struct LinkInsertDialog: View {
                         HStack(spacing: 6) {
                             Image(systemName: "globe")
                                 .font(.system(size: 12, weight: .semibold))
-                                .foregroundStyle(.blue)
+                                .foregroundStyle(Color.blue)
                             Text("URL")
                                 .font(.system(size: 13, weight: .medium))
-                                .foregroundStyle(.secondary)
+                                .foregroundStyle(Color.secondary)
                         }
                         
                         HStack(spacing: 12) {
                             Image(systemName: "link")
                                 .font(.system(size: 16))
-                                .foregroundStyle(focusedField == .url ? .blue : .secondary)
+                                .foregroundStyle(focusedField == .url ? Color.blue : Color.secondary)
                             
                             TextField("https://example.com", text: $linkURL)
                                 .font(.system(size: 15))
@@ -458,7 +458,7 @@ private struct FormattingButton: View {
         Button(action: action) {
             Image(systemName: format.icon)
                 .font(.system(size: 17, weight: .medium))
-                .foregroundStyle(isPressed ? format.color : .primary.opacity(0.7))
+                .foregroundStyle(isPressed ? format.color : Color.primary.opacity(0.7))
                 .frame(width: 40, height: 40)
                 .contentShape(Rectangle())
         }
@@ -944,10 +944,10 @@ struct FeedbackView: View {
                         .frame(width: 6, height: 6)
                     Text("\(feedbackMessage.count)")
                         .font(.system(size: 12, weight: .medium, design: .rounded))
-                        .foregroundStyle(feedbackMessage.count > 0 ? .primary : .tertiary)
+                        .foregroundStyle(feedbackMessage.count > 0 ? Color.primary : Color.gray)
                     Text("characters")
                         .font(.system(size: 12))
-                        .foregroundStyle(.tertiary)
+                        .foregroundStyle(Color.gray)
                 }
                 .padding(.horizontal, 10)
                 .padding(.vertical, 5)
@@ -1059,17 +1059,12 @@ struct FeedbackView: View {
                 HStack {
                     ZStack {
                         RoundedRectangle(cornerRadius: 10, style: .continuous)
-                            .fill(
-                                isDisabled ? Color.gray.opacity(0.2) :
-                                (isOn.wrappedValue ? 
-                                    LinearGradient(colors: [color, color.opacity(0.8)], startPoint: .topLeading, endPoint: .bottomTrailing) :
-                                    LinearGradient(colors: [color.opacity(0.15), color.opacity(0.1)], startPoint: .topLeading, endPoint: .bottomTrailing))
-                            )
+                            .fill(attachmentIconFill(isDisabled: isDisabled, isOn: isOn.wrappedValue, color: color))
                             .frame(width: 36, height: 36)
                         
                         Image(systemName: icon)
                             .font(.system(size: 15, weight: .semibold))
-                            .foregroundStyle(isDisabled ? .gray : (isOn.wrappedValue ? .white : color))
+                            .foregroundStyle(isDisabled ? Color.gray : (isOn.wrappedValue ? Color.white : color))
                     }
                     
                     Spacer()
@@ -1077,7 +1072,7 @@ struct FeedbackView: View {
                     if isDisabled {
                         Image(systemName: "xmark.circle.fill")
                             .font(.system(size: 20))
-                            .foregroundStyle(.gray.opacity(0.5))
+                            .foregroundStyle(Color.gray.opacity(0.5))
                     } else {
                         Image(systemName: isOn.wrappedValue ? "checkmark.circle.fill" : "circle")
                             .font(.system(size: 20))
@@ -1088,10 +1083,10 @@ struct FeedbackView: View {
                 VStack(alignment: .leading, spacing: 3) {
                     Text(title)
                         .font(.system(size: 14, weight: .semibold))
-                        .foregroundStyle(isDisabled ? .secondary : .primary)
+                        .foregroundStyle(isDisabled ? Color.secondary : Color.primary)
                     Text(subtitle)
                         .font(.system(size: 12))
-                        .foregroundStyle(isDisabled ? .tertiary : .secondary)
+                        .foregroundStyle(isDisabled ? Color.gray : Color.secondary)
                         .lineLimit(1)
                 }
             }
@@ -1114,6 +1109,17 @@ struct FeedbackView: View {
         }
         .buttonStyle(.plain)
         .opacity(isDisabled ? 0.7 : 1)
+    }
+    
+    @ViewBuilder
+    private func attachmentIconFill(isDisabled: Bool, isOn: Bool, color: Color) -> some View {
+        if isDisabled {
+            Color.gray.opacity(0.2)
+        } else if isOn {
+            LinearGradient(colors: [color, color.opacity(0.8)], startPoint: .topLeading, endPoint: .bottomTrailing)
+        } else {
+            LinearGradient(colors: [color.opacity(0.15), color.opacity(0.1)], startPoint: .topLeading, endPoint: .bottomTrailing)
+        }
     }
     
     private var screenshotsPreview: some View {
@@ -1371,7 +1377,7 @@ struct FeedbackCategoryChip: View {
                 Capsule()
                     .fill(isSelected ? category.color : Color(.tertiarySystemGroupedBackground))
             )
-            .foregroundStyle(isSelected ? .white : .primary)
+            .foregroundStyle(isSelected ? Color.white : Color.primary)
         }
         .buttonStyle(.plain)
     }
@@ -1390,12 +1396,12 @@ struct ModernCategoryChip: View {
             HStack(spacing: 8) {
                 ZStack {
                     Circle()
-                        .fill(isSelected ? .white.opacity(0.2) : category.color.opacity(0.15))
+                        .fill(isSelected ? Color.white.opacity(0.2) : category.color.opacity(0.15))
                         .frame(width: 28, height: 28)
                     
                     Image(systemName: category.icon)
                         .font(.system(size: 12, weight: .bold))
-                        .foregroundStyle(isSelected ? .white : category.color)
+                        .foregroundStyle(isSelected ? Color.white : category.color)
                 }
                 
                 Text(category.rawValue)
@@ -1416,7 +1422,7 @@ struct ModernCategoryChip: View {
                 Capsule()
                     .stroke(isSelected ? Color.clear : Color.primary.opacity(0.06), lineWidth: 1)
             )
-            .foregroundStyle(isSelected ? .white : .primary)
+            .foregroundStyle(isSelected ? Color.white : Color.primary)
             .shadow(color: isSelected ? category.color.opacity(0.3) : Color.clear, radius: 8, x: 0, y: 4)
         }
         .buttonStyle(.plain)
@@ -1477,7 +1483,7 @@ struct CodeEditorSheet: View {
                     } label: {
                         Text("Save")
                             .fontWeight(.semibold)
-                            .foregroundStyle(localCode.isEmpty ? .secondary : Color.accentColor)
+                            .foregroundStyle(localCode.isEmpty ? Color.secondary : Color.accentColor)
                     }
                     .disabled(localCode.isEmpty)
                 }
@@ -1563,7 +1569,7 @@ struct CodeEditorSheet: View {
                     } label: {
                         Image(systemName: "trash")
                             .font(.system(size: 14, weight: .medium))
-                            .foregroundStyle(localCode.isEmpty ? .secondary : .red)
+                            .foregroundStyle(localCode.isEmpty ? Color.secondary : Color.red)
                             .frame(width: 36, height: 36)
                             .background(Circle().fill(localCode.isEmpty ? Color(.tertiarySystemGroupedBackground) : Color.red.opacity(0.1)))
                     }
