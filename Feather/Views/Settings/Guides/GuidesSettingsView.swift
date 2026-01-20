@@ -81,7 +81,7 @@ struct GuidesSettingsView: View {
                 StatusPill(
                     title: "Apple Intelligence",
                     isAvailable: AppleIntelligenceService.shared.isAvailable,
-                    icon: "apple.logo"
+                    icon: "apple.intelligence"
                 )
                 StatusPill(
                     title: "OpenRouter",

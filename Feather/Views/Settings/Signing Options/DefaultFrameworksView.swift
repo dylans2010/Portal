@@ -129,7 +129,7 @@ extension DefaultFrameworksView {
 					.font(.subheadline)
 					.foregroundColor(.secondary)
 				
-				Text(.localized("Tap + to add frameworks"))
+				Text(.localized("Tap + To Add Frameworks"))
 					.font(.caption)
 					.foregroundColor(Color(uiColor: .tertiaryLabel))
 			}

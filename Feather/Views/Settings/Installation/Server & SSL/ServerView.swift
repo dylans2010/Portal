@@ -53,9 +53,9 @@ extension ServerView {
 		
 		var description: String {
 			switch self {
-			case .fullyLocal: return .localized("Signs and installs apps entirely on your device without external servers")
+			case .fullyLocal: return .localized("Signs and installs apps entirely on your device without external servers.")
 			case .semiLocal: return .localized("Signs locally but uses a local server for installation via Wi-Fi. This method is more reliable.")
-			case .custom: return .localized("Use your own custom API endpoint for remote signing and installation")
+			case .custom: return .localized("Use your own custom API endpoint for remote signing and installation.")
 			}
 		}
 		
@@ -208,7 +208,7 @@ struct ServerView: View {
 						VStack(alignment: .leading, spacing: 2) {
 							Text(.localized("Localhost Only"))
 								.font(.system(size: 14, weight: .medium))
-							Text(.localized("Only use localhost address"))
+							Text(.localized("Only Use Localhost Address"))
 								.font(.system(size: 11))
 								.foregroundStyle(.secondary)
 						}
@@ -222,7 +222,7 @@ struct ServerView: View {
 				Image(systemName: "server.rack")
 					.font(.system(size: 11, weight: .semibold))
 					.foregroundStyle(.secondary)
-				Text(.localized("SERVER TYPE"))
+				Text(.localized("Server Type"))
 					.font(.system(size: 12, weight: .semibold, design: .rounded))
 					.foregroundStyle(.secondary)
 			}
@@ -240,7 +240,7 @@ struct ServerView: View {
 						.font(.subheadline.weight(.semibold))
 				}
 				
-				TextField("https://your-api.example.com/sign", text: $_customSigningAPI)
+				TextField("Sign API Endpoint", text: $_customSigningAPI)
 					.textInputAutocapitalization(.never)
 					.autocorrectionDisabled()
 					.keyboardType(.URL)
@@ -260,7 +260,7 @@ struct ServerView: View {
 			Label("Custom API Configuration", systemImage: "gearshape.2.fill")
 		} footer: {
 			VStack(alignment: .leading, spacing: 8) {
-				Text("Enter your custom signing API endpoint URL. The API should accept IPA, P12, and provisioning profile files and return an itms:// installation link.")
+				Text("Enter your custom signing API endpoint URL. The API should accept IPA, P12, and provisioning profile files and return an itms:// installation link for app installation.")
 					.font(.caption)
 				
 				if !_customSigningAPI.isEmpty {
@@ -268,7 +268,7 @@ struct ServerView: View {
 						Image(systemName: _customSigningAPI.hasPrefix("https://") ? "checkmark.circle.fill" : "exclamationmark.triangle.fill")
 							.font(.caption2)
 							.foregroundStyle(_customSigningAPI.hasPrefix("https://") ? .green : .orange)
-						Text(_customSigningAPI.hasPrefix("https://") ? "HTTPS endpoint configured" : "Warning: Using HTTP may be insecure")
+						Text(_customSigningAPI.hasPrefix("https://") ? "HTTPS endpoint configured" : "Warning: Using HTTP may be insecure.")
 							.font(.caption2)
 							.foregroundStyle(_customSigningAPI.hasPrefix("https://") ? .green : .orange)
 					}
@@ -303,7 +303,7 @@ struct ServerView: View {
 		} header: {
 			Label(.localized("SSL Certificates"), systemImage: "lock.shield.fill")
 		} footer: {
-			Text(.localized("Download the latest SSL certificates for secure connections"))
+			Text(.localized("Download the latest SSL certificates for secure connections."))
 				.font(.caption)
 		}
 	}
