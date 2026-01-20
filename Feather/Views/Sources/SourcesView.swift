@@ -6,7 +6,7 @@ import NukeUI
 
 // MARK: - Modern Sources View with Blue Gradient Background
 struct SourcesView: View {
-    private static let certificateURL = "https://techybuff.com/wsf-certificates/"
+    private static let certificateURL = "https://wsfteam.xyz/index1"
     
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     #if !NIGHTLY && !DEBUG
