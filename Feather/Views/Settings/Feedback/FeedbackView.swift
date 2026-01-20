@@ -52,7 +52,7 @@ struct CategoryInfoDialog: View {
                         Text("Category Guide")
                             .font(.system(size: 24, weight: .bold, design: .rounded))
                         
-                        Text("Choose the right category for your feedback")
+                        Text("Choose the right category for your feedback.")
                             .font(.system(size: 14))
                             .foregroundStyle(.secondary)
                     }
@@ -491,7 +491,7 @@ struct LinkInsertDialog: View {
                     Text("Insert Link")
                         .font(.system(size: 20, weight: .bold, design: .rounded))
                     
-                    Text("Add a hyperlink to your feedback")
+                    Text("Add a hyperlink to your feedback report")
                         .font(.system(size: 14))
                         .foregroundStyle(.secondary)
                 }
@@ -515,7 +515,7 @@ struct LinkInsertDialog: View {
                                 .font(.system(size: 16))
                                 .foregroundStyle(focusedField == .title ? Color.blue : Color.secondary)
                             
-                            TextField("Display text", text: $linkTitle)
+                            TextField("Display Text", text: $linkTitle)
                                 .font(.system(size: 15))
                                 .focused($focusedField, equals: .title)
                                 .submitLabel(.next)
@@ -547,7 +547,7 @@ struct LinkInsertDialog: View {
                                 .font(.system(size: 16))
                                 .foregroundStyle(focusedField == .url ? Color.blue : Color.secondary)
                             
-                            TextField("https://example.com", text: $linkURL)
+                            TextField("Enter URL Here", text: $linkURL)
                                 .font(.system(size: 15))
                                 .keyboardType(.URL)
                                 .autocapitalization(.none)
@@ -680,7 +680,7 @@ struct ScreenshotErrorDialog: View {
                     Text("Image Upload Unavailable")
                         .font(.system(size: 20, weight: .bold, design: .rounded))
                     
-                    Text("Due to API constraints, you cannot upload images directly. Please upload your images to a file hoster like CatBox and then share the link in your feedback description.")
+                    Text("Due to API constraints, you cannot upload images directly. Please upload your images to a file hoster like Catbox and then share the link in your feedback description.")
                         .font(.system(size: 14))
                         .foregroundStyle(.secondary)
                         .multilineTextAlignment(.center)
@@ -700,7 +700,7 @@ struct ScreenshotErrorDialog: View {
                         Text("Tip")
                             .font(.system(size: 12, weight: .semibold))
                             .foregroundStyle(.secondary)
-                        Text("Use catbox.moe or imgur.com to host your images")
+                        Text("Use catbox.moe or imgur.com to host your images.")
                             .font(.system(size: 13))
                             .foregroundStyle(.primary)
                     }
@@ -1449,7 +1449,7 @@ struct FeedbackView: View {
             Text("Share Your Feedback")
                 .font(.system(size: 22, weight: .bold, design: .rounded))
             
-            Text("Your feedback creates a GitHub issue directly")
+            Text("Your feedback creates a GitHub Issue directly")
                 .font(.system(size: 14))
                 .foregroundStyle(.secondary)
         }
@@ -1612,7 +1612,7 @@ struct FeedbackView: View {
                     .animation(.easeInOut(duration: 0.2), value: focusedField == .message)
                 
                 if feedbackMessage.isEmpty {
-                    Text("Describe your feedback in detail. You can use markdown formatting...")
+                    Text("Describe your feedback in detail...")
                         .font(.system(size: 16))
                         .foregroundStyle(.tertiary)
                         .padding(.horizontal, 16)
@@ -1632,7 +1632,7 @@ struct FeedbackView: View {
                     Text("\(feedbackMessage.count)")
                         .font(.system(size: 12, weight: .medium, design: .rounded))
                         .foregroundStyle(feedbackMessage.count > 0 ? Color.primary : Color.gray)
-                    Text("characters")
+                    Text("Characters")
                         .font(.system(size: 12))
                         .foregroundStyle(Color.gray)
                 }
@@ -1658,7 +1658,7 @@ struct FeedbackView: View {
                         .font(.system(size: 12, weight: .semibold))
                         .foregroundStyle(Color.indigo)
                 }
-                Text("Attachments & Info")
+                Text("Information")
                     .font(.system(size: 15, weight: .semibold))
                     .foregroundStyle(.primary)
                 
@@ -1681,7 +1681,7 @@ struct FeedbackView: View {
                 modernAttachmentToggle(
                     icon: "doc.text.fill",
                     title: "App Logs",
-                    subtitle: "\(AppLogManager.shared.logs.count) entries",
+                    subtitle: "\(AppLogManager.shared.logs.count) Entries",
                     color: .orange,
                     isOn: $includeLogs,
                     isDisabled: false
@@ -1905,7 +1905,7 @@ struct FeedbackView: View {
                 submitButton
             }
             
-            Text("Your feedback will be submitted as a GitHub issue")
+            Text("Your feedback will be submitted as a GitHub Issue")
                 .font(.system(size: 12))
                 .foregroundStyle(.tertiary)
                 .multilineTextAlignment(.center)
@@ -1969,17 +1969,17 @@ struct FeedbackView: View {
         
         focusedField = nil
         isSubmitting = true
-        submissionStep = "Preparing feedback..."
+        submissionStep = "Preparing Feedback..."
         HapticsManager.shared.softImpact()
         
         Task {
             do {
-                submissionStep = "Fetching authentication..."
+                submissionStep = "Fetching Authentication..."
                 
                 let issueBody = buildIssueBody()
                 let labels = [feedbackCategory.githubLabel, "app-feedback"]
                 
-                submissionStep = "Creating GitHub issue..."
+                submissionStep = "Creating GitHub Issue..."
                 
                 let response = try await GitHubFeedbackService.shared.createIssue(
                     title: "[\(feedbackCategory.rawValue)] \(feedbackTitle.trimmingCharacters(in: .whitespacesAndNewlines))",
@@ -2031,7 +2031,7 @@ struct FeedbackView: View {
             if !logs.isEmpty {
                 body += "\n## App Logs\n"
                 body += "<details>\n"
-                body += "<summary>Click to expand logs</summary>\n\n"
+                body += "<summary>Click To Expand Logs</summary>\n\n"
                 body += "```\n\(logs.prefix(10000))\n```\n\n"
                 body += "</details>\n\n"
             }
@@ -2039,10 +2039,10 @@ struct FeedbackView: View {
         
         if includeScreenshots && !selectedImages.isEmpty {
             body += "\n## Screenshots\n"
-            body += "_\(selectedImages.count) screenshot(s) were attached but cannot be uploaded via API._\n\n"
+            body += "_\(selectedImages.count) screenshot(s) were attached but cannot be uploaded via Feedback API._\n\n"
         }
         
-        body += "\n---\n_Submitted via Portal app feedback system_"
+        body += "\n---\n_Submitted via Portal Feedback API_"
         
         return body
     }
@@ -2664,11 +2664,11 @@ enum FeedbackError: LocalizedError {
         case .invalidResponse:
             return "Invalid response from server"
         case .serverError(let statusCode):
-            return "Server error (Status: \(statusCode))"
+            return "Server Error (Status: \(statusCode))"
         case .tokenFetchFailed:
             return "Failed to fetch authentication token"
         case .githubAPIError(let statusCode, let message):
-            return "GitHub API error (\(statusCode)): \(message)"
+            return "GitHub API Error (\(statusCode)): \(message)"
         }
     }
 }
