@@ -268,7 +268,7 @@ struct SourcesView: View {
                     .font(.system(size: 24, weight: .bold, design: .rounded))
                     .foregroundStyle(.primary)
                 
-                Text(String.localized("Get started by adding your first repository."))
+                Text(String.localized("Get started by adding your first repository to view apps here."))
                     .font(.system(size: 16, weight: .medium))
                     .foregroundStyle(.secondary)
                     .multilineTextAlignment(.center)
@@ -427,7 +427,7 @@ struct SourcesView: View {
         guard _shouldStar == 6 else { return }
         
         let github = UIAlertAction(title: "GitHub", style: .default) { _ in
-            UIApplication.open("https://github.com/aoyn1xw/Portal")
+            UIApplication.open("https://github.com/dylans2010/Portal")
         }
         
         let cancel = UIAlertAction(title: .localized("Dismiss"), style: .cancel)
