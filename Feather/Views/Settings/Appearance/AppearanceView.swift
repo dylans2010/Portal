@@ -37,7 +37,7 @@ struct AppearanceView: View {
             // Display Options
             Section {
                 settingToggle(icon: "square.grid.2x2", title: "Show Icons", isOn: $showIconsInAppearance, color: .blue)
-                settingToggle(icon: "rectangle.grid.1x2", title: "Modern Apps View", isOn: $useNewAllAppsView, color: .purple)
+                settingToggle(icon: "rectangle.grid.1x2", title: "New Apps View", isOn: $useNewAllAppsView, color: .purple)
                 settingToggle(icon: "newspaper", title: "Show News", isOn: $showNews, color: .orange)
             } header: {
                 sectionHeader("Display", icon: "eye.fill")
@@ -86,7 +86,7 @@ struct AppearanceView: View {
             } header: {
                 sectionHeader("Haptics", icon: "waveform")
             } footer: {
-                Text("Enable haptic feedback throughout the app")
+                Text("Enable haptic feedback throughout the app.")
                     .font(.caption)
             }
             
@@ -103,7 +103,7 @@ struct AppearanceView: View {
                     
                     Spacer()
                     
-                    TextField("Enter name", text: $greetingsName)
+                    TextField("Enter Name", text: $greetingsName)
                         .multilineTextAlignment(.trailing)
                         .font(.system(size: 15))
                         .foregroundStyle(.secondary)
@@ -111,7 +111,7 @@ struct AppearanceView: View {
             } header: {
                 sectionHeader("Personalization", icon: "person.crop.circle.fill")
             } footer: {
-                Text("Personalize the Home Screen greeting")
+                Text("Personalize the Home Screen greeting.")
                     .font(.caption)
             }
             
@@ -130,7 +130,7 @@ struct AppearanceView: View {
                 } header: {
                     sectionHeader("Experiments", icon: "flask.fill")
                 } footer: {
-                    Text("Requires app restart to take effect")
+                    Text("Requires Portal to restart so Liquid Glass can be applied.")
                         .font(.caption)
                 }
             }

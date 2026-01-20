@@ -265,7 +265,7 @@ struct DeveloperAuthView: View {
                     Image(systemName: "key.fill")
                         .foregroundStyle(.orange)
                         .frame(width: 24)
-                    SecureField("Enter your passcode", text: $passcode)
+                    SecureField("Enter Passcode", text: $passcode)
                         .textContentType(.password)
                 }
                 .padding()
@@ -307,7 +307,7 @@ struct DeveloperAuthView: View {
                     .font(.system(size: 40))
                     .foregroundStyle(.secondary)
                 
-                Text("No passcode configured")
+                Text("No Passcode Configured")
                     .font(.headline)
                     .foregroundStyle(.secondary)
                 
@@ -347,7 +347,7 @@ struct DeveloperAuthView: View {
             Text(authManager.biometricType == .faceID ? "Face ID" : "Touch ID")
                 .font(.headline)
             
-            Text("Use biometric authentication for quick access")
+            Text("Use biometric authentication for quick access. This feature does not work yet.")
                 .font(.caption)
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
@@ -387,7 +387,7 @@ struct DeveloperAuthView: View {
                 Image(systemName: "ticket.fill")
                     .foregroundStyle(.orange)
                     .frame(width: 24)
-                TextField("Enter developer token", text: $developerToken)
+                TextField("Enter Developer Token", text: $developerToken)
                     .textInputAutocapitalization(.characters)
                     .autocorrectionDisabled()
             }
@@ -398,7 +398,7 @@ struct DeveloperAuthView: View {
             )
             
             // Token hint
-            Text("Enter your authorized developer token")
+            Text("Enter your authorized Developer Token")
                 .font(.caption)
                 .foregroundStyle(.secondary)
             
@@ -441,7 +441,7 @@ struct DeveloperAuthView: View {
             VStack(alignment: .leading, spacing: 2) {
                 Text("Remember Me")
                     .font(.subheadline.weight(.medium))
-                Text("Stay authenticated for 7 days")
+                Text("Stay Authenticated For 7 Days")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
@@ -628,7 +628,7 @@ struct ModernPasscodeSetupView: View {
                                     Image(systemName: "lock.fill")
                                         .foregroundStyle(.orange)
                                         .frame(width: 24)
-                                    SecureField("Enter passcode (min 6 characters)", text: $newPasscode)
+                                    SecureField("Enter Passcode (Min 6 Characters)", text: $newPasscode)
                                 }
                                 .padding()
                                 .background(
@@ -647,7 +647,7 @@ struct ModernPasscodeSetupView: View {
                                     Image(systemName: "lock.fill")
                                         .foregroundStyle(.orange)
                                         .frame(width: 24)
-                                    SecureField("Confirm your passcode", text: $confirmPasscode)
+                                    SecureField("Confirm Passcode", text: $confirmPasscode)
                                 }
                                 .padding()
                                 .background(
@@ -788,7 +788,7 @@ struct ModernPasscodeSetupView: View {
         }
         
         if newPasscode != confirmPasscode {
-            errorMessage = "Passcodes do not match"
+            errorMessage = "Passcodes do not match. Try again."
             HapticsManager.shared.error()
             return
         }
@@ -840,7 +840,7 @@ struct DeveloperControlPanelView: View {
                 } header: {
                     Text("Updates & Releases")
                 } footer: {
-                    Text("GitHub release checks, prerelease filtering, update enforcement")
+                    Text("GitHub release checks, prerelease filtering, update enforcement.")
                 }
                 
                 // Sources & Library Section
@@ -851,7 +851,7 @@ struct DeveloperControlPanelView: View {
                 } header: {
                     Text("Sources & Library")
                 } footer: {
-                    Text("Source reloads, cache invalidation, raw JSON inspection")
+                    Text("Source reloads, cache invalidation, raw JSON inspection.")
                 }
                 
                 // Install & IPA Section
@@ -862,7 +862,7 @@ struct DeveloperControlPanelView: View {
                 } header: {
                     Text("Install & IPA")
                 } footer: {
-                    Text("IPA validation, install queue, logs, InstallModifyDialog testing")
+                    Text("IPA validation, install queue, logs, InstallModifyDialog testing.")
                 }
                 
                 // IPA Signing Dashboard Section
@@ -873,7 +873,7 @@ struct DeveloperControlPanelView: View {
                 } header: {
                     Text("IPA Signing")
                 } footer: {
-                    Text("Full signing dashboard with certificates, batch signing, logs, entitlements editor, and API integration")
+                    Text("Full signing dashboard with certificates, batch signing, logs, entitlements editor, and API integration.")
                 }
                 
                 // UI & Layout Section
@@ -895,7 +895,7 @@ struct DeveloperControlPanelView: View {
                 } header: {
                     Text("Network & System")
                 } footer: {
-                    Text("Offline simulation, latency injection, request logging")
+                    Text("Offline simulation, latency injection, request logging.")
                 }
                 
                 // State & Persistence Section
@@ -906,7 +906,7 @@ struct DeveloperControlPanelView: View {
                 } header: {
                     Text("State & Persistence")
                 } footer: {
-                    Text("AppStorage, UserDefaults, caches, onboarding state")
+                    Text("AppStorage, UserDefaults, caches, onboarding state.")
                 }
                 
                 // Diagnostics & Debug Tools Section
@@ -929,7 +929,7 @@ struct DeveloperControlPanelView: View {
                 } header: {
                     Text("Diagnostics & Debugging")
                 } footer: {
-                    Text("Device info, environment variables, crash logs, and notification testing")
+                    Text("Device info, environment variables, crash logs, and notification testing.")
                 }
                 
                 // Power Tools Section
@@ -946,7 +946,7 @@ struct DeveloperControlPanelView: View {
                 } header: {
                     Text("Power Tools")
                 } footer: {
-                    Text("Quick actions, feature flags, and performance monitoring")
+                    Text("Quick actions, feature flags, and performance monitoring.")
                 }
                 
                 // Security Section
@@ -1088,7 +1088,7 @@ struct DeveloperSecurityView: View {
                 _ = authManager.removePasscode()
             }
         } message: {
-            Text("Are you sure you want to remove the developer passcode?")
+            Text("Are you sure you want to remove the Developer Passcode?")
         }
     }
     
@@ -1108,7 +1108,7 @@ struct DeveloperSecurityView: View {
 struct NetworkInspectorView: View {
     var body: some View {
         List {
-            Text("No active requests")
+            Text("No Active Requests")
                 .foregroundStyle(.secondary)
         }
         .navigationTitle("Network Inspector")
@@ -1231,7 +1231,7 @@ struct AppLogsView: View {
                         .font(.headline)
                         .foregroundStyle(.secondary)
                     if !logManager.logs.isEmpty {
-                        Text("Try adjusting your search or filters")
+                        Text("Try adjusting your search or filters.")
                             .font(.subheadline)
                             .foregroundStyle(.tertiary)
                     }
@@ -1277,15 +1277,15 @@ struct AppLogsView: View {
                 // Share menu
                 Menu {
                     Button(action: shareAsText) {
-                        Label("Share as Text", systemImage: "doc.text")
+                        Label("Share As Text", systemImage: "doc.text")
                     }
                     
                     Button(action: shareAsJSON) {
-                        Label("Share as JSON", systemImage: "doc.badge.gearshape")
+                        Label("Share As JSON", systemImage: "doc.badge.gearshape")
                     }
                     
                     Button(action: copyToClipboard) {
-                        Label("Copy to Clipboard", systemImage: "doc.on.clipboard")
+                        Label("Copy To Clipboard", systemImage: "doc.on.clipboard")
                     }
                 } label: {
                     Image(systemName: "square.and.arrow.up")
@@ -1651,7 +1651,7 @@ struct MachOAnalyzer {
             case LC_ENCRYPTION_INFO_64:
                 let cryptid = data.withUnsafeBytes { $0.load(fromByteOffset: offset + 16, as: UInt32.self) }
                 isEncrypted = (swapped ? cryptid.byteSwapped : cryptid) != 0
-                encryptionInfo = isEncrypted ? "Encrypted (FairPlay DRM)" : "Not encrypted"
+                encryptionInfo = isEncrypted ? "Encrypted (FairPlay DRM)" : "Not Encrypted"
             case LC_SEGMENT_64:
                 if let segment = parseSegment64(data: data, offset: offset, swapped: swapped) {
                     segments.append(segment)
