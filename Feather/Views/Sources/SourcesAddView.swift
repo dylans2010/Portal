@@ -935,7 +935,7 @@ struct PortalExportView: View {
 					.font(.system(size: 22, weight: .bold, design: .rounded))
 					.foregroundStyle(.primary)
 				
-				Text(isImportMode ? .localized("Paste Portal data to import sources") : .localized("Share your sources with Base64 encoding"))
+				Text(isImportMode ? .localized("Paste the encoded data from Portal Transfer to import sources") : .localized("Share your sources with Portal Transfer."))
 					.font(.subheadline)
 					.foregroundStyle(.secondary)
 					.multilineTextAlignment(.center)
@@ -1016,7 +1016,7 @@ struct PortalExportView: View {
 									Text(.localized("Encoded Data"))
 										.font(.system(size: 15, weight: .semibold))
 										.foregroundStyle(.primary)
-									Text("\(exportData.count) characters")
+									Text("\(exportData.count) Characters")
 										.font(.caption)
 										.foregroundStyle(.secondary)
 								}
@@ -1094,11 +1094,11 @@ struct PortalExportView: View {
 						.font(.system(size: 40))
 						.foregroundStyle(.secondary)
 					
-					Text(.localized("No export data"))
+					Text(.localized("No Export Data"))
 						.font(.headline)
 						.foregroundStyle(.secondary)
 					
-					Text(.localized("Select sources from the export mode to generate encoded data"))
+					Text(.localized("Select sources from the Export mode to generate encoded data."))
 						.font(.caption)
 						.foregroundStyle(.tertiary)
 						.multilineTextAlignment(.center)
@@ -1246,7 +1246,7 @@ struct PortalExportView: View {
 					Text(.localized("Import Successful"))
 						.font(.system(size: 15, weight: .semibold))
 						.foregroundStyle(.primary)
-					Text(.localized("\(count) sources added"))
+					Text(.localized("\(count) Sources Added"))
 						.font(.caption)
 						.foregroundStyle(.secondary)
 				}
@@ -1321,7 +1321,7 @@ struct PortalExportView: View {
 		guard let urls = PortalSourceExport.decode(importText) else {
 			Logger.misc.error("[Portal Import] Failed to decode Portal data")
 			withAnimation {
-				importResult = .error(message: .localized("Invalid Portal data format"))
+				importResult = .error(message: .localized("Invalid Portal Data Format"))
 			}
 			return
 		}
@@ -1333,7 +1333,7 @@ struct PortalExportView: View {
 			if !Storage.shared.sourceExists(urlString) {
 				Storage.shared.addSource(url: urlString)
 				addedCount += 1
-				Logger.misc.debug("[Portal Import] Added source: \(urlString)")
+				Logger.misc.debug("[Portal Import] Added Source: \(urlString)")
 			} else {
 				Logger.misc.debug("[Portal Import] Skipped existing source: \(urlString)")
 			}

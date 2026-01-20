@@ -1054,7 +1054,7 @@ struct DiskUsageView: View {
             
             // Items count
             HStack {
-                Label("\(items.count) items", systemImage: "doc.on.doc.fill")
+                Label("\(items.count) Items", systemImage: "doc.on.doc.fill")
                     .font(.caption)
                     .foregroundStyle(.secondary)
                 
@@ -1421,7 +1421,7 @@ struct Base64ToolView: View {
             }
             .animation(.spring(response: 0.4, dampingFraction: 0.7), value: mode)
             
-            Text(mode == .encode ? .localized("Encode text to Base64") : .localized("Decode Base64 to text"))
+            Text(mode == .encode ? .localized("Encode text data to Base64") : .localized("Decode Base64 to text"))
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
                 .animation(.easeInOut, value: mode)
@@ -1676,7 +1676,7 @@ struct Base64ToolView: View {
                let decoded = String(data: data, encoding: .utf8) {
                 outputText = decoded
             } else {
-                outputText = .localized("Invalid Base64 input")
+                outputText = .localized("Invalid Base64 Input")
             }
         }
         HapticsManager.shared.success()

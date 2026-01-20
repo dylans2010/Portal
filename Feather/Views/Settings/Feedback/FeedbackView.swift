@@ -2214,8 +2214,8 @@ struct CodeEditorSheet: View {
                 // Stats Pills
                 HStack(spacing: 8) {
                     StatPill(icon: "text.line.first.and.arrowtriangle.forward", value: "\(lineCount)", label: "lines", color: .blue)
-                    StatPill(icon: "character", value: "\(characterCount)", label: "chars", color: .purple)
-                    StatPill(icon: "textformat.abc", value: "\(wordCount)", label: "words", color: .orange)
+                    StatPill(icon: "character", value: "\(characterCount)", label: "Chars", color: .purple)
+                    StatPill(icon: "textformat.abc", value: "\(wordCount)", label: "Words", color: .orange)
                 }
                 
                 Spacer()
@@ -2454,13 +2454,13 @@ struct FeedbackSuccessSheet: View {
                     .opacity(showContent ? 1 : 0)
                     .offset(y: showContent ? 0 : 20)
                 
-                Text("Issue #\(issueNumber) has been created")
+                Text("Issue #\(issueNumber) has been created.")
                     .font(.system(size: 16))
                     .foregroundStyle(.secondary)
                     .opacity(showContent ? 1 : 0)
                     .offset(y: showContent ? 0 : 20)
                 
-                Text("Thank you for helping us improve!")
+                Text("Thank you for helping us improve Portal!")
                     .font(.system(size: 14))
                     .foregroundStyle(.tertiary)
                     .opacity(showContent ? 1 : 0)
@@ -2479,7 +2479,7 @@ struct FeedbackSuccessSheet: View {
                 } label: {
                     HStack(spacing: 8) {
                         Image(systemName: "safari")
-                        Text("View on GitHub")
+                        Text("View On GitHub")
                     }
                     .font(.system(size: 16, weight: .semibold))
                     .foregroundStyle(.white)
@@ -2660,13 +2660,13 @@ enum FeedbackError: LocalizedError {
     var errorDescription: String? {
         switch self {
         case .invalidURL:
-            return "Invalid server URL"
+            return "Invalid Server URL"
         case .invalidResponse:
             return "Invalid response from server"
         case .serverError(let statusCode):
             return "Server Error (Status: \(statusCode))"
         case .tokenFetchFailed:
-            return "Failed to fetch authentication token"
+            return "Failed to fetch authentication token (API Error)"
         case .githubAPIError(let statusCode, let message):
             return "GitHub API Error (\(statusCode)): \(message)"
         }

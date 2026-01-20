@@ -456,7 +456,7 @@ struct CertificatesInfoView: View {
         VStack(spacing: 10) {
             actionButton(
                 icon: "doc.badge.arrow.up",
-                title: "Open P12 in Files",
+                title: "Open P12 In Files",
                 action: {
                     if let p12URL = Storage.shared.getFile(.certificate, from: cert) {
                         UIApplication.shared.open(p12URL)
@@ -466,7 +466,7 @@ struct CertificatesInfoView: View {
             
             actionButton(
                 icon: "doc.badge.gearshape",
-                title: "Open Provision in Files",
+                title: "Open Provision In Files",
                 action: {
                     if let provisionURL = Storage.shared.getFile(.provision, from: cert) {
                         UIApplication.shared.open(provisionURL)

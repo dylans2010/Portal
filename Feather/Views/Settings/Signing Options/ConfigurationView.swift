@@ -110,7 +110,7 @@ struct InstallationOptionsSplashView: View {
                 Image(systemName: "network")
                     .font(.system(size: 14, weight: .semibold))
                     .foregroundStyle(.secondary)
-                Text("CONNECTION METHOD")
+                Text("Connection Method")
                     .font(.system(size: 12, weight: .semibold, design: .rounded))
                     .foregroundStyle(.secondary)
             }
@@ -162,7 +162,7 @@ struct InstallationOptionsSplashView: View {
                 Image(systemName: "server.rack")
                     .font(.system(size: 14, weight: .semibold))
                     .foregroundStyle(.secondary)
-                Text("SERVER SETTINGS")
+                Text("Server Settings")
                     .font(.system(size: 12, weight: .semibold, design: .rounded))
                     .foregroundStyle(.secondary)
             }
@@ -186,7 +186,7 @@ struct InstallationOptionsSplashView: View {
                 Image(systemName: "cable.connector")
                     .font(.system(size: 14, weight: .semibold))
                     .foregroundStyle(.secondary)
-                Text("TUNNEL SETTINGS")
+                Text("Tunnel Settings")
                     .font(.system(size: 12, weight: .semibold, design: .rounded))
                     .foregroundStyle(.secondary)
             }
@@ -273,7 +273,7 @@ struct ConfigurationView: View {
                         VStack(alignment: .leading, spacing: 2) {
                             Text("Default Frameworks")
                                 .font(.system(size: 15))
-                            Text("Auto-inject into all apps")
+                            Text("Auto inject into all apps")
                                 .font(.system(size: 12))
                                 .foregroundStyle(.secondary)
                         }

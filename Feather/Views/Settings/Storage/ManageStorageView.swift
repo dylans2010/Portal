@@ -115,7 +115,7 @@ struct ManageStorageView: View {
                 VStack(alignment: .leading, spacing: 4) {
                     Text(.localized("Device Storage"))
                         .font(.title2.bold())
-                    Text(.localized("Manage your app storage"))
+                    Text(.localized("Manage Portal Storage"))
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
                 }
@@ -254,7 +254,7 @@ struct ManageStorageView: View {
             QuickActionCard(
                 icon: "chart.pie.fill",
                 title: .localized("Analyze"),
-                subtitle: .localized("Deep scan"),
+                subtitle: .localized("Deep Scan"),
                 color: .purple,
                 action: { showStorageAnalyzer = true }
             )
@@ -262,7 +262,7 @@ struct ManageStorageView: View {
             QuickActionCard(
                 icon: "doc.on.doc.fill",
                 title: .localized("Duplicates"),
-                subtitle: duplicateFilesCount > 0 ? "\(duplicateFilesCount) found" : .localized("Scan"),
+                subtitle: duplicateFilesCount > 0 ? "\(duplicateFilesCount) Found" : .localized("Scan"),
                 color: .blue,
                 action: { showDuplicateFinder = true }
             )
@@ -270,7 +270,7 @@ struct ManageStorageView: View {
             QuickActionCard(
                 icon: "arrow.up.doc.fill",
                 title: .localized("Large Files"),
-                subtitle: largeFilesCount > 0 ? "\(largeFilesCount) found" : .localized("Find"),
+                subtitle: largeFilesCount > 0 ? "\(largeFilesCount) Found" : .localized("Find"),
                 color: .pink,
                 action: { showLargeFilesFinder = true }
             )
@@ -321,7 +321,7 @@ struct ManageStorageView: View {
                 VStack(alignment: .leading, spacing: 2) {
                     Text(.localized("Smart Cleanup"))
                         .font(.headline)
-                    Text(.localized("Automatically free up space"))
+                    Text(.localized("Automatically Free Up Space"))
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
@@ -431,7 +431,7 @@ struct ManageStorageView: View {
                 AdvancedToolRow(
                     icon: "folder.badge.minus",
                     title: .localized("Clear Work Cache"),
-                    subtitle: .localized("Temporary processing files"),
+                    subtitle: .localized("Temporary Processing Files"),
                     color: .purple
                 ) {
                     showResetAlert(
@@ -446,7 +446,7 @@ struct ManageStorageView: View {
                 AdvancedToolRow(
                     icon: "doc.text.magnifyingglass",
                     title: .localized("Clear Logs"),
-                    subtitle: .localized("App diagnostic logs"),
+                    subtitle: .localized("App Diagnostic Logs"),
                     color: .green
                 ) {
                     showResetAlert(
@@ -669,7 +669,7 @@ struct ManageStorageView: View {
             }
             .padding(.vertical, 8)
         } footer: {
-            Text(.localized("Shows storage used by this app on this device"))
+            Text(.localized("Shows storage used by Portal on this device."))
                 .font(.caption)
                 .foregroundStyle(.secondary)
         }
@@ -723,7 +723,7 @@ struct ManageStorageView: View {
             Label(.localized("Storage Breakdown"), systemImage: "chart.pie")
                 .font(.headline)
         } footer: {
-            Text(.localized("Detailed breakdown of storage used by this app"))
+            Text(.localized("Detailed breakdown of storage used by Portal."))
                 .font(.caption)
                 .foregroundStyle(.secondary)
         }
@@ -881,7 +881,7 @@ struct ManageStorageView: View {
                 cleanupOptionButton(
                     title: .localized("Reset Work Cache"),
                     systemImage: "folder.badge.minus",
-                    description: .localized("Clear temporary files"),
+                    description: .localized("Clear Temporary Files"),
                     action: {
                         showResetAlert(
                             title: .localized("Reset Work Cache"),
@@ -1617,7 +1617,7 @@ struct StorageAnalyzerView: View {
                     VStack(spacing: 20) {
                         ProgressView()
                             .scaleEffect(1.5)
-                        Text(.localized("Analyzing storage..."))
+                        Text(.localized("Analyzing Storage..."))
                             .font(.headline)
                         Text(.localized("This may take a moment"))
                             .font(.subheadline)
@@ -1714,7 +1714,7 @@ struct DuplicateFinderView: View {
                     VStack(spacing: 20) {
                         ProgressView()
                             .scaleEffect(1.5)
-                        Text(.localized("Scanning for duplicates..."))
+                        Text(.localized("Scanning For Duplicates..."))
                             .font(.headline)
                     }
                 } else if duplicates.isEmpty {
@@ -1800,7 +1800,7 @@ struct LargeFilesFinderView: View {
                     VStack(spacing: 20) {
                         ProgressView()
                             .scaleEffect(1.5)
-                        Text(.localized("Finding large files..."))
+                        Text(.localized("Finding Large Files..."))
                             .font(.headline)
                     }
                 } else if largeFiles.isEmpty {
@@ -1810,7 +1810,7 @@ struct LargeFilesFinderView: View {
                             .foregroundStyle(.green)
                         Text(.localized("No Large Files Found"))
                             .font(.title2.bold())
-                        Text(.localized("No files over 50MB"))
+                        Text(.localized("No Files Over 50MB"))
                             .font(.subheadline)
                             .foregroundStyle(.secondary)
                     }
