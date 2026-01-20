@@ -491,7 +491,7 @@ struct LinkInsertDialog: View {
                     Text("Insert Link")
                         .font(.system(size: 20, weight: .bold, design: .rounded))
                     
-                    Text("Add a hyperlink to your feedback.")
+                    Text("Add a hyperlink to your feedback report")
                         .font(.system(size: 14))
                         .foregroundStyle(.secondary)
                 }
