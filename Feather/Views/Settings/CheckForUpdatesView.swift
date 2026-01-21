@@ -780,7 +780,7 @@ class UpdateManager: ObservableObject {
         
         let urlString = "https://api.github.com/repos/\(repoOwner)/\(repoName)/releases"
         guard let url = URL(string: urlString) else {
-            errorMessage = "Invalid URL"
+            errorMessage = "Invalid GitHub URL"
             isCheckingUpdates = false
             return
         }
@@ -974,7 +974,7 @@ class UpdateManager: ObservableObject {
             self.downloadProgress = 0.0
             self.errorMessage = "Download failed: \(error.localizedDescription)"
             HapticsManager.shared.error()
-            AppLogManager.shared.error("Download failed: \(error.localizedDescription)", category: "Updates")
+            AppLogManager.shared.error("Download Failed: \(error.localizedDescription)", category: "Updates")
         }
     }
     
