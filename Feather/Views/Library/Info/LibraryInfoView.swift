@@ -168,7 +168,7 @@ struct LibraryInfoView: View {
 					HStack(spacing: 6) {
 						Image(systemName: "calendar")
 							.font(.system(size: 11, weight: .medium))
-						Text("Added \(date.formatted(date: .abbreviated, time: .omitted))")
+						Text("Added On \(date.formatted(date: .abbreviated, time: .omitted))")
 							.font(.system(size: 12, weight: .medium))
 					}
 					.foregroundStyle(.tertiary)
@@ -435,7 +435,7 @@ struct LibraryInfoView: View {
 				}
 				
 				VStack(alignment: .leading, spacing: 2) {
-					Text(.localized("Open in Files"))
+					Text(.localized("Open In Files"))
 						.font(.system(size: 15, weight: .semibold))
 						.foregroundStyle(.primary)
 					Text(.localized("View app bundle contents"))

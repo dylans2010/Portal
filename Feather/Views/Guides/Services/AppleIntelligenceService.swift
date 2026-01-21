@@ -21,13 +21,13 @@ final class AppleIntelligenceService {
         var errorDescription: String? {
             switch self {
             case .notAvailable:
-                return "Apple Intelligence is not available on this device"
+                return "Apple Intelligence is not available on this device. iPHone 15 Pro and later."
             case .processingFailed(let message):
-                return "Processing failed: \(message)"
+                return "Processing Failed: \(message)"
             case .unsupportedAction:
                 return "This action is not supported by Apple Intelligence"
             case .cancelled:
-                return "Operation was cancelled"
+                return "Operation Was Cancelled"
             case .noResult:
                 return "No result from Apple Intelligence"
             case .deviceNotSupported(let device):
@@ -70,7 +70,8 @@ final class AppleIntelligenceService {
         let supportedPrefixes = [
             "iPhone16,", // iPhone 15 Pro, Pro Max
             "iPhone17,", // iPhone 16 series
-            "iPhone18,", // Future iPhones
+            "iPhone18,", // iPhone 17 series
+            "iPhone19,", // iPhone 18 series (cbf to add it in the future lmao)
             "iPad14,",   // iPad Pro M2
             "iPad16,",   // iPad Pro M4
             "arm64"      // Simulator on Apple Silicon Mac
@@ -92,7 +93,7 @@ final class AppleIntelligenceService {
         action: AIAction,
         customInstruction: String? = nil
     ) async throws -> String {
-        AppLogManager.shared.info("Starting Apple Intelligence processing for action: \(action.rawValue)", category: "AppleIntelligence")
+        AppLogManager.shared.info("Starting AppleIntelligenceService processing for action: \(action.rawValue)", category: "AppleIntelligence")
         
         if let instruction = customInstruction {
             AppLogManager.shared.debug("Custom instruction provided: \(instruction)", category: "AppleIntelligence")
@@ -152,11 +153,11 @@ final class AppleIntelligenceService {
         ) { result in
             switch result {
             case .success(let processedText):
-                AppLogManager.shared.success("Apple Intelligence processing completed successfully", category: "AppleIntelligence")
-                AppLogManager.shared.debug("Output length: \(processedText.count) characters", category: "AppleIntelligence")
+                AppLogManager.shared.success("Apple Intelligence Processing Completed Successfully", category: "AppleIntelligence")
+                AppLogManager.shared.debug("Output Length: \(processedText.count) characters", category: "AppleIntelligence")
                 continuation.resume(returning: processedText)
             case .failure(let error):
-                AppLogManager.shared.error("Apple Intelligence processing failed: \(error.localizedDescription)", category: "AppleIntelligence")
+                AppLogManager.shared.error("Apple Intelligence Processing Failed: \(error.localizedDescription)", category: "AppleIntelligence")
                 continuation.resume(throwing: error)
             }
         }

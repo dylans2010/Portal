@@ -384,11 +384,11 @@ struct LibraryView: View {
 	private var _statusTitle: String {
 		switch _importStatus {
 		case .loading:
-			return String.localized("Loading...")
+			return String.localized("Loading")
 		case .downloading:
-			return String.localized("Downloading...")
+			return String.localized("Downloading")
 		case .processing:
-			return String.localized("Processing...")
+			return String.localized("Processing")
 		case .success:
 			return String.localized("Import Successful!")
 		case .failed:

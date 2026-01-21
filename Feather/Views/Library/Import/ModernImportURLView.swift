@@ -78,7 +78,7 @@ struct ModernImportURLView: View {
                         .padding(.top, 30)
                         
                         VStack(spacing: 8) {
-                            Text(.localized("Import from URL"))
+                            Text(.localized("Import IPA from URL"))
                                 .font(.title2.bold())
                                 .foregroundStyle(.primary)
                             

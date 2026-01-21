@@ -22,7 +22,7 @@ final class GuideAIService {
             case .noAPIKey:
                 return "OpenRouter API key is not configured"
             case .processingFailed(let message):
-                return "Processing failed: \(message)"
+                return "Processing Failed: \(message)"
             case .allEnginesFailed(let message):
                 return "All AI engines failed: \(message)"
             }

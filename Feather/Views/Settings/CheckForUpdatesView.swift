@@ -1,5 +1,5 @@
 // Created by dylan on 1.11.26
-// (1.14.25) need to update to be half view and clean UI (update: done)
+
 import SwiftUI
 
 struct CheckForUpdatesView: View {
@@ -167,7 +167,7 @@ struct CheckForUpdatesView: View {
                         Image(systemName: "arrow.triangle.2.circlepath")
                             .font(.system(size: 16, weight: .semibold))
                     }
-                    Text(updateManager.isCheckingUpdates ? "Checking for Updates" : "Check for Updates")
+                    Text(updateManager.isCheckingUpdates ? "Checking For Updates" : "Check For Updates")
                         .font(.system(size: 16, weight: .semibold))
                 }
                 .frame(maxWidth: horizontalSizeClass == .regular ? 320 : .infinity)
@@ -219,7 +219,7 @@ struct CheckForUpdatesView: View {
                             }
                             
                             VStack(alignment: .leading, spacing: 4) {
-                                Text("Update Available")
+                                Text("Update Available!")
                                     .font(.headline)
                                     .foregroundStyle(.primary)
                                 
@@ -231,7 +231,7 @@ struct CheckForUpdatesView: View {
                             Spacer()
                             
                             // New badge
-                            Text("NEW")
+                            Text("New")
                                 .font(.system(size: 10, weight: .bold))
                                 .foregroundStyle(.white)
                                 .padding(.horizontal, 8)
@@ -299,11 +299,11 @@ struct CheckForUpdatesView: View {
                         }
                         
                         VStack(alignment: .leading, spacing: 4) {
-                            Text("You're Up to Date")
+                            Text("You're Up To Date")
                                 .font(.headline)
                                 .foregroundStyle(.primary)
                             
-                            Text("Portal \(currentVersion) is the latest and version.")
+                            Text("Portal version \(currentVersion) is the latest and greatest version!")
                                 .font(.subheadline)
                                 .foregroundStyle(.secondary)
                         }
@@ -325,11 +325,11 @@ struct CheckForUpdatesView: View {
                     }
                     
                     VStack(alignment: .leading, spacing: 4) {
-                        Text("Check for Updates")
+                        Text("Check For Updates")
                             .font(.headline)
                             .foregroundStyle(.primary)
                         
-                        Text("Tap the button above to check")
+                        Text("Tap the button above to check.")
                             .font(.subheadline)
                             .foregroundStyle(.secondary)
                     }
@@ -357,7 +357,7 @@ struct CheckForUpdatesView: View {
         VStack(alignment: .leading, spacing: 16) {
             // Header
             HStack {
-                Text("What's New?")
+                Text("What's New")
                     .font(.title3.bold())
                 
                 Spacer()
@@ -424,7 +424,7 @@ struct CheckForUpdatesView: View {
                 HStack(spacing: 6) {
                     Image(systemName: "testtube.2")
                         .font(.caption)
-                    Text("BETA RELEASE")
+                    Text("Beta")
                         .font(.caption.weight(.bold))
                 }
                 .foregroundStyle(.orange)
@@ -519,7 +519,7 @@ struct CheckForUpdatesView: View {
     }
     
     private var betaBadge: some View {
-        Text("BETA")
+        Text("Beta")
             .font(.system(size: 9, weight: .bold))
             .foregroundStyle(.orange)
             .padding(.horizontal, 6)

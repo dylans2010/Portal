@@ -40,7 +40,7 @@ struct OnboardingView: View {
                             .offset(y: animateContent ? 0 : 20)
                         
                         // Subtitle
-                        Text("Your all-in-one iOS app sideloading solution")
+                        Text("Your all in one iOS app sideloading Portal!")
                             .font(.system(size: 16, weight: .medium, design: .rounded))
                             .foregroundColor(.secondary)
                             .multilineTextAlignment(.center)
@@ -212,7 +212,7 @@ struct OnboardingViewLegacy: View {
                             .offset(y: animateContent ? 0 : 20)
                         
                         // Subtitle
-                        Text("Your all-in-one iOS app sideloading solution")
+                        Text("Your all in one iOS app sideloading Portal")
                             .font(.system(size: 18, weight: .medium, design: .rounded))
                             .foregroundColor(.secondary)
                             .multilineTextAlignment(.center)
@@ -226,21 +226,21 @@ struct OnboardingViewLegacy: View {
                         FeatureRowLegacy(
                             icon: "square.stack.3d.up.fill",
                             title: "Browse Sources",
-                            description: "Discover thousands of apps",
+                            description: "Add your favorite AltStore sources and download apps.",
                             delay: 0.2
                         )
                         
                         FeatureRowLegacy(
                             icon: "signature",
                             title: "Sign Apps",
-                            description: "Easy certificate management",
+                            description: "Easy certificate management, add as many as you want and view info on them.",
                             delay: 0.3
                         )
                         
                         FeatureRowLegacy(
                             icon: "arrow.down.circle.fill",
                             title: "Install Anywhere",
-                            description: "Seamless installation process",
+                            description: "Seamless installation process with fully local or cloud servers.",
                             delay: 0.4
                         )
                     }

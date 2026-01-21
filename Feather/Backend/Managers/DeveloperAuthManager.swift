@@ -32,6 +32,7 @@ final class DeveloperAuthManager: ObservableObject {
         "FEATHER-DEV-2024-ALPHA",
         "FEATHER-DEV-2024-BETA",
         "INTERNAL-DEV",
+        "DEVELOPER-ACCESS-DEBUG",
         "DEV-MODE-AUTH",
         "PORTAL-INTERNAL-DEV",
     ]
@@ -157,7 +158,7 @@ final class DeveloperAuthManager: ObservableObject {
             lastAuthTime = Date()
             authenticationError = nil
             saveRememberedSession()
-            AppLogManager.shared.success("Developer passcode verified", category: "Security")
+            AppLogManager.shared.success("Developer Passcode Verified", category: "Security")
         } else {
             authenticationError = "Invalid Passcode"
             AppLogManager.shared.warning("Invalid developer passcode attempt", category: "Security")
@@ -243,7 +244,7 @@ final class DeveloperAuthManager: ObservableObject {
             authenticationError = nil
             saveDeveloperToken(normalizedToken)
             saveRememberedSession()
-            AppLogManager.shared.success("Developer token validated", category: "Security")
+            AppLogManager.shared.success("Developer Token Validated", category: "Security")
         } else {
             authenticationError = "Invalid Developer Token"
             AppLogManager.shared.warning("Invalid developer token attempt", category: "Security")

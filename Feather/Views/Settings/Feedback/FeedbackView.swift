@@ -8,12 +8,12 @@ struct CategoryInfoDialog: View {
     @State private var appearAnimation: Bool = false
     
     private let categories: [(FeedbackView.FeedbackCategory, String)] = [
-        (.bug, "Report issues where something isn't working as expected. Include steps to reproduce the bug, what you expected to happen, and what actually happened."),
-        (.suggestion, "Share ideas for improving existing features. Tell us what could be better and how you'd like to see it improved."),
-        (.feature, "Request entirely new features or capabilities. Describe what you'd like to see added and why it would be useful."),
-        (.question, "Ask questions about how to use the app or clarify functionality. We're here to help!"),
-        (.crash, "Report app crashes or freezes. Include what you were doing when the crash occurred and any error messages you saw."),
-        (.other, "For feedback that doesn't fit other categories. General comments, praise, or anything else you'd like to share.")
+        (.bug, "Report issues where something isn't working as expected."),
+        (.suggestion, "Share ideas for improving existing features."),
+        (.feature, "Request entirely new features or capabilities."),
+        (.question, "Ask questions about how to use the app or clarify functionality."),
+        (.crash, "Report app crashes, freezes or any errors."),
+        (.other, "For feedback that doesn't fit other categories.")
     ]
     
     var body: some View {
@@ -52,7 +52,7 @@ struct CategoryInfoDialog: View {
                         Text("Category Guide")
                             .font(.system(size: 24, weight: .bold, design: .rounded))
                         
-                        Text("Choose the right category for your feedback.")
+                        Text("Choose the right category for your feedback so I can assist you better.")
                             .font(.system(size: 14))
                             .foregroundStyle(.secondary)
                     }
@@ -214,7 +214,7 @@ struct FeedbackPreviewDialog: View {
                     Text("Preview Your Feedback")
                         .font(.system(size: 22, weight: .bold, design: .rounded))
                     
-                    Text("Here is a preview of your feedback report, proceed?")
+                    Text("Here is a preview of your Feedback Report, proceed?")
                         .font(.system(size: 14))
                         .foregroundStyle(.secondary)
                         .multilineTextAlignment(.center)
@@ -491,7 +491,7 @@ struct LinkInsertDialog: View {
                     Text("Insert Link")
                         .font(.system(size: 20, weight: .bold, design: .rounded))
                     
-                    Text("Add a hyperlink to your feedback report")
+                    Text("Add a hyperlink to your feedback report.")
                         .font(.system(size: 14))
                         .foregroundStyle(.secondary)
                 }

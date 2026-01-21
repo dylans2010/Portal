@@ -20,15 +20,15 @@ class GitHubGuidesService {
         var errorDescription: String? {
             switch self {
             case .invalidURL:
-                return "Invalid URL"
+                return "Invalid GitHub URL"
             case .networkError(let error):
-                return "Network error: \(error.localizedDescription)"
+                return "Network Error: \(error.localizedDescription)"
             case .noData:
-                return "No data received"
+                return "No Data Received"
             case .decodingError(let error):
                 return "Failed to decode response: \(error.localizedDescription)"
             case .contentNotAvailable:
-                return "Content not available"
+                return "Content Not Available"
             }
         }
     }

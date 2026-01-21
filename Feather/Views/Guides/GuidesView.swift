@@ -41,12 +41,12 @@ struct GuidesView: View {
                 .font(.system(size: 70))
                 .foregroundStyle(.secondary)
             
-            Text(.localized("Guides are coming soon"))
+            Text(.localized("Why are you here?"))
                 .font(.title2)
                 .fontWeight(.semibold)
                 .foregroundStyle(.primary)
             
-            Text(.localized("Check back later for helpful guides and tutorials."))
+            Text(.localized("Are you lost, or why are yiu here? You shouldn't even be here on this view lol."))
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
@@ -63,7 +63,7 @@ struct GuidesView: View {
             if isLoading {
                 VStack(spacing: 20) {
                     ProgressView()
-                    Text("Loading guides...")
+                    Text("Loading Guides")
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
                 }
@@ -74,7 +74,7 @@ struct GuidesView: View {
                         .font(.system(size: 50))
                         .foregroundStyle(.red)
                     
-                    Text("Failed to load guides")
+                    Text("Failed To Load Guides")
                         .font(.title2)
                         .fontWeight(.semibold)
                     
@@ -135,7 +135,7 @@ struct GuidesView: View {
                     } header: {
                         Text("Available Guides")
                     } footer: {
-                        Text("Read guides for helpful tips and tools.")
+                        Text("Read guides on how to use ESign, Feather, setting up VPNs, certificate info, and more.")
                     }
                 }
                 .refreshable {
