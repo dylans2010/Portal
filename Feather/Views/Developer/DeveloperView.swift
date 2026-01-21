@@ -829,7 +829,7 @@ struct DeveloperControlPanelView: View {
                 } header: {
                     Text("Experimental UI")
                 } footer: {
-                    Text("Enable a fully custom modern tab bar with animations and glass effects. Requires app restart.")
+                    Text("Enable a fully custom modern tab bar with animations and glass effects. This can change through any Portal updates.")
                 }
                 
                 // Updates & Releases Section
@@ -2271,7 +2271,7 @@ struct IPAInspectorView: View {
                             HStack {
                                 Image(systemName: "checkmark.shield")
                                     .foregroundStyle(.green)
-                                Text("\(entitlements.count) entitlements")
+                                Text("\(entitlements.count) Entitlements")
                                     .font(.subheadline)
                             }
                         }
@@ -2353,7 +2353,7 @@ struct IPAInspectorView: View {
                 await MainActor.run {
                     ipaInfo = info
                     isAnalyzing = false
-                    AppLogManager.shared.success("Successfully analyzed IPA: \(url.lastPathComponent)", category: "IPA Inspector")
+                    AppLogManager.shared.success("Successfully Analyzed IPA: \(url.lastPathComponent)", category: "IPA Inspector")
                 }
             } catch {
                 await MainActor.run {
@@ -2886,7 +2886,7 @@ struct IPAIntegrityCheckerView: View {
     
     private var overallStatus: (icon: String, color: Color, message: String) {
         guard let results = integrityResults else {
-            return ("questionmark.circle", .gray, "No analysis yet")
+            return ("questionmark.circle", .gray, "No Analysis Yet")
         }
         
         if !results.errors.isEmpty {
@@ -2917,15 +2917,15 @@ struct IPAIntegrityCheckerView: View {
                         ToastManager.shared.show("❌ IPA integrity issues found", type: .error)
                         AppLogManager.shared.error("IPA integrity issues found: \(url.lastPathComponent)", category: "Integrity Checker")
                     } else {
-                        ToastManager.shared.show("⚠️ IPA has warnings", type: .warning)
-                        AppLogManager.shared.warning("IPA has warnings: \(url.lastPathComponent)", category: "Integrity Checker")
+                        ToastManager.shared.show("⚠️ IPA Has Warnings", type: .warning)
+                        AppLogManager.shared.warning("IPA Has Warnings: \(url.lastPathComponent)", category: "Integrity Checker")
                     }
                 }
             } catch {
                 await MainActor.run {
                     errorMessage = error.localizedDescription
                     isAnalyzing = false
-                    ToastManager.shared.show("❌ Failed to analyze IPA", type: .error)
+                    ToastManager.shared.show("❌ Failed To Analyze IPA", type: .error)
                     AppLogManager.shared.error("Failed to analyze IPA: \(error.localizedDescription)", category: "Integrity Checker")
                 }
             }
@@ -2940,7 +2940,7 @@ struct IPAIntegrityCheckerView: View {
         
         // Start accessing security-scoped resource
         guard url.startAccessingSecurityScopedResource() else {
-            throw NSError(domain: "IntegrityChecker", code: -1, userInfo: [NSLocalizedDescriptionKey: "Cannot access file. Permission denied."])
+            throw NSError(domain: "IntegrityChecker", code: -1, userInfo: [NSLocalizedDescriptionKey: "Cannot access file. Permission denied due to iOS restrictions."])
         }
         
         defer {
@@ -3005,7 +3005,7 @@ struct IPAIntegrityCheckerView: View {
                     bundleID = plist["CFBundleIdentifier"] as? String
                     
                     if bundleID == nil {
-                        warnings.append("Info.plist missing CFBundleIdentifier")
+                        warnings.append("Info.plist Missing CFBundleIdentifier")
                     }
                 } else {
                     errors.append("Invalid or missing Info.plist")
@@ -3035,7 +3035,7 @@ struct IPAIntegrityCheckerView: View {
                                     if provisioningExpired {
                                         errors.append("Provisioning profile has expired")
                                     } else if expirationDate.timeIntervalSinceNow < Self.provisioningWarningDays {
-                                        warnings.append("Provisioning profile expires soon")
+                                        warnings.append("Provisioning Profile Expires Soon")
                                     }
                                 }
                             }
@@ -3044,7 +3044,7 @@ struct IPAIntegrityCheckerView: View {
                         warnings.append("Provisioning profile file too large or invalid")
                     }
                 } else {
-                    warnings.append("No embedded provisioning profile found")
+                    warnings.append("No Embedded Provisioning Profile Found")
                 }
                 
                 // Check code signature
@@ -3052,7 +3052,7 @@ struct IPAIntegrityCheckerView: View {
                 hasCodeSignature = fileManager.fileExists(atPath: codeSignatureDir.path)
                 
                 if !hasCodeSignature {
-                    warnings.append("No code signature found")
+                    warnings.append("No Code Signature Found")
                     suggestions.append("Sign the IPA before installation")
                 }
                 
@@ -3202,7 +3202,7 @@ struct FeatureFlagsView: View {
             } header: {
                 Text("Certificates")
             } footer: {
-                Text("When enabled, allows exporting and importing certificates as a single .portalcert file that bundles the P12 and provisioning profile together.")
+                Text("When enabled, allows exporting and importing certificates as a single .portalcert file that bundles the P12 and provisioning profile together. This is a super early beta, does not work.")
             }
         }
         .navigationTitle("Feature Flags")
@@ -3446,7 +3446,7 @@ struct TestNotificationsView: View {
     
     var body: some View {
         List {
-            Section(header: Text("Test Notifications"), footer: Text("This will send a test notification after a 3-second countdown. Make sure notifications are enabled for Feather in Settings.")) {
+            Section(header: Text("Test Notifications"), footer: Text("This will send a test notification after a 3 second countdown. Make sure notifications are enabled for Portal in Settings.")) {
                 Button {
                     startNotificationTest()
                 } label: {
@@ -3455,7 +3455,7 @@ struct TestNotificationsView: View {
                         if isTestingNotification {
                             VStack(spacing: 8) {
                                 ProgressView()
-                                Text("Sending in \(countdown)...")
+                                Text("Sending In \(countdown)...")
                                     .font(.caption)
                                     .foregroundStyle(.secondary)
                             }
@@ -3528,7 +3528,7 @@ struct TestNotificationsView: View {
                 debugInfo.append("Lock Screen Setting: \(settings.lockScreenSetting.debugDescription)")
                 
                 if settings.authorizationStatus != .authorized {
-                    debugInfo.append("⚠️ WARNING: Notifications not authorized!")
+                    debugInfo.append("⚠️ WARNING: Notifications Not Authorized!")
                 }
             }
         }
@@ -3697,7 +3697,7 @@ struct UpdatesReleasesView: View {
     var body: some View {
         List {
             // Current Version Info
-            Section(header: Text("Installed Version")) {
+            Section(header: Text("Current Installed Version")) {
                 HStack {
                     Text("Version")
                     Spacer()
@@ -3752,7 +3752,7 @@ struct UpdatesReleasesView: View {
                             Text("Latest: \(release.tagName)")
                                 .font(.headline)
                             if release.prerelease {
-                                Text("PRE")
+                                Text("Pre Release")
                                     .font(.caption2.bold())
                                     .padding(.horizontal, 6)
                                     .padding(.vertical, 2)
@@ -3793,7 +3793,7 @@ struct UpdatesReleasesView: View {
                                         Text(release.tagName)
                                             .font(.system(.body, design: .monospaced))
                                         if release.prerelease {
-                                            Text("PRE")
+                                            Text("Pre Release")
                                                 .font(.caption2.bold())
                                                 .padding(.horizontal, 4)
                                                 .padding(.vertical, 1)
@@ -3815,7 +3815,7 @@ struct UpdatesReleasesView: View {
             }
             
             // Update Settings
-            Section(header: Text("Update Settings")) {
+            Section(header: Text("Portal Update Settings")) {
                 Toggle("Mandatory Update Enforcement", isOn: $mandatoryUpdateEnabled)
                 
                 Toggle("Show Update Banner Preview", isOn: $showUpdateBannerPreview)
@@ -3891,7 +3891,7 @@ struct UpdatesReleasesView: View {
         
         let urlString = "https://api.github.com/repos/\(repoOwner)/\(repoName)/releases"
         guard let url = URL(string: urlString) else {
-            errorMessage = "Invalid URL"
+            errorMessage = "Invalid GitHub URL"
             isCheckingUpdates = false
             return
         }
@@ -3910,7 +3910,7 @@ struct UpdatesReleasesView: View {
                 }
                 
                 guard let data = data else {
-                    errorMessage = "No data received"
+                    errorMessage = "No Data Received"
                     return
                 }
                 
@@ -3989,7 +3989,7 @@ struct UpdatesReleasesView: View {
         checkForUpdates()
         
         HapticsManager.shared.success()
-        AppLogManager.shared.info("Stopped forcing fake update, checking for real updates", category: "Developer")
+        AppLogManager.shared.info("Stopped forcing fake update, checking for real updates from GitHub", category: "Developer")
     }
 }
 
@@ -4070,7 +4070,7 @@ struct ReleaseDetailView: View {
                             HStack {
                                 Text(ByteCountFormatter.string(fromByteCount: Int64(asset.size), countStyle: .file))
                                 Text("•")
-                                Text("\(asset.downloadCount) downloads")
+                                Text("\(asset.downloadCount) Downloads")
                             }
                             .font(.caption)
                             .foregroundStyle(.secondary)
@@ -4080,7 +4080,7 @@ struct ReleaseDetailView: View {
             }
             
             Section {
-                Button("Open in GitHub") {
+                Button("Open In GitHub") {
                     if let url = URL(string: release.htmlUrl) {
                         UIApplication.shared.open(url)
                     }
@@ -4739,7 +4739,7 @@ struct FailureInspectorView: View {
     var body: some View {
         List {
             if failureLogs.isEmpty {
-                Text("No failures recorded")
+                Text("No Failures Recorded")
                     .foregroundStyle(.secondary)
             } else {
                 ForEach(failureLogs) { log in
@@ -4822,7 +4822,7 @@ struct StatePersistenceDevView: View {
                 HStack {
                     Text("Completed")
                     Spacer()
-                    Text(UserDefaults.standard.bool(forKey: "hasCompletedOnboarding") ? "Yes" : "No")
+                    Text(UserDefaults.standard.bool(forKey: "hasCompletedOnboarding") ? "True" : "False")
                         .foregroundStyle(.secondary)
                 }
                 
@@ -5002,7 +5002,7 @@ struct DeviceInfoView: View {
                 Button {
                     exportDeviceInfo()
                 } label: {
-                    Label("Copy Device Info to Clipboard", systemImage: "doc.on.clipboard")
+                    Label("Copy Device Info To Clipboard", systemImage: "doc.on.clipboard")
                 }
             }
         }
@@ -5190,7 +5190,7 @@ struct EnvironmentInspectorView: View {
                 }
             }
         }
-        .searchable(text: $searchText, prompt: "Search environment...")
+        .searchable(text: $searchText, prompt: "Search Environment")
         .navigationTitle("Environment Inspector")
         .onAppear {
             loadEnvironment()
@@ -5229,7 +5229,7 @@ struct CrashLogViewer: View {
                         Text("No Crash Logs")
                             .font(.headline)
                         
-                        Text("The app has not recorded any crashes. This is good!")
+                        Text("Portal has not recorded any crashes. This is good!")
                             .font(.subheadline)
                             .foregroundStyle(.secondary)
                             .multilineTextAlignment(.center)
@@ -5302,7 +5302,7 @@ struct CrashLogViewer: View {
     }
     
     private func clearCrashLogs() {
-        // Note: This only removes them from view, not from the actual log manager
+        // Note: This only removes them from view, not from the actual log manager logic
         crashLogs.removeAll()
         HapticsManager.shared.success()
         ToastManager.shared.show("✅ Crash logs cleared from view", type: .success)
@@ -5449,7 +5449,7 @@ struct QuickActionsDevView: View {
         case .reloadSources:
             NotificationCenter.default.post(name: Notification.Name("Feather.reloadSources"), object: nil)
             HapticsManager.shared.success()
-            ToastManager.shared.show("✅ Source reload triggered", type: .success)
+            ToastManager.shared.show("✅ Source Reload Triggered", type: .success)
             AppLogManager.shared.info("Sources reload triggered via Quick Actions", category: "Developer")
             
         case .exportLogs:
@@ -5534,7 +5534,7 @@ struct IPASigningDashboardView: View {
             } header: {
                 Text("Editors")
             } footer: {
-                Text("Edit entitlements and Info.plist configurations")
+                Text("Edit entitlements and Info.plist configurations.")
             }
             
             // Security Section
