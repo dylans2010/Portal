@@ -5512,7 +5512,7 @@ struct IPASigningDashboardView: View {
             } header: {
                 Text("Logs")
             } footer: {
-                Text("View detailed signing operation logs")
+                Text("View detailed signing operation logs.")
             }
             
             // Batch Signing Section
@@ -5523,7 +5523,7 @@ struct IPASigningDashboardView: View {
             } header: {
                 Text("Batch Operations")
             } footer: {
-                Text("Sign multiple IPA files at once")
+                Text("Sign multiple IPA files at once.")
             }
             
             // Entitlements & Info.plist Editor Section
@@ -5545,7 +5545,7 @@ struct IPASigningDashboardView: View {
             } header: {
                 Text("Security")
             } footer: {
-                Text("Certificate validation, revocation checks, and security settings")
+                Text("Certificate validation, revocation checks, and security settings.")
             }
             
             // Performance Metrics Section
@@ -5556,7 +5556,7 @@ struct IPASigningDashboardView: View {
             } header: {
                 Text("Performance")
             } footer: {
-                Text("Signing speed, success rates, and operation statistics")
+                Text("Signing speed, success rates, and operation statistics.")
             }
             
             // API & Webhook Integration Section
@@ -5567,7 +5567,7 @@ struct IPASigningDashboardView: View {
             } header: {
                 Text("Integration")
             } footer: {
-                Text("Configure external APIs and webhook notifications")
+                Text("Configure external APIs and webhook notifications.")
             }
         }
         .navigationTitle("IPA Signing Dashboard")
@@ -5633,7 +5633,7 @@ struct CertificateProfileManagerView: View {
                         ContentUnavailableView {
                             Label("No Certificates", systemImage: "person.badge.key")
                         } description: {
-                            Text("Add a signing certificate to get started")
+                            Text("Add a signing certificate to get started.")
                         } actions: {
                             Button("Add Certificate") {
                                 showAddCertificate = true
@@ -5888,7 +5888,7 @@ struct SigningLogsView: View {
                         .foregroundStyle(.secondary)
                     Text("No Signing Logs")
                         .font(.headline)
-                    Text("Signing operations will appear here")
+                    Text("Signing operations will appear here.")
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
                     Spacer()
@@ -5915,7 +5915,7 @@ struct SigningLogsView: View {
                     Button {
                         copyLogsToClipboard()
                     } label: {
-                        Label("Copy to Clipboard", systemImage: "doc.on.clipboard")
+                        Label("Copy To Clipboard", systemImage: "doc.on.clipboard")
                     }
                     
                     Divider()
@@ -6053,7 +6053,7 @@ struct BatchSigningView: View {
             // App Selection
             Section {
                 if importedApps.isEmpty {
-                    Text("No apps available for signing")
+                    Text("No Apps Available For Signing")
                         .foregroundStyle(.secondary)
                 } else {
                     ForEach(importedApps, id: \.uuid) { app in
@@ -6155,7 +6155,7 @@ struct BatchSigningView: View {
         
         AppLogManager.shared.info("Starting batch signing for \(Int(totalApps)) apps", category: "BatchSign")
         
-        // Simulate batch signing (in real implementation, this would call the actual signing logic)
+        // Logic for signing will be here because i cbf to add it
         Task {
             for (index, app) in appsToSign.enumerated() {
                 await MainActor.run {
@@ -6182,7 +6182,7 @@ struct BatchSigningView: View {
                 batchProgress = 1.0
                 selectedApps.removeAll()
                 HapticsManager.shared.success()
-                ToastManager.shared.show("✅ Batch signing completed", type: .success)
+                ToastManager.shared.show("✅ Batch Signing Completed", type: .success)
                 AppLogManager.shared.success("Batch signing completed for \(Int(totalApps)) apps", category: "BatchSign")
             }
         }
@@ -6486,7 +6486,7 @@ struct InfoPlistEditorTab: View {
                 Button {
                     exportPlist()
                 } label: {
-                    Label("Export as XML", systemImage: "square.and.arrow.up")
+                    Label("Export As XML", systemImage: "square.and.arrow.up")
                 }
             }
         }
@@ -6511,7 +6511,7 @@ struct InfoPlistEditorTab: View {
     private func addURLSchemes() {
         plistItems.append(PlistItem(key: "CFBundleURLTypes", value: "myapp://", type: .array))
         HapticsManager.shared.success()
-        ToastManager.shared.show("✅ Added URL Schemes key", type: .success)
+        ToastManager.shared.show("✅ Added URL Schemes Key", type: .success)
     }
     
     private func addBackgroundModes() {
@@ -6587,7 +6587,7 @@ struct SigningSecurityView: View {
             } header: {
                 Text("Certificate Validation")
             } footer: {
-                Text("Enable these options for enhanced security during signing operations")
+                Text("Enable these options for enhanced security during signing operations.")
             }
             
             // Expiration Warnings
@@ -6646,7 +6646,7 @@ struct SigningSecurityView: View {
             if let expiration = cert.expiration, expiration <= Date() {
                 issues.append("Certificate '\(cert.nickname ?? "Unknown")' has expired")
             } else if let expiration = cert.expiration, expiration <= Date().addingTimeInterval(Double(expiryWarningDays) * 86400) {
-                issues.append("Certificate '\(cert.nickname ?? "Unknown")' expires soon")
+                issues.append("Certificate '\(cert.nickname ?? "Unknown")' Expires Soon")
             }
         }
         
@@ -6956,7 +6956,7 @@ struct APIWebhookIntegrationView: View {
         List {
             // API Configuration
             Section {
-                Toggle("Enable Remote Signing API", isOn: $apiEnabled)
+                Toggle("Enable Remote Signing API (Beta)", isOn: $apiEnabled)
                 
                 if apiEnabled {
                     TextField("API Endpoint", text: $apiEndpoint)
@@ -6988,7 +6988,7 @@ struct APIWebhookIntegrationView: View {
             } header: {
                 Text("Remote Signing API")
             } footer: {
-                Text("Configure a remote server for signing operations")
+                Text("Configure a remote server for signing operations.")
             }
             
             // Webhook Configuration
@@ -7001,8 +7001,8 @@ struct APIWebhookIntegrationView: View {
                         .autocorrectionDisabled()
                         .keyboardType(.URL)
                     
-                    Toggle("Notify on Successful Sign", isOn: $notifyOnSuccess)
-                    Toggle("Notify on Failed Sign", isOn: $notifyOnFailure)
+                    Toggle("Notify On Successful Sign", isOn: $notifyOnSuccess)
+                    Toggle("Notify On Failed Sign", isOn: $notifyOnFailure)
                     
                     Button {
                         testWebhook()
@@ -7132,7 +7132,7 @@ struct APILogsView: View {
                     ContentUnavailableView {
                         Label("No API Logs", systemImage: "network.slash")
                     } description: {
-                        Text("API and webhook activity will appear here")
+                        Text("API and webhook activity will appear here.")
                     }
                 } else {
                     VStack(spacing: 12) {
@@ -7141,7 +7141,7 @@ struct APILogsView: View {
                             .foregroundStyle(.secondary)
                         Text("No API Logs")
                             .font(.headline)
-                        Text("API and webhook activity will appear here")
+                        Text("API and webhook activity will appear here.")
                             .font(.subheadline)
                             .foregroundStyle(.secondary)
                             .multilineTextAlignment(.center)

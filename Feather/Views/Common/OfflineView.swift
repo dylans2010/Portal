@@ -110,7 +110,7 @@ struct OfflineView: View {
             Spacer()
             
             // Retry connection info
-            Text("The app will automatically reconnect when internet is available")
+            Text("Portal will automatically reconnect when internet is available.")
                 .font(.caption)
                 .foregroundStyle(.tertiary)
                 .multilineTextAlignment(.center)
@@ -121,7 +121,7 @@ struct OfflineView: View {
         .background(Color(UIColor.systemBackground).ignoresSafeArea())
         .onAppear {
             animateIcon = true
-            AppLogManager.shared.warning("Offline view displayed - no internet connection", category: "Network")
+            AppLogManager.shared.warning("Offline view displayed - no internet connection available", category: "Network")
         }
     }
 }

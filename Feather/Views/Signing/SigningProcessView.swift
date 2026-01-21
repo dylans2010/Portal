@@ -212,7 +212,7 @@ struct SigningProcessView: View {
                     .lineLimit(2)
                     .multilineTextAlignment(.center)
                 
-                Text(isFinished ? "Your app is ready to install" : "Please wait...")
+                Text(isFinished ? "Your app is ready to install!" : "Please Wait...")
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
             }
