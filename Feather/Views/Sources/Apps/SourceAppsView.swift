@@ -481,7 +481,7 @@ struct ModernAppListCard: View {
     }
     
     private var getButton: some View {
-        Text("Download")
+        Text("Get")
             .font(.system(size: 14, weight: .bold))
             .foregroundStyle(.white)
             .padding(.horizontal, 20)
@@ -587,7 +587,7 @@ struct ModernAppGridCard: View {
             Spacer(minLength: 0)
             
             // Get Button
-            Text("Download")
+            Text("Get")
                 .font(.system(size: 12, weight: .bold))
                 .foregroundStyle(.white)
                 .frame(maxWidth: .infinity)

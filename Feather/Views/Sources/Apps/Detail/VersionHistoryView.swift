@@ -155,7 +155,7 @@ struct VersionHistoryView: View {
                                 .foregroundStyle(.primary)
                             
                             if isLatest {
-                                Text("LATEST")
+                                Text("Latest")
                                     .font(.system(size: 10, weight: .bold))
                                     .foregroundStyle(.white)
                                     .padding(.horizontal, 8)
