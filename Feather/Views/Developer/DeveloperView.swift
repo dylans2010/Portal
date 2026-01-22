@@ -4961,54 +4961,67 @@ struct DeviceInfoView: View {
     
     var body: some View {
         List {
-            // Device Section
-            Section(header: Text("Device")) {
-                ForEach(Array(deviceInfo.keys.sorted()), id: \.self) { key in
-                    DeviceInfoRow(label: key, value: deviceInfo[key] ?? "Unknown")
-                }
-            }
-            
-            // Hardware Section
-            Section(header: Text("Hardware")) {
-                ForEach(Array(hardwareInfo.keys.sorted()), id: \.self) { key in
-                    DeviceInfoRow(label: key, value: hardwareInfo[key] ?? "Unknown")
-                }
-            }
-            
-            // Storage Section
-            Section(header: Text("Storage")) {
-                ForEach(Array(storageInfo.keys.sorted()), id: \.self) { key in
-                    DeviceInfoRow(label: key, value: storageInfo[key] ?? "Unknown")
-                }
-            }
-            
-            // Battery Section
-            Section(header: Text("Battery")) {
-                ForEach(Array(batteryInfo.keys.sorted()), id: \.self) { key in
-                    DeviceInfoRow(label: key, value: batteryInfo[key] ?? "Unknown")
-                }
-            }
-            
-            // App Info Section
-            Section(header: Text("App Information")) {
-                DeviceInfoRow(label: "App Name", value: Bundle.main.infoDictionary?["CFBundleName"] as? String ?? "Unknown")
-                DeviceInfoRow(label: "Version", value: Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "Unknown")
-                DeviceInfoRow(label: "Build", value: Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "Unknown")
-                DeviceInfoRow(label: "Bundle ID", value: Bundle.main.bundleIdentifier ?? "Unknown")
-            }
-            
-            // Export Section
-            Section {
-                Button {
-                    exportDeviceInfo()
-                } label: {
-                    Label("Copy Device Info To Clipboard", systemImage: "doc.on.clipboard")
-                }
-            }
+            deviceSection
+            hardwareSection
+            storageSection
+            batterySection
+            appInfoSection
+            exportSection
         }
         .navigationTitle("Device Information")
         .onAppear {
             loadDeviceInfo()
+        }
+    }
+    
+    private var deviceSection: some View {
+        Section(header: Text("Device")) {
+            ForEach(Array(deviceInfo.keys.sorted()), id: \.self) { key in
+                DeveloperDeviceInfoRow(label: key, value: deviceInfo[key] ?? "Unknown")
+            }
+        }
+    }
+    
+    private var hardwareSection: some View {
+        Section(header: Text("Hardware")) {
+            ForEach(Array(hardwareInfo.keys.sorted()), id: \.self) { key in
+                DeveloperDeviceInfoRow(label: key, value: hardwareInfo[key] ?? "Unknown")
+            }
+        }
+    }
+    
+    private var storageSection: some View {
+        Section(header: Text("Storage")) {
+            ForEach(Array(storageInfo.keys.sorted()), id: \.self) { key in
+                DeveloperDeviceInfoRow(label: key, value: storageInfo[key] ?? "Unknown")
+            }
+        }
+    }
+    
+    private var batterySection: some View {
+        Section(header: Text("Battery")) {
+            ForEach(Array(batteryInfo.keys.sorted()), id: \.self) { key in
+                DeveloperDeviceInfoRow(label: key, value: batteryInfo[key] ?? "Unknown")
+            }
+        }
+    }
+    
+    private var appInfoSection: some View {
+        Section(header: Text("App Information")) {
+            DeveloperDeviceInfoRow(label: "App Name", value: Bundle.main.infoDictionary?["CFBundleName"] as? String ?? "Unknown")
+            DeveloperDeviceInfoRow(label: "Version", value: Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "Unknown")
+            DeveloperDeviceInfoRow(label: "Build", value: Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "Unknown")
+            DeveloperDeviceInfoRow(label: "Bundle ID", value: Bundle.main.bundleIdentifier ?? "Unknown")
+        }
+    }
+    
+    private var exportSection: some View {
+        Section {
+            Button {
+                exportDeviceInfo()
+            } label: {
+                Label("Copy Device Info To Clipboard", systemImage: "doc.on.clipboard")
+            }
         }
     }
     
@@ -5114,7 +5127,7 @@ struct DeviceInfoView: View {
     }
 }
 
-struct DeviceInfoRow: View {
+struct DeveloperDeviceInfoRow: View {
     let label: String
     let value: String
     
