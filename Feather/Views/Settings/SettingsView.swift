@@ -38,6 +38,9 @@ struct SettingsView: View {
                 
                 // Preferences
                 Section {
+                    NavigationLink(destination: HomeSettingsView()) {
+                        modernSettingsRow(icon: "house.fill", title: "Home", color: .blue)
+                    }
                     NavigationLink(destination: AppearanceView()) {
                         modernSettingsRow(icon: "paintbrush.fill", title: "Appearance & Haptics", color: .pink)
                     }

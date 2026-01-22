@@ -6,6 +6,13 @@ import NimbleViews
 struct HomeView: View {
     @Environment(\.managedObjectContext) private var viewContext
     @AppStorage("Feather.greetingsName") private var _greetingsName: String = ""
+    @AppStorage("Feather.homeGreetingEnabled") private var _greetingEnabled = true
+    @AppStorage("Feather.homeAnimationsEnabled") private var _animationsEnabled = true
+    @AppStorage("Feather.homeCompactMode") private var _compactMode = false
+    @AppStorage("Feather.homeShowAppIcon") private var _showAppIcon = true
+    
+    @StateObject private var _settingsManager = HomeSettingsManager.shared
+    @StateObject private var _networkMonitor = NetworkMonitor.shared
     
     // Fetch requests for data
     @FetchRequest(
@@ -36,6 +43,19 @@ struct HomeView: View {
     @State private var _showSignApp = false
     @State private var _showImportApp = false
     @State private var _appearAnimation = false
+    @State private var _currentTipIndex = 0
+    
+    // Tips for the Tips widget
+    private let _tips = [
+        "Tip: You can long-press on apps in the Library to access quick actions.",
+        "Tip: Use developer certificates for better stability than enterprise certificates.",
+        "Tip: Swipe down on the Sources tab to refresh all repositories.",
+        "Tip: You can customize which widgets appear on this Home screen in Settings.",
+        "Tip: Pin your favorite sources to keep them at the top of the list.",
+        "Tip: Check certificate expiration dates regularly to avoid signing issues.",
+        "Tip: Use the Files tab to manage your IPA files and tweaks.",
+        "Tip: You can import apps by opening IPA files directly in Portal."
+    ]
     
     private var greetingText: String {
         let hour = Calendar.current.component(.hour, from: Date())
@@ -69,19 +89,18 @@ struct HomeView: View {
             ScrollView {
                 VStack(spacing: 0) {
                     // Header
-                    headerSection
+                    if _greetingEnabled {
+                        headerSection
+                    }
                     
-                    VStack(spacing: 24) {
-                        // Quick Actions
-                        quickActionsSection
-                        
-                        // Status Section
-                        statusSection
-                        
-                        // At A Glance Section
-                        atAGlanceSection
+                    VStack(spacing: _compactMode ? 16 : 24) {
+                        // Dynamic widgets based on settings
+                        ForEach(_settingsManager.enabledWidgets) { widget in
+                            widgetView(for: widget.type)
+                        }
                     }
                     .padding(.horizontal, 20)
+                    .padding(.top, _greetingEnabled ? 0 : 20)
                     .padding(.bottom, 100)
                 }
             }
@@ -112,12 +131,43 @@ struct HomeView: View {
             }
         }
         .onAppear {
-            withAnimation(.spring(response: 0.6, dampingFraction: 0.8)) {
+            if _animationsEnabled {
+                withAnimation(.spring(response: 0.6, dampingFraction: 0.8)) {
+                    _appearAnimation = true
+                }
+            } else {
                 _appearAnimation = true
             }
+            // Rotate tip
+            _currentTipIndex = Int.random(in: 0..<_tips.count)
         }
         .task(id: Array(_sources)) {
             await viewModel.fetchSources(_sources)
+        }
+    }
+    
+    // MARK: - Widget View Builder
+    @ViewBuilder
+    private func widgetView(for type: HomeWidgetType) -> some View {
+        switch type {
+        case .quickActions:
+            quickActionsSection
+        case .status:
+            statusSection
+        case .atAGlance:
+            atAGlanceSection
+        case .recentApps:
+            recentAppsSection
+        case .storageInfo:
+            storageInfoSection
+        case .certificateStatus:
+            certificateStatusSection
+        case .sourcesOverview:
+            sourcesOverviewSection
+        case .networkStatus:
+            networkStatusSection
+        case .tips:
+            tipsSection
         }
     }
     
@@ -139,14 +189,15 @@ struct HomeView: View {
             Spacer()
             
             // App Icon
-            if let iconName = Bundle.main.iconFileName,
+            if _showAppIcon,
+               let iconName = Bundle.main.iconFileName,
                let icon = UIImage(named: iconName) {
                 Image(uiImage: icon)
                     .resizable()
                     .aspectRatio(contentMode: .fit)
                     .frame(width: 44, height: 44)
                     .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
-                    .shadow(color: .accentColor.opacity(0.3), radius: 6, x: 0, y: 3)
+                    .shadow(color: Color.accentColor.opacity(0.3), radius: 6, x: 0, y: 3)
             }
         }
         .padding(.horizontal, 20)
@@ -154,7 +205,7 @@ struct HomeView: View {
         .padding(.bottom, 24)
         .opacity(_appearAnimation ? 1 : 0)
         .offset(y: _appearAnimation ? 0 : -20)
-        .animation(.spring(response: 0.5, dampingFraction: 0.8), value: _appearAnimation)
+        .animation(_animationsEnabled ? .spring(response: 0.5, dampingFraction: 0.8) : .none, value: _appearAnimation)
     }
     
     // MARK: - Quick Actions Section
@@ -358,7 +409,365 @@ struct HomeView: View {
         }
         .opacity(_appearAnimation ? 1 : 0)
         .offset(y: _appearAnimation ? 0 : 20)
-        .animation(.spring(response: 0.5, dampingFraction: 0.8).delay(0.3), value: _appearAnimation)
+        .animation(_animationsEnabled ? .spring(response: 0.5, dampingFraction: 0.8).delay(0.3) : .none, value: _appearAnimation)
+    }
+    
+    // MARK: - Recent Apps Section
+    private var recentAppsSection: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            sectionHeader("Recent Apps", icon: "clock.fill")
+            
+            if _signedApps.isEmpty && _importedApps.isEmpty {
+                emptyRecentAppsView
+            } else {
+                VStack(spacing: 12) {
+                    // Show up to 5 recent apps
+                    let recentSigned = Array(_signedApps.prefix(3))
+                    let recentImported = Array(_importedApps.prefix(2))
+                    
+                    ForEach(recentSigned, id: \.uuid) { app in
+                        RecentAppRow(
+                            name: app.name ?? "Unknown",
+                            bundleId: app.identifier ?? "",
+                            isSigned: true,
+                            date: app.date
+                        )
+                    }
+                    
+                    ForEach(recentImported, id: \.uuid) { app in
+                        RecentAppRow(
+                            name: app.name ?? "Unknown",
+                            bundleId: app.identifier ?? "",
+                            isSigned: false,
+                            date: app.date
+                        )
+                    }
+                }
+                .padding(16)
+                .background(
+                    RoundedRectangle(cornerRadius: 16, style: .continuous)
+                        .fill(Color(UIColor.secondarySystemGroupedBackground))
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: 16, style: .continuous)
+                        .stroke(Color(UIColor.separator).opacity(0.2), lineWidth: 0.5)
+                )
+            }
+        }
+        .opacity(_appearAnimation ? 1 : 0)
+        .offset(y: _appearAnimation ? 0 : 20)
+        .animation(_animationsEnabled ? .spring(response: 0.5, dampingFraction: 0.8).delay(0.35) : .none, value: _appearAnimation)
+    }
+    
+    private var emptyRecentAppsView: some View {
+        VStack(spacing: 12) {
+            Image(systemName: "app.badge.fill")
+                .font(.system(size: 32))
+                .foregroundStyle(.secondary)
+            
+            Text("No Recent Apps")
+                .font(.subheadline.bold())
+                .foregroundStyle(.secondary)
+            
+            Text("Import or sign an app to see it here")
+                .font(.caption)
+                .foregroundStyle(.tertiary)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(24)
+        .background(
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .fill(Color(UIColor.secondarySystemGroupedBackground))
+        )
+    }
+    
+    // MARK: - Storage Info Section
+    private var storageInfoSection: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            sectionHeader("Storage Info", icon: "internaldrive.fill")
+            
+            VStack(spacing: 12) {
+                StorageInfoRow(
+                    title: "Signed Apps",
+                    count: _signedApps.count,
+                    icon: "checkmark.seal.fill",
+                    color: .blue
+                )
+                
+                StorageInfoRow(
+                    title: "Imported Apps",
+                    count: _importedApps.count,
+                    icon: "square.and.arrow.down.fill",
+                    color: .orange
+                )
+                
+                StorageInfoRow(
+                    title: "Certificates",
+                    count: _certificates.count,
+                    icon: "person.text.rectangle.fill",
+                    color: .green
+                )
+                
+                StorageInfoRow(
+                    title: "Sources",
+                    count: _sources.count,
+                    icon: "globe.desk.fill",
+                    color: .cyan
+                )
+            }
+            .padding(16)
+            .background(
+                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .fill(Color(UIColor.secondarySystemGroupedBackground))
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .stroke(Color(UIColor.separator).opacity(0.2), lineWidth: 0.5)
+            )
+        }
+        .opacity(_appearAnimation ? 1 : 0)
+        .offset(y: _appearAnimation ? 0 : 20)
+        .animation(_animationsEnabled ? .spring(response: 0.5, dampingFraction: 0.8).delay(0.4) : .none, value: _appearAnimation)
+    }
+    
+    // MARK: - Certificate Status Section
+    private var certificateStatusSection: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            sectionHeader("Certificate Status", icon: "checkmark.seal.fill")
+            
+            if let cert = getSelectedCertificate() {
+                VStack(spacing: 16) {
+                    HStack(spacing: 16) {
+                        ZStack {
+                            Circle()
+                                .fill(cert.revoked ? Color.red.opacity(0.15) : Color.green.opacity(0.15))
+                                .frame(width: 56, height: 56)
+                            
+                            Image(systemName: cert.revoked ? "xmark.seal.fill" : "checkmark.seal.fill")
+                                .font(.system(size: 28))
+                                .foregroundStyle(cert.revoked ? .red : .green)
+                        }
+                        
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text(cert.nickname ?? "Unknown Certificate")
+                                .font(.headline)
+                            
+                            Text(cert.revoked ? "Revoked" : "Active")
+                                .font(.subheadline)
+                                .foregroundStyle(cert.revoked ? .red : .green)
+                            
+                            if let expiration = cert.expiration {
+                                Text("Expires \(formatExpirationDate(expiration))")
+                                    .font(.caption)
+                                    .foregroundStyle(expirationColor(expiration))
+                            }
+                        }
+                        
+                        Spacer()
+                    }
+                    
+                    if let expiration = cert.expiration {
+                        CertificateExpirationBar(expiration: expiration)
+                    }
+                }
+                .padding(16)
+                .background(
+                    RoundedRectangle(cornerRadius: 16, style: .continuous)
+                        .fill(Color(UIColor.secondarySystemGroupedBackground))
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: 16, style: .continuous)
+                        .stroke(Color(UIColor.separator).opacity(0.2), lineWidth: 0.5)
+                )
+            } else {
+                noCertificateView
+            }
+        }
+        .opacity(_appearAnimation ? 1 : 0)
+        .offset(y: _appearAnimation ? 0 : 20)
+        .animation(_animationsEnabled ? .spring(response: 0.5, dampingFraction: 0.8).delay(0.45) : .none, value: _appearAnimation)
+    }
+    
+    private var noCertificateView: some View {
+        VStack(spacing: 12) {
+            Image(systemName: "exclamationmark.shield.fill")
+                .font(.system(size: 32))
+                .foregroundStyle(.orange)
+            
+            Text("No Certificate Selected")
+                .font(.subheadline.bold())
+            
+            Button {
+                _showAddCertificate = true
+            } label: {
+                Text("Add Certificate")
+                    .font(.subheadline.bold())
+                    .foregroundStyle(.white)
+                    .padding(.horizontal, 20)
+                    .padding(.vertical, 10)
+                    .background(Capsule().fill(Color.accentColor))
+            }
+        }
+        .frame(maxWidth: .infinity)
+        .padding(24)
+        .background(
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .fill(Color(UIColor.secondarySystemGroupedBackground))
+        )
+    }
+    
+    // MARK: - Sources Overview Section
+    private var sourcesOverviewSection: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            sectionHeader("Sources Overview", icon: "globe.desk.fill")
+            
+            if _sources.isEmpty {
+                emptySourcesView
+            } else {
+                VStack(spacing: 12) {
+                    ForEach(Array(_sources.prefix(4)), id: \.identifier) { source in
+                        SourceOverviewRow(
+                            name: source.name ?? "Unknown",
+                            appCount: viewModel.sources[source]?.apps.count ?? 0,
+                            iconURL: source.iconURL
+                        )
+                    }
+                    
+                    if _sources.count > 4 {
+                        Text("+ \(_sources.count - 4) more sources")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                            .frame(maxWidth: .infinity, alignment: .center)
+                    }
+                }
+                .padding(16)
+                .background(
+                    RoundedRectangle(cornerRadius: 16, style: .continuous)
+                        .fill(Color(UIColor.secondarySystemGroupedBackground))
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: 16, style: .continuous)
+                        .stroke(Color(UIColor.separator).opacity(0.2), lineWidth: 0.5)
+                )
+            }
+        }
+        .opacity(_appearAnimation ? 1 : 0)
+        .offset(y: _appearAnimation ? 0 : 20)
+        .animation(_animationsEnabled ? .spring(response: 0.5, dampingFraction: 0.8).delay(0.5) : .none, value: _appearAnimation)
+    }
+    
+    private var emptySourcesView: some View {
+        VStack(spacing: 12) {
+            Image(systemName: "globe.desk.fill")
+                .font(.system(size: 32))
+                .foregroundStyle(.secondary)
+            
+            Text("No Sources Added")
+                .font(.subheadline.bold())
+            
+            Button {
+                _showAddSource = true
+            } label: {
+                Text("Add Source")
+                    .font(.subheadline.bold())
+                    .foregroundStyle(.white)
+                    .padding(.horizontal, 20)
+                    .padding(.vertical, 10)
+                    .background(Capsule().fill(Color.accentColor))
+            }
+        }
+        .frame(maxWidth: .infinity)
+        .padding(24)
+        .background(
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .fill(Color(UIColor.secondarySystemGroupedBackground))
+        )
+    }
+    
+    // MARK: - Network Status Section
+    private var networkStatusSection: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            sectionHeader("Network Status", icon: "wifi")
+            
+            HStack(spacing: 16) {
+                ZStack {
+                    Circle()
+                        .fill(_networkMonitor.isConnected ? Color.green.opacity(0.15) : Color.red.opacity(0.15))
+                        .frame(width: 56, height: 56)
+                    
+                    Image(systemName: _networkMonitor.isConnected ? "wifi" : "wifi.slash")
+                        .font(.system(size: 24))
+                        .foregroundStyle(_networkMonitor.isConnected ? .green : .red)
+                }
+                
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(_networkMonitor.isConnected ? "Connected" : "Disconnected")
+                        .font(.headline)
+                    
+                    Text(_networkMonitor.isConnected ? "You're online and ready to go" : "Check your internet connection")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                }
+                
+                Spacer()
+            }
+            .padding(16)
+            .background(
+                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .fill(Color(UIColor.secondarySystemGroupedBackground))
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .stroke(Color(UIColor.separator).opacity(0.2), lineWidth: 0.5)
+            )
+        }
+        .opacity(_appearAnimation ? 1 : 0)
+        .offset(y: _appearAnimation ? 0 : 20)
+        .animation(_animationsEnabled ? .spring(response: 0.5, dampingFraction: 0.8).delay(0.55) : .none, value: _appearAnimation)
+    }
+    
+    // MARK: - Tips Section
+    private var tipsSection: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            sectionHeader("Tips & Tricks", icon: "lightbulb.fill")
+            
+            HStack(spacing: 16) {
+                ZStack {
+                    Circle()
+                        .fill(Color.yellow.opacity(0.15))
+                        .frame(width: 44, height: 44)
+                    
+                    Image(systemName: "lightbulb.fill")
+                        .font(.system(size: 20))
+                        .foregroundStyle(.yellow)
+                }
+                
+                Text(_tips[_currentTipIndex])
+                    .font(.subheadline)
+                    .foregroundStyle(.primary)
+                    .fixedSize(horizontal: false, vertical: true)
+                
+                Spacer()
+            }
+            .padding(16)
+            .background(
+                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .fill(Color(UIColor.secondarySystemGroupedBackground))
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .stroke(Color.yellow.opacity(0.2), lineWidth: 1)
+            )
+            .onTapGesture {
+                withAnimation {
+                    _currentTipIndex = (_currentTipIndex + 1) % _tips.count
+                }
+                HapticsManager.shared.softImpact()
+            }
+        }
+        .opacity(_appearAnimation ? 1 : 0)
+        .offset(y: _appearAnimation ? 0 : 20)
+        .animation(_animationsEnabled ? .spring(response: 0.5, dampingFraction: 0.8).delay(0.6) : .none, value: _appearAnimation)
     }
     
     // MARK: - Helper Views
@@ -530,6 +939,173 @@ struct AtAGlanceRow: View {
                     .font(.system(size: 15, weight: .semibold))
                     .foregroundStyle(.primary)
                     .lineLimit(1)
+            }
+            
+            Spacer()
+        }
+    }
+}
+
+// MARK: - Recent App Row
+struct RecentAppRow: View {
+    let name: String
+    let bundleId: String
+    let isSigned: Bool
+    let date: Date?
+    
+    var body: some View {
+        HStack(spacing: 12) {
+            ZStack {
+                RoundedRectangle(cornerRadius: 10, style: .continuous)
+                    .fill(isSigned ? Color.green.opacity(0.15) : Color.orange.opacity(0.15))
+                    .frame(width: 40, height: 40)
+                
+                Image(systemName: isSigned ? "checkmark.seal.fill" : "square.and.arrow.down.fill")
+                    .font(.system(size: 18))
+                    .foregroundStyle(isSigned ? .green : .orange)
+            }
+            
+            VStack(alignment: .leading, spacing: 2) {
+                Text(name)
+                    .font(.system(size: 14, weight: .semibold))
+                    .lineLimit(1)
+                
+                HStack(spacing: 4) {
+                    Text(isSigned ? "Signed" : "Imported")
+                        .font(.system(size: 11, weight: .medium))
+                        .foregroundStyle(isSigned ? .green : .orange)
+                    
+                    if let date = date {
+                        Text("•")
+                            .foregroundStyle(.tertiary)
+                        Text(date, style: .relative)
+                            .font(.system(size: 11))
+                            .foregroundStyle(.secondary)
+                    }
+                }
+            }
+            
+            Spacer()
+        }
+    }
+}
+
+// MARK: - Storage Info Row
+struct StorageInfoRow: View {
+    let title: String
+    let count: Int
+    let icon: String
+    let color: Color
+    
+    var body: some View {
+        HStack(spacing: 12) {
+            Image(systemName: icon)
+                .font(.system(size: 16, weight: .medium))
+                .foregroundStyle(color)
+                .frame(width: 24)
+            
+            Text(title)
+                .font(.system(size: 14, weight: .medium))
+            
+            Spacer()
+            
+            Text("\(count)")
+                .font(.system(size: 14, weight: .bold, design: .rounded))
+                .foregroundStyle(color)
+        }
+    }
+}
+
+// MARK: - Certificate Expiration Bar
+struct CertificateExpirationBar: View {
+    let expiration: Date
+    
+    private var progress: Double {
+        let totalDays: Double = 365
+        let daysRemaining = Calendar.current.dateComponents([.day], from: Date(), to: expiration).day ?? 0
+        return max(0, min(1, Double(daysRemaining) / totalDays))
+    }
+    
+    private var barColor: Color {
+        if progress < 0.1 {
+            return .red
+        } else if progress < 0.25 {
+            return .orange
+        } else {
+            return .green
+        }
+    }
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            HStack {
+                Text("Time Remaining")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                
+                Spacer()
+                
+                Text("\(Int(progress * 100))%")
+                    .font(.caption.bold())
+                    .foregroundStyle(barColor)
+            }
+            
+            GeometryReader { geometry in
+                ZStack(alignment: .leading) {
+                    RoundedRectangle(cornerRadius: 4)
+                        .fill(Color(UIColor.tertiarySystemFill))
+                        .frame(height: 8)
+                    
+                    RoundedRectangle(cornerRadius: 4)
+                        .fill(barColor)
+                        .frame(width: geometry.size.width * progress, height: 8)
+                }
+            }
+            .frame(height: 8)
+        }
+    }
+}
+
+// MARK: - Source Overview Row
+struct SourceOverviewRow: View {
+    let name: String
+    let appCount: Int
+    let iconURL: URL?
+    
+    var body: some View {
+        HStack(spacing: 12) {
+            ZStack {
+                RoundedRectangle(cornerRadius: 8, style: .continuous)
+                    .fill(Color.cyan.opacity(0.15))
+                    .frame(width: 36, height: 36)
+                
+                if let iconURL = iconURL {
+                    AsyncImage(url: iconURL) { image in
+                        image
+                            .resizable()
+                            .aspectRatio(contentMode: .fill)
+                    } placeholder: {
+                        Image(systemName: "globe.desk.fill")
+                            .font(.system(size: 16))
+                            .foregroundStyle(.cyan)
+                    }
+                    .frame(width: 32, height: 32)
+                    .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
+                } else {
+                    Image(systemName: "globe.desk.fill")
+                        .font(.system(size: 16))
+                        .foregroundStyle(.cyan)
+                }
+            }
+            
+            VStack(alignment: .leading, spacing: 2) {
+                Text(name)
+                    .font(.system(size: 14, weight: .semibold))
+                    .lineLimit(1)
+                
+                Text("\(appCount) apps")
+                    .font(.system(size: 12))
+                    .foregroundStyle(.secondary)
             }
             
             Spacer()
