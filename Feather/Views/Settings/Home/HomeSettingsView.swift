@@ -12,6 +12,9 @@ enum HomeWidgetType: String, CaseIterable, Codable, Identifiable {
     case sourcesOverview = "sourcesOverview"
     case networkStatus = "networkStatus"
     case tips = "tips"
+    case deviceInfo = "deviceInfo"
+    case appStats = "appStats"
+    case favoriteApps = "favoriteApps"
     
     var id: String { rawValue }
     
@@ -26,6 +29,9 @@ enum HomeWidgetType: String, CaseIterable, Codable, Identifiable {
         case .sourcesOverview: return String.localized("Sources Overview")
         case .networkStatus: return String.localized("Network Status")
         case .tips: return String.localized("Tips & Tricks")
+        case .deviceInfo: return String.localized("Device Info")
+        case .appStats: return String.localized("App Statistics")
+        case .favoriteApps: return String.localized("Favorite Apps")
         }
     }
     
@@ -40,6 +46,9 @@ enum HomeWidgetType: String, CaseIterable, Codable, Identifiable {
         case .sourcesOverview: return "globe.desk.fill"
         case .networkStatus: return "wifi"
         case .tips: return "lightbulb.fill"
+        case .deviceInfo: return "iphone"
+        case .appStats: return "chart.pie.fill"
+        case .favoriteApps: return "star.fill"
         }
     }
     
@@ -54,6 +63,9 @@ enum HomeWidgetType: String, CaseIterable, Codable, Identifiable {
         case .sourcesOverview: return .cyan
         case .networkStatus: return .blue
         case .tips: return .yellow
+        case .deviceInfo: return .indigo
+        case .appStats: return .pink
+        case .favoriteApps: return .yellow
         }
     }
     
@@ -68,11 +80,14 @@ enum HomeWidgetType: String, CaseIterable, Codable, Identifiable {
         case .sourcesOverview: return String.localized("Quick view of your app sources")
         case .networkStatus: return String.localized("Current network connection status")
         case .tips: return String.localized("Helpful tips and tricks for using Portal")
+        case .deviceInfo: return String.localized("Information about your device")
+        case .appStats: return String.localized("Statistics about your signed and imported apps")
+        case .favoriteApps: return String.localized("Quick access to your favorite apps")
         }
     }
     
     static var defaultOrder: [HomeWidgetType] {
-        [.quickActions, .status, .atAGlance, .recentApps, .storageInfo, .certificateStatus, .sourcesOverview, .networkStatus, .tips]
+        [.quickActions, .status, .atAGlance, .recentApps, .storageInfo, .certificateStatus, .sourcesOverview, .networkStatus, .tips, .deviceInfo, .appStats, .favoriteApps]
     }
 }
 
@@ -234,68 +249,112 @@ struct HomeSettingsView: View {
     
     var body: some View {
         NBList(.localized("Home Settings")) {
-            // Profile Picture Section
+            // Profile Picture Section - Modernized
             Section {
                 Toggle(isOn: $useProfilePicture) {
                     settingsRow(icon: "person.crop.circle.fill", title: "Use Profile Picture", color: .blue)
                 }
                 
                 if useProfilePicture {
-                    HStack(spacing: 16) {
-                        // Profile picture preview
-                        if let image = profileManager.profileImage {
-                            Image(uiImage: image)
-                                .resizable()
-                                .aspectRatio(contentMode: .fill)
-                                .frame(width: 60, height: 60)
-                                .clipShape(Circle())
-                                .overlay(
-                                    Circle()
-                                        .stroke(Color.accentColor.opacity(0.3), lineWidth: 2)
+                    VStack(spacing: 20) {
+                        // Large profile picture preview with modern styling
+                        ZStack {
+                            // Background circle
+                            Circle()
+                                .fill(
+                                    LinearGradient(
+                                        colors: [Color.accentColor.opacity(0.1), Color.accentColor.opacity(0.05)],
+                                        startPoint: .topLeading,
+                                        endPoint: .bottomTrailing
+                                    )
                                 )
-                        } else {
-                            ZStack {
-                                Circle()
-                                    .fill(Color.gray.opacity(0.2))
-                                    .frame(width: 60, height: 60)
-                                
-                                Image(systemName: "person.fill")
-                                    .font(.system(size: 28))
-                                    .foregroundStyle(.secondary)
+                                .frame(width: 110, height: 110)
+                            
+                            if let image = profileManager.profileImage {
+                                Image(uiImage: image)
+                                    .resizable()
+                                    .aspectRatio(contentMode: .fill)
+                                    .frame(width: 100, height: 100)
+                                    .clipShape(Circle())
+                                    .overlay(
+                                        Circle()
+                                            .stroke(Color.accentColor.opacity(0.4), lineWidth: 3)
+                                    )
+                                    .shadow(color: Color.accentColor.opacity(0.2), radius: 8, x: 0, y: 4)
+                            } else {
+                                ZStack {
+                                    Circle()
+                                        .fill(Color(UIColor.tertiarySystemFill))
+                                        .frame(width: 100, height: 100)
+                                    
+                                    Image(systemName: "person.fill")
+                                        .font(.system(size: 44, weight: .light))
+                                        .foregroundStyle(.secondary)
+                                }
                             }
+                            
+                            // Camera badge
+                            VStack {
+                                Spacer()
+                                HStack {
+                                    Spacer()
+                                    Button {
+                                        showImagePicker = true
+                                    } label: {
+                                        ZStack {
+                                            Circle()
+                                                .fill(Color.accentColor)
+                                                .frame(width: 32, height: 32)
+                                            
+                                            Image(systemName: "camera.fill")
+                                                .font(.system(size: 14, weight: .medium))
+                                                .foregroundStyle(.white)
+                                        }
+                                        .shadow(color: .black.opacity(0.2), radius: 4, x: 0, y: 2)
+                                    }
+                                }
+                            }
+                            .frame(width: 100, height: 100)
                         }
+                        .padding(.top, 8)
                         
-                        VStack(alignment: .leading, spacing: 8) {
+                        // Action buttons
+                        HStack(spacing: 12) {
                             Button {
                                 showImagePicker = true
                             } label: {
-                                HStack {
-                                    Image(systemName: "photo.on.rectangle")
-                                    Text(profileManager.profileImage == nil ? "Select Photo" : "Change Photo")
+                                HStack(spacing: 6) {
+                                    Image(systemName: "photo.on.rectangle.angled")
+                                        .font(.system(size: 14, weight: .medium))
+                                    Text(profileManager.profileImage == nil ? "Choose Photo" : "Change")
+                                        .font(.system(size: 14, weight: .semibold))
                                 }
-                                .font(.system(size: 14, weight: .medium))
                                 .foregroundStyle(.white)
-                                .padding(.horizontal, 14)
-                                .padding(.vertical, 8)
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 12)
                                 .background(Color.accentColor)
-                                .cornerRadius(8)
+                                .cornerRadius(10)
                             }
                             
                             if profileManager.profileImage != nil {
                                 Button {
                                     showRemoveProfileConfirmation = true
                                 } label: {
-                                    HStack {
+                                    HStack(spacing: 6) {
                                         Image(systemName: "trash")
+                                            .font(.system(size: 14, weight: .medium))
                                         Text("Remove")
+                                            .font(.system(size: 14, weight: .semibold))
                                     }
-                                    .font(.system(size: 14, weight: .medium))
                                     .foregroundStyle(.red)
+                                    .frame(maxWidth: .infinity)
+                                    .padding(.vertical, 12)
+                                    .background(Color.red.opacity(0.1))
+                                    .cornerRadius(10)
                                 }
                             }
                         }
-                        
-                        Spacer()
+                        .padding(.bottom, 4)
                     }
                     .padding(.vertical, 8)
                 }

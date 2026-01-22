@@ -93,20 +93,20 @@ struct HomeView: View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 0) {
-                    // Header
+                    // Header (smaller in compact mode)
                     if _greetingEnabled {
                         headerSection
                     }
                     
-                    VStack(spacing: _compactMode ? 16 : 24) {
+                    VStack(spacing: _compactMode ? 8 : 24) {
                         // Dynamic widgets based on settings
                         ForEach(_settingsManager.enabledWidgets) { widget in
                             widgetView(for: widget.type)
                         }
                     }
-                    .padding(.horizontal, 20)
-                    .padding(.top, _greetingEnabled ? 0 : 20)
-                    .padding(.bottom, 100)
+                    .padding(.horizontal, _compactMode ? 16 : 20)
+                    .padding(.top, _greetingEnabled ? 0 : (_compactMode ? 12 : 20))
+                    .padding(.bottom, _compactMode ? 80 : 100)
                 }
             }
             .background(Color(.systemBackground))
@@ -187,22 +187,30 @@ struct HomeView: View {
             networkStatusSection
         case .tips:
             tipsSection
+        case .deviceInfo:
+            deviceInfoSection
+        case .appStats:
+            appStatsSection
+        case .favoriteApps:
+            favoriteAppsSection
         }
     }
     
     // MARK: - Header Section
     private var headerSection: some View {
-        HStack(spacing: 16) {
-            VStack(alignment: .leading, spacing: 2) {
+        HStack(spacing: _compactMode ? 12 : 16) {
+            VStack(alignment: .leading, spacing: _compactMode ? 1 : 2) {
                 Text(greetingText)
-                    .font(.system(size: 24, weight: .bold, design: .rounded))
+                    .font(.system(size: _compactMode ? 18 : 24, weight: .bold, design: .rounded))
                     .foregroundStyle(.primary)
                     .lineLimit(1)
                     .minimumScaleFactor(0.8)
                 
-                Text("Portal Dashboard")
-                    .font(.system(size: 14, weight: .medium))
-                    .foregroundStyle(.secondary)
+                if !_compactMode {
+                    Text("Portal Dashboard")
+                        .font(.system(size: 14, weight: .medium))
+                        .foregroundStyle(.secondary)
+                }
             }
             
             Spacer()
@@ -212,27 +220,25 @@ struct HomeView: View {
                 Image(uiImage: profileImage)
                     .resizable()
                     .aspectRatio(contentMode: .fill)
-                    .frame(width: 44, height: 44)
+                    .frame(width: _compactMode ? 32 : 44, height: _compactMode ? 32 : 44)
                     .clipShape(Circle())
                     .overlay(
                         Circle()
-                            .stroke(Color.accentColor.opacity(0.3), lineWidth: 2)
+                            .stroke(Color.accentColor.opacity(0.3), lineWidth: _compactMode ? 1 : 2)
                     )
-                    .shadow(color: Color.accentColor.opacity(0.3), radius: 6, x: 0, y: 3)
             } else if _showAppIcon,
                let iconName = Bundle.main.iconFileName,
                let icon = UIImage(named: iconName) {
                 Image(uiImage: icon)
                     .resizable()
                     .aspectRatio(contentMode: .fit)
-                    .frame(width: 44, height: 44)
-                    .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
-                    .shadow(color: Color.accentColor.opacity(0.3), radius: 6, x: 0, y: 3)
+                    .frame(width: _compactMode ? 32 : 44, height: _compactMode ? 32 : 44)
+                    .clipShape(RoundedRectangle(cornerRadius: _compactMode ? 7 : 10, style: .continuous))
             }
         }
-        .padding(.horizontal, 20)
-        .padding(.top, 16)
-        .padding(.bottom, 24)
+        .padding(.horizontal, _compactMode ? 16 : 20)
+        .padding(.top, _compactMode ? 10 : 16)
+        .padding(.bottom, _compactMode ? 12 : 24)
         .opacity(_appearAnimation ? 1 : 0)
         .offset(y: _appearAnimation ? 0 : -20)
         .animation(_animationsEnabled ? .spring(response: 0.5, dampingFraction: 0.8) : .none, value: _appearAnimation)
@@ -240,47 +246,73 @@ struct HomeView: View {
     
     // MARK: - Quick Actions Section
     private var quickActionsSection: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            sectionHeader("Quick Actions", icon: "bolt.fill")
+        VStack(alignment: .leading, spacing: _compactMode ? 8 : 16) {
+            if !_compactMode {
+                sectionHeader("Quick Actions", icon: "bolt.fill")
+            }
             
-            LazyVGrid(columns: [
-                GridItem(.flexible(), spacing: 12),
-                GridItem(.flexible(), spacing: 12)
-            ], spacing: 12) {
-                HomeQuickActionCard(
-                    title: "Add Certificate",
-                    icon: "checkmark.seal.fill",
-                    color: .green
-                ) {
-                    _showAddCertificate = true
-                    HapticsManager.shared.softImpact()
+            if _compactMode {
+                // Compact horizontal scroll
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 16) {
+                        CompactQuickActionButton(title: "Certificate", icon: "checkmark.seal.fill", color: .green) {
+                            _showAddCertificate = true
+                            HapticsManager.shared.softImpact()
+                        }
+                        CompactQuickActionButton(title: "Source", icon: "globe.desk.fill", color: .cyan) {
+                            _showAddSource = true
+                            HapticsManager.shared.softImpact()
+                        }
+                        CompactQuickActionButton(title: "Import", icon: "square.and.arrow.down.fill", color: .orange) {
+                            _showImportApp = true
+                            HapticsManager.shared.softImpact()
+                        }
+                        CompactQuickActionButton(title: "Sign", icon: "signature", color: .purple) {
+                            _showSignAndInstallPicker = true
+                            HapticsManager.shared.softImpact()
+                        }
+                    }
                 }
-                
-                HomeQuickActionCard(
-                    title: "Add Source",
-                    icon: "globe.desk.fill",
-                    color: .cyan
-                ) {
-                    _showAddSource = true
-                    HapticsManager.shared.softImpact()
-                }
-                
-                HomeQuickActionCard(
-                    title: "Import App",
-                    icon: "square.and.arrow.down.fill",
-                    color: .orange
-                ) {
-                    _showImportApp = true
-                    HapticsManager.shared.softImpact()
-                }
-                
-                HomeQuickActionCard(
-                    title: "Sign & Install",
-                    icon: "signature",
-                    color: .purple
-                ) {
-                    _showSignAndInstallPicker = true
-                    HapticsManager.shared.softImpact()
+            } else {
+                LazyVGrid(columns: [
+                    GridItem(.flexible(), spacing: 12),
+                    GridItem(.flexible(), spacing: 12)
+                ], spacing: 12) {
+                    HomeQuickActionCard(
+                        title: "Add Certificate",
+                        icon: "checkmark.seal.fill",
+                        color: .green
+                    ) {
+                        _showAddCertificate = true
+                        HapticsManager.shared.softImpact()
+                    }
+                    
+                    HomeQuickActionCard(
+                        title: "Add Source",
+                        icon: "globe.desk.fill",
+                        color: .cyan
+                    ) {
+                        _showAddSource = true
+                        HapticsManager.shared.softImpact()
+                    }
+                    
+                    HomeQuickActionCard(
+                        title: "Import App",
+                        icon: "square.and.arrow.down.fill",
+                        color: .orange
+                    ) {
+                        _showImportApp = true
+                        HapticsManager.shared.softImpact()
+                    }
+                    
+                    HomeQuickActionCard(
+                        title: "Sign & Install",
+                        icon: "signature",
+                        color: .purple
+                    ) {
+                        _showSignAndInstallPicker = true
+                        HapticsManager.shared.softImpact()
+                    }
                 }
             }
         }
@@ -752,36 +784,24 @@ struct HomeView: View {
     
     // MARK: - Tips Section
     private var tipsSection: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            sectionHeader("Tips & Tricks", icon: "lightbulb.fill")
+        VStack(alignment: .leading, spacing: _compactMode ? 8 : 16) {
+            if !_compactMode {
+                sectionHeader("Tips & Tricks", icon: "lightbulb.fill")
+            }
             
-            HStack(spacing: 16) {
-                ZStack {
-                    Circle()
-                        .fill(Color.yellow.opacity(0.15))
-                        .frame(width: 44, height: 44)
-                    
-                    Image(systemName: "lightbulb.fill")
-                        .font(.system(size: 20))
-                        .foregroundStyle(.yellow)
-                }
+            HStack(spacing: 12) {
+                Image(systemName: "lightbulb.fill")
+                    .font(.system(size: 18))
+                    .foregroundStyle(.yellow)
                 
                 Text(_tips[_currentTipIndex])
-                    .font(.subheadline)
+                    .font(.system(size: _compactMode ? 13 : 14))
                     .foregroundStyle(.primary)
                     .fixedSize(horizontal: false, vertical: true)
                 
                 Spacer()
             }
-            .padding(16)
-            .background(
-                RoundedRectangle(cornerRadius: 16, style: .continuous)
-                    .fill(Color(UIColor.secondarySystemGroupedBackground))
-            )
-            .overlay(
-                RoundedRectangle(cornerRadius: 16, style: .continuous)
-                    .stroke(Color.yellow.opacity(0.2), lineWidth: 1)
-            )
+            .padding(_compactMode ? 12 : 16)
             .onTapGesture {
                 withAnimation {
                     _currentTipIndex = (_currentTipIndex + 1) % _tips.count
@@ -792,6 +812,102 @@ struct HomeView: View {
         .opacity(_appearAnimation ? 1 : 0)
         .offset(y: _appearAnimation ? 0 : 20)
         .animation(_animationsEnabled ? .spring(response: 0.5, dampingFraction: 0.8).delay(0.6) : .none, value: _appearAnimation)
+    }
+    
+    // MARK: - Device Info Section
+    private var deviceInfoSection: some View {
+        VStack(alignment: .leading, spacing: _compactMode ? 8 : 16) {
+            if !_compactMode {
+                sectionHeader("Device Info", icon: "iphone")
+            }
+            
+            VStack(spacing: 8) {
+                DeviceInfoRow(title: "Device", value: UIDevice.current.name, icon: "iphone", color: .indigo)
+                DeviceInfoRow(title: "iOS Version", value: UIDevice.current.systemVersion, icon: "gear", color: .blue)
+                DeviceInfoRow(title: "Model", value: UIDevice.current.model, icon: "cpu", color: .purple)
+            }
+            .padding(_compactMode ? 12 : 16)
+        }
+        .opacity(_appearAnimation ? 1 : 0)
+        .offset(y: _appearAnimation ? 0 : 20)
+        .animation(_animationsEnabled ? .spring(response: 0.5, dampingFraction: 0.8).delay(0.7) : .none, value: _appearAnimation)
+    }
+    
+    // MARK: - App Stats Section
+    private var appStatsSection: some View {
+        VStack(alignment: .leading, spacing: _compactMode ? 8 : 16) {
+            if !_compactMode {
+                sectionHeader("App Statistics", icon: "chart.pie.fill")
+            }
+            
+            HStack(spacing: _compactMode ? 8 : 12) {
+                AppStatCard(
+                    title: "Signed",
+                    value: "\(_signedApps.count)",
+                    icon: "signature",
+                    color: .purple,
+                    compact: _compactMode
+                )
+                
+                AppStatCard(
+                    title: "Imported",
+                    value: "\(_importedApps.count)",
+                    icon: "square.and.arrow.down",
+                    color: .orange,
+                    compact: _compactMode
+                )
+                
+                AppStatCard(
+                    title: "Sources",
+                    value: "\(_sources.count)",
+                    icon: "globe.desk",
+                    color: .cyan,
+                    compact: _compactMode
+                )
+            }
+        }
+        .opacity(_appearAnimation ? 1 : 0)
+        .offset(y: _appearAnimation ? 0 : 20)
+        .animation(_animationsEnabled ? .spring(response: 0.5, dampingFraction: 0.8).delay(0.8) : .none, value: _appearAnimation)
+    }
+    
+    // MARK: - Favorite Apps Section
+    private var favoriteAppsSection: some View {
+        VStack(alignment: .leading, spacing: _compactMode ? 8 : 16) {
+            if !_compactMode {
+                sectionHeader("Favorite Apps", icon: "star.fill")
+            }
+            
+            if _signedApps.isEmpty && _importedApps.isEmpty {
+                HStack {
+                    Image(systemName: "star")
+                        .font(.system(size: 20))
+                        .foregroundStyle(.secondary)
+                    
+                    Text("No apps yet. Import or sign an app to get started.")
+                        .font(.system(size: 14))
+                        .foregroundStyle(.secondary)
+                    
+                    Spacer()
+                }
+                .padding(_compactMode ? 12 : 16)
+            } else {
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 12) {
+                        ForEach(_signedApps.prefix(5)) { app in
+                            FavoriteAppCard(name: app.name ?? "Unknown", isSigned: true, compact: _compactMode)
+                        }
+                        ForEach(_importedApps.prefix(5)) { app in
+                            FavoriteAppCard(name: app.name ?? "Unknown", isSigned: false, compact: _compactMode)
+                        }
+                    }
+                    .padding(.horizontal, 4)
+                }
+            }
+        }
+        .opacity(_appearAnimation ? 1 : 0)
+        .offset(y: _appearAnimation ? 0 : 20)
+        .animation(_animationsEnabled ? .spring(response: 0.5, dampingFraction: 0.8).delay(0.9) : .none, value: _appearAnimation)
     }
     
     // MARK: - Helper Views
@@ -872,90 +988,44 @@ struct HomeQuickActionCardContent: View {
     let color: Color
     
     var body: some View {
-        VStack(spacing: 14) {
-            ZStack {
-                // Outer glow ring
-                Circle()
-                    .fill(
-                        RadialGradient(
-                            colors: [color.opacity(0.25), color.opacity(0.05), .clear],
-                            center: .center,
-                            startRadius: 0,
-                            endRadius: 35
-                        )
-                    )
-                    .frame(width: 70, height: 70)
-                
-                // Inner circle with gradient
-                Circle()
-                    .fill(
-                        LinearGradient(
-                            colors: [color.opacity(0.2), color.opacity(0.1)],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        )
-                    )
-                    .frame(width: 52, height: 52)
-                
-                // Glass overlay
-                Circle()
-                    .fill(.ultraThinMaterial.opacity(0.3))
-                    .frame(width: 52, height: 52)
-                
-                Image(systemName: icon)
-                    .font(.system(size: 24, weight: .semibold))
-                    .foregroundStyle(color)
-                    .shadow(color: color.opacity(0.3), radius: 4, x: 0, y: 2)
-            }
+        VStack(spacing: 10) {
+            Image(systemName: icon)
+                .font(.system(size: 28, weight: .medium))
+                .foregroundStyle(color)
             
             Text(title)
-                .font(.system(size: 14, weight: .semibold, design: .rounded))
+                .font(.system(size: 13, weight: .semibold))
                 .foregroundStyle(.primary)
                 .multilineTextAlignment(.center)
                 .lineLimit(2)
         }
         .frame(maxWidth: .infinity)
-        .padding(.vertical, 22)
-        .padding(.horizontal, 12)
-        .background(
-            ZStack {
-                // Base background
-                RoundedRectangle(cornerRadius: 20, style: .continuous)
-                    .fill(Color(UIColor.secondarySystemGroupedBackground))
+        .padding(.vertical, 16)
+        .padding(.horizontal, 10)
+    }
+}
+
+// MARK: - Compact Quick Action Button
+struct CompactQuickActionButton: View {
+    let title: String
+    let icon: String
+    let color: Color
+    let action: () -> Void
+    
+    var body: some View {
+        Button(action: action) {
+            VStack(spacing: 4) {
+                Image(systemName: icon)
+                    .font(.system(size: 20, weight: .medium))
+                    .foregroundStyle(color)
                 
-                // Subtle gradient overlay
-                RoundedRectangle(cornerRadius: 20, style: .continuous)
-                    .fill(
-                        LinearGradient(
-                            colors: [color.opacity(0.05), .clear],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        )
-                    )
-                
-                // Top highlight
-                RoundedRectangle(cornerRadius: 20, style: .continuous)
-                    .fill(
-                        LinearGradient(
-                            colors: [.white.opacity(0.08), .clear],
-                            startPoint: .top,
-                            endPoint: .center
-                        )
-                    )
+                Text(title)
+                    .font(.system(size: 10, weight: .medium))
+                    .foregroundStyle(.secondary)
             }
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: 20, style: .continuous)
-                .stroke(
-                    LinearGradient(
-                        colors: [color.opacity(0.3), color.opacity(0.1), .clear],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    ),
-                    lineWidth: 1
-                )
-        )
-        .shadow(color: color.opacity(0.08), radius: 12, x: 0, y: 6)
+            .frame(width: 56)
+        }
+        .buttonStyle(HomeCardButtonStyle())
     }
 }
 
@@ -968,80 +1038,29 @@ struct StatusCard: View {
     let color: Color
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            // Icon with modern styling
-            ZStack {
-                RoundedRectangle(cornerRadius: 10, style: .continuous)
-                    .fill(
-                        LinearGradient(
-                            colors: [color.opacity(0.2), color.opacity(0.1)],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        )
-                    )
-                    .frame(width: 36, height: 36)
-                
-                Image(systemName: icon)
-                    .font(.system(size: 16, weight: .semibold))
-                    .foregroundStyle(color)
-            }
+        VStack(alignment: .leading, spacing: 8) {
+            Image(systemName: icon)
+                .font(.system(size: 20, weight: .medium))
+                .foregroundStyle(color)
             
-            Spacer(minLength: 4)
+            Spacer(minLength: 2)
             
             Text(value)
-                .font(.system(size: 26, weight: .bold, design: .rounded))
+                .font(.system(size: 24, weight: .bold, design: .rounded))
                 .foregroundStyle(.primary)
             
-            VStack(alignment: .leading, spacing: 2) {
+            VStack(alignment: .leading, spacing: 1) {
                 Text(title)
-                    .font(.system(size: 12, weight: .semibold))
+                    .font(.system(size: 11, weight: .medium))
                     .foregroundStyle(.secondary)
                 
                 Text(subtitle)
-                    .font(.system(size: 10, weight: .medium))
+                    .font(.system(size: 10, weight: .regular))
                     .foregroundStyle(.tertiary)
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(18)
-        .background(
-            ZStack {
-                RoundedRectangle(cornerRadius: 20, style: .continuous)
-                    .fill(Color(UIColor.secondarySystemGroupedBackground))
-                
-                // Accent gradient
-                RoundedRectangle(cornerRadius: 20, style: .continuous)
-                    .fill(
-                        LinearGradient(
-                            colors: [color.opacity(0.08), .clear],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        )
-                    )
-                
-                // Glass highlight
-                RoundedRectangle(cornerRadius: 20, style: .continuous)
-                    .fill(
-                        LinearGradient(
-                            colors: [.white.opacity(0.06), .clear],
-                            startPoint: .top,
-                            endPoint: .center
-                        )
-                    )
-            }
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: 20, style: .continuous)
-                .stroke(
-                    LinearGradient(
-                        colors: [color.opacity(0.25), color.opacity(0.08)],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    ),
-                    lineWidth: 1
-                )
-        )
-        .shadow(color: color.opacity(0.06), radius: 10, x: 0, y: 4)
+        .padding(14)
     }
 }
 
@@ -1053,55 +1072,107 @@ struct AtAGlanceRow: View {
     let color: Color
     
     var body: some View {
-        HStack(spacing: 14) {
-            ZStack {
-                // Outer glow
-                Circle()
-                    .fill(
-                        RadialGradient(
-                            colors: [color.opacity(0.2), color.opacity(0.05), .clear],
-                            center: .center,
-                            startRadius: 0,
-                            endRadius: 24
-                        )
-                    )
-                    .frame(width: 48, height: 48)
-                
-                // Inner circle
-                Circle()
-                    .fill(
-                        LinearGradient(
-                            colors: [color.opacity(0.18), color.opacity(0.08)],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        )
-                    )
-                    .frame(width: 38, height: 38)
-                
-                Image(systemName: icon)
-                    .font(.system(size: 16, weight: .semibold))
-                    .foregroundStyle(color)
-            }
+        HStack(spacing: 12) {
+            Image(systemName: icon)
+                .font(.system(size: 18, weight: .medium))
+                .foregroundStyle(color)
+                .frame(width: 28)
             
-            VStack(alignment: .leading, spacing: 3) {
+            VStack(alignment: .leading, spacing: 2) {
                 Text(title)
-                    .font(.system(size: 12, weight: .medium))
+                    .font(.system(size: 12, weight: .regular))
                     .foregroundStyle(.secondary)
                 
                 Text(value)
-                    .font(.system(size: 15, weight: .semibold, design: .rounded))
+                    .font(.system(size: 15, weight: .semibold))
                     .foregroundStyle(.primary)
                     .lineLimit(1)
             }
             
             Spacer()
-            
-            // Subtle chevron
-            Image(systemName: "chevron.right")
-                .font(.system(size: 12, weight: .medium))
-                .foregroundStyle(.quaternary)
         }
-        .padding(.vertical, 4)
+        .padding(.vertical, 2)
+    }
+}
+
+// MARK: - Device Info Row
+struct DeviceInfoRow: View {
+    let title: String
+    let value: String
+    let icon: String
+    let color: Color
+    
+    var body: some View {
+        HStack(spacing: 12) {
+            Image(systemName: icon)
+                .font(.system(size: 16, weight: .medium))
+                .foregroundStyle(color)
+                .frame(width: 24)
+            
+            Text(title)
+                .font(.system(size: 14, weight: .regular))
+                .foregroundStyle(.secondary)
+            
+            Spacer()
+            
+            Text(value)
+                .font(.system(size: 14, weight: .medium))
+                .foregroundStyle(.primary)
+        }
+    }
+}
+
+// MARK: - App Stat Card
+struct AppStatCard: View {
+    let title: String
+    let value: String
+    let icon: String
+    let color: Color
+    var compact: Bool = false
+    
+    var body: some View {
+        VStack(spacing: compact ? 4 : 8) {
+            Image(systemName: icon)
+                .font(.system(size: compact ? 18 : 22, weight: .medium))
+                .foregroundStyle(color)
+            
+            Text(value)
+                .font(.system(size: compact ? 20 : 24, weight: .bold, design: .rounded))
+                .foregroundStyle(.primary)
+            
+            Text(title)
+                .font(.system(size: compact ? 10 : 12, weight: .medium))
+                .foregroundStyle(.secondary)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, compact ? 10 : 14)
+    }
+}
+
+// MARK: - Favorite App Card
+struct FavoriteAppCard: View {
+    let name: String
+    let isSigned: Bool
+    var compact: Bool = false
+    
+    var body: some View {
+        VStack(spacing: compact ? 4 : 8) {
+            ZStack {
+                RoundedRectangle(cornerRadius: compact ? 10 : 14, style: .continuous)
+                    .fill(Color(UIColor.tertiarySystemFill))
+                    .frame(width: compact ? 44 : 56, height: compact ? 44 : 56)
+                
+                Image(systemName: isSigned ? "checkmark.seal.fill" : "app.fill")
+                    .font(.system(size: compact ? 18 : 24))
+                    .foregroundStyle(isSigned ? .green : .orange)
+            }
+            
+            Text(name)
+                .font(.system(size: compact ? 10 : 12, weight: .medium))
+                .foregroundStyle(.primary)
+                .lineLimit(1)
+                .frame(width: compact ? 50 : 64)
+        }
     }
 }
 
