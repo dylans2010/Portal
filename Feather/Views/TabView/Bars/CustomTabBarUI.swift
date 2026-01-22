@@ -2,15 +2,16 @@ import SwiftUI
 
 // MARK: - Custom Tab Bar View (Liquid Glass Design)
 struct CustomTabBarUI: View {
-    @AppStorage("Feather.tabBar.home") private var showHome = true
+    @AppStorage("Feather.tabBar.dashboard") private var showDashboard = true
+    @AppStorage("Feather.tabBar.sources") private var showSources = true
     @AppStorage("Feather.tabBar.library") private var showLibrary = true
     @AppStorage("Feather.tabBar.files") private var showFiles = false
     @AppStorage("Feather.tabBar.guides") private var showGuides = true
-    @AppStorage("Feather.tabBar.order") private var tabOrder: String = "home,guides,library,files,settings"
+    @AppStorage("Feather.tabBar.order") private var tabOrder: String = "dashboard,sources,guides,library,files,settings"
     @AppStorage("Feather.certificateExperience") private var certificateExperience: String = "Developer"
     @AppStorage("forceShowGuides") private var forceShowGuides = false
     
-    @State private var selectedTab: TabEnum = .home
+    @State private var selectedTab: TabEnum = .dashboard
     @State private var showInstallModifySheet = false
     @State private var appToInstall: (any AppInfoPresentable)?
     @State private var hoverScale: CGFloat = 1.0
@@ -22,7 +23,8 @@ struct CustomTabBarUI: View {
     
     var visibleTabs: [TabEnum] {
         var enabledTabs: [TabEnum] = []
-        if showHome { enabledTabs.append(.home) }
+        if showDashboard { enabledTabs.append(.dashboard) }
+        if showSources { enabledTabs.append(.sources) }
         if showGuides && (forceShowGuides || certificateExperience == "Enterprise") {
             enabledTabs.append(.guides)
         }
@@ -213,7 +215,8 @@ struct TabButtonStyle: ButtonStyle {
 extension TabEnum {
     var selectedIcon: String {
         switch self {
-        case .home: return "house.fill"
+        case .dashboard: return "house.fill"
+        case .sources: return "globe.desk.fill"
         case .library: return "square.stack.3d.up.fill"
         case .files: return "folder.fill"
         case .guides: return "book.fill"
