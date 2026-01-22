@@ -249,217 +249,16 @@ struct HomeSettingsView: View {
     
     var body: some View {
         NBList(.localized("Home Settings")) {
-            // Profile Picture Section - Modernized
-            Section {
-                Toggle(isOn: $useProfilePicture) {
-                    settingsRow(icon: "person.crop.circle.fill", title: "Use Profile Picture", color: .blue)
-                }
-                
-                if useProfilePicture {
-                    VStack(spacing: 20) {
-                        // Large profile picture preview with modern styling
-                        ZStack {
-                            // Background circle
-                            Circle()
-                                .fill(
-                                    LinearGradient(
-                                        colors: [Color.accentColor.opacity(0.1), Color.accentColor.opacity(0.05)],
-                                        startPoint: .topLeading,
-                                        endPoint: .bottomTrailing
-                                    )
-                                )
-                                .frame(width: 110, height: 110)
-                            
-                            if let image = profileManager.profileImage {
-                                Image(uiImage: image)
-                                    .resizable()
-                                    .aspectRatio(contentMode: .fill)
-                                    .frame(width: 100, height: 100)
-                                    .clipShape(Circle())
-                                    .overlay(
-                                        Circle()
-                                            .stroke(Color.accentColor.opacity(0.4), lineWidth: 3)
-                                    )
-                                    .shadow(color: Color.accentColor.opacity(0.2), radius: 8, x: 0, y: 4)
-                            } else {
-                                ZStack {
-                                    Circle()
-                                        .fill(Color(UIColor.tertiarySystemFill))
-                                        .frame(width: 100, height: 100)
-                                    
-                                    Image(systemName: "person.fill")
-                                        .font(.system(size: 44, weight: .light))
-                                        .foregroundStyle(.secondary)
-                                }
-                            }
-                            
-                            // Camera badge
-                            VStack {
-                                Spacer()
-                                HStack {
-                                    Spacer()
-                                    Button {
-                                        showImagePicker = true
-                                    } label: {
-                                        ZStack {
-                                            Circle()
-                                                .fill(Color.accentColor)
-                                                .frame(width: 32, height: 32)
-                                            
-                                            Image(systemName: "camera.fill")
-                                                .font(.system(size: 14, weight: .medium))
-                                                .foregroundStyle(.white)
-                                        }
-                                        .shadow(color: .black.opacity(0.2), radius: 4, x: 0, y: 2)
-                                    }
-                                }
-                            }
-                            .frame(width: 100, height: 100)
-                        }
-                        .padding(.top, 8)
-                        
-                        // Action buttons
-                        HStack(spacing: 12) {
-                            Button {
-                                showImagePicker = true
-                            } label: {
-                                HStack(spacing: 6) {
-                                    Image(systemName: "photo.on.rectangle.angled")
-                                        .font(.system(size: 14, weight: .medium))
-                                    Text(profileManager.profileImage == nil ? "Choose Photo" : "Change")
-                                        .font(.system(size: 14, weight: .semibold))
-                                }
-                                .foregroundStyle(.white)
-                                .frame(maxWidth: .infinity)
-                                .padding(.vertical, 12)
-                                .background(Color.accentColor)
-                                .cornerRadius(10)
-                            }
-                            
-                            if profileManager.profileImage != nil {
-                                Button {
-                                    showRemoveProfileConfirmation = true
-                                } label: {
-                                    HStack(spacing: 6) {
-                                        Image(systemName: "trash")
-                                            .font(.system(size: 14, weight: .medium))
-                                        Text("Remove")
-                                            .font(.system(size: 14, weight: .semibold))
-                                    }
-                                    .foregroundStyle(.red)
-                                    .frame(maxWidth: .infinity)
-                                    .padding(.vertical, 12)
-                                    .background(Color.red.opacity(0.1))
-                                    .cornerRadius(10)
-                                }
-                            }
-                        }
-                        .padding(.bottom, 4)
-                    }
-                    .padding(.vertical, 8)
-                }
-            } header: {
-                sectionHeader("Profile Picture", icon: "person.crop.circle.fill")
-            } footer: {
-                Text(.localized("Set a profile picture to display on the top right of the Home tab instead of the app icon."))
-            }
-            
-            // Appearance Section
-            Section {
-                Toggle(isOn: $greetingEnabled) {
-                    settingsRow(icon: "hand.wave.fill", title: "Show Greeting", color: .orange)
-                }
-                
-                Toggle(isOn: $showAppIcon) {
-                    settingsRow(icon: "app.fill", title: "Show App Icon", color: .blue)
-                }
-                
-                Toggle(isOn: $animationsEnabled) {
-                    settingsRow(icon: "sparkles", title: "Enable Animations", color: .purple)
-                }
-                
-                Toggle(isOn: $compactMode) {
-                    settingsRow(icon: "rectangle.compress.vertical", title: "Compact Mode", color: .gray)
-                }
-            } header: {
-                sectionHeader("Appearance", icon: "paintbrush.fill")
-            } footer: {
-                Text(.localized("Customize how the Home screen looks and feels."))
-            }
-            
-            // Widget Management Section
-            Section {
-                Button {
-                    withAnimation {
-                        isReordering.toggle()
-                    }
-                } label: {
-                    HStack {
-                        settingsRow(icon: "arrow.up.arrow.down", title: "Reorder Widgets", color: .orange)
-                        Spacer()
-                        Image(systemName: isReordering ? "checkmark.circle.fill" : "chevron.right")
-                            .foregroundStyle(isReordering ? .green : .secondary)
-                            .font(.system(size: 14))
-                    }
-                }
-                .foregroundStyle(.primary)
-                
-                if isReordering {
-                    ForEach(settingsManager.widgets) { widget in
-                        reorderableWidgetRow(widget)
-                    }
-                    .onMove(perform: settingsManager.moveWidget)
-                }
-            } header: {
-                sectionHeader("Widget Order", icon: "square.stack.3d.up.fill")
-            } footer: {
-                if isReordering {
-                    Text(.localized("Drag widgets to reorder them on the Home screen."))
-                } else {
-                    Text(.localized("Tap to customize the order of widgets."))
-                }
-            }
-            .environment(\.editMode, .constant(isReordering ? .active : .inactive))
-            
-            // Widgets Toggle Section
-            Section {
-                ForEach(HomeWidgetType.allCases) { widgetType in
-                    widgetToggleRow(widgetType)
-                }
-            } header: {
-                sectionHeader("Widgets", icon: "square.grid.2x2.fill")
-            } footer: {
-                Text(.localized("Enable or disable widgets on the Home screen. Long press a widget to pin it to the top."))
-            }
-            
-            // Reset Section
-            Section {
-                Button {
-                    showResetConfirmation = true
-                } label: {
-                    HStack {
-                        Image(systemName: "arrow.counterclockwise")
-                            .foregroundStyle(.red)
-                            .frame(width: 24)
-                        Text(.localized("Reset to Defaults"))
-                            .foregroundStyle(.red)
-                    }
-                }
-            } footer: {
-                Text(.localized("Reset all Home settings to their default values."))
-            }
+            profilePictureSection
+            appearanceSection
+            widgetOrderSection
+            widgetsToggleSection
+            resetSection
         }
         .alert(.localized("Reset Home Settings"), isPresented: $showResetConfirmation) {
             Button(.localized("Cancel"), role: .cancel) { }
             Button(.localized("Reset"), role: .destructive) {
-                settingsManager.resetToDefaults()
-                greetingEnabled = true
-                animationsEnabled = true
-                compactMode = false
-                showAppIcon = true
-                useProfilePicture = false
-                profileManager.removeProfilePicture()
-                HapticsManager.shared.success()
+                resetAllSettings()
             }
         } message: {
             Text(.localized("This will reset all Home screen settings to their default values."))
@@ -483,100 +282,269 @@ struct HomeSettingsView: View {
         }
     }
     
-    // MARK: - Helper Views
-    @ViewBuilder
-    private func settingsRow(icon: String, title: String, color: Color) -> some View {
-        HStack(spacing: 14) {
-            Image(systemName: icon)
-                .font(.system(size: 18, weight: .medium))
-                .foregroundStyle(color)
-                .frame(width: 26)
+    // MARK: - Sections
+    private var profilePictureSection: some View {
+        Section {
+            Toggle(isOn: $useProfilePicture) {
+                SettingsRowView(icon: "person.crop.circle.fill", title: "Use Profile Picture", color: .blue)
+            }
             
-            Text(.localized(title))
-                .font(.system(size: 16, weight: .regular))
-                .foregroundStyle(.primary)
+            if useProfilePicture {
+                profilePictureContent
+            }
+        } header: {
+            Text(.localized("Profile Picture"))
+        } footer: {
+            Text(.localized("Set a profile picture to display on the Home tab."))
         }
     }
     
-    @ViewBuilder
-    private func sectionHeader(_ title: String, icon: String) -> some View {
-        HStack(spacing: 6) {
-            Image(systemName: icon)
-                .font(.system(size: 11, weight: .semibold))
-                .foregroundStyle(.secondary)
-            Text(title.uppercased())
-                .font(.system(size: 12, weight: .semibold, design: .rounded))
-                .foregroundStyle(.secondary)
+    private var profilePictureContent: some View {
+        VStack(spacing: 16) {
+            profileImageView
+            profileActionButtons
+        }
+        .padding(.vertical, 8)
+    }
+    
+    private var profileImageView: some View {
+        ZStack {
+            if let image = profileManager.profileImage {
+                Image(uiImage: image)
+                    .resizable()
+                    .aspectRatio(contentMode: .fill)
+                    .frame(width: 88, height: 88)
+                    .clipShape(Circle())
+                    .overlay(Circle().stroke(Color.accentColor.opacity(0.3), lineWidth: 2))
+            } else {
+                Circle()
+                    .fill(Color(UIColor.tertiarySystemFill))
+                    .frame(width: 88, height: 88)
+                    .overlay(
+                        Image(systemName: "person.fill")
+                            .font(.system(size: 36))
+                            .foregroundStyle(.secondary)
+                    )
+            }
         }
     }
     
-    @ViewBuilder
-    private func reorderableWidgetRow(_ widget: HomeWidgetConfig) -> some View {
+    private var profileActionButtons: some View {
         HStack(spacing: 12) {
-            Image(systemName: widget.type.icon)
+            Button {
+                showImagePicker = true
+            } label: {
+                Label(profileManager.profileImage == nil ? "Choose" : "Change", systemImage: "photo")
+                    .font(.system(size: 14, weight: .medium))
+                    .foregroundStyle(.white)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 10)
+                    .background(Color.accentColor)
+                    .cornerRadius(8)
+            }
+            
+            if profileManager.profileImage != nil {
+                Button {
+                    showRemoveProfileConfirmation = true
+                } label: {
+                    Label("Remove", systemImage: "trash")
+                        .font(.system(size: 14, weight: .medium))
+                        .foregroundStyle(.red)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 10)
+                        .background(Color.red.opacity(0.1))
+                        .cornerRadius(8)
+                }
+            }
+        }
+    }
+    
+    private var appearanceSection: some View {
+        Section {
+            Toggle(isOn: $greetingEnabled) {
+                SettingsRowView(icon: "hand.wave.fill", title: "Show Greeting", color: .orange)
+            }
+            
+            Toggle(isOn: $showAppIcon) {
+                SettingsRowView(icon: "app.fill", title: "Show App Icon", color: .blue)
+            }
+            
+            Toggle(isOn: $animationsEnabled) {
+                SettingsRowView(icon: "sparkles", title: "Animations", color: .purple)
+            }
+            
+            Toggle(isOn: $compactMode) {
+                SettingsRowView(icon: "rectangle.compress.vertical", title: "Compact Mode", color: .gray)
+            }
+        } header: {
+            Text(.localized("Appearance"))
+        } footer: {
+            Text(.localized("Customize how the Home screen looks."))
+        }
+    }
+    
+    private var widgetOrderSection: some View {
+        Section {
+            Button {
+                withAnimation(.spring(response: 0.3)) {
+                    isReordering.toggle()
+                }
+            } label: {
+                HStack {
+                    SettingsRowView(icon: "arrow.up.arrow.down", title: "Reorder Widgets", color: .orange)
+                    Spacer()
+                    Image(systemName: isReordering ? "checkmark.circle.fill" : "chevron.right")
+                        .foregroundStyle(isReordering ? .green : .secondary)
+                        .font(.system(size: 14))
+                }
+            }
+            .foregroundStyle(.primary)
+            
+            if isReordering {
+                ForEach(settingsManager.widgets) { widget in
+                    ReorderableWidgetRow(widget: widget)
+                }
+                .onMove(perform: settingsManager.moveWidget)
+            }
+        } header: {
+            Text(.localized("Widget Order"))
+        } footer: {
+            Text(.localized(isReordering ? "Drag to reorder widgets." : "Tap to customize widget order."))
+        }
+        .environment(\.editMode, .constant(isReordering ? .active : .inactive))
+    }
+    
+    private var widgetsToggleSection: some View {
+        Section {
+            ForEach(HomeWidgetType.allCases) { widgetType in
+                WidgetToggleRow(
+                    widgetType: widgetType,
+                    isEnabled: settingsManager.isEnabled(widgetType),
+                    isPinned: settingsManager.isPinned(widgetType),
+                    onToggle: { settingsManager.toggleWidget(widgetType) },
+                    onTogglePin: { settingsManager.togglePin(widgetType) }
+                )
+            }
+        } header: {
+            Text(.localized("Widgets"))
+        } footer: {
+            Text(.localized("Enable or disable widgets. Long press to pin."))
+        }
+    }
+    
+    private var resetSection: some View {
+        Section {
+            Button(role: .destructive) {
+                showResetConfirmation = true
+            } label: {
+                HStack {
+                    Image(systemName: "arrow.counterclockwise")
+                        .frame(width: 24)
+                    Text(.localized("Reset to Defaults"))
+                }
+            }
+        }
+    }
+    
+    // MARK: - Actions
+    private func resetAllSettings() {
+        settingsManager.resetToDefaults()
+        greetingEnabled = true
+        animationsEnabled = true
+        compactMode = false
+        showAppIcon = true
+        useProfilePicture = false
+        profileManager.removeProfilePicture()
+        HapticsManager.shared.success()
+    }
+}
+
+// MARK: - Supporting Views
+private struct SettingsRowView: View {
+    let icon: String
+    let title: String
+    let color: Color
+    
+    var body: some View {
+        HStack(spacing: 12) {
+            Image(systemName: icon)
                 .font(.system(size: 16, weight: .medium))
-                .foregroundStyle(widget.type.color)
+                .foregroundStyle(color)
                 .frame(width: 24)
             
-            VStack(alignment: .leading, spacing: 2) {
-                Text(widget.type.title)
-                    .font(.system(size: 15, weight: .medium))
-                    .foregroundStyle(widget.isEnabled ? .primary : .secondary)
-                
-                if widget.isPinned {
-                    HStack(spacing: 4) {
-                        Image(systemName: "pin.fill")
-                            .font(.system(size: 10))
-                        Text(.localized("Pinned"))
-                            .font(.system(size: 11))
-                    }
+            Text(.localized(title))
+                .font(.body)
+        }
+    }
+}
+
+private struct ReorderableWidgetRow: View {
+    let widget: HomeWidgetConfig
+    
+    var body: some View {
+        HStack(spacing: 12) {
+            Image(systemName: widget.type.icon)
+                .font(.system(size: 14))
+                .foregroundStyle(widget.type.color)
+                .frame(width: 20)
+            
+            Text(widget.type.title)
+                .font(.subheadline)
+                .foregroundStyle(widget.isEnabled ? .primary : .secondary)
+            
+            if widget.isPinned {
+                Image(systemName: "pin.fill")
+                    .font(.system(size: 9))
                     .foregroundStyle(.orange)
-                }
             }
             
             Spacer()
             
             if !widget.isEnabled {
-                Text(.localized("Disabled"))
+                Text(.localized("Off"))
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
         }
-        .padding(.vertical, 4)
+        .padding(.vertical, 2)
     }
+}
+
+private struct WidgetToggleRow: View {
+    let widgetType: HomeWidgetType
+    let isEnabled: Bool
+    let isPinned: Bool
+    let onToggle: () -> Void
+    let onTogglePin: () -> Void
     
-    @ViewBuilder
-    private func widgetToggleRow(_ widgetType: HomeWidgetType) -> some View {
-        let isEnabled = settingsManager.isEnabled(widgetType)
-        let isPinned = settingsManager.isPinned(widgetType)
-        
+    var body: some View {
         HStack(spacing: 12) {
             ZStack {
-                Circle()
-                    .fill(widgetType.color.opacity(0.15))
-                    .frame(width: 36, height: 36)
+                RoundedRectangle(cornerRadius: 8)
+                    .fill(widgetType.color.opacity(0.12))
+                    .frame(width: 32, height: 32)
                 
                 Image(systemName: widgetType.icon)
-                    .font(.system(size: 16, weight: .medium))
+                    .font(.system(size: 14, weight: .medium))
                     .foregroundStyle(widgetType.color)
             }
             
-            VStack(alignment: .leading, spacing: 2) {
-                HStack(spacing: 6) {
+            VStack(alignment: .leading, spacing: 1) {
+                HStack(spacing: 4) {
                     Text(widgetType.title)
-                        .font(.system(size: 15, weight: .medium))
+                        .font(.subheadline.weight(.medium))
                     
                     if isPinned {
                         Image(systemName: "pin.fill")
-                            .font(.system(size: 10))
+                            .font(.system(size: 8))
                             .foregroundStyle(.orange)
                     }
                 }
                 
                 Text(widgetType.description)
-                    .font(.system(size: 12))
+                    .font(.caption)
                     .foregroundStyle(.secondary)
-                    .lineLimit(2)
+                    .lineLimit(1)
             }
             
             Spacer()
@@ -584,16 +552,16 @@ struct HomeSettingsView: View {
             Toggle("", isOn: Binding(
                 get: { isEnabled },
                 set: { _ in
-                    settingsManager.toggleWidget(widgetType)
+                    onToggle()
                     HapticsManager.shared.softImpact()
                 }
             ))
             .labelsHidden()
         }
-        .padding(.vertical, 4)
+        .padding(.vertical, 2)
         .contextMenu {
             Button {
-                settingsManager.togglePin(widgetType)
+                onTogglePin()
                 HapticsManager.shared.softImpact()
             } label: {
                 Label(
@@ -603,7 +571,7 @@ struct HomeSettingsView: View {
             }
             
             Button {
-                settingsManager.toggleWidget(widgetType)
+                onToggle()
                 HapticsManager.shared.softImpact()
             } label: {
                 Label(
