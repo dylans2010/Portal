@@ -8,8 +8,9 @@
 import SwiftUI
 
 struct ExperimentalTabbarView: View {
-    @State private var selectedTab: TabEnum = .home
-    @AppStorage("Feather.tabBar.home") private var showHome = true
+    @State private var selectedTab: TabEnum = .dashboard
+    @AppStorage("Feather.tabBar.dashboard") private var showDashboard = true
+    @AppStorage("Feather.tabBar.sources") private var showSources = true
     @AppStorage("Feather.tabBar.library") private var showLibrary = true
     @AppStorage("Feather.tabBar.files") private var showFiles = true
     @AppStorage("Feather.tabBar.guides") private var showGuides = true
@@ -22,7 +23,8 @@ struct ExperimentalTabbarView: View {
     
     var visibleTabs: [TabEnum] {
         var tabs: [TabEnum] = []
-        if showHome { tabs.append(.home) }
+        if showDashboard { tabs.append(.dashboard) }
+        if showSources { tabs.append(.sources) }
         if showLibrary { tabs.append(.library) }
         if showFiles { tabs.append(.files) }
         
@@ -100,7 +102,9 @@ struct ExperimentalTabContent: View {
     var body: some View {
         Group {
             switch tab {
-            case .home:
+            case .dashboard:
+                HomeView()
+            case .sources:
                 ExperimentalSourcesView()
             case .library:
                 ExperimentalLibraryView()

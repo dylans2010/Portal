@@ -3,13 +3,14 @@ import NimbleViews
 
 // MARK: - TabBarCustomizationView
 struct TabBarCustomizationView: View {
-    @AppStorage("Feather.tabBar.home") private var showHome = true
+    @AppStorage("Feather.tabBar.dashboard") private var showDashboard = true
+    @AppStorage("Feather.tabBar.sources") private var showSources = true
     @AppStorage("Feather.tabBar.library") private var showLibrary = true
     @AppStorage("Feather.tabBar.files") private var showFiles = false
     @AppStorage("Feather.tabBar.guides") private var showGuides = true
-    @AppStorage("Feather.tabBar.order") private var tabOrder: String = "home,guides,library,files,settings"
+    @AppStorage("Feather.tabBar.order") private var tabOrder: String = "dashboard,sources,guides,library,files,settings"
     @AppStorage("Feather.tabBar.hideLabels") private var hideTabLabels = false
-    @AppStorage("Feather.tabBar.defaultTab") private var defaultTab: String = "home"
+    @AppStorage("Feather.tabBar.defaultTab") private var defaultTab: String = "dashboard"
     // Settings cannot be disabled
     
     @State private var showMinimumWarning = false
@@ -18,7 +19,8 @@ struct TabBarCustomizationView: View {
     
     private var availableDefaultTabs: [String] {
         var tabs: [String] = []
-        if showHome { tabs.append("home") }
+        if showDashboard { tabs.append("dashboard") }
+        if showSources { tabs.append("sources") }
         if showGuides { tabs.append("guides") }
         if showLibrary { tabs.append("library") }
         if showFiles { tabs.append("files") }
@@ -51,7 +53,8 @@ struct TabBarCustomizationView: View {
             } footer: {
                 Text(.localized("Choose which tab opens by default when you launch the app (Beta)."))
             }
-            .onChange(of: showHome) { _ in validateDefaultTab() }
+            .onChange(of: showDashboard) { _ in validateDefaultTab() }
+            .onChange(of: showSources) { _ in validateDefaultTab() }
             .onChange(of: showLibrary) { _ in validateDefaultTab() }
             .onChange(of: showFiles) { _ in validateDefaultTab() }
             .onChange(of: showGuides) { _ in validateDefaultTab() }
@@ -160,9 +163,12 @@ struct TabBarCustomizationView: View {
     private func tabIcon(for tabId: String) -> some View {
         Group {
             switch tabId {
-            case "home":
+            case "dashboard":
                 Image(systemName: "house.fill")
                     .foregroundStyle(.blue)
+            case "sources":
+                Image(systemName: "globe.desk.fill")
+                    .foregroundStyle(.cyan)
             case "library":
                 Image(systemName: "square.grid.2x2")
                     .foregroundStyle(.purple)
@@ -185,7 +191,8 @@ struct TabBarCustomizationView: View {
     
     private func tabName(for tabId: String) -> String {
         switch tabId {
-        case "home": return String.localized("Home")
+        case "dashboard": return String.localized("Home")
+        case "sources": return String.localized("Sources")
         case "library": return String.localized("Library")
         case "files": return String.localized("Files")
         case "guides": return String.localized("Guides")
@@ -197,8 +204,8 @@ struct TabBarCustomizationView: View {
     @ViewBuilder
     private func tabRow(for tabId: String) -> some View {
         switch tabId {
-        case "home":
-            Toggle(isOn: $showHome) {
+        case "dashboard":
+            Toggle(isOn: $showDashboard) {
                 HStack {
                     Image(systemName: "house.fill")
                         .foregroundStyle(.blue)
@@ -206,8 +213,20 @@ struct TabBarCustomizationView: View {
                     Text(.localized("Home"))
                 }
             }
-            .disabled(!canDisable(.home))
-            .onChange(of: showHome) { _ in validateMinimumTabs() }
+            .disabled(!canDisable(.dashboard))
+            .onChange(of: showDashboard) { _ in validateMinimumTabs() }
+            
+        case "sources":
+            Toggle(isOn: $showSources) {
+                HStack {
+                    Image(systemName: "globe.desk.fill")
+                        .foregroundStyle(.cyan)
+                        .frame(width: 24)
+                    Text(.localized("Sources"))
+                }
+            }
+            .disabled(!canDisable(.sources))
+            .onChange(of: showSources) { _ in validateMinimumTabs() }
             
         case "library":
             Toggle(isOn: $showLibrary) {
@@ -264,7 +283,7 @@ struct TabBarCustomizationView: View {
     
     private func loadTabOrder() {
         let tabs = tabOrder.split(separator: ",").map(String.init)
-        orderedTabs = tabs.isEmpty ? ["home", "guides", "library", "files", "settings"] : tabs
+        orderedTabs = tabs.isEmpty ? ["dashboard", "sources", "guides", "library", "files", "settings"] : tabs
     }
     
     private func moveTab(from source: IndexSet, to destination: Int) {
@@ -295,28 +314,29 @@ struct TabBarCustomizationView: View {
     }
     
     private func resetTabOrder() {
-        orderedTabs = ["home", "guides", "library", "files", "settings"]
+        orderedTabs = ["dashboard", "sources", "guides", "library", "files", "settings"]
         saveTabOrder()
     }
     
     private func validateMinimumTabs() {
-        let visibleCount = [showHome, showLibrary, showFiles, showGuides].filter { $0 }.count + 1 // +1 for Settings
+        let visibleCount = [showDashboard, showSources, showLibrary, showFiles, showGuides].filter { $0 }.count + 1 // +1 for Settings
         if visibleCount < 2 {
             showMinimumWarning = true
             // Revert the last change
-            if !showHome && !showLibrary && !showFiles && !showGuides {
+            if !showDashboard && !showSources && !showLibrary && !showFiles && !showGuides {
                 // Need at least one non-settings tab
-                showHome = true
+                showDashboard = true
             }
         }
     }
     
     private func canDisable(_ tab: TabEnum) -> Bool {
-        let visibleCount = [showHome, showLibrary, showFiles, showGuides].filter { $0 }.count + 1
+        let visibleCount = [showDashboard, showSources, showLibrary, showFiles, showGuides].filter { $0 }.count + 1
         if visibleCount <= 2 {
             // Check if this specific tab is currently enabled
             switch tab {
-            case .home: return !showHome
+            case .dashboard: return !showDashboard
+            case .sources: return !showSources
             case .library: return !showLibrary
             case .files: return !showFiles
             case .guides: return !showGuides

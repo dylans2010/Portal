@@ -2,13 +2,14 @@
 import SwiftUI
 
 struct TabbarView: View {
-	@AppStorage("Feather.tabBar.home") private var showHome = true
+	@AppStorage("Feather.tabBar.dashboard") private var showDashboard = true
+	@AppStorage("Feather.tabBar.sources") private var showSources = true
 	@AppStorage("Feather.tabBar.library") private var showLibrary = true
 	@AppStorage("Feather.tabBar.files") private var showFiles = false
 	@AppStorage("Feather.tabBar.guides") private var showGuides = true
-	@AppStorage("Feather.tabBar.order") private var tabOrder: String = "home,guides,library,files,settings"
+	@AppStorage("Feather.tabBar.order") private var tabOrder: String = "dashboard,sources,guides,library,files,settings"
 	@AppStorage("Feather.tabBar.hideLabels") private var hideTabLabels = false
-	@AppStorage("Feather.tabBar.defaultTab") private var defaultTab: String = "home"
+	@AppStorage("Feather.tabBar.defaultTab") private var defaultTab: String = "dashboard"
 	@AppStorage("Feather.certificateExperience") private var certificateExperience: String = "Developer"
 	@AppStorage("forceShowGuides") private var forceShowGuides = false
 	
@@ -22,7 +23,8 @@ struct TabbarView: View {
 	
 	var visibleTabs: [TabEnum] {
 		var enabledTabs: [TabEnum] = []
-		if showHome { enabledTabs.append(.home) }
+		if showDashboard { enabledTabs.append(.dashboard) }
+		if showSources { enabledTabs.append(.sources) }
 		if showGuides && (forceShowGuides || certificateExperience == "Enterprise") {
 			enabledTabs.append(.guides)
 		}
@@ -54,7 +56,8 @@ struct TabbarView: View {
 	
 	private func getInitialTab() -> TabEnum {
 		switch defaultTab {
-		case "home": return visibleTabs.contains(.home) ? .home : visibleTabs.first ?? .settings
+		case "dashboard": return visibleTabs.contains(.dashboard) ? .dashboard : visibleTabs.first ?? .settings
+		case "sources": return visibleTabs.contains(.sources) ? .sources : visibleTabs.first ?? .settings
 		case "library": return visibleTabs.contains(.library) ? .library : visibleTabs.first ?? .settings
 		case "files": return visibleTabs.contains(.files) ? .files : visibleTabs.first ?? .settings
 		case "guides": return visibleTabs.contains(.guides) ? .guides : visibleTabs.first ?? .settings
