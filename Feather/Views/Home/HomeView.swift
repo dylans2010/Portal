@@ -10,9 +10,11 @@ struct HomeView: View {
     @AppStorage("Feather.homeAnimationsEnabled") private var _animationsEnabled = true
     @AppStorage("Feather.homeCompactMode") private var _compactMode = false
     @AppStorage("Feather.homeShowAppIcon") private var _showAppIcon = true
+    @AppStorage("Feather.useProfilePicture") private var _useProfilePicture = false
     
     @StateObject private var _settingsManager = HomeSettingsManager.shared
     @StateObject private var _networkMonitor = NetworkMonitor.shared
+    @StateObject private var _profileManager = ProfilePictureManager.shared
     
     // Fetch requests for data
     @FetchRequest(
@@ -42,6 +44,9 @@ struct HomeView: View {
     @State private var _showAddSource = false
     @State private var _showSignApp = false
     @State private var _showImportApp = false
+    @State private var _showSignAndInstallPicker = false
+    @State private var _selectedAppForSigning: Imported? = nil
+    @State private var _navigateToSigning = false
     @State private var _appearAnimation = false
     @State private var _currentTipIndex = 0
     
@@ -129,6 +134,20 @@ struct HomeView: View {
                 )
                 .ignoresSafeArea()
             }
+            .sheet(isPresented: $_showSignAndInstallPicker) {
+                SignAndInstallPickerView { importedApp in
+                    _selectedAppForSigning = importedApp
+                    _showSignAndInstallPicker = false
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                        _navigateToSigning = true
+                    }
+                }
+            }
+            .navigationDestination(isPresented: $_navigateToSigning) {
+                if let app = _selectedAppForSigning {
+                    ModernSigningView(app: app)
+                }
+            }
         }
         .onAppear {
             if _animationsEnabled {
@@ -188,8 +207,19 @@ struct HomeView: View {
             
             Spacer()
             
-            // App Icon
-            if _showAppIcon,
+            // Profile Picture or App Icon
+            if _useProfilePicture, let profileImage = _profileManager.profileImage {
+                Image(uiImage: profileImage)
+                    .resizable()
+                    .aspectRatio(contentMode: .fill)
+                    .frame(width: 44, height: 44)
+                    .clipShape(Circle())
+                    .overlay(
+                        Circle()
+                            .stroke(Color.accentColor.opacity(0.3), lineWidth: 2)
+                    )
+                    .shadow(color: Color.accentColor.opacity(0.3), radius: 6, x: 0, y: 3)
+            } else if _showAppIcon,
                let iconName = Bundle.main.iconFileName,
                let icon = UIImage(named: iconName) {
                 Image(uiImage: icon)
@@ -244,20 +274,14 @@ struct HomeView: View {
                     HapticsManager.shared.softImpact()
                 }
                 
-                NavigationLink {
-                    if let app = _importedApps.first {
-                        ModernSigningView(app: app)
-                    } else {
-                        noAppsToSignView
-                    }
-                } label: {
-                    HomeQuickActionCardContent(
-                        title: "Sign & Install",
-                        icon: "signature",
-                        color: .purple
-                    )
+                HomeQuickActionCard(
+                    title: "Sign & Install",
+                    icon: "signature",
+                    color: .purple
+                ) {
+                    _showSignAndInstallPicker = true
+                    HapticsManager.shared.softImpact()
                 }
-                .disabled(_importedApps.isEmpty && _signedApps.isEmpty)
             }
         }
         .opacity(_appearAnimation ? 1 : 0)
@@ -822,12 +846,23 @@ struct HomeQuickActionCard: View {
     let icon: String
     let color: Color
     let action: () -> Void
+    @State private var isPressed = false
     
     var body: some View {
         Button(action: action) {
             HomeQuickActionCardContent(title: title, icon: icon, color: color)
         }
-        .buttonStyle(.plain)
+        .buttonStyle(ModernCardButtonStyle())
+    }
+}
+
+// MARK: - Modern Card Button Style
+struct ModernCardButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .scaleEffect(configuration.isPressed ? 0.96 : 1.0)
+            .opacity(configuration.isPressed ? 0.9 : 1.0)
+            .animation(.spring(response: 0.3, dampingFraction: 0.7), value: configuration.isPressed)
     }
 }
 
@@ -837,34 +872,90 @@ struct HomeQuickActionCardContent: View {
     let color: Color
     
     var body: some View {
-        VStack(spacing: 12) {
+        VStack(spacing: 14) {
             ZStack {
+                // Outer glow ring
                 Circle()
-                    .fill(color.opacity(0.15))
-                    .frame(width: 50, height: 50)
+                    .fill(
+                        RadialGradient(
+                            colors: [color.opacity(0.25), color.opacity(0.05), .clear],
+                            center: .center,
+                            startRadius: 0,
+                            endRadius: 35
+                        )
+                    )
+                    .frame(width: 70, height: 70)
+                
+                // Inner circle with gradient
+                Circle()
+                    .fill(
+                        LinearGradient(
+                            colors: [color.opacity(0.2), color.opacity(0.1)],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+                    .frame(width: 52, height: 52)
+                
+                // Glass overlay
+                Circle()
+                    .fill(.ultraThinMaterial.opacity(0.3))
+                    .frame(width: 52, height: 52)
                 
                 Image(systemName: icon)
-                    .font(.system(size: 22, weight: .semibold))
+                    .font(.system(size: 24, weight: .semibold))
                     .foregroundStyle(color)
+                    .shadow(color: color.opacity(0.3), radius: 4, x: 0, y: 2)
             }
             
             Text(title)
-                .font(.system(size: 14, weight: .semibold))
+                .font(.system(size: 14, weight: .semibold, design: .rounded))
                 .foregroundStyle(.primary)
                 .multilineTextAlignment(.center)
                 .lineLimit(2)
         }
         .frame(maxWidth: .infinity)
-        .padding(.vertical, 20)
+        .padding(.vertical, 22)
         .padding(.horizontal, 12)
         .background(
-            RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .fill(Color(UIColor.secondarySystemGroupedBackground))
+            ZStack {
+                // Base background
+                RoundedRectangle(cornerRadius: 20, style: .continuous)
+                    .fill(Color(UIColor.secondarySystemGroupedBackground))
+                
+                // Subtle gradient overlay
+                RoundedRectangle(cornerRadius: 20, style: .continuous)
+                    .fill(
+                        LinearGradient(
+                            colors: [color.opacity(0.05), .clear],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+                
+                // Top highlight
+                RoundedRectangle(cornerRadius: 20, style: .continuous)
+                    .fill(
+                        LinearGradient(
+                            colors: [.white.opacity(0.08), .clear],
+                            startPoint: .top,
+                            endPoint: .center
+                        )
+                    )
+            }
         )
         .overlay(
-            RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .stroke(Color(UIColor.separator).opacity(0.2), lineWidth: 0.5)
+            RoundedRectangle(cornerRadius: 20, style: .continuous)
+                .stroke(
+                    LinearGradient(
+                        colors: [color.opacity(0.3), color.opacity(0.1), .clear],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    ),
+                    lineWidth: 1
+                )
         )
+        .shadow(color: color.opacity(0.08), radius: 12, x: 0, y: 6)
     }
 }
 
@@ -877,37 +968,80 @@ struct StatusCard: View {
     let color: Color
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack {
+        VStack(alignment: .leading, spacing: 10) {
+            // Icon with modern styling
+            ZStack {
+                RoundedRectangle(cornerRadius: 10, style: .continuous)
+                    .fill(
+                        LinearGradient(
+                            colors: [color.opacity(0.2), color.opacity(0.1)],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+                    .frame(width: 36, height: 36)
+                
                 Image(systemName: icon)
                     .font(.system(size: 16, weight: .semibold))
                     .foregroundStyle(color)
-                
-                Spacer()
             }
             
+            Spacer(minLength: 4)
+            
             Text(value)
-                .font(.system(size: 24, weight: .bold, design: .rounded))
+                .font(.system(size: 26, weight: .bold, design: .rounded))
                 .foregroundStyle(.primary)
             
-            Text(title)
-                .font(.system(size: 12, weight: .medium))
-                .foregroundStyle(.secondary)
-            
-            Text(subtitle)
-                .font(.system(size: 10, weight: .medium))
-                .foregroundStyle(.tertiary)
+            VStack(alignment: .leading, spacing: 2) {
+                Text(title)
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundStyle(.secondary)
+                
+                Text(subtitle)
+                    .font(.system(size: 10, weight: .medium))
+                    .foregroundStyle(.tertiary)
+            }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(16)
+        .padding(18)
         .background(
-            RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .fill(Color(UIColor.secondarySystemGroupedBackground))
+            ZStack {
+                RoundedRectangle(cornerRadius: 20, style: .continuous)
+                    .fill(Color(UIColor.secondarySystemGroupedBackground))
+                
+                // Accent gradient
+                RoundedRectangle(cornerRadius: 20, style: .continuous)
+                    .fill(
+                        LinearGradient(
+                            colors: [color.opacity(0.08), .clear],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+                
+                // Glass highlight
+                RoundedRectangle(cornerRadius: 20, style: .continuous)
+                    .fill(
+                        LinearGradient(
+                            colors: [.white.opacity(0.06), .clear],
+                            startPoint: .top,
+                            endPoint: .center
+                        )
+                    )
+            }
         )
         .overlay(
-            RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .stroke(color.opacity(0.2), lineWidth: 1)
+            RoundedRectangle(cornerRadius: 20, style: .continuous)
+                .stroke(
+                    LinearGradient(
+                        colors: [color.opacity(0.25), color.opacity(0.08)],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    ),
+                    lineWidth: 1
+                )
         )
+        .shadow(color: color.opacity(0.06), radius: 10, x: 0, y: 4)
     }
 }
 
@@ -919,30 +1053,55 @@ struct AtAGlanceRow: View {
     let color: Color
     
     var body: some View {
-        HStack(spacing: 12) {
+        HStack(spacing: 14) {
             ZStack {
+                // Outer glow
                 Circle()
-                    .fill(color.opacity(0.15))
-                    .frame(width: 36, height: 36)
+                    .fill(
+                        RadialGradient(
+                            colors: [color.opacity(0.2), color.opacity(0.05), .clear],
+                            center: .center,
+                            startRadius: 0,
+                            endRadius: 24
+                        )
+                    )
+                    .frame(width: 48, height: 48)
+                
+                // Inner circle
+                Circle()
+                    .fill(
+                        LinearGradient(
+                            colors: [color.opacity(0.18), color.opacity(0.08)],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+                    .frame(width: 38, height: 38)
                 
                 Image(systemName: icon)
-                    .font(.system(size: 16, weight: .medium))
+                    .font(.system(size: 16, weight: .semibold))
                     .foregroundStyle(color)
             }
             
-            VStack(alignment: .leading, spacing: 2) {
+            VStack(alignment: .leading, spacing: 3) {
                 Text(title)
-                    .font(.system(size: 13, weight: .medium))
+                    .font(.system(size: 12, weight: .medium))
                     .foregroundStyle(.secondary)
                 
                 Text(value)
-                    .font(.system(size: 15, weight: .semibold))
+                    .font(.system(size: 15, weight: .semibold, design: .rounded))
                     .foregroundStyle(.primary)
                     .lineLimit(1)
             }
             
             Spacer()
+            
+            // Subtle chevron
+            Image(systemName: "chevron.right")
+                .font(.system(size: 12, weight: .medium))
+                .foregroundStyle(.quaternary)
         }
+        .padding(.vertical, 4)
     }
 }
 
@@ -1110,6 +1269,153 @@ struct SourceOverviewRow: View {
             
             Spacer()
         }
+    }
+}
+
+// MARK: - Sign And Install Picker View
+struct SignAndInstallPickerView: View {
+    @Environment(\.dismiss) private var dismiss
+    @State private var _showFilePicker = false
+    @State private var _isProcessing = false
+    @State private var _processedApp: Imported? = nil
+    
+    let onAppSelected: (Imported) -> Void
+    
+    var body: some View {
+        NavigationStack {
+            VStack(spacing: 24) {
+                // Header
+                VStack(spacing: 16) {
+                    ZStack {
+                        Circle()
+                            .fill(
+                                LinearGradient(
+                                    colors: [Color.purple.opacity(0.3), Color.purple.opacity(0.1)],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                )
+                            )
+                            .frame(width: 80, height: 80)
+                        
+                        Image(systemName: "signature")
+                            .font(.system(size: 36, weight: .medium))
+                            .foregroundStyle(.purple)
+                    }
+                    
+                    VStack(spacing: 8) {
+                        Text("Sign & Install")
+                            .font(.system(size: 24, weight: .bold, design: .rounded))
+                        
+                        Text("Select an IPA file to sign and install")
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                            .multilineTextAlignment(.center)
+                    }
+                }
+                .padding(.top, 20)
+                
+                if _isProcessing {
+                    VStack(spacing: 16) {
+                        ProgressView()
+                            .scaleEffect(1.2)
+                        
+                        Text("Processing IPA...")
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                    }
+                    .padding(.vertical, 40)
+                } else {
+                    // Select IPA Button
+                    Button {
+                        _showFilePicker = true
+                    } label: {
+                        HStack(spacing: 12) {
+                            Image(systemName: "doc.badge.plus")
+                                .font(.system(size: 20, weight: .semibold))
+                            
+                            Text("Select IPA File")
+                                .font(.system(size: 17, weight: .semibold))
+                        }
+                        .foregroundStyle(.white)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 16)
+                        .background(
+                            LinearGradient(
+                                colors: [.purple, .purple.opacity(0.8)],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                        )
+                        .cornerRadius(14)
+                        .shadow(color: .purple.opacity(0.3), radius: 8, x: 0, y: 4)
+                    }
+                    .padding(.horizontal, 24)
+                }
+                
+                Spacer()
+                
+                // Info text
+                VStack(spacing: 8) {
+                    HStack(spacing: 6) {
+                        Image(systemName: "info.circle.fill")
+                            .font(.system(size: 14))
+                            .foregroundStyle(.secondary)
+                        
+                        Text("The signing process will start automatically")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+                .padding(.bottom, 20)
+            }
+            .navigationTitle("Sign & Install")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .topBarLeading) {
+                    Button("Cancel") {
+                        dismiss()
+                    }
+                }
+            }
+            .sheet(isPresented: $_showFilePicker) {
+                FileImporterRepresentableView(
+                    allowedContentTypes: [.ipa, .tipa],
+                    allowsMultipleSelection: false,
+                    onDocumentsPicked: { urls in
+                        guard let url = urls.first else { return }
+                        _isProcessing = true
+                        
+                        // Process the IPA file
+                        let id = "FeatherSignInstall_\(UUID().uuidString)"
+                        let dl = DownloadManager.shared.startArchive(from: url, id: id)
+                        
+                        do {
+                            try DownloadManager.shared.handlePachageFile(url: url, dl: dl)
+                            
+                            // Wait a moment for the import to complete, then find the app
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                                // Fetch the most recently imported app
+                                let request = Imported.fetchRequest()
+                                request.sortDescriptors = [NSSortDescriptor(keyPath: \Imported.date, ascending: false)]
+                                request.fetchLimit = 1
+                                
+                                if let importedApp = try? Storage.shared.context.fetch(request).first {
+                                    _isProcessing = false
+                                    onAppSelected(importedApp)
+                                } else {
+                                    _isProcessing = false
+                                }
+                            }
+                        } catch {
+                            _isProcessing = false
+                        }
+                    }
+                )
+                .ignoresSafeArea()
+            }
+        }
+        .presentationDetents([.medium])
+        .presentationDragIndicator(.visible)
     }
 }
 

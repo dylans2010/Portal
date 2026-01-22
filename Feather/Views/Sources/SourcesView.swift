@@ -13,7 +13,6 @@ struct SourcesView: View {
     @AppStorage("Feather.shouldStar") private var _shouldStar: Int = 0
     #endif
     @AppStorage("Feather.certificateTooltipDismissed") private var _certificateTooltipDismissed: Bool = false
-    @AppStorage("Feather.greetingsName") private var _greetingsName: String = ""
     @StateObject var viewModel = SourcesViewModel.shared
     @State private var _isAddingPresenting = false
     @State private var _addingSourceLoading = false
@@ -35,25 +34,6 @@ struct SourcesView: View {
         case all = "All"
         case pinned = "Pinned Only"
         case unpinned = "Unpinned Only"
-    }
-    
-    private var greetingText: String {
-        let hour = Calendar.current.component(.hour, from: Date())
-        let greeting: String
-        
-        if hour >= 5 && hour < 12 {
-            greeting = String.localized("Good Morning")
-        } else if hour >= 12 && hour < 17 {
-            greeting = String.localized("Good Afternoon")
-        } else {
-            greeting = String.localized("Good Night")
-        }
-        
-        if _greetingsName.isEmpty {
-            return greeting
-        } else {
-            return "\(greeting), \(_greetingsName)!"
-        }
     }
     
     private var _filteredSources: [AltSource] {
@@ -160,8 +140,8 @@ struct SourcesView: View {
     private var customNavigationBar: some View {
         HStack(spacing: 16) {
             VStack(alignment: .leading, spacing: 2) {
-                Text(greetingText)
-                    .font(.system(size: 20, weight: .bold, design: .rounded))
+                Text(String.localized("Sources"))
+                    .font(.system(size: 24, weight: .bold, design: .rounded))
                     .foregroundStyle(.primary)
                     .lineLimit(1)
                     .minimumScaleFactor(0.8)
@@ -441,7 +421,7 @@ struct SourcesView: View {
     #endif
 }
 
-// MARK: - Modern Source Card (Generic) - Plain Style
+// MARK: - Modern Source Card (Generic) - Enhanced Style
 struct ModernSourceCard: View {
     let title: String
     let subtitle: String
@@ -450,49 +430,109 @@ struct ModernSourceCard: View {
     var accentColor: Color = .cyan
     
     var body: some View {
-        HStack(spacing: 14) {
-            // Icon container
+        HStack(spacing: 16) {
+            // Icon container with modern styling
             ZStack {
-                RoundedRectangle(cornerRadius: 12, style: .continuous)
-                    .fill(accentColor.opacity(0.12))
-                    .frame(width: 48, height: 48)
+                // Outer glow
+                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                    .fill(
+                        RadialGradient(
+                            colors: [accentColor.opacity(0.2), accentColor.opacity(0.05), .clear],
+                            center: .center,
+                            startRadius: 0,
+                            endRadius: 30
+                        )
+                    )
+                    .frame(width: 56, height: 56)
+                
+                // Inner container
+                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                    .fill(
+                        LinearGradient(
+                            colors: [accentColor.opacity(0.18), accentColor.opacity(0.08)],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+                    .frame(width: 50, height: 50)
                 
                 Image(systemName: iconSystemName)
-                    .font(.system(size: 20, weight: .semibold))
+                    .font(.system(size: 22, weight: .semibold))
                     .foregroundStyle(accentColor)
+                    .shadow(color: accentColor.opacity(0.3), radius: 3, x: 0, y: 1)
             }
             
-            VStack(alignment: .leading, spacing: 3) {
+            VStack(alignment: .leading, spacing: 4) {
                 Text(title)
-                    .font(.system(size: 16, weight: .semibold))
+                    .font(.system(size: 17, weight: .semibold, design: .rounded))
                     .foregroundStyle(.primary)
                     .lineLimit(1)
                 
                 Text(subtitle)
-                    .font(.system(size: 13, weight: .regular))
+                    .font(.system(size: 13, weight: .medium))
                     .foregroundStyle(.secondary)
                     .lineLimit(1)
             }
             
             Spacer()
             
-            if isPinned {
-                Image(systemName: "pin.fill")
-                    .font(.system(size: 12))
-                    .foregroundStyle(accentColor)
+            HStack(spacing: 8) {
+                if isPinned {
+                    Image(systemName: "pin.fill")
+                        .font(.system(size: 12, weight: .medium))
+                        .foregroundStyle(accentColor)
+                }
+                
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundStyle(.quaternary)
             }
-            
-            Image(systemName: "chevron.right")
-                .font(.system(size: 13, weight: .medium))
-                .foregroundStyle(.tertiary)
         }
-        .padding(.vertical, 12)
-        .padding(.horizontal, 4)
+        .padding(.vertical, 14)
+        .padding(.horizontal, 16)
+        .background(
+            ZStack {
+                RoundedRectangle(cornerRadius: 18, style: .continuous)
+                    .fill(Color(UIColor.secondarySystemGroupedBackground))
+                
+                // Accent gradient
+                RoundedRectangle(cornerRadius: 18, style: .continuous)
+                    .fill(
+                        LinearGradient(
+                            colors: [accentColor.opacity(0.06), .clear],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+                
+                // Glass highlight
+                RoundedRectangle(cornerRadius: 18, style: .continuous)
+                    .fill(
+                        LinearGradient(
+                            colors: [.white.opacity(0.05), .clear],
+                            startPoint: .top,
+                            endPoint: .center
+                        )
+                    )
+            }
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 18, style: .continuous)
+                .stroke(
+                    LinearGradient(
+                        colors: [accentColor.opacity(0.2), accentColor.opacity(0.05)],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    ),
+                    lineWidth: 1
+                )
+        )
+        .shadow(color: accentColor.opacity(0.06), radius: 8, x: 0, y: 4)
         .contentShape(Rectangle())
     }
 }
 
-// MARK: - Modern Source Card with Icon from URL - Plain Style
+// MARK: - Modern Source Card with Icon from URL - Enhanced Style
 struct ModernSourceCardWithIcon: View {
     let source: AltSource
     @ObservedObject var viewModel: SourcesViewModel
@@ -511,12 +551,31 @@ struct ModernSourceCardWithIcon: View {
     }
     
     var body: some View {
-        HStack(spacing: 14) {
-            // Icon container
+        HStack(spacing: 16) {
+            // Icon container with modern styling
             ZStack {
-                RoundedRectangle(cornerRadius: 12, style: .continuous)
-                    .fill(dominantColor.opacity(0.12))
-                    .frame(width: 48, height: 48)
+                // Outer glow
+                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                    .fill(
+                        RadialGradient(
+                            colors: [dominantColor.opacity(0.2), dominantColor.opacity(0.05), .clear],
+                            center: .center,
+                            startRadius: 0,
+                            endRadius: 30
+                        )
+                    )
+                    .frame(width: 56, height: 56)
+                
+                // Inner container
+                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                    .fill(
+                        LinearGradient(
+                            colors: [dominantColor.opacity(0.15), dominantColor.opacity(0.05)],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+                    .frame(width: 50, height: 50)
                 
                 if let iconURL = source.iconURL {
                     LazyImage(url: iconURL) { state in
@@ -524,8 +583,19 @@ struct ModernSourceCardWithIcon: View {
                             image
                                 .resizable()
                                 .aspectRatio(contentMode: .fill)
-                                .frame(width: 40, height: 40)
-                                .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+                                .frame(width: 42, height: 42)
+                                .clipShape(RoundedRectangle(cornerRadius: 11, style: .continuous))
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 11, style: .continuous)
+                                        .stroke(
+                                            LinearGradient(
+                                                colors: [.white.opacity(0.3), .white.opacity(0.1)],
+                                                startPoint: .topLeading,
+                                                endPoint: .bottomTrailing
+                                            ),
+                                            lineWidth: 0.5
+                                        )
+                                )
                                 .onAppear {
                                     if let uiImage = state.imageContainer?.image {
                                         extractDominantColor(from: uiImage)
@@ -533,21 +603,21 @@ struct ModernSourceCardWithIcon: View {
                                 }
                         } else {
                             Image(systemName: "globe")
-                                .font(.system(size: 18, weight: .semibold))
+                                .font(.system(size: 20, weight: .semibold))
                                 .foregroundStyle(dominantColor)
                         }
                     }
                 } else {
                     Image(systemName: "globe")
-                        .font(.system(size: 18, weight: .semibold))
+                        .font(.system(size: 20, weight: .semibold))
                         .foregroundStyle(dominantColor)
                 }
             }
             
-            VStack(alignment: .leading, spacing: 3) {
+            VStack(alignment: .leading, spacing: 4) {
                 HStack(spacing: 6) {
                     Text(source.name ?? String.localized("Unknown"))
-                        .font(.system(size: 16, weight: .semibold))
+                        .font(.system(size: 17, weight: .semibold, design: .rounded))
                         .foregroundStyle(.primary)
                         .lineLimit(1)
                     
@@ -560,25 +630,65 @@ struct ModernSourceCardWithIcon: View {
                 
                 HStack(spacing: 6) {
                     Text("\(appCount) \(appCount == 1 ? "App" : "Apps")")
-                        .font(.system(size: 13, weight: .regular))
+                        .font(.system(size: 13, weight: .medium))
                         .foregroundStyle(.secondary)
                 }
             }
             
             Spacer()
             
-            if isPinned {
-                Image(systemName: "pin.fill")
-                    .font(.system(size: 12))
-                    .foregroundStyle(dominantColor)
+            HStack(spacing: 8) {
+                if isPinned {
+                    Image(systemName: "pin.fill")
+                        .font(.system(size: 12, weight: .medium))
+                        .foregroundStyle(dominantColor)
+                }
+                
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundStyle(.quaternary)
             }
-            
-            Image(systemName: "chevron.right")
-                .font(.system(size: 13, weight: .medium))
-                .foregroundStyle(.tertiary)
         }
-        .padding(.vertical, 12)
-        .padding(.horizontal, 4)
+        .padding(.vertical, 14)
+        .padding(.horizontal, 16)
+        .background(
+            ZStack {
+                RoundedRectangle(cornerRadius: 18, style: .continuous)
+                    .fill(Color(UIColor.secondarySystemGroupedBackground))
+                
+                // Accent gradient
+                RoundedRectangle(cornerRadius: 18, style: .continuous)
+                    .fill(
+                        LinearGradient(
+                            colors: [dominantColor.opacity(0.06), .clear],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+                
+                // Glass highlight
+                RoundedRectangle(cornerRadius: 18, style: .continuous)
+                    .fill(
+                        LinearGradient(
+                            colors: [.white.opacity(0.05), .clear],
+                            startPoint: .top,
+                            endPoint: .center
+                        )
+                    )
+            }
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 18, style: .continuous)
+                .stroke(
+                    LinearGradient(
+                        colors: [dominantColor.opacity(0.2), dominantColor.opacity(0.05)],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    ),
+                    lineWidth: 1
+                )
+        )
+        .shadow(color: dominantColor.opacity(0.06), radius: 8, x: 0, y: 4)
         .contentShape(Rectangle())
         .contextMenu {
             Button {

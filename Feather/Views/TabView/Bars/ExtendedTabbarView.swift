@@ -36,6 +36,9 @@ struct ExtendedTabbarView: View {
 		tabOrder.split(separator: ",").map(String.init)
 	}
 	
+	// Maximum tabs to show (5 to avoid iOS "More" section)
+	private let maxVisibleTabs = 5
+	
 	var visibleTabs: [TabEnum] {
 		var enabledTabs: [TabEnum] = []
 		if showDashboard { enabledTabs.append(.dashboard) }
@@ -69,6 +72,16 @@ struct ExtendedTabbarView: View {
 					sortedTabs.insert(tab, at: max(0, sortedTabs.count - 1))
 				}
 			}
+		}
+		
+		// Limit to maxVisibleTabs to avoid "More" section
+		// Ensure settings is always included
+		if sortedTabs.count > maxVisibleTabs {
+			var limitedTabs = Array(sortedTabs.prefix(maxVisibleTabs - 1))
+			if !limitedTabs.contains(.settings) {
+				limitedTabs.append(.settings)
+			}
+			return limitedTabs
 		}
 		
 		return sortedTabs
