@@ -852,12 +852,12 @@ struct HomeQuickActionCard: View {
         Button(action: action) {
             HomeQuickActionCardContent(title: title, icon: icon, color: color)
         }
-        .buttonStyle(ModernCardButtonStyle())
+        .buttonStyle(HomeCardButtonStyle())
     }
 }
 
-// MARK: - Modern Card Button Style
-struct ModernCardButtonStyle: ButtonStyle {
+// MARK: - Home Card Button Style
+struct HomeCardButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .scaleEffect(configuration.isPressed ? 0.96 : 1.0)
