@@ -166,7 +166,7 @@ struct HomeView: View {
                 GridItem(.flexible(), spacing: 12),
                 GridItem(.flexible(), spacing: 12)
             ], spacing: 12) {
-                QuickActionCard(
+                HomeQuickActionCard(
                     title: "Add Certificate",
                     icon: "checkmark.seal.fill",
                     color: .green
@@ -175,7 +175,7 @@ struct HomeView: View {
                     HapticsManager.shared.softImpact()
                 }
                 
-                QuickActionCard(
+                HomeQuickActionCard(
                     title: "Add Source",
                     icon: "globe.desk.fill",
                     color: .cyan
@@ -184,7 +184,7 @@ struct HomeView: View {
                     HapticsManager.shared.softImpact()
                 }
                 
-                QuickActionCard(
+                HomeQuickActionCard(
                     title: "Import App",
                     icon: "square.and.arrow.down.fill",
                     color: .orange
@@ -200,7 +200,7 @@ struct HomeView: View {
                         noAppsToSignView
                     }
                 } label: {
-                    QuickActionCardContent(
+                    HomeQuickActionCardContent(
                         title: "Sign & Install",
                         icon: "signature",
                         color: .purple
@@ -367,7 +367,7 @@ struct HomeView: View {
         HStack(spacing: 8) {
             Image(systemName: icon)
                 .font(.system(size: 14, weight: .semibold))
-                .foregroundStyle(.accentColor)
+                .foregroundStyle(Color.accentColor)
             
             Text(title)
                 .font(.system(size: 18, weight: .bold, design: .rounded))
@@ -407,8 +407,8 @@ struct HomeView: View {
     }
 }
 
-// MARK: - Quick Action Card
-struct QuickActionCard: View {
+// MARK: - Home Quick Action Card
+struct HomeQuickActionCard: View {
     let title: String
     let icon: String
     let color: Color
@@ -416,13 +416,13 @@ struct QuickActionCard: View {
     
     var body: some View {
         Button(action: action) {
-            QuickActionCardContent(title: title, icon: icon, color: color)
+            HomeQuickActionCardContent(title: title, icon: icon, color: color)
         }
         .buttonStyle(.plain)
     }
 }
 
-struct QuickActionCardContent: View {
+struct HomeQuickActionCardContent: View {
     let title: String
     let icon: String
     let color: Color
