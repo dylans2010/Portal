@@ -182,18 +182,129 @@ class HomeSettingsManager: ObservableObject {
     }
 }
 
+// MARK: - Profile Picture Manager
+class ProfilePictureManager: ObservableObject {
+    static let shared = ProfilePictureManager()
+    
+    @Published var profileImage: UIImage?
+    
+    private let profilePictureKey = "Feather.profilePicture"
+    
+    init() {
+        loadProfilePicture()
+    }
+    
+    func loadProfilePicture() {
+        if let data = UserDefaults.standard.data(forKey: profilePictureKey),
+           let image = UIImage(data: data) {
+            profileImage = image
+        }
+    }
+    
+    func saveProfilePicture(_ image: UIImage?) {
+        if let image = image,
+           let data = image.jpegData(compressionQuality: 0.8) {
+            UserDefaults.standard.set(data, forKey: profilePictureKey)
+            profileImage = image
+        } else {
+            UserDefaults.standard.removeObject(forKey: profilePictureKey)
+            profileImage = nil
+        }
+    }
+    
+    func removeProfilePicture() {
+        UserDefaults.standard.removeObject(forKey: profilePictureKey)
+        profileImage = nil
+    }
+}
+
 // MARK: - Home Settings View
 struct HomeSettingsView: View {
     @StateObject private var settingsManager = HomeSettingsManager.shared
+    @StateObject private var profileManager = ProfilePictureManager.shared
     @State private var isReordering = false
     @State private var showResetConfirmation = false
+    @State private var showImagePicker = false
+    @State private var showRemoveProfileConfirmation = false
     @AppStorage("Feather.homeGreetingEnabled") private var greetingEnabled = true
     @AppStorage("Feather.homeAnimationsEnabled") private var animationsEnabled = true
     @AppStorage("Feather.homeCompactMode") private var compactMode = false
     @AppStorage("Feather.homeShowAppIcon") private var showAppIcon = true
+    @AppStorage("Feather.useProfilePicture") private var useProfilePicture = false
     
     var body: some View {
         NBList(.localized("Home Settings")) {
+            // Profile Picture Section
+            Section {
+                Toggle(isOn: $useProfilePicture) {
+                    settingsRow(icon: "person.crop.circle.fill", title: "Use Profile Picture", color: .blue)
+                }
+                
+                if useProfilePicture {
+                    HStack(spacing: 16) {
+                        // Profile picture preview
+                        if let image = profileManager.profileImage {
+                            Image(uiImage: image)
+                                .resizable()
+                                .aspectRatio(contentMode: .fill)
+                                .frame(width: 60, height: 60)
+                                .clipShape(Circle())
+                                .overlay(
+                                    Circle()
+                                        .stroke(Color.accentColor.opacity(0.3), lineWidth: 2)
+                                )
+                        } else {
+                            ZStack {
+                                Circle()
+                                    .fill(Color.gray.opacity(0.2))
+                                    .frame(width: 60, height: 60)
+                                
+                                Image(systemName: "person.fill")
+                                    .font(.system(size: 28))
+                                    .foregroundStyle(.secondary)
+                            }
+                        }
+                        
+                        VStack(alignment: .leading, spacing: 8) {
+                            Button {
+                                showImagePicker = true
+                            } label: {
+                                HStack {
+                                    Image(systemName: "photo.on.rectangle")
+                                    Text(profileManager.profileImage == nil ? "Select Photo" : "Change Photo")
+                                }
+                                .font(.system(size: 14, weight: .medium))
+                                .foregroundStyle(.white)
+                                .padding(.horizontal, 14)
+                                .padding(.vertical, 8)
+                                .background(Color.accentColor)
+                                .cornerRadius(8)
+                            }
+                            
+                            if profileManager.profileImage != nil {
+                                Button {
+                                    showRemoveProfileConfirmation = true
+                                } label: {
+                                    HStack {
+                                        Image(systemName: "trash")
+                                        Text("Remove")
+                                    }
+                                    .font(.system(size: 14, weight: .medium))
+                                    .foregroundStyle(.red)
+                                }
+                            }
+                        }
+                        
+                        Spacer()
+                    }
+                    .padding(.vertical, 8)
+                }
+            } header: {
+                sectionHeader("Profile Picture", icon: "person.crop.circle.fill")
+            } footer: {
+                Text(.localized("Set a profile picture to display on the top right of the Home tab instead of the app icon."))
+            }
+            
             // Appearance Section
             Section {
                 Toggle(isOn: $greetingEnabled) {
@@ -287,10 +398,29 @@ struct HomeSettingsView: View {
                 animationsEnabled = true
                 compactMode = false
                 showAppIcon = true
+                useProfilePicture = false
+                profileManager.removeProfilePicture()
                 HapticsManager.shared.success()
             }
         } message: {
             Text(.localized("This will reset all Home screen settings to their default values."))
+        }
+        .alert(.localized("Remove Profile Picture"), isPresented: $showRemoveProfileConfirmation) {
+            Button(.localized("Cancel"), role: .cancel) { }
+            Button(.localized("Remove"), role: .destructive) {
+                profileManager.removeProfilePicture()
+                HapticsManager.shared.success()
+            }
+        } message: {
+            Text(.localized("Are you sure you want to remove your profile picture?"))
+        }
+        .sheet(isPresented: $showImagePicker) {
+            ProfileImagePicker { image in
+                if let image = image {
+                    profileManager.saveProfilePicture(image)
+                    HapticsManager.shared.success()
+                }
+            }
         }
     }
     
@@ -422,6 +552,45 @@ struct HomeSettingsView: View {
                     systemImage: isEnabled ? "eye.slash" : "eye"
                 )
             }
+        }
+    }
+}
+
+// MARK: - Profile Image Picker
+struct ProfileImagePicker: UIViewControllerRepresentable {
+    let onImagePicked: (UIImage?) -> Void
+    @Environment(\.dismiss) private var dismiss
+    
+    func makeUIViewController(context: Context) -> UIImagePickerController {
+        let picker = UIImagePickerController()
+        picker.delegate = context.coordinator
+        picker.sourceType = .photoLibrary
+        picker.allowsEditing = true
+        return picker
+    }
+    
+    func updateUIViewController(_ uiViewController: UIImagePickerController, context: Context) {}
+    
+    func makeCoordinator() -> Coordinator {
+        Coordinator(self)
+    }
+    
+    class Coordinator: NSObject, UIImagePickerControllerDelegate, UINavigationControllerDelegate {
+        let parent: ProfileImagePicker
+        
+        init(_ parent: ProfileImagePicker) {
+            self.parent = parent
+        }
+        
+        func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
+            let image = info[.editedImage] as? UIImage ?? info[.originalImage] as? UIImage
+            parent.onImagePicked(image)
+            parent.dismiss()
+        }
+        
+        func imagePickerControllerDidCancel(_ picker: UIImagePickerController) {
+            parent.onImagePicked(nil)
+            parent.dismiss()
         }
     }
 }
