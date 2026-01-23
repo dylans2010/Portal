@@ -2015,7 +2015,7 @@ struct SignAndInstallPickerView: View {
                       let downloadId = userInfo["downloadId"] as? String,
                       downloadId == _currentDownloadId else { return }
                 
-                _urlErrorMessage = userInfo["error"] as? String ?? "Download failed"
+                _urlErrorMessage = userInfo["error"] as? String ?? "Download Failed"
                 withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
                     _showURLError = true
                     _importStatus = .idle
@@ -2041,7 +2041,7 @@ struct SignAndInstallPickerView: View {
         }
         
         guard !_urlText.isEmpty else {
-            showURLError("Please enter a URL")
+            showURLError("Please Enter a URL")
             return
         }
         
@@ -2053,7 +2053,7 @@ struct SignAndInstallPickerView: View {
         }
         
         guard let url = URL(string: urlString) else {
-            showURLError("Invalid URL format")
+            showURLError("Invalid URL Format")
             return
         }
         
@@ -2063,7 +2063,7 @@ struct SignAndInstallPickerView: View {
         }
         
         guard let host = url.host, !host.isEmpty else {
-            showURLError("Invalid URL - missing host")
+            showURLError("Invalid URL - Missing Host")
             return
         }
         
@@ -2104,7 +2104,7 @@ struct AppUpdatesListSheet: View {
                                 .font(.system(size: 48))
                                 .foregroundStyle(.green)
                             
-                            Text("All Apps Up to Date")
+                            Text("All Apps Up To Date")
                                 .font(.headline)
                             
                             Text("No updates available for your tracked apps.")

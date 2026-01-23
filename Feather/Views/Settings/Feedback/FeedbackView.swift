@@ -1593,7 +1593,7 @@ struct FeedbackView: View {
                         Image(systemName: "bubble.left.and.bubble.right")
                             .font(.system(size: 50))
                             .foregroundStyle(.secondary)
-                        Text("No feedback yet")
+                        Text("No Feedback Yet")
                             .font(.system(size: 16, weight: .semibold))
                         Text("Be the first to submit feedback!")
                             .font(.system(size: 13))
@@ -1626,7 +1626,7 @@ struct FeedbackView: View {
                         Image(systemName: "person.crop.circle.badge.questionmark")
                             .font(.system(size: 50))
                             .foregroundStyle(.secondary)
-                        Text("No submissions yet")
+                        Text("No Submissions Yet")
                             .font(.system(size: 16, weight: .semibold))
                         Text("Your submitted feedback will appear here")
                             .font(.system(size: 13))
@@ -1800,7 +1800,7 @@ struct FeedbackView: View {
     
     private var headerText: some View {
         VStack(spacing: 4) {
-            Text("Share Your Feedback")
+            Text("Report Feedback")
                 .font(.system(size: 22, weight: .bold, design: .rounded))
             
             Text("Your feedback creates a GitHub Issue directly")
@@ -2259,7 +2259,7 @@ struct FeedbackView: View {
                 submitButton
             }
             
-            Text("Your feedback will be submitted as a GitHub Issue")
+            Text("Your feedback will be submitted as a GitHub Issue.")
                 .font(.system(size: 12))
                 .foregroundStyle(.tertiary)
                 .multilineTextAlignment(.center)
@@ -2822,7 +2822,7 @@ struct FeedbackSuccessSheet: View {
                     .opacity(showContent ? 1 : 0)
                     .offset(y: showContent ? 0 : 20)
                 
-                Text("Issue #\(issueNumber) has been created.")
+                Text("Issue #\(issueNumber) has been created successfully.")
                     .font(.system(size: 16))
                     .foregroundStyle(.secondary)
                     .opacity(showContent ? 1 : 0)
@@ -3358,7 +3358,7 @@ struct FeedbackDetailSheet: View {
                     } label: {
                         HStack(spacing: 8) {
                             Image(systemName: "arrow.up.right.square.fill")
-                            Text("View on GitHub")
+                            Text("View n GitHub")
                         }
                         .font(.system(size: 16, weight: .semibold))
                         .foregroundStyle(.white)

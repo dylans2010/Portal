@@ -818,7 +818,7 @@ struct AppUpdateTrackingSettingsView: View {
                                 .font(.caption)
                                 .foregroundStyle(.secondary)
                         } else {
-                            Text("Never fetched")
+                            Text("Never Fetched")
                                 .font(.caption)
                                 .foregroundStyle(.secondary)
                         }
@@ -848,7 +848,7 @@ struct AppUpdateTrackingSettingsView: View {
                         .font(.system(size: 18))
                     
                     VStack(alignment: .leading, spacing: 2) {
-                        Text("\(updateManager.cachedApps.count) apps cached")
+                        Text("\(updateManager.cachedApps.count) Apps Cached")
                             .font(.caption)
                             .foregroundStyle(.primary)
                         
@@ -914,7 +914,7 @@ struct AppUpdateTrackingSettingsView: View {
                 HStack {
                     Image(systemName: "plus.circle.fill")
                         .foregroundStyle(.green)
-                    Text("Add App to Track")
+                    Text("Add App To Track")
                 }
             }
         }
@@ -1119,7 +1119,7 @@ struct SelectAppToTrackView: View {
                 availableAppsSection
             }
         }
-        .searchable(text: $searchText, prompt: "Search apps")
+        .searchable(text: $searchText, prompt: "Search Apps")
     }
     
     private var loadingSection: some View {
@@ -1128,7 +1128,7 @@ struct SelectAppToTrackView: View {
                 ProgressView()
                     .scaleEffect(1.2)
                 
-                Text("Loading apps...")
+                Text("Loading Apps...")
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
             }
@@ -1144,7 +1144,7 @@ struct SelectAppToTrackView: View {
                     .font(.system(size: 36))
                     .foregroundStyle(.secondary)
                 
-                Text(searchText.isEmpty ? "No apps available" : "No apps found")
+                Text(searchText.isEmpty ? "No Apps Available" : "No Apps Found")
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
             }

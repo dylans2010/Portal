@@ -1192,7 +1192,7 @@ struct BatchSigningView: View {
                     HStack(spacing: 10) {
                         Image(systemName: "exclamationmark.triangle.fill")
                             .foregroundStyle(.orange)
-                        Text("No certificates available")
+                        Text("No Certificates Available")
                             .font(.system(size: 14))
                             .foregroundStyle(.secondary)
                     }
@@ -1261,7 +1261,7 @@ struct BatchSigningView: View {
                 VStack(alignment: .leading, spacing: 2) {
                     Text("Auto Install")
                         .font(.system(size: 15, weight: .semibold))
-                    Text("Install apps automatically after signing")
+                    Text("Install apps automatically after signing.")
                         .font(.system(size: 12))
                         .foregroundStyle(.secondary)
                 }
@@ -1511,7 +1511,7 @@ struct BatchSigningView: View {
                 }
             }
             
-            AppLogManager.shared.info("Installing app \(index + 1)/\(signedAppsForInstall.count): \(app.name ?? "Unknown")", category: "BatchSign")
+            AppLogManager.shared.info("Installing App \(index + 1)/\(signedAppsForInstall.count): \(app.name ?? "Unknown")", category: "BatchSign")
             
             // Create a view model for installation tracking
             let viewModel = InstallerStatusViewModel(isIdevice: installationMethod == 1)
