@@ -1,5 +1,6 @@
 import SwiftUI
 import NimbleViews
+import AltSourceKit
 
 // MARK: - Widget Size
 enum WidgetSize: String, CaseIterable, Codable, Identifiable {
@@ -944,13 +945,13 @@ struct SelectAppToTrackView: View {
         if !searchText.isEmpty {
             apps = apps.filter { item in
                 (item.app.name?.localizedCaseInsensitiveContains(searchText) ?? false) ||
-                (item.app.bundleIdentifier?.localizedCaseInsensitiveContains(searchText) ?? false)
+                (item.app.id?.localizedCaseInsensitiveContains(searchText) ?? false)
             }
         }
         
         // Filter out already tracked apps
         apps = apps.filter { item in
-            guard let bundleId = item.app.bundleIdentifier else { return false }
+            guard let bundleId = item.app.id else { return false }
             return !updateManager.isAppTracked(bundleIdentifier: bundleId)
         }
         
@@ -998,7 +999,7 @@ struct SelectAppToTrackView: View {
                         }
                     } else {
                         Section {
-                            ForEach(filteredApps, id: \.app.bundleIdentifier) { item in
+                            ForEach(filteredApps, id: \.app.id) { item in
                                 SelectableAppRow(
                                     app: item.app,
                                     source: item.source,
@@ -1027,7 +1028,7 @@ struct SelectAppToTrackView: View {
     }
     
     private func addAppToTracking(_ item: (source: AltSource, repo: ASRepository, app: ASRepository.App)) {
-        guard let bundleId = item.app.bundleIdentifier,
+        guard let bundleId = item.app.id,
               let version = item.app.version else { return }
         
         let config = TrackedAppConfig(

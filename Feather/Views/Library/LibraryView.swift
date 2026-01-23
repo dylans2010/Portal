@@ -25,7 +25,7 @@ struct LibraryView: View {
     
     // Batch selection states
     @State private var _isSelectionMode = false
-    @State private var _selectedApps: Set<UUID> = []
+    @State private var _selectedApps: Set<String> = []
     @State private var _showBatchSigningSheet = false
     @State private var _showBatchDeleteConfirmation = false
     
@@ -1085,7 +1085,7 @@ struct BatchSigningView: View {
             // Initialize all apps as pending
             for app in apps {
                 if let uuid = app.uuid {
-                    signingProgress[uuid.uuidString] = .pending
+                    signingProgress[uuid] = .pending
                 }
             }
         }
@@ -1093,7 +1093,7 @@ struct BatchSigningView: View {
     
     private func getStatusForApp(_ app: AppInfoPresentable) -> BatchSigningStatus {
         guard let uuid = app.uuid else { return .pending }
-        return signingProgress[uuid.uuidString] ?? .pending
+        return signingProgress[uuid] ?? .pending
     }
     
     private var headerSection: some View {
@@ -1263,7 +1263,7 @@ struct BatchSigningView: View {
         // Reset all statuses to pending
         for app in apps {
             if let uuid = app.uuid {
-                signingProgress[uuid.uuidString] = .pending
+                signingProgress[uuid] = .pending
             }
         }
         
@@ -1287,11 +1287,9 @@ struct BatchSigningView: View {
             return
         }
         
-        let uuidString = uuid.uuidString
-        
         // Update status to signing
         withAnimation {
-            signingProgress[uuidString] = .signing
+            signingProgress[uuid] = .signing
         }
         
         // Get the selected certificate
@@ -1312,7 +1310,7 @@ struct BatchSigningView: View {
             if let error = error {
                 // Signing failed
                 withAnimation {
-                    signingProgress[uuidString] = .failed(error.localizedDescription)
+                    signingProgress[uuid] = .failed(error.localizedDescription)
                     failedCount += 1
                     overallProgress = Double(completedCount + failedCount) / Double(apps.count)
                 }
@@ -1320,7 +1318,7 @@ struct BatchSigningView: View {
             } else {
                 // Signing succeeded
                 withAnimation {
-                    signingProgress[uuidString] = .success
+                    signingProgress[uuid] = .success
                     completedCount += 1
                     overallProgress = Double(completedCount + failedCount) / Double(apps.count)
                 }

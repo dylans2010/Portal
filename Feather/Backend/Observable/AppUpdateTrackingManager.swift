@@ -185,7 +185,7 @@ final class AppUpdateTrackingManager: ObservableObject {
         for trackedApp in enabledTrackedApps {
             // Find the source
             guard let sourceEntry = sources.first(where: { $0.key.sourceURL?.absoluteString == trackedApp.sourceURL }),
-                  let app = sourceEntry.value.apps.first(where: { $0.bundleIdentifier == trackedApp.bundleIdentifier }) else {
+                  let app = sourceEntry.value.apps.first(where: { $0.id == trackedApp.bundleIdentifier }) else {
                 continue
             }
             
