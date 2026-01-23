@@ -926,32 +926,21 @@ struct SelectableAppCard: View {
     
     var body: some View {
         Button(action: onToggleSelection) {
-            HStack(spacing: 16) {
-                // Selection indicator
-                ZStack {
-                    Circle()
-                        .stroke(isSelected ? Color.accentColor : Color.secondary.opacity(0.3), lineWidth: 2)
-                        .frame(width: 24, height: 24)
-                    
-                    if isSelected {
-                        Circle()
-                            .fill(Color.accentColor)
-                            .frame(width: 24, height: 24)
+            HStack(spacing: 14) {
+                // App icon with selection overlay
+                ZStack(alignment: .topTrailing) {
+                    ZStack {
+                        RoundedRectangle(cornerRadius: 14, style: .continuous)
+                            .fill(dominantColor.opacity(0.12))
+                            .frame(width: 56, height: 56)
                         
-                        Image(systemName: "checkmark")
-                            .font(.system(size: 12, weight: .bold))
-                            .foregroundStyle(.white)
+                        FRAppIconView(app: app, size: 48)
+                            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
                     }
-                }
-                
-                // App icon
-                ZStack {
-                    RoundedRectangle(cornerRadius: 14, style: .continuous)
-                        .fill(dominantColor.opacity(0.12))
-                        .frame(width: 52, height: 52)
                     
-                    FRAppIconView(app: app, size: 44)
-                        .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+                    // Checkmark badge overlay on icon
+                    selectionBadge
+                        .offset(x: 6, y: -6)
                 }
                 
                 VStack(alignment: .leading, spacing: 4) {
@@ -995,11 +984,14 @@ struct SelectableAppCard: View {
                 }
                 
                 Spacer()
+                
+                // Right side selection indicator
+                selectionIndicator
             }
             .padding(14)
             .background(
                 RoundedRectangle(cornerRadius: 18, style: .continuous)
-                    .fill(Color(.secondarySystemGroupedBackground))
+                    .fill(isSelected ? Color.accentColor.opacity(0.08) : Color(.secondarySystemGroupedBackground))
                     .overlay(
                         RoundedRectangle(cornerRadius: 18, style: .continuous)
                             .stroke(isSelected ? Color.accentColor : Color.clear, lineWidth: 2)
@@ -1008,6 +1000,45 @@ struct SelectableAppCard: View {
             .shadow(color: .black.opacity(isSelected ? 0.08 : 0.04), radius: isSelected ? 6 : 3, x: 0, y: 2)
         }
         .buttonStyle(.plain)
+    }
+    
+    // Selection badge on app icon
+    private var selectionBadge: some View {
+        ZStack {
+            Circle()
+                .fill(isSelected ? Color.accentColor : Color(.systemBackground))
+                .frame(width: 22, height: 22)
+                .shadow(color: .black.opacity(0.15), radius: 2, x: 0, y: 1)
+            
+            Circle()
+                .stroke(isSelected ? Color.accentColor : Color.secondary.opacity(0.4), lineWidth: 2)
+                .frame(width: 22, height: 22)
+            
+            if isSelected {
+                Image(systemName: "checkmark")
+                    .font(.system(size: 11, weight: .bold))
+                    .foregroundStyle(.white)
+            }
+        }
+    }
+    
+    // Right side selection indicator
+    private var selectionIndicator: some View {
+        ZStack {
+            Circle()
+                .stroke(isSelected ? Color.accentColor : Color.secondary.opacity(0.3), lineWidth: 2)
+                .frame(width: 26, height: 26)
+            
+            if isSelected {
+                Circle()
+                    .fill(Color.accentColor)
+                    .frame(width: 26, height: 26)
+                
+                Image(systemName: "checkmark")
+                    .font(.system(size: 13, weight: .bold))
+                    .foregroundStyle(.white)
+            }
+        }
     }
 }
 
