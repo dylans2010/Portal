@@ -1192,10 +1192,12 @@ struct BatchSigningView: View {
     }
     
     private var certificatePicker: some View {
-        Picker("Certificate", selection: $selectedCertificateIndex) {
-            ForEach(certificates.indices, id: \.self) { index in
-                Text(certificates[index].name ?? "Certificate \(index + 1)")
-                    .tag(index)
+        let certificateNames = certificates.enumerated().map { (index, cert) in
+            cert.name ?? "Certificate \(index + 1)"
+        }
+        return Picker("Certificate", selection: $selectedCertificateIndex) {
+            ForEach(Array(certificateNames.enumerated()), id: \.offset) { idx, name in
+                Text(name).tag(idx)
             }
         }
         .pickerStyle(.menu)
