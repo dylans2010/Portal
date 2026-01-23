@@ -211,7 +211,7 @@ struct SourcesAddView: View {
 						let sources = Storage.shared.getSources()
 						guard !sources.isEmpty else {
 							UIAlertController.showAlertWithOk(
-								title: .localized("Error"),
+								title: .localized("No Sources"),
 								message: .localized("No Sources To Export")
 							)
 							_isExportMode = false
@@ -1098,7 +1098,7 @@ struct PortalExportView: View {
 						.font(.headline)
 						.foregroundStyle(.secondary)
 					
-					Text(.localized("Select sources from the Export mode to generate encoded data."))
+					Text(.localized("Select sources from the Export Mode to generate the source data."))
 						.font(.caption)
 						.foregroundStyle(.tertiary)
 						.multilineTextAlignment(.center)
@@ -1179,7 +1179,7 @@ struct PortalExportView: View {
 				if !importText.isEmpty {
 					HStack {
 						Image(systemName: importText.hasPrefix("PORTAL:") ? "checkmark.circle.fill" : "exclamationmark.circle.fill")
-						Text(importText.hasPrefix("PORTAL:") ? .localized("Valid Portal format detected") : .localized("Unknown format - will attempt to parse"))
+						Text(importText.hasPrefix("PORTAL:") ? .localized("Valid Portal Format Detected") : .localized("Unknown format, will attempt to parse..."))
 					}
 					.font(.caption)
 					.foregroundColor(importText.hasPrefix("PORTAL:") ? .green : .orange)
@@ -1283,7 +1283,7 @@ struct PortalExportView: View {
 	// MARK: - Quick Tips Section
 	private var quickTipsSection: some View {
 		VStack(alignment: .leading, spacing: 12) {
-			Label(.localized("Quick Tips"), systemImage: "lightbulb.fill")
+			Label(.localized("Portal Transfer Info"), systemImage: "lightbulb.fill")
 				.font(.system(size: 14, weight: .bold))
 				.foregroundStyle(.orange)
 			

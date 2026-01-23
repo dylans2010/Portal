@@ -260,7 +260,7 @@ struct SourceDetailsView: View {
             }
             
             if news.isEmpty {
-                Text("No news found")
+                Text("No News Found")
                     .font(.system(size: 15, weight: .medium))
                     .foregroundStyle(.white.opacity(0.5))
                     .frame(maxWidth: .infinity)

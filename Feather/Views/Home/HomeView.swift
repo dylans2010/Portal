@@ -57,14 +57,24 @@ struct HomeView: View {
     
     // Tips for the Tips widget
     private let _tips = [
-        "Tip: You can long-press on apps in the Library to access quick actions.",
+        "Tip: You can long press on apps in the Library to access quick actions.",
+        "Tip: For enterprise certificate users, check Guides for helpful information and use Apple Intelligence or cloud models to undersatand them better.",
+        "Tip: Use Files for lots of file tools and manage files.",
+        "Tip: Check to see if you have the latest Portal version by going to Settings, Check For Updates page so you can have the latest features and bug fixes.",
         "Tip: Use developer certificates for better stability than enterprise certificates.",
+        "Tip: Swipe down on the Sources tab to refresh all repositories.",
+        "Tip: Add as many certiifcates as you want.",
+        "Tip: Use Batch Sign to sign & install multiple apps at once.",
+        "Tip: On a future update, you can import or export certificates as a .portalcert file.",
+        "Tip: Use Portal Transfer to import or export sources to other Portal users.",
         "Tip: Swipe down on the Sources tab to refresh all repositories.",
         "Tip: You can customize which widgets appear on this Home screen in Settings.",
         "Tip: Pin your favorite sources to keep them at the top of the list.",
+        "Tip: Use Default Frameworks so you can add frameworks or tweaks and they will be added automatically on every app you sign.",
         "Tip: Check certificate expiration dates regularly to avoid signing issues.",
         "Tip: Use the Files tab to manage your IPA files and tweaks.",
-        "Tip: You can import apps by opening IPA files directly in Portal."
+        "Tip: You can import apps by opening IPA files directly in Portal.",
+        "Tip: You can customize the Status Bar to add widgets instead of the default one.",
     ]
     
     private var greetingText: String {
@@ -295,7 +305,7 @@ struct HomeView: View {
                     .minimumScaleFactor(0.8)
                 
                 if !_compactMode {
-                    Text("Portal Dashboard")
+                    Text("Portal Information")
                         .font(.system(size: 14, weight: .medium))
                         .foregroundStyle(.secondary)
                 }
@@ -453,7 +463,7 @@ struct HomeView: View {
                     HStack(spacing: 12) {
                         StatusCard(
                             title: "Portal Version",
-                            value: "v\(portalVersion)",
+                            value: "Version \(portalVersion)",
                             subtitle: "Build \(buildNumber)",
                             icon: "app.badge.checkmark.fill",
                             color: .blue,
@@ -782,7 +792,7 @@ struct HomeView: View {
                                 .foregroundStyle(cert.revoked ? .red : .green)
                             
                             if let expiration = cert.expiration {
-                                Text("Expires On \(formatExpirationDate(expiration))")
+                                Text("Expires \(formatExpirationDate(expiration))")
                                     .font(.caption)
                                     .foregroundStyle(expirationColor(expiration))
                             }
@@ -929,7 +939,7 @@ struct HomeView: View {
                     Text(_networkMonitor.isConnected ? "Connected" : "Disconnected")
                         .font(.headline)
                     
-                    Text(_networkMonitor.isConnected ? "You're online and ready to go" : "Check your internet connection")
+                    Text(_networkMonitor.isConnected ? "You're online and ready to go!" : "Check your internet connection to avoid any network errors.")
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
                 }
@@ -1834,7 +1844,7 @@ struct SignAndInstallPickerView: View {
                                         Image(systemName: "arrow.down.circle.fill")
                                             .font(.system(size: 18, weight: .semibold))
                                         
-                                        Text("Import from URL")
+                                        Text("Import From URL")
                                             .font(.system(size: 16, weight: .semibold))
                                     }
                                     .foregroundStyle(.white)
@@ -1861,7 +1871,7 @@ struct SignAndInstallPickerView: View {
                                     .fill(Color.secondary.opacity(0.3))
                                     .frame(height: 1)
                                 
-                                Text("or")
+                                Text("Or")
                                     .font(.caption)
                                     .foregroundStyle(.secondary)
                                     .padding(.horizontal, 12)
@@ -2002,7 +2012,7 @@ struct SignAndInstallPickerView: View {
                       let downloadId = userInfo["downloadId"] as? String,
                       downloadId == _currentDownloadId else { return }
                 
-                _urlErrorMessage = userInfo["error"] as? String ?? "Import failed"
+                _urlErrorMessage = userInfo["error"] as? String ?? "Import Failed"
                 withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
                     _showURLError = true
                     _importStatus = .idle

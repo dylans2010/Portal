@@ -45,15 +45,15 @@ extension ServerView {
 		
 		var name: String {
 			switch self {
-			case .fullyLocal: return .localized("Fully Local")
-			case .semiLocal: return .localized("Semi Local")
+			case .fullyLocal: return .localized("On Device")
+			case .semiLocal: return .localized("Server")
 			case .custom: return .localized("Custom")
 			}
 		}
 		
 		var description: String {
 			switch self {
-			case .fullyLocal: return .localized("Signs and installs apps entirely on your device without external servers.")
+			case .fullyLocal: return .localized("Fully signs and installs apps on device.")
 			case .semiLocal: return .localized("Signs locally but uses a local server for installation via Wi-Fi. This method is more reliable.")
 			case .custom: return .localized("Use your own custom API endpoint for remote signing and installation.")
 			}
@@ -260,7 +260,7 @@ struct ServerView: View {
 			Label("Custom API Configuration", systemImage: "gearshape.2.fill")
 		} footer: {
 			VStack(alignment: .leading, spacing: 8) {
-				Text("Enter your custom signing API endpoint URL. The API should accept IPA, P12, and provisioning profile files and return an itms:// installation link for app installation.")
+				Text("Use your own API signing endpoint, this feature is still under development, it does not work yet.")
 					.font(.caption)
 				
 				if !_customSigningAPI.isEmpty {
@@ -268,7 +268,7 @@ struct ServerView: View {
 						Image(systemName: _customSigningAPI.hasPrefix("https://") ? "checkmark.circle.fill" : "exclamationmark.triangle.fill")
 							.font(.caption2)
 							.foregroundStyle(_customSigningAPI.hasPrefix("https://") ? .green : .orange)
-						Text(_customSigningAPI.hasPrefix("https://") ? "HTTPS endpoint configured" : "Warning: Using HTTP may be insecure.")
+						Text(_customSigningAPI.hasPrefix("https://") ? "HTTPS Endpoint Configured" : "Warning: Using HTTP may be insecure, your choice.")
 							.font(.caption2)
 							.foregroundStyle(_customSigningAPI.hasPrefix("https://") ? .green : .orange)
 					}
@@ -303,7 +303,7 @@ struct ServerView: View {
 		} header: {
 			Label(.localized("SSL Certificates"), systemImage: "lock.shield.fill")
 		} footer: {
-			Text(.localized("Download the latest SSL certificates for secure connections."))
+			Text(.localized("Download the latest SSL certificates for secure connections. Click it if you are having any signing errors."))
 				.font(.caption)
 		}
 	}

@@ -102,7 +102,7 @@ struct EditSourcesView: View {
                 .foregroundStyle(.secondary)
             Text("No Sources")
                 .font(.headline)
-            Text("Add sources to get started")
+            Text("Add sources to get started.")
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
         }

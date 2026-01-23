@@ -174,9 +174,9 @@ struct PortalCertHandler {
                 let metadataData = try Data(contentsOf: metadataURL)
                 metadata = try JSONDecoder().decode(PortalCertMetadata.self, from: metadataData)
                 
-                Logger.misc.debug("[PortalCert] Metadata version: \(metadata!.version)")
-                Logger.misc.debug("[PortalCert] P12 filename: \(metadata!.p12Filename)")
-                Logger.misc.debug("[PortalCert] Provision filename: \(metadata!.provisionFilename)")
+                Logger.misc.debug("[PortalCert] Metadata Version: \(metadata!.version)")
+                Logger.misc.debug("[PortalCert] P12 Filename: \(metadata!.p12Filename)")
+                Logger.misc.debug("[PortalCert] Provision Filename: \(metadata!.provisionFilename)")
                 
                 // Try to locate files using metadata
                 let metaP12URL = extractDir.appendingPathComponent(metadata!.p12Filename)
