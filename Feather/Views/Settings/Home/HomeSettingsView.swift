@@ -316,7 +316,7 @@ struct HomeSettingsView: View {
                 HapticsManager.shared.success()
             }
         } message: {
-            Text(.localized("Are you sure you want to remove your profile picture?"))
+            Text(.localized("Are you sure you want to remove your Profile Picture?"))
         }
         .sheet(isPresented: $showImagePicker) {
             ProfileImagePicker { image in
@@ -354,7 +354,7 @@ struct HomeSettingsView: View {
         } header: {
             Text(.localized("App Update Notifications"))
         } footer: {
-            Text(.localized("Track specific apps from sources and get notified when updates are available on the Home screen."))
+            Text(.localized("Track specific apps from your sources and get notified via a banner when updates are available on the Home Screen."))
         }
     }
     
@@ -371,7 +371,7 @@ struct HomeSettingsView: View {
         } header: {
             Text(.localized("Profile Picture"))
         } footer: {
-            Text(.localized("Set a profile picture to display on the top right of the Home tab."))
+            Text(.localized("Set a profile picture to display on the top right of the Home tab instead of the app icon."))
         }
     }
     
@@ -814,7 +814,7 @@ struct AppUpdateTrackingSettingsView: View {
                                 .font(.caption)
                                 .foregroundStyle(.blue)
                         } else if let lastFetch = updateManager.lastAutoFetchDate {
-                            Text("Last fetched: \(lastFetch, style: .relative) ago")
+                            Text("Last Fetched: \(lastFetch, style: .relative) ago")
                                 .font(.caption)
                                 .foregroundStyle(.secondary)
                         } else {
@@ -853,7 +853,7 @@ struct AppUpdateTrackingSettingsView: View {
                             .foregroundStyle(.primary)
                         
                         if let cacheDate = updateManager.lastCacheDate {
-                            Text("Cache updated: \(cacheDate, style: .relative) ago")
+                            Text("Cache Updated: \(cacheDate, style: .relative) ago")
                                 .font(.caption2)
                                 .foregroundStyle(.secondary)
                         }
@@ -865,7 +865,7 @@ struct AppUpdateTrackingSettingsView: View {
         } header: {
             Text("Source Data")
         } footer: {
-            Text("Sources are automatically fetched every hour. Tap to manually refresh all sources and update the app cache.")
+            Text("Sources are automatically fetched every hour. Tap to manually refresh all sources and update the app cache. Having the apps cached helps to load the apps faster.")
         }
     }
     

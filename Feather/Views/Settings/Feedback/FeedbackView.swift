@@ -1554,7 +1554,7 @@ struct FeedbackView: View {
                     VStack(spacing: 16) {
                         ProgressView()
                             .scaleEffect(1.2)
-                        Text("Loading feedback...")
+                        Text("Loading Feedback...")
                             .font(.system(size: 14))
                             .foregroundStyle(.secondary)
                     }

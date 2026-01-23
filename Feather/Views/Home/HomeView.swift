@@ -483,7 +483,7 @@ struct HomeView: View {
                         StatusCard(
                             title: "Signed Apps",
                             value: "\(_signedApps.count)",
-                            subtitle: _signedApps.count == 1 ? "App signed" : "Apps Signed",
+                            subtitle: _signedApps.count == 1 ? "App Signed" : "Apps Signed",
                             icon: "signature",
                             color: .purple,
                             isLarge: size == .large

@@ -1572,7 +1572,7 @@ struct BatchSigningView: View {
             } catch {
                 await MainActor.run {
                     withAnimation {
-                        signingProgress[uuid] = .failed("Install failed: \(error.localizedDescription)")
+                        signingProgress[uuid] = .failed("Install Failed: \(error.localizedDescription)")
                     }
                     AppLogManager.shared.error("Batch installation failed for \(app.name ?? "Unknown"): \(error.localizedDescription)", category: "BatchSign")
                 }
