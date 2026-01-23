@@ -334,7 +334,7 @@ struct HomeView: View {
                 .font(.system(size: 60))
                 .foregroundStyle(.secondary)
             
-            Text("No Apps to Sign")
+            Text("No Apps To Sign")
                 .font(.title2.bold())
             
             Text("Import an app first to sign and install it.")
@@ -378,7 +378,7 @@ struct HomeView: View {
                         StatusCard(
                             title: "Sources",
                             value: "\(_sources.count)",
-                            subtitle: _sources.count == 1 ? "repository" : "repositories",
+                            subtitle: _sources.count == 1 ? "Repository" : "Repositories",
                             icon: "globe.desk.fill",
                             color: .cyan,
                             isLarge: size == .large
@@ -389,7 +389,7 @@ struct HomeView: View {
                         StatusCard(
                             title: "Certificates",
                             value: "\(_certificates.count)",
-                            subtitle: _certificates.count == 1 ? "certificate" : "certificates",
+                            subtitle: _certificates.count == 1 ? "Certificate" : "Certificates",
                             icon: "checkmark.seal.fill",
                             color: .green,
                             isLarge: size == .large
@@ -398,7 +398,7 @@ struct HomeView: View {
                         StatusCard(
                             title: "Signed Apps",
                             value: "\(_signedApps.count)",
-                            subtitle: _signedApps.count == 1 ? "app signed" : "apps signed",
+                            subtitle: _signedApps.count == 1 ? "App signed" : "Apps Signed",
                             icon: "signature",
                             color: .purple,
                             isLarge: size == .large
@@ -464,7 +464,7 @@ struct HomeView: View {
                 Image(systemName: "clock.arrow.circlepath")
                     .font(.system(size: 14))
                     .foregroundStyle(.secondary)
-                Text("No signing history")
+                Text("No Signing History")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
@@ -480,7 +480,7 @@ struct HomeView: View {
                 Text("No Signing History")
                     .font(size == .large ? .headline : .subheadline)
                     .foregroundStyle(.secondary)
-                Text("Apps you sign will appear here")
+                Text("Apps you sign will appear here on this widget.")
                     .font(.caption)
                     .foregroundStyle(.tertiary)
             }
@@ -514,7 +514,7 @@ struct HomeView: View {
             } else {
                 VStack(spacing: size == .large ? 14 : 12) {
                     AtAGlanceRow(title: "Total Apps Available", value: "\(totalAppsAvailable)", icon: "app.badge.fill", color: .blue)
-                    AtAGlanceRow(title: "Apps in Library", value: "\(_signedApps.count + _importedApps.count)", icon: "square.grid.2x2.fill", color: .orange)
+                    AtAGlanceRow(title: "Apps In Library", value: "\(_signedApps.count + _importedApps.count)", icon: "square.grid.2x2.fill", color: .orange)
                     
                     if let selectedCert = getSelectedCertificate() {
                         AtAGlanceRow(title: "Active Certificate", value: selectedCert.nickname ?? "Unknown", icon: "checkmark.shield.fill", color: selectedCert.revoked ? .red : .green)
@@ -522,7 +522,7 @@ struct HomeView: View {
                             AtAGlanceRow(title: "Certificate Expires", value: formatExpirationDate(expiration), icon: "calendar.badge.clock", color: expirationColor(expiration))
                         }
                     } else {
-                        AtAGlanceRow(title: "Certificate Status", value: "No certificate selected", icon: "exclamationmark.shield.fill", color: .orange)
+                        AtAGlanceRow(title: "Certificate Status", value: "No Certificate Selected", icon: "exclamationmark.shield.fill", color: .orange)
                     }
                     
                     if let recentSigned = _signedApps.first {
@@ -609,7 +609,7 @@ struct HomeView: View {
                 .font(.subheadline.bold())
                 .foregroundStyle(.secondary)
             
-            Text("Import or sign an app to see it here")
+            Text("Import or sign an app to see it here.")
                 .font(.caption)
                 .foregroundStyle(.tertiary)
         }
@@ -697,7 +697,7 @@ struct HomeView: View {
                                 .foregroundStyle(cert.revoked ? .red : .green)
                             
                             if let expiration = cert.expiration {
-                                Text("Expires \(formatExpirationDate(expiration))")
+                                Text("Expires On \(formatExpirationDate(expiration))")
                                     .font(.caption)
                                     .foregroundStyle(expirationColor(expiration))
                             }
@@ -1568,7 +1568,7 @@ struct SourceOverviewRow: View {
                     .font(.system(size: 14, weight: .semibold))
                     .lineLimit(1)
                 
-                Text("\(appCount) apps")
+                Text("\(appCount) Apps")
                     .font(.system(size: 12))
                     .foregroundStyle(.secondary)
             }
@@ -1609,10 +1609,10 @@ struct SignAndInstallPickerView: View {
                     }
                     
                     VStack(spacing: 8) {
-                        Text("Sign & Install")
+                        Text("Quick Sign Apps")
                             .font(.system(size: 24, weight: .bold, design: .rounded))
                         
-                        Text("Select an IPA file to sign and install")
+                        Text("Select an IPA file to sign and install.")
                             .font(.subheadline)
                             .foregroundStyle(.secondary)
                             .multilineTextAlignment(.center)
@@ -1667,7 +1667,7 @@ struct SignAndInstallPickerView: View {
                             .font(.system(size: 14))
                             .foregroundStyle(.secondary)
                         
-                        Text("The signing process will start automatically")
+                        Text("The signing process will start automatically.")
                             .font(.caption)
                             .foregroundStyle(.secondary)
                     }

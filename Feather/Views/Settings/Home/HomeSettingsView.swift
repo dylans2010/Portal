@@ -336,7 +336,7 @@ struct HomeSettingsView: View {
         } header: {
             Text(.localized("Profile Picture"))
         } footer: {
-            Text(.localized("Set a profile picture to display on the Home tab."))
+            Text(.localized("Set a profile picture to display on the top right of the Home tab."))
         }
     }
     
@@ -411,7 +411,7 @@ struct HomeSettingsView: View {
             }
             
             Toggle(isOn: $animationsEnabled) {
-                SettingsRowView(icon: "sparkles", title: "Animations", color: .purple)
+                SettingsRowView(icon: "sparkles", title: "Animations (Beta)", color: .purple)
             }
             
             Toggle(isOn: $compactMode) {
@@ -420,7 +420,7 @@ struct HomeSettingsView: View {
         } header: {
             Text(.localized("Appearance"))
         } footer: {
-            Text(.localized("Customize how the Home screen looks."))
+            Text(.localized("Customize how the Home Screen looks."))
         }
     }
     
@@ -483,7 +483,7 @@ struct HomeSettingsView: View {
                 HStack {
                     Image(systemName: "arrow.counterclockwise")
                         .frame(width: 24)
-                    Text(.localized("Reset to Defaults"))
+                    Text(.localized("Reset To Defaults"))
                 }
             }
         }
