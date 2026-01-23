@@ -1194,8 +1194,7 @@ struct SigningHistoryRow: View {
     }
     
     private var appSize: String {
-        guard let size = app.size else { return "Unknown size" }
-        return ByteCountFormatter.string(fromByteCount: size, countStyle: .file)
+        ByteCountFormatter.string(fromByteCount: app.size, countStyle: .file)
     }
     
     var body: some View {
