@@ -1,6 +1,31 @@
 import SwiftUI
 import NimbleViews
 
+// MARK: - Widget Size
+enum WidgetSize: String, CaseIterable, Codable, Identifiable {
+    case compact = "compact"
+    case normal = "normal"
+    case large = "large"
+    
+    var id: String { rawValue }
+    
+    var title: String {
+        switch self {
+        case .compact: return String.localized("Compact")
+        case .normal: return String.localized("Normal")
+        case .large: return String.localized("Large")
+        }
+    }
+    
+    var icon: String {
+        switch self {
+        case .compact: return "rectangle.compress.vertical"
+        case .normal: return "rectangle"
+        case .large: return "rectangle.expand.vertical"
+        }
+    }
+}
+
 // MARK: - Home Widget Type
 enum HomeWidgetType: String, CaseIterable, Codable, Identifiable {
     case quickActions = "quickActions"
@@ -15,6 +40,7 @@ enum HomeWidgetType: String, CaseIterable, Codable, Identifiable {
     case deviceInfo = "deviceInfo"
     case appStats = "appStats"
     case favoriteApps = "favoriteApps"
+    case signingHistory = "signingHistory"
     
     var id: String { rawValue }
     
@@ -32,6 +58,7 @@ enum HomeWidgetType: String, CaseIterable, Codable, Identifiable {
         case .deviceInfo: return String.localized("Device Info")
         case .appStats: return String.localized("App Statistics")
         case .favoriteApps: return String.localized("Favorite Apps")
+        case .signingHistory: return String.localized("Signing History")
         }
     }
     
@@ -49,6 +76,7 @@ enum HomeWidgetType: String, CaseIterable, Codable, Identifiable {
         case .deviceInfo: return "iphone"
         case .appStats: return "chart.pie.fill"
         case .favoriteApps: return "star.fill"
+        case .signingHistory: return "clock.arrow.circlepath"
         }
     }
     
@@ -66,6 +94,7 @@ enum HomeWidgetType: String, CaseIterable, Codable, Identifiable {
         case .deviceInfo: return .indigo
         case .appStats: return .pink
         case .favoriteApps: return .yellow
+        case .signingHistory: return .teal
         }
     }
     
@@ -83,11 +112,12 @@ enum HomeWidgetType: String, CaseIterable, Codable, Identifiable {
         case .deviceInfo: return String.localized("Information about your device")
         case .appStats: return String.localized("Statistics about your signed and imported apps")
         case .favoriteApps: return String.localized("Quick access to your favorite apps")
+        case .signingHistory: return String.localized("Complete history of all signed apps with details")
         }
     }
     
     static var defaultOrder: [HomeWidgetType] {
-        [.quickActions, .status, .atAGlance, .recentApps, .storageInfo, .certificateStatus, .sourcesOverview, .networkStatus, .tips, .deviceInfo, .appStats, .favoriteApps]
+        [.quickActions, .status, .signingHistory, .atAGlance, .recentApps, .storageInfo, .certificateStatus, .sourcesOverview, .networkStatus, .tips, .deviceInfo, .appStats, .favoriteApps]
     }
 }
 
@@ -98,12 +128,14 @@ struct HomeWidgetConfig: Codable, Identifiable, Equatable {
     var isEnabled: Bool
     var isPinned: Bool
     var order: Int
+    var size: WidgetSize
     
-    init(type: HomeWidgetType, isEnabled: Bool = true, isPinned: Bool = false, order: Int = 0) {
+    init(type: HomeWidgetType, isEnabled: Bool = true, isPinned: Bool = false, order: Int = 0, size: WidgetSize = .normal) {
         self.type = type
         self.isEnabled = isEnabled
         self.isPinned = isPinned
         self.order = order
+        self.size = size
     }
 }
 
@@ -122,21 +154,19 @@ class HomeSettingsManager: ObservableObject {
     func loadWidgets() {
         if let data = UserDefaults.standard.data(forKey: widgetsKey),
            let decoded = try? JSONDecoder().decode([HomeWidgetConfig].self, from: data) {
-            // Merge with any new widget types that might have been added
             var loadedWidgets = decoded
             let existingTypes = Set(loadedWidgets.map { $0.type })
             
             for (index, type) in HomeWidgetType.allCases.enumerated() {
                 if !existingTypes.contains(type) {
-                    loadedWidgets.append(HomeWidgetConfig(type: type, isEnabled: true, isPinned: false, order: loadedWidgets.count + index))
+                    loadedWidgets.append(HomeWidgetConfig(type: type, isEnabled: true, isPinned: false, order: loadedWidgets.count + index, size: .normal))
                 }
             }
             
             widgets = loadedWidgets.sorted { $0.order < $1.order }
         } else {
-            // Default configuration
             widgets = HomeWidgetType.defaultOrder.enumerated().map { index, type in
-                HomeWidgetConfig(type: type, isEnabled: true, isPinned: false, order: index)
+                HomeWidgetConfig(type: type, isEnabled: true, isPinned: false, order: index, size: .normal)
             }
         }
     }
@@ -161,6 +191,17 @@ class HomeSettingsManager: ObservableObject {
         }
     }
     
+    func setWidgetSize(_ type: HomeWidgetType, size: WidgetSize) {
+        if let index = widgets.firstIndex(where: { $0.type == type }) {
+            widgets[index].size = size
+            saveWidgets()
+        }
+    }
+    
+    func getWidgetSize(_ type: HomeWidgetType) -> WidgetSize {
+        widgets.first(where: { $0.type == type })?.size ?? .normal
+    }
+    
     func moveWidget(from source: IndexSet, to destination: Int) {
         widgets.move(fromOffsets: source, toOffset: destination)
         updateOrder()
@@ -175,7 +216,7 @@ class HomeSettingsManager: ObservableObject {
     
     func resetToDefaults() {
         widgets = HomeWidgetType.defaultOrder.enumerated().map { index, type in
-            HomeWidgetConfig(type: type, isEnabled: true, isPinned: false, order: index)
+            HomeWidgetConfig(type: type, isEnabled: true, isPinned: false, order: index, size: .normal)
         }
         saveWidgets()
     }
@@ -421,14 +462,16 @@ struct HomeSettingsView: View {
                     widgetType: widgetType,
                     isEnabled: settingsManager.isEnabled(widgetType),
                     isPinned: settingsManager.isPinned(widgetType),
+                    currentSize: settingsManager.getWidgetSize(widgetType),
                     onToggle: { settingsManager.toggleWidget(widgetType) },
-                    onTogglePin: { settingsManager.togglePin(widgetType) }
+                    onTogglePin: { settingsManager.togglePin(widgetType) },
+                    onSizeChange: { size in settingsManager.setWidgetSize(widgetType, size: size) }
                 )
             }
         } header: {
             Text(.localized("Widgets"))
         } footer: {
-            Text(.localized("Enable or disable widgets. Long press to pin."))
+            Text(.localized("Enable or disable widgets. Long press to change size or pin."))
         }
     }
     
@@ -514,8 +557,10 @@ private struct WidgetToggleRow: View {
     let widgetType: HomeWidgetType
     let isEnabled: Bool
     let isPinned: Bool
+    let currentSize: WidgetSize
     let onToggle: () -> Void
     let onTogglePin: () -> Void
+    let onSizeChange: (WidgetSize) -> Void
     
     var body: some View {
         HStack(spacing: 12) {
@@ -539,6 +584,14 @@ private struct WidgetToggleRow: View {
                             .font(.system(size: 8))
                             .foregroundStyle(.orange)
                     }
+                    
+                    Text(currentSize.title)
+                        .font(.caption2)
+                        .foregroundStyle(.white)
+                        .padding(.horizontal, 5)
+                        .padding(.vertical, 2)
+                        .background(widgetType.color.opacity(0.7))
+                        .cornerRadius(4)
                 }
                 
                 Text(widgetType.description)
@@ -560,6 +613,21 @@ private struct WidgetToggleRow: View {
         }
         .padding(.vertical, 2)
         .contextMenu {
+            Menu {
+                ForEach(WidgetSize.allCases) { size in
+                    Button {
+                        onSizeChange(size)
+                        HapticsManager.shared.softImpact()
+                    } label: {
+                        Label(size.title, systemImage: currentSize == size ? "checkmark" : size.icon)
+                    }
+                }
+            } label: {
+                Label("Widget Size", systemImage: "rectangle.3.group")
+            }
+            
+            Divider()
+            
             Button {
                 onTogglePin()
                 HapticsManager.shared.softImpact()

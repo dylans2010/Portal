@@ -168,31 +168,34 @@ struct HomeView: View {
     // MARK: - Widget View Builder
     @ViewBuilder
     private func widgetView(for type: HomeWidgetType) -> some View {
+        let size = _settingsManager.getWidgetSize(type)
         switch type {
         case .quickActions:
-            quickActionsSection
+            quickActionsSection(size: size)
         case .status:
-            statusSection
+            statusSection(size: size)
         case .atAGlance:
-            atAGlanceSection
+            atAGlanceSection(size: size)
         case .recentApps:
-            recentAppsSection
+            recentAppsSection(size: size)
         case .storageInfo:
-            storageInfoSection
+            storageInfoSection(size: size)
         case .certificateStatus:
-            certificateStatusSection
+            certificateStatusSection(size: size)
         case .sourcesOverview:
-            sourcesOverviewSection
+            sourcesOverviewSection(size: size)
         case .networkStatus:
-            networkStatusSection
+            networkStatusSection(size: size)
         case .tips:
-            tipsSection
+            tipsSection(size: size)
         case .deviceInfo:
-            deviceInfoSection
+            deviceInfoSection(size: size)
         case .appStats:
-            appStatsSection
+            appStatsSection(size: size)
         case .favoriteApps:
-            favoriteAppsSection
+            favoriteAppsSection(size: size)
+        case .signingHistory:
+            signingHistorySection(size: size)
         }
     }
     
@@ -245,16 +248,16 @@ struct HomeView: View {
     }
     
     // MARK: - Quick Actions Section
-    private var quickActionsSection: some View {
-        VStack(alignment: .leading, spacing: _compactMode ? 8 : 16) {
-            if !_compactMode {
+    @ViewBuilder
+    private func quickActionsSection(size: WidgetSize) -> some View {
+        VStack(alignment: .leading, spacing: size == .compact ? 8 : 16) {
+            if size != .compact {
                 sectionHeader("Quick Actions", icon: "bolt.fill")
             }
             
-            if _compactMode {
-                // Compact horizontal scroll
+            if size == .compact {
                 ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 16) {
+                    HStack(spacing: 12) {
                         CompactQuickActionButton(title: "Certificate", icon: "checkmark.seal.fill", color: .green) {
                             _showAddCertificate = true
                             HapticsManager.shared.softImpact()
@@ -281,7 +284,8 @@ struct HomeView: View {
                     HomeQuickActionCard(
                         title: "Add Certificate",
                         icon: "checkmark.seal.fill",
-                        color: .green
+                        color: .green,
+                        isLarge: size == .large
                     ) {
                         _showAddCertificate = true
                         HapticsManager.shared.softImpact()
@@ -290,7 +294,8 @@ struct HomeView: View {
                     HomeQuickActionCard(
                         title: "Add Source",
                         icon: "globe.desk.fill",
-                        color: .cyan
+                        color: .cyan,
+                        isLarge: size == .large
                     ) {
                         _showAddSource = true
                         HapticsManager.shared.softImpact()
@@ -299,7 +304,8 @@ struct HomeView: View {
                     HomeQuickActionCard(
                         title: "Import App",
                         icon: "square.and.arrow.down.fill",
-                        color: .orange
+                        color: .orange,
+                        isLarge: size == .large
                     ) {
                         _showImportApp = true
                         HapticsManager.shared.softImpact()
@@ -308,7 +314,8 @@ struct HomeView: View {
                     HomeQuickActionCard(
                         title: "Sign & Install",
                         icon: "signature",
-                        color: .purple
+                        color: .purple,
+                        isLarge: size == .large
                     ) {
                         _showSignAndInstallPicker = true
                         HapticsManager.shared.softImpact()
@@ -340,45 +347,63 @@ struct HomeView: View {
     }
     
     // MARK: - Status Section
-    private var statusSection: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            sectionHeader("Status", icon: "chart.bar.fill")
+    @ViewBuilder
+    private func statusSection(size: WidgetSize) -> some View {
+        VStack(alignment: .leading, spacing: size == .compact ? 8 : 16) {
+            if size != .compact {
+                sectionHeader("Status", icon: "chart.bar.fill")
+            }
             
-            VStack(spacing: 12) {
-                HStack(spacing: 12) {
-                    StatusCard(
-                        title: "Portal Version",
-                        value: "v\(portalVersion)",
-                        subtitle: "Build \(buildNumber)",
-                        icon: "app.badge.checkmark.fill",
-                        color: .blue
-                    )
-                    
-                    StatusCard(
-                        title: "Sources",
-                        value: "\(_sources.count)",
-                        subtitle: _sources.count == 1 ? "repository" : "repositories",
-                        icon: "globe.desk.fill",
-                        color: .cyan
-                    )
+            if size == .compact {
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 10) {
+                        CompactStatusPill(title: "v\(portalVersion)", icon: "app.badge.checkmark.fill", color: .blue)
+                        CompactStatusPill(title: "\(_sources.count) Sources", icon: "globe.desk.fill", color: .cyan)
+                        CompactStatusPill(title: "\(_certificates.count) Certs", icon: "checkmark.seal.fill", color: .green)
+                        CompactStatusPill(title: "\(_signedApps.count) Signed", icon: "signature", color: .purple)
+                    }
                 }
-                
-                HStack(spacing: 12) {
-                    StatusCard(
-                        title: "Certificates",
-                        value: "\(_certificates.count)",
-                        subtitle: _certificates.count == 1 ? "certificate" : "certificates",
-                        icon: "checkmark.seal.fill",
-                        color: .green
-                    )
+            } else {
+                VStack(spacing: size == .large ? 16 : 12) {
+                    HStack(spacing: 12) {
+                        StatusCard(
+                            title: "Portal Version",
+                            value: "v\(portalVersion)",
+                            subtitle: "Build \(buildNumber)",
+                            icon: "app.badge.checkmark.fill",
+                            color: .blue,
+                            isLarge: size == .large
+                        )
+                        
+                        StatusCard(
+                            title: "Sources",
+                            value: "\(_sources.count)",
+                            subtitle: _sources.count == 1 ? "repository" : "repositories",
+                            icon: "globe.desk.fill",
+                            color: .cyan,
+                            isLarge: size == .large
+                        )
+                    }
                     
-                    StatusCard(
-                        title: "Signed Apps",
-                        value: "\(_signedApps.count)",
-                        subtitle: _signedApps.count == 1 ? "app signed" : "apps signed",
-                        icon: "signature",
-                        color: .purple
-                    )
+                    HStack(spacing: 12) {
+                        StatusCard(
+                            title: "Certificates",
+                            value: "\(_certificates.count)",
+                            subtitle: _certificates.count == 1 ? "certificate" : "certificates",
+                            icon: "checkmark.seal.fill",
+                            color: .green,
+                            isLarge: size == .large
+                        )
+                        
+                        StatusCard(
+                            title: "Signed Apps",
+                            value: "\(_signedApps.count)",
+                            subtitle: _signedApps.count == 1 ? "app signed" : "apps signed",
+                            icon: "signature",
+                            color: .purple,
+                            isLarge: size == .large
+                        )
+                    }
                 }
             }
         }
@@ -387,81 +412,137 @@ struct HomeView: View {
         .animation(.spring(response: 0.5, dampingFraction: 0.8).delay(0.2), value: _appearAnimation)
     }
     
-    // MARK: - At A Glance Section
-    private var atAGlanceSection: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            sectionHeader("At A Glance", icon: "eye.fill")
+    // MARK: - Signing History Section
+    @ViewBuilder
+    private func signingHistorySection(size: WidgetSize) -> some View {
+        VStack(alignment: .leading, spacing: size == .compact ? 8 : 16) {
+            if size != .compact {
+                sectionHeader("Signing History", icon: "clock.arrow.circlepath")
+            }
             
-            VStack(spacing: 12) {
-                // Total Apps Available
-                AtAGlanceRow(
-                    title: "Total Apps Available",
-                    value: "\(totalAppsAvailable)",
-                    icon: "app.badge.fill",
-                    color: .blue
-                )
+            if _signedApps.isEmpty {
+                emptyHistoryView(size: size)
+            } else {
+                let itemCount = size == .compact ? 3 : (size == .large ? 10 : 5)
+                let recentApps = Array(_signedApps.prefix(itemCount))
                 
-                // Library Apps
-                AtAGlanceRow(
-                    title: "Apps in Library",
-                    value: "\(_signedApps.count + _importedApps.count)",
-                    icon: "square.grid.2x2.fill",
-                    color: .orange
-                )
-                
-                // Certificate Status
-                if let selectedCert = getSelectedCertificate() {
-                    AtAGlanceRow(
-                        title: "Active Certificate",
-                        value: selectedCert.nickname ?? "Unknown",
-                        icon: "checkmark.shield.fill",
-                        color: selectedCert.revoked ? .red : .green
-                    )
-                    
-                    if let expiration = selectedCert.expiration {
-                        AtAGlanceRow(
-                            title: "Certificate Expires",
-                            value: formatExpirationDate(expiration),
-                            icon: "calendar.badge.clock",
-                            color: expirationColor(expiration)
-                        )
+                if size == .compact {
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: 10) {
+                            ForEach(recentApps, id: \.uuid) { app in
+                                CompactHistoryItem(app: app)
+                            }
+                        }
                     }
                 } else {
-                    AtAGlanceRow(
-                        title: "Certificate Status",
-                        value: "No certificate selected",
-                        icon: "exclamationmark.shield.fill",
-                        color: .orange
+                    VStack(spacing: size == .large ? 12 : 8) {
+                        ForEach(recentApps, id: \.uuid) { app in
+                            SigningHistoryRow(app: app, isLarge: size == .large)
+                        }
+                    }
+                    .padding(size == .large ? 20 : 16)
+                    .background(
+                        RoundedRectangle(cornerRadius: 16, style: .continuous)
+                            .fill(Color(UIColor.secondarySystemGroupedBackground))
+                    )
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 16, style: .continuous)
+                            .stroke(Color(UIColor.separator).opacity(0.2), lineWidth: 0.5)
                     )
                 }
-                
-                // Recent Activity
-                if let recentSigned = _signedApps.first {
-                    AtAGlanceRow(
-                        title: "Last Signed App",
-                        value: recentSigned.name ?? "Unknown",
-                        icon: "clock.fill",
-                        color: .purple
-                    )
-                }
-                
-                // Storage Info
-                AtAGlanceRow(
-                    title: "Unsigned Apps",
-                    value: "\(_importedApps.count)",
-                    icon: "doc.badge.plus",
-                    color: .gray
-                )
             }
-            .padding(16)
+        }
+        .opacity(_appearAnimation ? 1 : 0)
+        .offset(y: _appearAnimation ? 0 : 20)
+        .animation(.spring(response: 0.5, dampingFraction: 0.8).delay(0.15), value: _appearAnimation)
+    }
+    
+    @ViewBuilder
+    private func emptyHistoryView(size: WidgetSize) -> some View {
+        if size == .compact {
+            HStack(spacing: 8) {
+                Image(systemName: "clock.arrow.circlepath")
+                    .font(.system(size: 14))
+                    .foregroundStyle(.secondary)
+                Text("No signing history")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 8)
+            .background(Color(UIColor.tertiarySystemFill))
+            .cornerRadius(8)
+        } else {
+            VStack(spacing: 12) {
+                Image(systemName: "clock.arrow.circlepath")
+                    .font(.system(size: size == .large ? 40 : 32))
+                    .foregroundStyle(.secondary.opacity(0.6))
+                Text("No Signing History")
+                    .font(size == .large ? .headline : .subheadline)
+                    .foregroundStyle(.secondary)
+                Text("Apps you sign will appear here")
+                    .font(.caption)
+                    .foregroundStyle(.tertiary)
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, size == .large ? 40 : 24)
             .background(
                 RoundedRectangle(cornerRadius: 16, style: .continuous)
                     .fill(Color(UIColor.secondarySystemGroupedBackground))
             )
-            .overlay(
-                RoundedRectangle(cornerRadius: 16, style: .continuous)
-                    .stroke(Color(UIColor.separator).opacity(0.2), lineWidth: 0.5)
-            )
+        }
+    }
+    
+    // MARK: - At A Glance Section
+    @ViewBuilder
+    private func atAGlanceSection(size: WidgetSize) -> some View {
+        VStack(alignment: .leading, spacing: size == .compact ? 8 : 16) {
+            if size != .compact {
+                sectionHeader("At A Glance", icon: "eye.fill")
+            }
+            
+            if size == .compact {
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 10) {
+                        CompactStatusPill(title: "\(totalAppsAvailable) Apps", icon: "app.badge.fill", color: .blue)
+                        CompactStatusPill(title: "\(_signedApps.count + _importedApps.count) Library", icon: "square.grid.2x2.fill", color: .orange)
+                        if let cert = getSelectedCertificate() {
+                            CompactStatusPill(title: cert.nickname ?? "Cert", icon: "checkmark.shield.fill", color: cert.revoked ? .red : .green)
+                        }
+                    }
+                }
+            } else {
+                VStack(spacing: size == .large ? 14 : 12) {
+                    AtAGlanceRow(title: "Total Apps Available", value: "\(totalAppsAvailable)", icon: "app.badge.fill", color: .blue)
+                    AtAGlanceRow(title: "Apps in Library", value: "\(_signedApps.count + _importedApps.count)", icon: "square.grid.2x2.fill", color: .orange)
+                    
+                    if let selectedCert = getSelectedCertificate() {
+                        AtAGlanceRow(title: "Active Certificate", value: selectedCert.nickname ?? "Unknown", icon: "checkmark.shield.fill", color: selectedCert.revoked ? .red : .green)
+                        if let expiration = selectedCert.expiration {
+                            AtAGlanceRow(title: "Certificate Expires", value: formatExpirationDate(expiration), icon: "calendar.badge.clock", color: expirationColor(expiration))
+                        }
+                    } else {
+                        AtAGlanceRow(title: "Certificate Status", value: "No certificate selected", icon: "exclamationmark.shield.fill", color: .orange)
+                    }
+                    
+                    if let recentSigned = _signedApps.first {
+                        AtAGlanceRow(title: "Last Signed App", value: recentSigned.name ?? "Unknown", icon: "clock.fill", color: .purple)
+                    }
+                    
+                    if size == .large {
+                        AtAGlanceRow(title: "Unsigned Apps", value: "\(_importedApps.count)", icon: "doc.badge.plus", color: .gray)
+                    }
+                }
+                .padding(size == .large ? 20 : 16)
+                .background(
+                    RoundedRectangle(cornerRadius: 16, style: .continuous)
+                        .fill(Color(UIColor.secondarySystemGroupedBackground))
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: 16, style: .continuous)
+                        .stroke(Color(UIColor.separator).opacity(0.2), lineWidth: 0.5)
+                )
+            }
         }
         .opacity(_appearAnimation ? 1 : 0)
         .offset(y: _appearAnimation ? 0 : 20)
@@ -469,9 +550,12 @@ struct HomeView: View {
     }
     
     // MARK: - Recent Apps Section
-    private var recentAppsSection: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            sectionHeader("Recent Apps", icon: "clock.fill")
+    @ViewBuilder
+    private func recentAppsSection(size: WidgetSize) -> some View {
+        VStack(alignment: .leading, spacing: size == .compact ? 8 : 16) {
+            if size != .compact {
+                sectionHeader("Recent Apps", icon: "clock.fill")
+            }
             
             if _signedApps.isEmpty && _importedApps.isEmpty {
                 emptyRecentAppsView
@@ -538,7 +622,7 @@ struct HomeView: View {
     }
     
     // MARK: - Storage Info Section
-    private var storageInfoSection: some View {
+    private func storageInfoSection(size: WidgetSize) -> some View {
         VStack(alignment: .leading, spacing: 16) {
             sectionHeader("Storage Info", icon: "internaldrive.fill")
             
@@ -587,7 +671,7 @@ struct HomeView: View {
     }
     
     // MARK: - Certificate Status Section
-    private var certificateStatusSection: some View {
+    private func certificateStatusSection(size: WidgetSize) -> some View {
         VStack(alignment: .leading, spacing: 16) {
             sectionHeader("Certificate Status", icon: "checkmark.seal.fill")
             
@@ -673,7 +757,7 @@ struct HomeView: View {
     }
     
     // MARK: - Sources Overview Section
-    private var sourcesOverviewSection: some View {
+    private func sourcesOverviewSection(size: WidgetSize) -> some View {
         VStack(alignment: .leading, spacing: 16) {
             sectionHeader("Sources Overview", icon: "globe.desk.fill")
             
@@ -741,7 +825,7 @@ struct HomeView: View {
     }
     
     // MARK: - Network Status Section
-    private var networkStatusSection: some View {
+    private func networkStatusSection(size: WidgetSize) -> some View {
         VStack(alignment: .leading, spacing: 16) {
             sectionHeader("Network Status", icon: "wifi")
             
@@ -783,7 +867,7 @@ struct HomeView: View {
     }
     
     // MARK: - Tips Section
-    private var tipsSection: some View {
+    private func tipsSection(size: WidgetSize) -> some View {
         VStack(alignment: .leading, spacing: _compactMode ? 8 : 16) {
             if !_compactMode {
                 sectionHeader("Tips & Tricks", icon: "lightbulb.fill")
@@ -815,7 +899,7 @@ struct HomeView: View {
     }
     
     // MARK: - Device Info Section
-    private var deviceInfoSection: some View {
+    private func deviceInfoSection(size: WidgetSize) -> some View {
         VStack(alignment: .leading, spacing: _compactMode ? 8 : 16) {
             if !_compactMode {
                 sectionHeader("Device Info", icon: "iphone")
@@ -834,7 +918,7 @@ struct HomeView: View {
     }
     
     // MARK: - App Stats Section
-    private var appStatsSection: some View {
+    private func appStatsSection(size: WidgetSize) -> some View {
         VStack(alignment: .leading, spacing: _compactMode ? 8 : 16) {
             if !_compactMode {
                 sectionHeader("App Statistics", icon: "chart.pie.fill")
@@ -872,7 +956,7 @@ struct HomeView: View {
     }
     
     // MARK: - Favorite Apps Section
-    private var favoriteAppsSection: some View {
+    private func favoriteAppsSection(size: WidgetSize) -> some View {
         VStack(alignment: .leading, spacing: _compactMode ? 8 : 16) {
             if !_compactMode {
                 sectionHeader("Favorite Apps", icon: "star.fill")
@@ -961,12 +1045,13 @@ struct HomeQuickActionCard: View {
     let title: String
     let icon: String
     let color: Color
+    var isLarge: Bool = false
     let action: () -> Void
     @State private var isPressed = false
     
     var body: some View {
         Button(action: action) {
-            HomeQuickActionCardContent(title: title, icon: icon, color: color)
+            HomeQuickActionCardContent(title: title, icon: icon, color: color, isLarge: isLarge)
         }
         .buttonStyle(HomeCardButtonStyle())
     }
@@ -986,21 +1071,22 @@ struct HomeQuickActionCardContent: View {
     let title: String
     let icon: String
     let color: Color
+    var isLarge: Bool = false
     
     var body: some View {
-        VStack(spacing: 10) {
+        VStack(spacing: isLarge ? 14 : 10) {
             Image(systemName: icon)
-                .font(.system(size: 28, weight: .medium))
+                .font(.system(size: isLarge ? 36 : 28, weight: .medium))
                 .foregroundStyle(color)
             
             Text(title)
-                .font(.system(size: 13, weight: .semibold))
+                .font(.system(size: isLarge ? 15 : 13, weight: .semibold))
                 .foregroundStyle(.primary)
                 .multilineTextAlignment(.center)
                 .lineLimit(2)
         }
         .frame(maxWidth: .infinity)
-        .padding(.vertical, 16)
+        .padding(.vertical, isLarge ? 24 : 16)
         .padding(.horizontal, 10)
     }
 }
@@ -1036,31 +1122,181 @@ struct StatusCard: View {
     let subtitle: String
     let icon: String
     let color: Color
+    var isLarge: Bool = false
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: isLarge ? 12 : 8) {
             Image(systemName: icon)
-                .font(.system(size: 20, weight: .medium))
+                .font(.system(size: isLarge ? 24 : 20, weight: .medium))
                 .foregroundStyle(color)
             
             Spacer(minLength: 2)
             
             Text(value)
-                .font(.system(size: 24, weight: .bold, design: .rounded))
+                .font(.system(size: isLarge ? 32 : 24, weight: .bold, design: .rounded))
                 .foregroundStyle(.primary)
             
             VStack(alignment: .leading, spacing: 1) {
                 Text(title)
-                    .font(.system(size: 11, weight: .medium))
+                    .font(.system(size: isLarge ? 13 : 11, weight: .medium))
                     .foregroundStyle(.secondary)
                 
                 Text(subtitle)
-                    .font(.system(size: 10, weight: .regular))
+                    .font(.system(size: isLarge ? 12 : 10, weight: .regular))
                     .foregroundStyle(.tertiary)
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(14)
+        .padding(isLarge ? 18 : 14)
+    }
+}
+
+// MARK: - Compact Status Pill
+struct CompactStatusPill: View {
+    let title: String
+    let icon: String
+    let color: Color
+    
+    var body: some View {
+        HStack(spacing: 6) {
+            Image(systemName: icon)
+                .font(.system(size: 12, weight: .medium))
+                .foregroundStyle(color)
+            Text(title)
+                .font(.system(size: 12, weight: .medium))
+                .foregroundStyle(.primary)
+        }
+        .padding(.horizontal, 10)
+        .padding(.vertical, 6)
+        .background(color.opacity(0.12))
+        .cornerRadius(8)
+    }
+}
+
+// MARK: - Signing History Row
+struct SigningHistoryRow: View {
+    let app: Signed
+    var isLarge: Bool = false
+    
+    private var formattedDate: String {
+        guard let date = app.date else { return "Unknown" }
+        let formatter = DateFormatter()
+        formatter.dateStyle = .medium
+        formatter.timeStyle = .short
+        return formatter.string(from: date)
+    }
+    
+    private var relativeDate: String {
+        guard let date = app.date else { return "" }
+        let formatter = RelativeDateTimeFormatter()
+        formatter.unitsStyle = .abbreviated
+        return formatter.localizedString(for: date, relativeTo: Date())
+    }
+    
+    private var appSize: String {
+        guard let size = app.size else { return "Unknown size" }
+        return ByteCountFormatter.string(fromByteCount: size, countStyle: .file)
+    }
+    
+    var body: some View {
+        HStack(spacing: 12) {
+            ZStack {
+                RoundedRectangle(cornerRadius: isLarge ? 12 : 10)
+                    .fill(Color.purple.opacity(0.12))
+                    .frame(width: isLarge ? 48 : 40, height: isLarge ? 48 : 40)
+                
+                Image(systemName: "signature")
+                    .font(.system(size: isLarge ? 20 : 16, weight: .medium))
+                    .foregroundStyle(.purple)
+            }
+            
+            VStack(alignment: .leading, spacing: isLarge ? 4 : 2) {
+                Text(app.name ?? "Unknown App")
+                    .font(.system(size: isLarge ? 16 : 14, weight: .semibold))
+                    .lineLimit(1)
+                
+                HStack(spacing: 8) {
+                    Text(relativeDate)
+                        .font(.system(size: isLarge ? 13 : 11))
+                        .foregroundStyle(.secondary)
+                    
+                    if isLarge {
+                        Text("•")
+                            .foregroundStyle(.tertiary)
+                        Text(appSize)
+                            .font(.system(size: 11))
+                            .foregroundStyle(.tertiary)
+                    }
+                }
+                
+                if isLarge, let bundleId = app.identifier {
+                    Text(bundleId)
+                        .font(.system(size: 11, design: .monospaced))
+                        .foregroundStyle(.tertiary)
+                        .lineLimit(1)
+                }
+            }
+            
+            Spacer()
+            
+            if isLarge {
+                VStack(alignment: .trailing, spacing: 2) {
+                    Text(appSize)
+                        .font(.system(size: 12, weight: .medium))
+                        .foregroundStyle(.secondary)
+                    
+                    Image(systemName: "checkmark.circle.fill")
+                        .font(.system(size: 14))
+                        .foregroundStyle(.green)
+                }
+            } else {
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 12, weight: .medium))
+                    .foregroundStyle(.tertiary)
+            }
+        }
+        .padding(.vertical, isLarge ? 4 : 2)
+    }
+}
+
+// MARK: - Compact History Item
+struct CompactHistoryItem: View {
+    let app: Signed
+    
+    private var relativeDate: String {
+        guard let date = app.date else { return "" }
+        let formatter = RelativeDateTimeFormatter()
+        formatter.unitsStyle = .abbreviated
+        return formatter.localizedString(for: date, relativeTo: Date())
+    }
+    
+    var body: some View {
+        VStack(spacing: 6) {
+            ZStack {
+                RoundedRectangle(cornerRadius: 10)
+                    .fill(Color.purple.opacity(0.12))
+                    .frame(width: 44, height: 44)
+                
+                Image(systemName: "signature")
+                    .font(.system(size: 18, weight: .medium))
+                    .foregroundStyle(.purple)
+            }
+            
+            VStack(spacing: 2) {
+                Text(app.name ?? "App")
+                    .font(.system(size: 11, weight: .medium))
+                    .lineLimit(1)
+                    .frame(width: 60)
+                
+                Text(relativeDate)
+                    .font(.system(size: 9))
+                    .foregroundStyle(.secondary)
+            }
+        }
+        .padding(.vertical, 8)
+        .padding(.horizontal, 6)
+        .background(Color(UIColor.tertiarySystemFill))
+        .cornerRadius(12)
     }
 }
 
