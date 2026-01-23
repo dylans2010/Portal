@@ -3147,9 +3147,9 @@ struct RecentFeedbackCard: View {
                                 .padding(.vertical, 2)
                                 .background(
                                     Capsule()
-                                        .fill(Color(hex: label.color)?.opacity(0.2) ?? Color.gray.opacity(0.2))
+                                        .fill(Color(hex: label.color).opacity(0.2))
                                 )
-                                .foregroundStyle(Color(hex: label.color) ?? .gray)
+                                .foregroundStyle(Color(hex: label.color))
                         }
                     }
                     
@@ -3221,7 +3221,7 @@ struct MyFeedbackCard: View {
                 Button(action: onTap) {
                     Image(systemName: "arrow.up.right.square")
                         .font(.system(size: 18))
-                        .foregroundStyle(.accentColor)
+                        .foregroundStyle(Color.accentColor)
                 }
                 
                 Button(action: onDelete) {
@@ -3320,9 +3320,9 @@ struct FeedbackDetailSheet: View {
                                         .padding(.vertical, 5)
                                         .background(
                                             Capsule()
-                                                .fill(Color(hex: label.color)?.opacity(0.2) ?? Color.gray.opacity(0.2))
+                                                .fill(Color(hex: label.color).opacity(0.2))
                                         )
-                                        .foregroundStyle(Color(hex: label.color) ?? .gray)
+                                        .foregroundStyle(Color(hex: label.color))
                                 }
                             }
                         }
@@ -3448,23 +3448,6 @@ struct FlowLayout: Layout {
             }
             self.size.height = y + rowHeight
         }
-    }
-}
-
-// MARK: - Color Extension for Hex
-extension Color {
-    init?(hex: String) {
-        var hexSanitized = hex.trimmingCharacters(in: .whitespacesAndNewlines)
-        hexSanitized = hexSanitized.replacingOccurrences(of: "#", with: "")
-        
-        var rgb: UInt64 = 0
-        guard Scanner(string: hexSanitized).scanHexInt64(&rgb) else { return nil }
-        
-        let r = Double((rgb & 0xFF0000) >> 16) / 255.0
-        let g = Double((rgb & 0x00FF00) >> 8) / 255.0
-        let b = Double(rgb & 0x0000FF) / 255.0
-        
-        self.init(red: r, green: g, blue: b)
     }
 }
 
