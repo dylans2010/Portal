@@ -931,31 +931,34 @@ struct SelectAppToTrackView: View {
     let sources: [AltSource: ASRepository]
     
     @State private var searchText = ""
-    @State private var selectedSource: AltSource?
+    @State private var selectedSourceURL: String?
+    @State private var isLoading = true
     
-    private var filteredApps: [(source: AltSource, repo: ASRepository, app: ASRepository.App)] {
-        var apps = updateManager.getAvailableAppsFromSources(sources)
+    // Use cached apps for fast loading
+    private var filteredCachedApps: [CachedAppInfo] {
+        var apps = updateManager.getCachedAppsFiltered(searchText: searchText, excludeTracked: true)
         
         // Filter by selected source
-        if let selectedSource = selectedSource {
-            apps = apps.filter { $0.source == selectedSource }
-        }
-        
-        // Filter by search text
-        if !searchText.isEmpty {
-            apps = apps.filter { item in
-                (item.app.name?.localizedCaseInsensitiveContains(searchText) ?? false) ||
-                (item.app.id?.localizedCaseInsensitiveContains(searchText) ?? false)
-            }
-        }
-        
-        // Filter out already tracked apps
-        apps = apps.filter { item in
-            guard let bundleId = item.app.id else { return false }
-            return !updateManager.isAppTracked(bundleIdentifier: bundleId)
+        if let sourceURL = selectedSourceURL {
+            apps = apps.filter { $0.sourceURL == sourceURL }
         }
         
         return apps
+    }
+    
+    // Get unique source names for filter chips
+    private var availableSources: [(url: String, name: String)] {
+        var seen = Set<String>()
+        var result: [(url: String, name: String)] = []
+        
+        for app in updateManager.cachedApps {
+            if !seen.contains(app.sourceURL) {
+                seen.insert(app.sourceURL)
+                result.append((url: app.sourceURL, name: app.sourceName))
+            }
+        }
+        
+        return result.sorted { $0.name < $1.name }
     }
     
     var body: some View {
@@ -972,6 +975,32 @@ struct SelectAppToTrackView: View {
                         dismiss()
                     }
                 }
+                ToolbarItem(placement: .topBarTrailing) {
+                    if isLoading {
+                        ProgressView()
+                            .scaleEffect(0.8)
+                    }
+                }
+            }
+        }
+        .onAppear {
+            loadAppsIfNeeded()
+        }
+    }
+    
+    private func loadAppsIfNeeded() {
+        // If cache is valid, use it immediately
+        if updateManager.isCacheValid() && !updateManager.cachedApps.isEmpty {
+            isLoading = false
+            return
+        }
+        
+        // Otherwise, update cache from sources
+        isLoading = true
+        DispatchQueue.global(qos: .userInitiated).async {
+            updateManager.updateCache(from: sources)
+            DispatchQueue.main.async {
+                isLoading = false
             }
         }
     }
@@ -979,16 +1008,16 @@ struct SelectAppToTrackView: View {
     private var sourceFilterSection: some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 8) {
-                FilterChipButton(title: "All", isSelected: selectedSource == nil) {
-                    selectedSource = nil
+                FilterChipButton(title: "All", isSelected: selectedSourceURL == nil) {
+                    selectedSourceURL = nil
                 }
                 
-                ForEach(Array(sources.keys), id: \.self) { source in
+                ForEach(availableSources, id: \.url) { source in
                     FilterChipButton(
-                        title: source.name ?? "Unknown",
-                        isSelected: selectedSource == source
+                        title: source.name,
+                        isSelected: selectedSourceURL == source.url
                     ) {
-                        selectedSource = source
+                        selectedSourceURL = source.url
                     }
                 }
             }
@@ -1000,13 +1029,30 @@ struct SelectAppToTrackView: View {
     
     private var appListSection: some View {
         List {
-            if filteredApps.isEmpty {
+            if isLoading && updateManager.cachedApps.isEmpty {
+                loadingSection
+            } else if filteredCachedApps.isEmpty {
                 emptyStateSection
             } else {
                 availableAppsSection
             }
         }
         .searchable(text: $searchText, prompt: "Search apps")
+    }
+    
+    private var loadingSection: some View {
+        Section {
+            VStack(spacing: 12) {
+                ProgressView()
+                    .scaleEffect(1.2)
+                
+                Text("Loading apps...")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 32)
+        }
     }
     
     private var emptyStateSection: some View {
@@ -1027,36 +1073,119 @@ struct SelectAppToTrackView: View {
     
     private var availableAppsSection: some View {
         Section {
-            ForEach(filteredApps, id: \.app.id) { item in
-                SelectableAppRow(
-                    app: item.app,
-                    source: item.source,
-                    repo: item.repo
-                ) {
-                    addAppToTracking(item)
+            ForEach(filteredCachedApps) { app in
+                CachedAppRow(app: app) {
+                    addCachedAppToTracking(app)
                 }
             }
         } header: {
-            Text("Available Apps (\(filteredApps.count))")
+            Text("Available Apps (\(filteredCachedApps.count))")
         }
     }
     
-    private func addAppToTracking(_ item: (source: AltSource, repo: ASRepository, app: ASRepository.App)) {
-        guard let bundleId = item.app.id,
-              let version = item.app.version else { return }
-        
+    private func addCachedAppToTracking(_ app: CachedAppInfo) {
         let config = TrackedAppConfig(
-            bundleIdentifier: bundleId,
-            appName: item.app.name ?? "Unknown",
-            sourceURL: item.source.sourceURL?.absoluteString ?? "",
-            sourceName: item.source.name ?? "Unknown",
-            lastKnownVersion: version,
-            iconURL: item.app.iconURL?.absoluteString,
+            bundleIdentifier: app.bundleIdentifier,
+            appName: app.appName,
+            sourceURL: app.sourceURL,
+            sourceName: app.sourceName,
+            lastKnownVersion: app.version ?? "1.0",
+            iconURL: app.iconURL,
             isEnabled: true
         )
         
         updateManager.addTrackedApp(config)
         dismiss()
+    }
+}
+
+// MARK: - Cached App Row (for fast loading)
+private struct CachedAppRow: View {
+    let app: CachedAppInfo
+    let onSelect: () -> Void
+    
+    var body: some View {
+        Button(action: onSelect) {
+            HStack(spacing: 12) {
+                appIcon
+                appInfo
+                Spacer()
+                chevron
+            }
+        }
+        .buttonStyle(.plain)
+    }
+    
+    @ViewBuilder
+    private var appIcon: some View {
+        if let iconURLString = app.iconURL, let iconURL = URL(string: iconURLString) {
+            AsyncImage(url: iconURL) { phase in
+                switch phase {
+                case .success(let image):
+                    image
+                        .resizable()
+                        .aspectRatio(contentMode: .fill)
+                case .failure(_):
+                    placeholderIcon
+                case .empty:
+                    placeholderIcon
+                        .overlay(ProgressView().scaleEffect(0.5))
+                @unknown default:
+                    placeholderIcon
+                }
+            }
+            .frame(width: 44, height: 44)
+            .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+        } else {
+            placeholderIcon
+        }
+    }
+    
+    private var placeholderIcon: some View {
+        RoundedRectangle(cornerRadius: 10, style: .continuous)
+            .fill(Color.blue.opacity(0.2))
+            .frame(width: 44, height: 44)
+            .overlay(
+                Image(systemName: "app.fill")
+                    .foregroundStyle(.blue)
+            )
+    }
+    
+    private var appInfo: some View {
+        VStack(alignment: .leading, spacing: 2) {
+            Text(app.appName)
+                .font(.subheadline.weight(.medium))
+                .foregroundStyle(.primary)
+                .lineLimit(1)
+            
+            Text(app.bundleIdentifier)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .lineLimit(1)
+            
+            HStack(spacing: 4) {
+                if let version = app.version {
+                    Text("v\(version)")
+                        .font(.caption2)
+                        .foregroundStyle(.blue)
+                }
+                
+                Text("•")
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+                
+                Text(app.sourceName)
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
+            }
+        }
+    }
+    
+    private var chevron: some View {
+        Image(systemName: "plus.circle.fill")
+            .font(.system(size: 22))
+            .foregroundStyle(.green)
     }
 }
 
@@ -1077,65 +1206,6 @@ private struct FilterChipButton: View {
                     Capsule()
                         .fill(isSelected ? Color.accentColor : Color(UIColor.tertiarySystemBackground))
                 )
-        }
-        .buttonStyle(.plain)
-    }
-}
-
-// MARK: - Selectable App Row
-private struct SelectableAppRow: View {
-    let app: ASRepository.App
-    let source: AltSource
-    let repo: ASRepository
-    let onSelect: () -> Void
-    
-    var body: some View {
-        Button(action: onSelect) {
-            HStack(spacing: 12) {
-                // App Icon
-                if let iconURL = app.iconURL {
-                    AsyncImage(url: iconURL) { image in
-                        image
-                            .resizable()
-                            .aspectRatio(contentMode: .fill)
-                    } placeholder: {
-                        RoundedRectangle(cornerRadius: 10, style: .continuous)
-                            .fill(Color.gray.opacity(0.2))
-                    }
-                    .frame(width: 44, height: 44)
-                    .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
-                } else {
-                    RoundedRectangle(cornerRadius: 10, style: .continuous)
-                        .fill(Color.blue.opacity(0.2))
-                        .frame(width: 44, height: 44)
-                        .overlay(
-                            Image(systemName: "app.fill")
-                                .foregroundStyle(.blue)
-                        )
-                }
-                
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(app.name ?? "Unknown")
-                        .font(.subheadline.weight(.medium))
-                        .foregroundStyle(.primary)
-                    
-                    Text(source.name ?? "Unknown Source")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                    
-                    if let version = app.version {
-                        Text("v\(version)")
-                            .font(.caption2)
-                            .foregroundStyle(.tertiary)
-                    }
-                }
-                
-                Spacer()
-                
-                Image(systemName: "plus.circle.fill")
-                    .font(.title2)
-                    .foregroundStyle(.green)
-            }
         }
         .buttonStyle(.plain)
     }

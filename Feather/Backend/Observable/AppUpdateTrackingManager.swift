@@ -27,6 +27,28 @@ struct TrackedAppConfig: Codable, Identifiable, Equatable {
     }
 }
 
+// MARK: - Cached App Info for fast loading
+struct CachedAppInfo: Codable, Identifiable, Equatable {
+    var id: String { bundleIdentifier }
+    var bundleIdentifier: String
+    var appName: String
+    var version: String?
+    var iconURL: String?
+    var sourceURL: String
+    var sourceName: String
+    var cachedDate: Date
+    
+    init(from app: ASRepository.App, source: AltSource) {
+        self.bundleIdentifier = app.id ?? UUID().uuidString
+        self.appName = app.name ?? "Unknown"
+        self.version = app.version
+        self.iconURL = app.iconURL?.absoluteString
+        self.sourceURL = source.sourceURL?.absoluteString ?? ""
+        self.sourceName = source.name ?? "Unknown"
+        self.cachedDate = Date()
+    }
+}
+
 // MARK: - App Update Info
 struct AppUpdateInfo: Identifiable, Equatable {
     var id: String { bundleIdentifier }
@@ -53,17 +75,25 @@ final class AppUpdateTrackingManager: ObservableObject {
     private let trackedAppsKey = "Feather.trackedAppsForUpdates"
     private let lastCheckKey = "Feather.lastUpdateCheck"
     private let dismissedUpdatesKey = "Feather.dismissedAppUpdates"
+    private let cachedAppsKey = "Feather.cachedAvailableApps"
+    private let cacheExpirationInterval: TimeInterval = 3600 // 1 hour cache
     
     @Published var trackedApps: [TrackedAppConfig] = []
     @Published var availableUpdates: [AppUpdateInfo] = []
     @Published var isCheckingForUpdates = false
     @Published var lastCheckDate: Date?
     
+    // Cached apps for fast loading
+    @Published var cachedApps: [CachedAppInfo] = []
+    @Published var isCacheLoading = false
+    @Published var lastCacheDate: Date?
+    
     private var cancellables = Set<AnyCancellable>()
     
     init() {
         loadTrackedApps()
         loadLastCheckDate()
+        loadCachedApps()
     }
     
     // MARK: - Persistence
@@ -84,6 +114,72 @@ final class AppUpdateTrackingManager: ObservableObject {
         if let date = UserDefaults.standard.object(forKey: lastCheckKey) as? Date {
             lastCheckDate = date
         }
+    }
+    
+    // MARK: - Cache Management
+    private func loadCachedApps() {
+        if let data = UserDefaults.standard.data(forKey: cachedAppsKey),
+           let decoded = try? JSONDecoder().decode([CachedAppInfo].self, from: data) {
+            cachedApps = decoded
+            lastCacheDate = decoded.first?.cachedDate
+        }
+    }
+    
+    private func saveCachedApps() {
+        if let encoded = try? JSONEncoder().encode(cachedApps) {
+            UserDefaults.standard.set(encoded, forKey: cachedAppsKey)
+        }
+    }
+    
+    func isCacheValid() -> Bool {
+        guard let lastCache = lastCacheDate else { return false }
+        return Date().timeIntervalSince(lastCache) < cacheExpirationInterval
+    }
+    
+    func updateCache(from sources: [AltSource: ASRepository]) {
+        var newCache: [CachedAppInfo] = []
+        
+        for (source, repo) in sources {
+            for app in repo.apps {
+                let cachedApp = CachedAppInfo(from: app, source: source)
+                newCache.append(cachedApp)
+            }
+        }
+        
+        // Sort by app name
+        newCache.sort { $0.appName.localizedCaseInsensitiveCompare($1.appName) == .orderedAscending }
+        
+        DispatchQueue.main.async {
+            self.cachedApps = newCache
+            self.lastCacheDate = Date()
+            self.saveCachedApps()
+        }
+    }
+    
+    func getCachedAppsFiltered(searchText: String, excludeTracked: Bool = true) -> [CachedAppInfo] {
+        var filtered = cachedApps
+        
+        // Filter out already tracked apps
+        if excludeTracked {
+            let trackedIds = Set(trackedApps.map { $0.bundleIdentifier })
+            filtered = filtered.filter { !trackedIds.contains($0.bundleIdentifier) }
+        }
+        
+        // Filter by search text
+        if !searchText.isEmpty {
+            filtered = filtered.filter { app in
+                app.appName.localizedCaseInsensitiveContains(searchText) ||
+                app.bundleIdentifier.localizedCaseInsensitiveContains(searchText)
+            }
+        }
+        
+        return filtered
+    }
+    
+    func clearCache() {
+        cachedApps = []
+        lastCacheDate = nil
+        UserDefaults.standard.removeObject(forKey: cachedAppsKey)
     }
     
     private func saveLastCheckDate() {
