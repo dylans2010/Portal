@@ -165,6 +165,8 @@ final class AppUpdateTrackingManager: ObservableObject {
         await MainActor.run {
             isFetchingAllSources = true
             autoFetchProgress = 0
+            // Start background audio to keep app alive during fetch
+            BackgroundAudioManager.shared.start()
         }
         
         AppLogManager.shared.info("Starting automatic source fetch for all sources", category: "AutoFetch")
@@ -181,6 +183,7 @@ final class AppUpdateTrackingManager: ObservableObject {
                 await MainActor.run {
                     isFetchingAllSources = false
                     autoFetchProgress = 1.0
+                    BackgroundAudioManager.shared.stop()
                 }
                 AppLogManager.shared.info("No sources to fetch", category: "AutoFetch")
                 return
@@ -214,6 +217,7 @@ final class AppUpdateTrackingManager: ObservableObject {
                 saveLastAutoFetchDate()
                 isFetchingAllSources = false
                 autoFetchProgress = 1.0
+                BackgroundAudioManager.shared.stop()
             }
             
             AppLogManager.shared.success("Auto-fetch completed: \(fetchedSources.count)/\(totalSources) sources fetched, \(cachedApps.count) apps cached", category: "AutoFetch")
@@ -225,6 +229,7 @@ final class AppUpdateTrackingManager: ObservableObject {
             await MainActor.run {
                 isFetchingAllSources = false
                 autoFetchProgress = 0
+                BackgroundAudioManager.shared.stop()
             }
             AppLogManager.shared.error("Auto-fetch failed: \(error.localizedDescription)", category: "AutoFetch")
         }
