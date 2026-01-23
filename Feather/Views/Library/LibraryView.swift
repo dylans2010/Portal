@@ -23,6 +23,12 @@ struct LibraryView: View {
     @State private var _currentDownloadId: String = ""
     @State private var _downloadProgress: Double = 0.0
     
+    // Batch selection states
+    @State private var _isSelectionMode = false
+    @State private var _selectedApps: Set<UUID> = []
+    @State private var _showBatchSigningSheet = false
+    @State private var _showBatchDeleteConfirmation = false
+    
     enum ImportStatus {
         case loading
         case downloading
@@ -38,6 +44,14 @@ struct LibraryView: View {
         case all = "All"
         case unsigned = "Unsigned"
         case signed = "Signed"
+        
+        var icon: String {
+            switch self {
+            case .all: return "square.grid.2x2"
+            case .unsigned: return "doc.badge.clock"
+            case .signed: return "checkmark.seal"
+            }
+        }
     }
     
     @Namespace private var _namespace
@@ -183,6 +197,24 @@ struct LibraryView: View {
 				.presentationDetents([.medium, .large])
 				.presentationDragIndicator(.visible)
 			}
+            .fullScreenCover(isPresented: $_showBatchSigningSheet) {
+                BatchSigningView(
+                    apps: getSelectedUnsignedApps(),
+                    onComplete: {
+                        _showBatchSigningSheet = false
+                        _selectedApps.removeAll()
+                        _isSelectionMode = false
+                    }
+                )
+            }
+            .alert("Delete Selected Apps", isPresented: $_showBatchDeleteConfirmation) {
+                Button("Cancel", role: .cancel) { }
+                Button("Delete", role: .destructive) {
+                    deleteSelectedApps()
+                }
+            } message: {
+                Text("Are you sure you want to delete \(_selectedApps.count) selected app(s)? This action cannot be undone.")
+            }
 			// Listen for import success notifications
 			.onReceive(NotificationCenter.default.publisher(for: DownloadManager.importDidSucceedNotification)) { notification in
 				guard let userInfo = notification.userInfo,
@@ -430,33 +462,135 @@ extension LibraryView {
         .padding(.bottom, 20)
     }
     
-    // MARK: - Filter Chips (Modern Glass Design)
+    // MARK: - Filter Chips (Modern Compact Design)
     private var filterChips: some View {
-        HStack(spacing: 6) {
-            ForEach(FilterMode.allCases, id: \.self) { mode in
-                ModernFilterChip(
-                    title: mode.rawValue,
-                    isSelected: _filterMode == mode,
-                    namespace: _namespace
-                ) {
-                    withAnimation(.spring(response: 0.4, dampingFraction: 0.75)) {
-                        _filterMode = mode
+        HStack(spacing: 8) {
+            // Modern segmented filter
+            HStack(spacing: 2) {
+                ForEach(FilterMode.allCases, id: \.self) { mode in
+                    CompactFilterChip(
+                        title: mode.rawValue,
+                        icon: mode.icon,
+                        isSelected: _filterMode == mode,
+                        namespace: _namespace
+                    ) {
+                        withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
+                            _filterMode = mode
+                        }
+                        HapticsManager.shared.softImpact()
                     }
-                    HapticsManager.shared.softImpact()
                 }
             }
+            .padding(3)
+            .background(
+                RoundedRectangle(cornerRadius: 10, style: .continuous)
+                    .fill(Color(UIColor.tertiarySystemBackground))
+            )
             
             Spacer()
+            
+            // Selection mode toggle
+            Button {
+                withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
+                    _isSelectionMode.toggle()
+                    if !_isSelectionMode {
+                        _selectedApps.removeAll()
+                    }
+                }
+                HapticsManager.shared.softImpact()
+            } label: {
+                Image(systemName: _isSelectionMode ? "checkmark.circle.fill" : "checklist")
+                    .font(.system(size: 16, weight: .medium))
+                    .foregroundStyle(_isSelectionMode ? .white : .primary)
+                    .frame(width: 32, height: 32)
+                    .background(
+                        RoundedRectangle(cornerRadius: 8, style: .continuous)
+                            .fill(_isSelectionMode ? Color.accentColor : Color(UIColor.tertiarySystemBackground))
+                    )
+            }
         }
-        .padding(4)
-        .background(
-            Capsule()
-                .fill(.ultraThinMaterial)
-                .overlay(
-                    Capsule()
-                        .stroke(Color.white.opacity(0.1), lineWidth: 0.5)
-                )
-        )
+    }
+    
+    // MARK: - Selection Action Bar
+    @ViewBuilder
+    private var selectionActionBar: some View {
+        if _isSelectionMode && !_selectedApps.isEmpty {
+            HStack(spacing: 12) {
+                // Selected count
+                Text("\(_selectedApps.count) selected")
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundStyle(.secondary)
+                
+                Spacer()
+                
+                // Sign All button (only for unsigned apps)
+                let unsignedSelectedApps = getSelectedUnsignedApps()
+                if !unsignedSelectedApps.isEmpty {
+                    Button {
+                        _showBatchSigningSheet = true
+                    } label: {
+                        HStack(spacing: 6) {
+                            Image(systemName: "signature")
+                                .font(.system(size: 14, weight: .semibold))
+                            Text("Sign (\(unsignedSelectedApps.count))")
+                                .font(.system(size: 14, weight: .semibold))
+                        }
+                        .foregroundStyle(.white)
+                        .padding(.horizontal, 14)
+                        .padding(.vertical, 8)
+                        .background(Color.accentColor, in: Capsule())
+                    }
+                }
+                
+                // Delete button
+                Button {
+                    _showBatchDeleteConfirmation = true
+                } label: {
+                    HStack(spacing: 6) {
+                        Image(systemName: "trash")
+                            .font(.system(size: 14, weight: .semibold))
+                        Text("Delete")
+                            .font(.system(size: 14, weight: .semibold))
+                    }
+                    .foregroundStyle(.white)
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 8)
+                    .background(Color.red, in: Capsule())
+                }
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 12)
+            .background(
+                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .fill(Color(UIColor.secondarySystemGroupedBackground))
+                    .shadow(color: .black.opacity(0.1), radius: 8, x: 0, y: 4)
+            )
+            .transition(.move(edge: .bottom).combined(with: .opacity))
+        }
+    }
+    
+    private func getSelectedUnsignedApps() -> [AppInfoPresentable] {
+        displayedApps.filter { app in
+            guard let uuid = app.uuid else { return false }
+            return _selectedApps.contains(uuid) && !app.isSigned
+        }
+    }
+    
+    private func getSelectedApps() -> [AppInfoPresentable] {
+        displayedApps.filter { app in
+            guard let uuid = app.uuid else { return false }
+            return _selectedApps.contains(uuid)
+        }
+    }
+    
+    private func deleteSelectedApps() {
+        let appsToDelete = getSelectedApps()
+        for app in appsToDelete {
+            Storage.shared.deleteApp(for: app)
+        }
+        _selectedApps.removeAll()
+        _isSelectionMode = false
+        HapticsManager.shared.success()
     }
     
     // MARK: - Apps Content
@@ -467,15 +601,38 @@ extension LibraryView {
         } else {
             LazyVStack(spacing: 14) {
                 ForEach(displayedApps, id: \.uuid) { app in
-                    PremiumAppCard(
-                        app: app,
-                        selectedInfoAppPresenting: $_selectedInfoAppPresenting,
-                        selectedSigningAppPresenting: $_selectedSigningAppPresenting,
-                        selectedInstallAppPresenting: $_selectedInstallAppPresenting
-                    )
-                    .id(app.uuid)
+                    if _isSelectionMode {
+                        SelectableAppCard(
+                            app: app,
+                            isSelected: app.uuid != nil && _selectedApps.contains(app.uuid!),
+                            onToggleSelection: {
+                                guard let uuid = app.uuid else { return }
+                                withAnimation(.spring(response: 0.25, dampingFraction: 0.8)) {
+                                    if _selectedApps.contains(uuid) {
+                                        _selectedApps.remove(uuid)
+                                    } else {
+                                        _selectedApps.insert(uuid)
+                                    }
+                                }
+                                HapticsManager.shared.softImpact()
+                            }
+                        )
+                        .id(app.uuid)
+                    } else {
+                        PremiumAppCard(
+                            app: app,
+                            selectedInfoAppPresenting: $_selectedInfoAppPresenting,
+                            selectedSigningAppPresenting: $_selectedSigningAppPresenting,
+                            selectedInstallAppPresenting: $_selectedInstallAppPresenting
+                        )
+                        .id(app.uuid)
+                    }
                 }
             }
+            
+            // Selection action bar at the bottom
+            selectionActionBar
+                .padding(.top, 16)
         }
     }
     
@@ -724,6 +881,478 @@ struct ModernFilterChip: View {
                 .contentShape(Capsule())
         }
         .buttonStyle(FilterChipButtonStyle())
+    }
+}
+
+// MARK: - Compact Filter Chip (New Modern Design)
+struct CompactFilterChip: View {
+    let title: String
+    let icon: String
+    let isSelected: Bool
+    let namespace: Namespace.ID
+    let action: () -> Void
+    
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: 4) {
+                Image(systemName: icon)
+                    .font(.system(size: 10, weight: .semibold))
+                Text(title)
+                    .font(.system(size: 12, weight: .semibold))
+            }
+            .foregroundStyle(isSelected ? .white : .secondary)
+            .padding(.horizontal, 10)
+            .padding(.vertical, 6)
+            .background {
+                if isSelected {
+                    RoundedRectangle(cornerRadius: 7, style: .continuous)
+                        .fill(Color.accentColor)
+                        .matchedGeometryEffect(id: "compactFilterBackground", in: namespace)
+                }
+            }
+            .contentShape(RoundedRectangle(cornerRadius: 7, style: .continuous))
+        }
+        .buttonStyle(FilterChipButtonStyle())
+    }
+}
+
+// MARK: - Selectable App Card
+struct SelectableAppCard: View {
+    let app: AppInfoPresentable
+    let isSelected: Bool
+    let onToggleSelection: () -> Void
+    
+    @State private var dominantColor: Color = .cyan
+    
+    var body: some View {
+        Button(action: onToggleSelection) {
+            HStack(spacing: 16) {
+                // Selection indicator
+                ZStack {
+                    Circle()
+                        .stroke(isSelected ? Color.accentColor : Color.secondary.opacity(0.3), lineWidth: 2)
+                        .frame(width: 24, height: 24)
+                    
+                    if isSelected {
+                        Circle()
+                            .fill(Color.accentColor)
+                            .frame(width: 24, height: 24)
+                        
+                        Image(systemName: "checkmark")
+                            .font(.system(size: 12, weight: .bold))
+                            .foregroundStyle(.white)
+                    }
+                }
+                
+                // App icon
+                ZStack {
+                    RoundedRectangle(cornerRadius: 14, style: .continuous)
+                        .fill(dominantColor.opacity(0.12))
+                        .frame(width: 52, height: 52)
+                    
+                    FRAppIconView(app: app, size: 44)
+                        .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+                }
+                
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(app.name ?? String.localized("Unknown"))
+                        .font(.system(size: 15, weight: .semibold, design: .rounded))
+                        .foregroundStyle(.primary)
+                        .lineLimit(1)
+                    
+                    if let identifier = app.identifier {
+                        Text(identifier)
+                            .font(.system(size: 11, weight: .medium))
+                            .foregroundStyle(.secondary)
+                            .lineLimit(1)
+                    }
+                    
+                    HStack(spacing: 6) {
+                        if let version = app.version {
+                            Text("v\(version)")
+                                .font(.system(size: 10, weight: .semibold))
+                                .foregroundStyle(dominantColor)
+                        }
+                        
+                        if app.isSigned {
+                            HStack(spacing: 3) {
+                                Image(systemName: "checkmark.seal.fill")
+                                    .font(.system(size: 9))
+                                Text("Signed")
+                                    .font(.system(size: 10, weight: .semibold))
+                            }
+                            .foregroundStyle(.green)
+                        } else {
+                            HStack(spacing: 3) {
+                                Image(systemName: "clock")
+                                    .font(.system(size: 9))
+                                Text("Unsigned")
+                                    .font(.system(size: 10, weight: .semibold))
+                            }
+                            .foregroundStyle(.orange)
+                        }
+                    }
+                }
+                
+                Spacer()
+            }
+            .padding(14)
+            .background(
+                RoundedRectangle(cornerRadius: 18, style: .continuous)
+                    .fill(Color(.secondarySystemGroupedBackground))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 18, style: .continuous)
+                            .stroke(isSelected ? Color.accentColor : Color.clear, lineWidth: 2)
+                    )
+            )
+            .shadow(color: .black.opacity(isSelected ? 0.08 : 0.04), radius: isSelected ? 6 : 3, x: 0, y: 2)
+        }
+        .buttonStyle(.plain)
+    }
+}
+
+// MARK: - Batch Signing View
+struct BatchSigningView: View {
+    @Environment(\.dismiss) private var dismiss
+    let apps: [AppInfoPresentable]
+    let onComplete: () -> Void
+    
+    @State private var signingProgress: [UUID: SigningStatus] = [:]
+    @State private var currentSigningIndex = 0
+    @State private var isSigningInProgress = false
+    @State private var overallProgress: Double = 0
+    @State private var completedCount = 0
+    @State private var failedCount = 0
+    
+    @FetchRequest(
+        entity: CertificatePair.entity(),
+        sortDescriptors: [NSSortDescriptor(keyPath: \CertificatePair.date, ascending: false)]
+    ) private var certificates: FetchedResults<CertificatePair>
+    
+    @State private var selectedCertificateIndex = 0
+    
+    enum SigningStatus {
+        case pending
+        case signing
+        case success
+        case failed(String)
+    }
+    
+    var body: some View {
+        NavigationStack {
+            VStack(spacing: 0) {
+                // Header
+                headerSection
+                
+                // Certificate Selection
+                if !isSigningInProgress {
+                    certificateSelectionSection
+                }
+                
+                // Apps List
+                ScrollView {
+                    LazyVStack(spacing: 12) {
+                        ForEach(apps, id: \.uuid) { app in
+                            BatchSigningAppRow(
+                                app: app,
+                                status: app.uuid != nil ? signingProgress[app.uuid!] ?? .pending : .pending
+                            )
+                        }
+                    }
+                    .padding(.horizontal, 20)
+                    .padding(.vertical, 16)
+                }
+                
+                // Action Button
+                actionButtonSection
+            }
+            .background(Color(UIColor.systemBackground))
+            .navigationBarHidden(true)
+        }
+        .onAppear {
+            // Initialize all apps as pending
+            for app in apps {
+                if let uuid = app.uuid {
+                    signingProgress[uuid] = .pending
+                }
+            }
+        }
+    }
+    
+    private var headerSection: some View {
+        VStack(spacing: 16) {
+            HStack {
+                Button {
+                    dismiss()
+                } label: {
+                    Image(systemName: "xmark.circle.fill")
+                        .font(.title2)
+                        .foregroundStyle(.secondary)
+                }
+                
+                Spacer()
+                
+                Text("Batch Signing")
+                    .font(.headline)
+                
+                Spacer()
+                
+                // Placeholder for symmetry
+                Image(systemName: "xmark.circle.fill")
+                    .font(.title2)
+                    .foregroundStyle(.clear)
+            }
+            .padding(.horizontal, 20)
+            .padding(.top, 16)
+            
+            // Progress indicator
+            if isSigningInProgress {
+                VStack(spacing: 8) {
+                    ProgressView(value: overallProgress)
+                        .progressViewStyle(LinearProgressViewStyle(tint: .accentColor))
+                    
+                    Text("Signing \(completedCount + 1) of \(apps.count)")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+                .padding(.horizontal, 20)
+            }
+            
+            // Stats
+            HStack(spacing: 24) {
+                StatBadge(title: "Total", value: "\(apps.count)", color: .blue)
+                StatBadge(title: "Completed", value: "\(completedCount)", color: .green)
+                if failedCount > 0 {
+                    StatBadge(title: "Failed", value: "\(failedCount)", color: .red)
+                }
+            }
+            .padding(.horizontal, 20)
+            .padding(.bottom, 8)
+        }
+        .background(Color(UIColor.secondarySystemBackground))
+    }
+    
+    private var certificateSelectionSection: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Certificate")
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(.secondary)
+            
+            if certificates.isEmpty {
+                HStack {
+                    Image(systemName: "exclamationmark.triangle.fill")
+                        .foregroundStyle(.orange)
+                    Text("No certificates available")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                }
+                .padding()
+                .frame(maxWidth: .infinity)
+                .background(
+                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                        .fill(Color.orange.opacity(0.1))
+                )
+            } else {
+                Picker("Certificate", selection: $selectedCertificateIndex) {
+                    ForEach(certificates.indices, id: \.self) { index in
+                        Text(certificates[index].name ?? "Certificate \(index + 1)")
+                            .tag(index)
+                    }
+                }
+                .pickerStyle(.menu)
+                .padding()
+                .background(
+                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                        .fill(Color(UIColor.tertiarySystemBackground))
+                )
+            }
+        }
+        .padding(.horizontal, 20)
+        .padding(.vertical, 12)
+    }
+    
+    private var actionButtonSection: some View {
+        VStack(spacing: 12) {
+            if isSigningInProgress {
+                Button {
+                    // Cancel signing
+                    isSigningInProgress = false
+                } label: {
+                    Text("Cancel")
+                        .font(.headline)
+                        .foregroundStyle(.red)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 16)
+                        .background(
+                            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                                .fill(Color.red.opacity(0.1))
+                        )
+                }
+            } else if completedCount == apps.count {
+                Button {
+                    onComplete()
+                } label: {
+                    HStack(spacing: 8) {
+                        Image(systemName: "checkmark.circle.fill")
+                        Text("Done")
+                    }
+                    .font(.headline)
+                    .foregroundStyle(.white)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 16)
+                    .background(
+                        RoundedRectangle(cornerRadius: 14, style: .continuous)
+                            .fill(Color.green)
+                    )
+                }
+            } else {
+                Button {
+                    startBatchSigning()
+                } label: {
+                    HStack(spacing: 8) {
+                        Image(systemName: "signature")
+                        Text("Sign All Apps")
+                    }
+                    .font(.headline)
+                    .foregroundStyle(.white)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 16)
+                    .background(
+                        RoundedRectangle(cornerRadius: 14, style: .continuous)
+                            .fill(certificates.isEmpty ? Color.gray : Color.accentColor)
+                    )
+                }
+                .disabled(certificates.isEmpty)
+            }
+        }
+        .padding(.horizontal, 20)
+        .padding(.vertical, 16)
+        .background(Color(UIColor.secondarySystemBackground))
+    }
+    
+    private func startBatchSigning() {
+        guard !certificates.isEmpty else { return }
+        
+        isSigningInProgress = true
+        currentSigningIndex = 0
+        completedCount = 0
+        failedCount = 0
+        
+        signNextApp()
+    }
+    
+    private func signNextApp() {
+        guard currentSigningIndex < apps.count, isSigningInProgress else {
+            isSigningInProgress = false
+            return
+        }
+        
+        let app = apps[currentSigningIndex]
+        guard let uuid = app.uuid else {
+            currentSigningIndex += 1
+            signNextApp()
+            return
+        }
+        
+        // Update status to signing
+        withAnimation {
+            signingProgress[uuid] = .signing
+        }
+        
+        // Simulate signing process (in real implementation, this would call the actual signing logic)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+            // For now, simulate success
+            // In real implementation, you would call the signing service here
+            withAnimation {
+                signingProgress[uuid] = .success
+                completedCount += 1
+                overallProgress = Double(completedCount) / Double(apps.count)
+            }
+            
+            currentSigningIndex += 1
+            
+            // Sign next app after a short delay
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                signNextApp()
+            }
+        }
+    }
+}
+
+// MARK: - Batch Signing App Row
+private struct BatchSigningAppRow: View {
+    let app: AppInfoPresentable
+    let status: BatchSigningView.SigningStatus
+    
+    var body: some View {
+        HStack(spacing: 14) {
+            // App Icon
+            FRAppIconView(app: app, size: 44)
+                .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+            
+            VStack(alignment: .leading, spacing: 2) {
+                Text(app.name ?? "Unknown")
+                    .font(.subheadline.weight(.medium))
+                    .lineLimit(1)
+                
+                if let identifier = app.identifier {
+                    Text(identifier)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                }
+            }
+            
+            Spacer()
+            
+            // Status indicator
+            statusIndicator
+        }
+        .padding(12)
+        .background(
+            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                .fill(Color(UIColor.secondarySystemGroupedBackground))
+        )
+    }
+    
+    @ViewBuilder
+    private var statusIndicator: some View {
+        switch status {
+        case .pending:
+            Image(systemName: "clock")
+                .font(.system(size: 18))
+                .foregroundStyle(.secondary)
+        case .signing:
+            ProgressView()
+                .scaleEffect(0.8)
+        case .success:
+            Image(systemName: "checkmark.circle.fill")
+                .font(.system(size: 20))
+                .foregroundStyle(.green)
+        case .failed(let error):
+            Image(systemName: "xmark.circle.fill")
+                .font(.system(size: 20))
+                .foregroundStyle(.red)
+        }
+    }
+}
+
+// MARK: - Stat Badge
+private struct StatBadge: View {
+    let title: String
+    let value: String
+    let color: Color
+    
+    var body: some View {
+        VStack(spacing: 2) {
+            Text(value)
+                .font(.system(size: 18, weight: .bold, design: .rounded))
+                .foregroundStyle(color)
+            Text(title)
+                .font(.caption2)
+                .foregroundStyle(.secondary)
+        }
+        .frame(minWidth: 60)
     }
 }
 
