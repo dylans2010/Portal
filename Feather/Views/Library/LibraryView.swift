@@ -2,6 +2,7 @@ import SwiftUI
 import CoreData
 import NimbleViews
 import Combine
+import IDeviceSwift
 
 // MARK: - Modern Library View with Blue Gradient Background
 struct LibraryView: View {
