@@ -1153,101 +1153,133 @@ struct BatchSigningView: View {
     
     private var certificateSelectionSection: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("Certificate")
-                .font(.subheadline.weight(.semibold))
-                .foregroundStyle(.secondary)
-            
-            if certificates.isEmpty {
-                HStack {
-                    Image(systemName: "exclamationmark.triangle.fill")
-                        .foregroundStyle(.orange)
-                    Text("No certificates available")
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                }
-                .padding()
-                .frame(maxWidth: .infinity)
-                .background(
-                    RoundedRectangle(cornerRadius: 12, style: .continuous)
-                        .fill(Color.orange.opacity(0.1))
-                )
-            } else {
-                Picker("Certificate", selection: $selectedCertificateIndex) {
-                    ForEach(certificates.indices, id: \.self) { index in
-                        Text(certificates[index].name ?? "Certificate \(index + 1)")
-                            .tag(index)
-                    }
-                }
-                .pickerStyle(.menu)
-                .padding()
-                .background(
-                    RoundedRectangle(cornerRadius: 12, style: .continuous)
-                        .fill(Color(UIColor.tertiarySystemBackground))
-                )
-            }
+            certificateSectionHeader
+            certificateSectionContent
         }
         .padding(.horizontal, 20)
         .padding(.vertical, 12)
     }
     
+    private var certificateSectionHeader: some View {
+        Text("Certificate")
+            .font(.subheadline.weight(.semibold))
+            .foregroundStyle(.secondary)
+    }
+    
+    @ViewBuilder
+    private var certificateSectionContent: some View {
+        if certificates.isEmpty {
+            noCertificatesView
+        } else {
+            certificatePicker
+        }
+    }
+    
+    private var noCertificatesView: some View {
+        HStack {
+            Image(systemName: "exclamationmark.triangle.fill")
+                .foregroundStyle(.orange)
+            Text("No certificates available")
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+        }
+        .padding()
+        .frame(maxWidth: .infinity)
+        .background(
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                .fill(Color.orange.opacity(0.1))
+        )
+    }
+    
+    private var certificatePicker: some View {
+        Picker("Certificate", selection: $selectedCertificateIndex) {
+            ForEach(certificates.indices, id: \.self) { index in
+                Text(certificates[index].name ?? "Certificate \(index + 1)")
+                    .tag(index)
+            }
+        }
+        .pickerStyle(.menu)
+        .padding()
+        .background(
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                .fill(Color(UIColor.tertiarySystemBackground))
+        )
+    }
+    
     private var actionButtonSection: some View {
         VStack(spacing: 12) {
-            if isSigningInProgress {
-                Button {
-                    // Cancel signing
-                    isCancelled = true
-                    isSigningInProgress = false
-                } label: {
-                    Text("Cancel")
-                        .font(.headline)
-                        .foregroundStyle(.red)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 16)
-                        .background(
-                            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                                .fill(Color.red.opacity(0.1))
-                        )
-                }
-            } else if completedCount + failedCount == apps.count {
-                Button {
-                    onComplete()
-                } label: {
-                    HStack(spacing: 8) {
-                        Image(systemName: "checkmark.circle.fill")
-                        Text("Done")
-                    }
-                    .font(.headline)
-                    .foregroundStyle(.white)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 16)
-                    .background(
-                        RoundedRectangle(cornerRadius: 14, style: .continuous)
-                            .fill(Color.green)
-                    )
-                }
-            } else {
-                Button {
-                    startBatchSigning()
-                } label: {
-                    HStack(spacing: 8) {
-                        Image(systemName: "signature")
-                        Text("Sign All Apps")
-                    }
-                    .font(.headline)
-                    .foregroundStyle(.white)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 16)
-                    .background(
-                        RoundedRectangle(cornerRadius: 14, style: .continuous)
-                            .fill(certificates.isEmpty ? Color.gray : Color.accentColor)
-                    )
-                }
-                .disabled(certificates.isEmpty)
-            }
+            actionButtonContent
         }
         .padding(.horizontal, 20)
         .padding(.vertical, 16)
         .background(Color(UIColor.secondarySystemBackground))
+    }
+    
+    @ViewBuilder
+    private var actionButtonContent: some View {
+        if isSigningInProgress {
+            cancelButton
+        } else if completedCount + failedCount == apps.count {
+            doneButton
+        } else {
+            signAllButton
+        }
+    }
+    
+    private var cancelButton: some View {
+        Button {
+            isCancelled = true
+            isSigningInProgress = false
+        } label: {
+            Text("Cancel")
+                .font(.headline)
+                .foregroundStyle(.red)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 16)
+                .background(
+                    RoundedRectangle(cornerRadius: 14, style: .continuous)
+                        .fill(Color.red.opacity(0.1))
+                )
+        }
+    }
+    
+    private var doneButton: some View {
+        Button {
+            onComplete()
+        } label: {
+            HStack(spacing: 8) {
+                Image(systemName: "checkmark.circle.fill")
+                Text("Done")
+            }
+            .font(.headline)
+            .foregroundStyle(.white)
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 16)
+            .background(
+                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                    .fill(Color.green)
+            )
+        }
+    }
+    
+    private var signAllButton: some View {
+        Button {
+            startBatchSigning()
+        } label: {
+            HStack(spacing: 8) {
+                Image(systemName: "signature")
+                Text("Sign All Apps")
+            }
+            .font(.headline)
+            .foregroundStyle(.white)
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 16)
+            .background(
+                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                    .fill(certificates.isEmpty ? Color.gray : Color.accentColor)
+            )
+        }
+        .disabled(certificates.isEmpty)
     }
     
     private func startBatchSigning() {

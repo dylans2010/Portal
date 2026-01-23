@@ -961,59 +961,8 @@ struct SelectAppToTrackView: View {
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
-                // Source Filter
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 8) {
-                        FilterChipButton(title: "All", isSelected: selectedSource == nil) {
-                            selectedSource = nil
-                        }
-                        
-                        ForEach(Array(sources.keys), id: \.self) { source in
-                            FilterChipButton(
-                                title: source.name ?? "Unknown",
-                                isSelected: selectedSource == source
-                            ) {
-                                selectedSource = source
-                            }
-                        }
-                    }
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 12)
-                }
-                .background(Color(UIColor.secondarySystemBackground))
-                
-                List {
-                    if filteredApps.isEmpty {
-                        Section {
-                            VStack(spacing: 12) {
-                                Image(systemName: "magnifyingglass")
-                                    .font(.system(size: 36))
-                                    .foregroundStyle(.secondary)
-                                
-                                Text(searchText.isEmpty ? "No apps available" : "No apps found")
-                                    .font(.subheadline)
-                                    .foregroundStyle(.secondary)
-                            }
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 32)
-                        }
-                    } else {
-                        Section {
-                            ForEach(filteredApps, id: \.app.id) { item in
-                                SelectableAppRow(
-                                    app: item.app,
-                                    source: item.source,
-                                    repo: item.repo
-                                ) {
-                                    addAppToTracking(item)
-                                }
-                            }
-                        } header: {
-                            Text("Available Apps (\(filteredApps.count))")
-                        }
-                    }
-                }
-                .searchable(text: $searchText, prompt: "Search apps")
+                sourceFilterSection
+                appListSection
             }
             .navigationTitle("Select App")
             .navigationBarTitleDisplayMode(.inline)
@@ -1024,6 +973,71 @@ struct SelectAppToTrackView: View {
                     }
                 }
             }
+        }
+    }
+    
+    private var sourceFilterSection: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 8) {
+                FilterChipButton(title: "All", isSelected: selectedSource == nil) {
+                    selectedSource = nil
+                }
+                
+                ForEach(Array(sources.keys), id: \.self) { source in
+                    FilterChipButton(
+                        title: source.name ?? "Unknown",
+                        isSelected: selectedSource == source
+                    ) {
+                        selectedSource = source
+                    }
+                }
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 12)
+        }
+        .background(Color(UIColor.secondarySystemBackground))
+    }
+    
+    private var appListSection: some View {
+        List {
+            if filteredApps.isEmpty {
+                emptyStateSection
+            } else {
+                availableAppsSection
+            }
+        }
+        .searchable(text: $searchText, prompt: "Search apps")
+    }
+    
+    private var emptyStateSection: some View {
+        Section {
+            VStack(spacing: 12) {
+                Image(systemName: "magnifyingglass")
+                    .font(.system(size: 36))
+                    .foregroundStyle(.secondary)
+                
+                Text(searchText.isEmpty ? "No apps available" : "No apps found")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 32)
+        }
+    }
+    
+    private var availableAppsSection: some View {
+        Section {
+            ForEach(filteredApps, id: \.app.id) { item in
+                SelectableAppRow(
+                    app: item.app,
+                    source: item.source,
+                    repo: item.repo
+                ) {
+                    addAppToTracking(item)
+                }
+            }
+        } header: {
+            Text("Available Apps (\(filteredApps.count))")
         }
     }
     
