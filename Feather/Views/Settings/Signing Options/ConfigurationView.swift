@@ -6,39 +6,20 @@ import Zip
 struct InstallationOptionsSplashView: View {
     @Environment(\.dismiss) private var dismiss
     @AppStorage("Feather.serverMethod") private var serverMethod: Int = 0
-    @AppStorage("Feather.useTunnel") private var useTunnel: Bool = false
     @State private var appearAnimation = false
     
     var body: some View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 24) {
-                    // Header
                     headerSection
                         .opacity(appearAnimation ? 1 : 0)
                         .offset(y: appearAnimation ? 0 : 20)
                     
-                    // Connection Method Card
-                    connectionMethodCard
+                    serverSettingsCard
                         .opacity(appearAnimation ? 1 : 0)
                         .offset(y: appearAnimation ? 0 : 20)
                         .animation(.spring(response: 0.5, dampingFraction: 0.8).delay(0.1), value: appearAnimation)
-                    
-                    // Server Settings
-                    if !useTunnel {
-                        serverSettingsCard
-                            .opacity(appearAnimation ? 1 : 0)
-                            .offset(y: appearAnimation ? 0 : 20)
-                            .animation(.spring(response: 0.5, dampingFraction: 0.8).delay(0.2), value: appearAnimation)
-                    }
-                    
-                    // Tunnel Settings
-                    if useTunnel {
-                        tunnelSettingsCard
-                            .opacity(appearAnimation ? 1 : 0)
-                            .offset(y: appearAnimation ? 0 : 20)
-                            .animation(.spring(response: 0.5, dampingFraction: 0.8).delay(0.2), value: appearAnimation)
-                    }
                 }
                 .padding(20)
             }
@@ -104,58 +85,6 @@ struct InstallationOptionsSplashView: View {
         .padding(.vertical, 12)
     }
     
-    private var connectionMethodCard: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            HStack(spacing: 8) {
-                Image(systemName: "network")
-                    .font(.system(size: 14, weight: .semibold))
-                    .foregroundStyle(.secondary)
-                Text("Connection Method")
-                    .font(.system(size: 12, weight: .semibold, design: .rounded))
-                    .foregroundStyle(.secondary)
-            }
-            
-            Toggle(isOn: $useTunnel) {
-                HStack(spacing: 14) {
-                    ZStack {
-                        Circle()
-                            .fill(
-                                LinearGradient(
-                                    colors: useTunnel ? [.green, .mint] : [.gray.opacity(0.3), .gray.opacity(0.2)],
-                                    startPoint: .topLeading,
-                                    endPoint: .bottomTrailing
-                                )
-                            )
-                            .frame(width: 40, height: 40)
-                            .shadow(color: useTunnel ? .green.opacity(0.4) : .clear, radius: 8, x: 0, y: 4)
-                        
-                        Image(systemName: "arrow.triangle.turn.up.right.diamond.fill")
-                            .font(.system(size: 16))
-                            .foregroundStyle(useTunnel ? .white : .secondary)
-                    }
-                    
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("Use Tunnel")
-                            .font(.system(size: 16, weight: .medium))
-                        Text("iDevice and pairing file method")
-                            .font(.system(size: 13))
-                            .foregroundStyle(.secondary)
-                    }
-                }
-            }
-            .toggleStyle(SwitchToggleStyle(tint: .green))
-        }
-        .padding(16)
-        .background(
-            RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .fill(.ultraThinMaterial)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 16, style: .continuous)
-                        .stroke(Color.primary.opacity(0.06), lineWidth: 1)
-                )
-        )
-    }
-    
     private var serverSettingsCard: some View {
         VStack(alignment: .leading, spacing: 16) {
             HStack(spacing: 8) {
@@ -168,30 +97,6 @@ struct InstallationOptionsSplashView: View {
             }
             
             ServerView()
-        }
-        .padding(16)
-        .background(
-            RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .fill(.ultraThinMaterial)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 16, style: .continuous)
-                        .stroke(Color.primary.opacity(0.06), lineWidth: 1)
-                )
-        )
-    }
-    
-    private var tunnelSettingsCard: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            HStack(spacing: 8) {
-                Image(systemName: "cable.connector")
-                    .font(.system(size: 14, weight: .semibold))
-                    .foregroundStyle(.secondary)
-                Text("Tunnel Settings")
-                    .font(.system(size: 12, weight: .semibold, design: .rounded))
-                    .foregroundStyle(.secondary)
-            }
-            
-            TunnelView()
         }
         .padding(16)
         .background(
@@ -242,7 +147,7 @@ struct ConfigurationView: View {
                             Text("Installation Options")
                                 .font(.system(size: 15, weight: .medium))
                                 .foregroundStyle(.primary)
-                            Text("Server, tunnel & connection settings")
+                            Text("Server & connection settings")
                                 .font(.system(size: 12))
                                 .foregroundStyle(.secondary)
                         }
