@@ -11,10 +11,13 @@ struct HomeView: View {
     @AppStorage("Feather.homeCompactMode") private var _compactMode = false
     @AppStorage("Feather.homeShowAppIcon") private var _showAppIcon = true
     @AppStorage("Feather.useProfilePicture") private var _useProfilePicture = false
+    @AppStorage("Feather.showAppUpdateBanner") private var _showAppUpdateBanner = true
+    @AppStorage("Feather.devShowSimulatedUpdateBanner") private var _devShowSimulatedUpdateBanner = false
     
     @StateObject private var _settingsManager = HomeSettingsManager.shared
     @StateObject private var _networkMonitor = NetworkMonitor.shared
     @StateObject private var _profileManager = ProfilePictureManager.shared
+    @StateObject private var _updateTrackingManager = AppUpdateTrackingManager.shared
     
     // Fetch requests for data
     @FetchRequest(
@@ -49,6 +52,8 @@ struct HomeView: View {
     @State private var _navigateToSigning = false
     @State private var _appearAnimation = false
     @State private var _currentTipIndex = 0
+    @State private var _showAppUpdatesSheet = false
+    @State private var _selectedUpdateForSigning: AppUpdateInfo? = nil
     
     // Tips for the Tips widget
     private let _tips = [
@@ -93,6 +98,9 @@ struct HomeView: View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 0) {
+                    // App Update Banner
+                    appUpdateBannerSection
+                    
                     // Header (smaller in compact mode)
                     if _greetingEnabled {
                         headerSection
@@ -143,6 +151,19 @@ struct HomeView: View {
                     }
                 }
             }
+            .sheet(isPresented: $_showAppUpdatesSheet) {
+                AppUpdatesListSheet(
+                    updates: _updateTrackingManager.availableUpdates,
+                    onSignApp: { update in
+                        _selectedUpdateForSigning = update
+                        _showAppUpdatesSheet = false
+                        handleSignAppFromUpdate(update)
+                    },
+                    onDismissUpdate: { update in
+                        _updateTrackingManager.dismissUpdate(for: update.bundleIdentifier, version: update.newVersion)
+                    }
+                )
+            }
             .navigationDestination(isPresented: $_navigateToSigning) {
                 if let app = _selectedAppForSigning {
                     ModernSigningView(app: app)
@@ -162,7 +183,71 @@ struct HomeView: View {
         }
         .task(id: Array(_sources)) {
             await viewModel.fetchSources(_sources)
+            // Check for app updates after sources are loaded
+            await _updateTrackingManager.checkForUpdates(sources: viewModel.sources)
         }
+    }
+    
+    // MARK: - App Update Banner Section
+    @ViewBuilder
+    private var appUpdateBannerSection: some View {
+        if _showAppUpdateBanner {
+            // Show simulated banner for developer mode
+            if _devShowSimulatedUpdateBanner {
+                let simulatedUpdate = AppUpdateTrackingManager.createSimulatedUpdate()
+                AppUpdateBannerView(
+                    update: simulatedUpdate,
+                    onDismiss: { },
+                    onSignApp: { }
+                )
+                .animation(.spring(response: 0.4, dampingFraction: 0.8), value: _devShowSimulatedUpdateBanner)
+            }
+            // Show real updates
+            else if !_updateTrackingManager.availableUpdates.isEmpty {
+                if _updateTrackingManager.availableUpdates.count == 1,
+                   let update = _updateTrackingManager.availableUpdates.first {
+                    AppUpdateBannerView(
+                        update: update,
+                        onDismiss: {
+                            _updateTrackingManager.dismissUpdate(for: update.bundleIdentifier, version: update.newVersion)
+                        },
+                        onSignApp: {
+                            handleSignAppFromUpdate(update)
+                        }
+                    )
+                    .animation(.spring(response: 0.4, dampingFraction: 0.8), value: _updateTrackingManager.availableUpdates.count)
+                } else {
+                    MultipleAppUpdatesBannerView(
+                        updates: _updateTrackingManager.availableUpdates,
+                        onDismiss: {
+                            // Dismiss all updates
+                            for update in _updateTrackingManager.availableUpdates {
+                                _updateTrackingManager.dismissUpdate(for: update.bundleIdentifier, version: update.newVersion)
+                            }
+                        },
+                        onViewAll: {
+                            _showAppUpdatesSheet = true
+                        }
+                    )
+                    .animation(.spring(response: 0.4, dampingFraction: 0.8), value: _updateTrackingManager.availableUpdates.count)
+                }
+            }
+        }
+    }
+    
+    // MARK: - Handle Sign App From Update
+    private func handleSignAppFromUpdate(_ update: AppUpdateInfo) {
+        guard let downloadURLString = update.downloadURL,
+              let downloadURL = URL(string: downloadURLString) else { return }
+        
+        // Start downloading the app
+        let downloadId = "FeatherAppUpdate_\(UUID().uuidString)"
+        _ = DownloadManager.shared.startDownload(from: downloadURL, id: downloadId)
+        
+        // Update the last known version
+        _updateTrackingManager.updateLastKnownVersion(bundleIdentifier: update.bundleIdentifier, version: update.newVersion)
+        
+        HapticsManager.shared.impact()
     }
     
     // MARK: - Widget View Builder
@@ -1584,95 +1669,253 @@ struct SignAndInstallPickerView: View {
     @State private var _showFilePicker = false
     @State private var _isProcessing = false
     @State private var _processedApp: Imported? = nil
+    @State private var _urlText = ""
+    @State private var _showURLError = false
+    @State private var _urlErrorMessage = ""
+    @State private var _downloadProgress: Double = 0.0
+    @State private var _currentDownloadId: String = ""
+    @State private var _importStatus: SignInstallImportStatus = .idle
+    @FocusState private var _isURLFieldFocused: Bool
+    
+    enum SignInstallImportStatus {
+        case idle
+        case downloading
+        case processing
+        case success
+        case failed
+    }
     
     let onAppSelected: (Imported) -> Void
     
     var body: some View {
         NavigationStack {
-            VStack(spacing: 24) {
-                // Header
-                VStack(spacing: 16) {
-                    ZStack {
-                        Circle()
-                            .fill(
-                                LinearGradient(
-                                    colors: [Color.purple.opacity(0.3), Color.purple.opacity(0.1)],
-                                    startPoint: .topLeading,
-                                    endPoint: .bottomTrailing
+            ScrollView {
+                VStack(spacing: 24) {
+                    // Header
+                    VStack(spacing: 16) {
+                        ZStack {
+                            Circle()
+                                .fill(
+                                    LinearGradient(
+                                        colors: [Color.purple.opacity(0.3), Color.purple.opacity(0.1)],
+                                        startPoint: .topLeading,
+                                        endPoint: .bottomTrailing
+                                    )
                                 )
-                            )
-                            .frame(width: 80, height: 80)
+                                .frame(width: 80, height: 80)
+                            
+                            Image(systemName: "signature")
+                                .font(.system(size: 36, weight: .medium))
+                                .foregroundStyle(.purple)
+                        }
                         
-                        Image(systemName: "signature")
-                            .font(.system(size: 36, weight: .medium))
-                            .foregroundStyle(.purple)
+                        VStack(spacing: 8) {
+                            Text("Quick Sign Apps")
+                                .font(.system(size: 24, weight: .bold, design: .rounded))
+                            
+                            Text("Select an IPA file or import from URL.")
+                                .font(.subheadline)
+                                .foregroundStyle(.secondary)
+                                .multilineTextAlignment(.center)
+                        }
+                    }
+                    .padding(.top, 20)
+                    
+                    if _isProcessing || _importStatus == .downloading || _importStatus == .processing {
+                        VStack(spacing: 16) {
+                            ZStack {
+                                Circle()
+                                    .fill(Color.purple.opacity(0.15))
+                                    .frame(width: 80, height: 80)
+                                
+                                if _importStatus == .downloading {
+                                    Circle()
+                                        .stroke(Color.purple.opacity(0.3), lineWidth: 4)
+                                        .frame(width: 70, height: 70)
+                                    
+                                    Circle()
+                                        .trim(from: 0, to: _downloadProgress)
+                                        .stroke(Color.purple, style: StrokeStyle(lineWidth: 4, lineCap: .round))
+                                        .frame(width: 70, height: 70)
+                                        .rotationEffect(.degrees(-90))
+                                        .animation(.easeInOut(duration: 0.2), value: _downloadProgress)
+                                    
+                                    VStack(spacing: 2) {
+                                        Image(systemName: "arrow.down")
+                                            .font(.system(size: 20, weight: .bold))
+                                            .foregroundStyle(.purple)
+                                        Text("\(Int(_downloadProgress * 100))%")
+                                            .font(.system(size: 12, weight: .bold))
+                                            .foregroundStyle(.purple)
+                                    }
+                                } else {
+                                    ProgressView()
+                                        .scaleEffect(1.2)
+                                }
+                            }
+                            
+                            Text(_importStatus == .downloading ? "Downloading IPA..." : "Processing IPA...")
+                                .font(.subheadline)
+                                .foregroundStyle(.secondary)
+                        }
+                        .padding(.vertical, 40)
+                    } else {
+                        VStack(spacing: 16) {
+                            // URL Input Section
+                            VStack(alignment: .leading, spacing: 8) {
+                                Text("Import from URL")
+                                    .font(.system(size: 14, weight: .semibold))
+                                    .foregroundStyle(.secondary)
+                                
+                                HStack(spacing: 8) {
+                                    HStack(spacing: 10) {
+                                        Image(systemName: "link")
+                                            .foregroundStyle(.secondary)
+                                            .font(.system(size: 16))
+                                        
+                                        TextField("Enter IPA URL", text: $_urlText)
+                                            .textInputAutocapitalization(.never)
+                                            .autocorrectionDisabled()
+                                            .keyboardType(.URL)
+                                            .focused($_isURLFieldFocused)
+                                            .submitLabel(.go)
+                                            .onSubmit {
+                                                handleURLImport()
+                                            }
+                                    }
+                                    .padding(.horizontal, 14)
+                                    .padding(.vertical, 12)
+                                    .background(
+                                        RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                            .fill(Color(UIColor.secondarySystemGroupedBackground))
+                                    )
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                            .stroke(_showURLError ? Color.red : (_isURLFieldFocused ? Color.purple : Color.clear), lineWidth: 2)
+                                    )
+                                    
+                                    // Paste Button
+                                    Button {
+                                        if let pastedString = UIPasteboard.general.string {
+                                            _urlText = pastedString
+                                            HapticsManager.shared.softImpact()
+                                        }
+                                    } label: {
+                                        Image(systemName: "doc.on.clipboard")
+                                            .font(.system(size: 16, weight: .medium))
+                                            .foregroundStyle(.purple)
+                                            .frame(width: 44, height: 44)
+                                            .background(
+                                                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                                    .fill(Color.purple.opacity(0.15))
+                                            )
+                                    }
+                                }
+                                
+                                if _showURLError {
+                                    HStack(spacing: 4) {
+                                        Image(systemName: "exclamationmark.triangle.fill")
+                                            .font(.caption)
+                                        Text(_urlErrorMessage)
+                                            .font(.caption)
+                                    }
+                                    .foregroundStyle(.red)
+                                    .transition(.asymmetric(
+                                        insertion: .scale.combined(with: .opacity),
+                                        removal: .opacity
+                                    ))
+                                }
+                                
+                                // Import from URL Button
+                                Button {
+                                    handleURLImport()
+                                } label: {
+                                    HStack(spacing: 10) {
+                                        Image(systemName: "arrow.down.circle.fill")
+                                            .font(.system(size: 18, weight: .semibold))
+                                        
+                                        Text("Import from URL")
+                                            .font(.system(size: 16, weight: .semibold))
+                                    }
+                                    .foregroundStyle(.white)
+                                    .frame(maxWidth: .infinity)
+                                    .padding(.vertical, 14)
+                                    .background(
+                                        LinearGradient(
+                                            colors: [.purple, .purple.opacity(0.8)],
+                                            startPoint: .topLeading,
+                                            endPoint: .bottomTrailing
+                                        )
+                                    )
+                                    .cornerRadius(12)
+                                    .shadow(color: .purple.opacity(0.3), radius: 6, x: 0, y: 3)
+                                }
+                                .disabled(_urlText.isEmpty)
+                                .opacity(_urlText.isEmpty ? 0.5 : 1.0)
+                            }
+                            .padding(.horizontal, 24)
+                            
+                            // Divider
+                            HStack {
+                                Rectangle()
+                                    .fill(Color.secondary.opacity(0.3))
+                                    .frame(height: 1)
+                                
+                                Text("or")
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                                    .padding(.horizontal, 12)
+                                
+                                Rectangle()
+                                    .fill(Color.secondary.opacity(0.3))
+                                    .frame(height: 1)
+                            }
+                            .padding(.horizontal, 24)
+                            .padding(.vertical, 8)
+                            
+                            // Select IPA Button
+                            Button {
+                                _showFilePicker = true
+                            } label: {
+                                HStack(spacing: 12) {
+                                    Image(systemName: "doc.badge.plus")
+                                        .font(.system(size: 20, weight: .semibold))
+                                    
+                                    Text("Select IPA File")
+                                        .font(.system(size: 17, weight: .semibold))
+                                }
+                                .foregroundStyle(.purple)
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 16)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 14, style: .continuous)
+                                        .fill(Color.purple.opacity(0.12))
+                                )
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 14, style: .continuous)
+                                        .stroke(Color.purple.opacity(0.3), lineWidth: 1)
+                                )
+                            }
+                            .padding(.horizontal, 24)
+                        }
                     }
                     
+                    Spacer(minLength: 20)
+                    
+                    // Info text
                     VStack(spacing: 8) {
-                        Text("Quick Sign Apps")
-                            .font(.system(size: 24, weight: .bold, design: .rounded))
-                        
-                        Text("Select an IPA file to sign and install.")
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
-                            .multilineTextAlignment(.center)
-                    }
-                }
-                .padding(.top, 20)
-                
-                if _isProcessing {
-                    VStack(spacing: 16) {
-                        ProgressView()
-                            .scaleEffect(1.2)
-                        
-                        Text("Processing IPA...")
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
-                    }
-                    .padding(.vertical, 40)
-                } else {
-                    // Select IPA Button
-                    Button {
-                        _showFilePicker = true
-                    } label: {
-                        HStack(spacing: 12) {
-                            Image(systemName: "doc.badge.plus")
-                                .font(.system(size: 20, weight: .semibold))
+                        HStack(spacing: 6) {
+                            Image(systemName: "info.circle.fill")
+                                .font(.system(size: 14))
+                                .foregroundStyle(.secondary)
                             
-                            Text("Select IPA File")
-                                .font(.system(size: 17, weight: .semibold))
+                            Text("The signing process will start automatically.")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
                         }
-                        .foregroundStyle(.white)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 16)
-                        .background(
-                            LinearGradient(
-                                colors: [.purple, .purple.opacity(0.8)],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            )
-                        )
-                        .cornerRadius(14)
-                        .shadow(color: .purple.opacity(0.3), radius: 8, x: 0, y: 4)
                     }
-                    .padding(.horizontal, 24)
+                    .padding(.bottom, 20)
                 }
-                
-                Spacer()
-                
-                // Info text
-                VStack(spacing: 8) {
-                    HStack(spacing: 6) {
-                        Image(systemName: "info.circle.fill")
-                            .font(.system(size: 14))
-                            .foregroundStyle(.secondary)
-                        
-                        Text("The signing process will start automatically.")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                    }
-                }
-                .padding(.bottom, 20)
             }
             .navigationTitle("Sign & Install")
             .navigationBarTitleDisplayMode(.inline)
@@ -1719,9 +1962,264 @@ struct SignAndInstallPickerView: View {
                 )
                 .ignoresSafeArea()
             }
+            .onReceive(NotificationCenter.default.publisher(for: DownloadManager.downloadDidProgressNotification)) { notification in
+                guard let userInfo = notification.userInfo,
+                      let downloadId = userInfo["downloadId"] as? String,
+                      downloadId == _currentDownloadId,
+                      let progress = userInfo["progress"] as? Double else { return }
+                
+                _downloadProgress = progress
+                
+                if progress >= 0.99 && _importStatus == .downloading {
+                    withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                        _importStatus = .processing
+                    }
+                }
+            }
+            .onReceive(NotificationCenter.default.publisher(for: DownloadManager.importDidSucceedNotification)) { notification in
+                guard let userInfo = notification.userInfo,
+                      let downloadId = userInfo["downloadId"] as? String,
+                      downloadId == _currentDownloadId else { return }
+                
+                // Fetch the most recently imported app
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                    let request = Imported.fetchRequest()
+                    request.sortDescriptors = [NSSortDescriptor(keyPath: \Imported.date, ascending: false)]
+                    request.fetchLimit = 1
+                    
+                    if let importedApp = try? Storage.shared.context.fetch(request).first {
+                        _importStatus = .idle
+                        _isProcessing = false
+                        onAppSelected(importedApp)
+                    } else {
+                        _importStatus = .idle
+                        _isProcessing = false
+                    }
+                }
+            }
+            .onReceive(NotificationCenter.default.publisher(for: DownloadManager.importDidFailNotification)) { notification in
+                guard let userInfo = notification.userInfo,
+                      let downloadId = userInfo["downloadId"] as? String,
+                      downloadId == _currentDownloadId else { return }
+                
+                _urlErrorMessage = userInfo["error"] as? String ?? "Import failed"
+                withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                    _showURLError = true
+                    _importStatus = .idle
+                    _isProcessing = false
+                }
+                HapticsManager.shared.error()
+            }
+            .onReceive(NotificationCenter.default.publisher(for: DownloadManager.downloadDidFailNotification)) { notification in
+                guard let userInfo = notification.userInfo,
+                      let downloadId = userInfo["downloadId"] as? String,
+                      downloadId == _currentDownloadId else { return }
+                
+                _urlErrorMessage = userInfo["error"] as? String ?? "Download failed"
+                withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                    _showURLError = true
+                    _importStatus = .idle
+                    _isProcessing = false
+                }
+                HapticsManager.shared.error()
+            }
+            .onChange(of: _urlText) { _ in
+                withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                    _showURLError = false
+                    _urlErrorMessage = ""
+                }
+            }
         }
-        .presentationDetents([.medium])
+        .presentationDetents([.medium, .large])
         .presentationDragIndicator(.visible)
+    }
+    
+    private func handleURLImport() {
+        withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+            _showURLError = false
+            _urlErrorMessage = ""
+        }
+        
+        guard !_urlText.isEmpty else {
+            showURLError("Please enter a URL")
+            return
+        }
+        
+        var urlString = _urlText.trimmingCharacters(in: .whitespacesAndNewlines)
+        
+        // Auto-add https:// if no scheme is provided
+        if !urlString.lowercased().hasPrefix("http://") && !urlString.lowercased().hasPrefix("https://") {
+            urlString = "https://" + urlString
+        }
+        
+        guard let url = URL(string: urlString) else {
+            showURLError("Invalid URL format")
+            return
+        }
+        
+        guard let scheme = url.scheme, ["http", "https"].contains(scheme.lowercased()) else {
+            showURLError("URL must start with http:// or https://")
+            return
+        }
+        
+        guard let host = url.host, !host.isEmpty else {
+            showURLError("Invalid URL - missing host")
+            return
+        }
+        
+        // Start the download
+        let downloadId = "FeatherSignInstall_\(UUID().uuidString)"
+        _currentDownloadId = downloadId
+        _downloadProgress = 0.0
+        _importStatus = .downloading
+        _isProcessing = true
+        
+        HapticsManager.shared.impact()
+        _ = DownloadManager.shared.startDownload(from: url, id: downloadId)
+    }
+    
+    private func showURLError(_ message: String) {
+        _urlErrorMessage = message
+        withAnimation(.spring(response: 0.4, dampingFraction: 0.6)) {
+            _showURLError = true
+        }
+        HapticsManager.shared.error()
+    }
+}
+
+// MARK: - App Updates List Sheet
+struct AppUpdatesListSheet: View {
+    @Environment(\.dismiss) private var dismiss
+    let updates: [AppUpdateInfo]
+    let onSignApp: (AppUpdateInfo) -> Void
+    let onDismissUpdate: (AppUpdateInfo) -> Void
+    
+    var body: some View {
+        NavigationStack {
+            List {
+                if updates.isEmpty {
+                    Section {
+                        VStack(spacing: 16) {
+                            Image(systemName: "checkmark.circle.fill")
+                                .font(.system(size: 48))
+                                .foregroundStyle(.green)
+                            
+                            Text("All Apps Up to Date")
+                                .font(.headline)
+                            
+                            Text("No updates available for your tracked apps.")
+                                .font(.subheadline)
+                                .foregroundStyle(.secondary)
+                                .multilineTextAlignment(.center)
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 32)
+                    }
+                } else {
+                    Section {
+                        ForEach(updates) { update in
+                            AppUpdateRow(
+                                update: update,
+                                onSign: { onSignApp(update) },
+                                onDismiss: { onDismissUpdate(update) }
+                            )
+                        }
+                    } header: {
+                        Text("Available Updates (\(updates.count))")
+                    }
+                }
+            }
+            .navigationTitle("App Updates")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button("Done") {
+                        dismiss()
+                    }
+                }
+            }
+        }
+        .presentationDetents([.medium, .large])
+        .presentationDragIndicator(.visible)
+    }
+}
+
+// MARK: - App Update Row
+private struct AppUpdateRow: View {
+    let update: AppUpdateInfo
+    let onSign: () -> Void
+    let onDismiss: () -> Void
+    
+    var body: some View {
+        HStack(spacing: 12) {
+            // App Icon
+            if let iconURLString = update.iconURL, let iconURL = URL(string: iconURLString) {
+                AsyncImage(url: iconURL) { image in
+                    image
+                        .resizable()
+                        .aspectRatio(contentMode: .fill)
+                } placeholder: {
+                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                        .fill(Color.green.opacity(0.2))
+                        .overlay(
+                            Image(systemName: "app.fill")
+                                .foregroundStyle(.green)
+                        )
+                }
+                .frame(width: 50, height: 50)
+                .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+            } else {
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .fill(Color.green.opacity(0.2))
+                    .frame(width: 50, height: 50)
+                    .overlay(
+                        Image(systemName: "app.fill")
+                            .foregroundStyle(.green)
+                    )
+            }
+            
+            VStack(alignment: .leading, spacing: 4) {
+                Text(update.appName)
+                    .font(.subheadline.weight(.semibold))
+                
+                HStack(spacing: 4) {
+                    Text("v\(update.currentVersion)")
+                        .foregroundStyle(.secondary)
+                    Image(systemName: "arrow.right")
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                    Text("v\(update.newVersion)")
+                        .foregroundStyle(.green)
+                }
+                .font(.caption)
+                
+                Text(update.sourceName)
+                    .font(.caption2)
+                    .foregroundStyle(.tertiary)
+            }
+            
+            Spacer()
+            
+            Button {
+                onSign()
+            } label: {
+                Text("Sign")
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(.white)
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 8)
+                    .background(Color.green, in: Capsule())
+            }
+            .buttonStyle(.plain)
+        }
+        .padding(.vertical, 4)
+        .swipeActions(edge: .trailing) {
+            Button(role: .destructive) {
+                onDismiss()
+            } label: {
+                Label("Dismiss", systemImage: "xmark")
+            }
+        }
     }
 }
 

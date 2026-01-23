@@ -278,20 +278,24 @@ class ProfilePictureManager: ObservableObject {
 struct HomeSettingsView: View {
     @StateObject private var settingsManager = HomeSettingsManager.shared
     @StateObject private var profileManager = ProfilePictureManager.shared
+    @StateObject private var updateTrackingManager = AppUpdateTrackingManager.shared
     @State private var isReordering = false
     @State private var showResetConfirmation = false
     @State private var showImagePicker = false
     @State private var showRemoveProfileConfirmation = false
+    @State private var showAppUpdateSettings = false
     @AppStorage("Feather.homeGreetingEnabled") private var greetingEnabled = true
     @AppStorage("Feather.homeAnimationsEnabled") private var animationsEnabled = true
     @AppStorage("Feather.homeCompactMode") private var compactMode = false
     @AppStorage("Feather.homeShowAppIcon") private var showAppIcon = true
     @AppStorage("Feather.useProfilePicture") private var useProfilePicture = false
+    @AppStorage("Feather.showAppUpdateBanner") private var showAppUpdateBanner = true
     
     var body: some View {
         NBList(.localized("Home Settings")) {
             profilePictureSection
             appearanceSection
+            appUpdateSection
             widgetOrderSection
             widgetsToggleSection
             resetSection
@@ -320,6 +324,36 @@ struct HomeSettingsView: View {
                     HapticsManager.shared.success()
                 }
             }
+        }
+        .sheet(isPresented: $showAppUpdateSettings) {
+            AppUpdateTrackingSettingsView()
+        }
+    }
+    
+    // MARK: - App Update Section
+    private var appUpdateSection: some View {
+        Section {
+            Toggle(isOn: $showAppUpdateBanner) {
+                SettingsRowView(icon: "arrow.down.app.fill", title: "Show Update Banner", color: .green)
+            }
+            
+            NavigationLink {
+                AppUpdateTrackingSettingsView()
+            } label: {
+                HStack {
+                    SettingsRowView(icon: "app.badge.checkmark.fill", title: "Tracked Apps", color: .blue)
+                    Spacer()
+                    if !updateTrackingManager.trackedApps.isEmpty {
+                        Text("\(updateTrackingManager.trackedApps.count)")
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+            }
+        } header: {
+            Text(.localized("App Update Notifications"))
+        } footer: {
+            Text(.localized("Track specific apps from sources and get notified when updates are available on the Home screen."))
         }
     }
     
@@ -687,6 +721,408 @@ struct ProfileImagePicker: UIViewControllerRepresentable {
             parent.onImagePicked(nil)
             parent.dismiss()
         }
+    }
+}
+
+// MARK: - App Update Tracking Settings View
+struct AppUpdateTrackingSettingsView: View {
+    @Environment(\.dismiss) private var dismiss
+    @StateObject private var updateManager = AppUpdateTrackingManager.shared
+    @StateObject private var sourcesViewModel = SourcesViewModel.shared
+    @State private var showAddAppSheet = false
+    @State private var searchText = ""
+    @State private var showRemoveConfirmation = false
+    @State private var appToRemove: TrackedAppConfig?
+    
+    @FetchRequest(
+        entity: AltSource.entity(),
+        sortDescriptors: [NSSortDescriptor(keyPath: \AltSource.order, ascending: true)]
+    ) private var sources: FetchedResults<AltSource>
+    
+    var body: some View {
+        NavigationStack {
+            List {
+                if updateManager.trackedApps.isEmpty {
+                    emptyStateSection
+                } else {
+                    trackedAppsSection
+                }
+                
+                addAppSection
+                
+                if !updateManager.availableUpdates.isEmpty {
+                    availableUpdatesSection
+                }
+            }
+            .navigationTitle("Tracked Apps")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button {
+                        showAddAppSheet = true
+                    } label: {
+                        Image(systemName: "plus")
+                    }
+                }
+            }
+            .sheet(isPresented: $showAddAppSheet) {
+                SelectAppToTrackView(sources: sourcesViewModel.sources)
+            }
+            .alert("Remove Tracked App", isPresented: $showRemoveConfirmation) {
+                Button("Cancel", role: .cancel) { }
+                Button("Remove", role: .destructive) {
+                    if let app = appToRemove {
+                        updateManager.removeTrackedApp(bundleIdentifier: app.bundleIdentifier)
+                    }
+                }
+            } message: {
+                if let app = appToRemove {
+                    Text("Are you sure you want to stop tracking \(app.appName)?")
+                }
+            }
+            .task {
+                await sourcesViewModel.fetchSources(sources)
+            }
+        }
+    }
+    
+    private var emptyStateSection: some View {
+        Section {
+            VStack(spacing: 16) {
+                Image(systemName: "app.badge.checkmark")
+                    .font(.system(size: 48))
+                    .foregroundStyle(.secondary)
+                
+                Text("No Tracked Apps")
+                    .font(.headline)
+                
+                Text("Add apps from your sources to track their updates and get notified on the Home screen.")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center)
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 32)
+        }
+    }
+    
+    private var trackedAppsSection: some View {
+        Section {
+            ForEach(updateManager.trackedApps) { app in
+                TrackedAppRow(app: app) {
+                    updateManager.toggleTrackedApp(bundleIdentifier: app.bundleIdentifier)
+                } onRemove: {
+                    appToRemove = app
+                    showRemoveConfirmation = true
+                }
+            }
+        } header: {
+            Text("Tracked Apps (\(updateManager.trackedApps.count))")
+        } footer: {
+            Text("Toggle apps to enable or disable update notifications. Swipe to remove.")
+        }
+    }
+    
+    private var addAppSection: some View {
+        Section {
+            Button {
+                showAddAppSheet = true
+            } label: {
+                HStack {
+                    Image(systemName: "plus.circle.fill")
+                        .foregroundStyle(.green)
+                    Text("Add App to Track")
+                }
+            }
+        }
+    }
+    
+    private var availableUpdatesSection: some View {
+        Section {
+            ForEach(updateManager.availableUpdates) { update in
+                VStack(alignment: .leading, spacing: 4) {
+                    HStack {
+                        Text(update.appName)
+                            .font(.subheadline.weight(.medium))
+                        Spacer()
+                        Text("\(update.currentVersion) → \(update.newVersion)")
+                            .font(.caption)
+                            .foregroundStyle(.green)
+                    }
+                    Text(update.sourceName)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+                .padding(.vertical, 4)
+            }
+        } header: {
+            Text("Available Updates")
+        }
+    }
+}
+
+// MARK: - Tracked App Row
+private struct TrackedAppRow: View {
+    let app: TrackedAppConfig
+    let onToggle: () -> Void
+    let onRemove: () -> Void
+    
+    var body: some View {
+        HStack(spacing: 12) {
+            // App Icon
+            if let iconURLString = app.iconURL, let iconURL = URL(string: iconURLString) {
+                AsyncImage(url: iconURL) { image in
+                    image
+                        .resizable()
+                        .aspectRatio(contentMode: .fill)
+                } placeholder: {
+                    RoundedRectangle(cornerRadius: 10, style: .continuous)
+                        .fill(Color.gray.opacity(0.2))
+                }
+                .frame(width: 44, height: 44)
+                .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+            } else {
+                RoundedRectangle(cornerRadius: 10, style: .continuous)
+                    .fill(Color.blue.opacity(0.2))
+                    .frame(width: 44, height: 44)
+                    .overlay(
+                        Image(systemName: "app.fill")
+                            .foregroundStyle(.blue)
+                    )
+            }
+            
+            VStack(alignment: .leading, spacing: 2) {
+                Text(app.appName)
+                    .font(.subheadline.weight(.medium))
+                    .foregroundStyle(app.isEnabled ? .primary : .secondary)
+                
+                Text(app.sourceName)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                
+                Text("v\(app.lastKnownVersion)")
+                    .font(.caption2)
+                    .foregroundStyle(.tertiary)
+            }
+            
+            Spacer()
+            
+            Toggle("", isOn: Binding(
+                get: { app.isEnabled },
+                set: { _ in onToggle() }
+            ))
+            .labelsHidden()
+        }
+        .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+            Button(role: .destructive) {
+                onRemove()
+            } label: {
+                Label("Remove", systemImage: "trash")
+            }
+        }
+    }
+}
+
+// MARK: - Select App To Track View
+struct SelectAppToTrackView: View {
+    @Environment(\.dismiss) private var dismiss
+    @StateObject private var updateManager = AppUpdateTrackingManager.shared
+    let sources: [AltSource: ASRepository]
+    
+    @State private var searchText = ""
+    @State private var selectedSource: AltSource?
+    
+    private var filteredApps: [(source: AltSource, repo: ASRepository, app: ASRepository.App)] {
+        var apps = updateManager.getAvailableAppsFromSources(sources)
+        
+        // Filter by selected source
+        if let selectedSource = selectedSource {
+            apps = apps.filter { $0.source == selectedSource }
+        }
+        
+        // Filter by search text
+        if !searchText.isEmpty {
+            apps = apps.filter { item in
+                (item.app.name?.localizedCaseInsensitiveContains(searchText) ?? false) ||
+                (item.app.bundleIdentifier?.localizedCaseInsensitiveContains(searchText) ?? false)
+            }
+        }
+        
+        // Filter out already tracked apps
+        apps = apps.filter { item in
+            guard let bundleId = item.app.bundleIdentifier else { return false }
+            return !updateManager.isAppTracked(bundleIdentifier: bundleId)
+        }
+        
+        return apps
+    }
+    
+    var body: some View {
+        NavigationStack {
+            VStack(spacing: 0) {
+                // Source Filter
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 8) {
+                        FilterChipButton(title: "All", isSelected: selectedSource == nil) {
+                            selectedSource = nil
+                        }
+                        
+                        ForEach(Array(sources.keys), id: \.self) { source in
+                            FilterChipButton(
+                                title: source.name ?? "Unknown",
+                                isSelected: selectedSource == source
+                            ) {
+                                selectedSource = source
+                            }
+                        }
+                    }
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 12)
+                }
+                .background(Color(UIColor.secondarySystemBackground))
+                
+                List {
+                    if filteredApps.isEmpty {
+                        Section {
+                            VStack(spacing: 12) {
+                                Image(systemName: "magnifyingglass")
+                                    .font(.system(size: 36))
+                                    .foregroundStyle(.secondary)
+                                
+                                Text(searchText.isEmpty ? "No apps available" : "No apps found")
+                                    .font(.subheadline)
+                                    .foregroundStyle(.secondary)
+                            }
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 32)
+                        }
+                    } else {
+                        Section {
+                            ForEach(filteredApps, id: \.app.bundleIdentifier) { item in
+                                SelectableAppRow(
+                                    app: item.app,
+                                    source: item.source,
+                                    repo: item.repo
+                                ) {
+                                    addAppToTracking(item)
+                                }
+                            }
+                        } header: {
+                            Text("Available Apps (\(filteredApps.count))")
+                        }
+                    }
+                }
+                .searchable(text: $searchText, prompt: "Search apps")
+            }
+            .navigationTitle("Select App")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .topBarLeading) {
+                    Button("Cancel") {
+                        dismiss()
+                    }
+                }
+            }
+        }
+    }
+    
+    private func addAppToTracking(_ item: (source: AltSource, repo: ASRepository, app: ASRepository.App)) {
+        guard let bundleId = item.app.bundleIdentifier,
+              let version = item.app.version else { return }
+        
+        let config = TrackedAppConfig(
+            bundleIdentifier: bundleId,
+            appName: item.app.name ?? "Unknown",
+            sourceURL: item.source.sourceURL?.absoluteString ?? "",
+            sourceName: item.source.name ?? "Unknown",
+            lastKnownVersion: version,
+            iconURL: item.app.iconURL?.absoluteString,
+            isEnabled: true
+        )
+        
+        updateManager.addTrackedApp(config)
+        dismiss()
+    }
+}
+
+// MARK: - Filter Chip Button
+private struct FilterChipButton: View {
+    let title: String
+    let isSelected: Bool
+    let action: () -> Void
+    
+    var body: some View {
+        Button(action: action) {
+            Text(title)
+                .font(.system(size: 13, weight: .medium))
+                .foregroundStyle(isSelected ? .white : .primary)
+                .padding(.horizontal, 14)
+                .padding(.vertical, 8)
+                .background(
+                    Capsule()
+                        .fill(isSelected ? Color.accentColor : Color(UIColor.tertiarySystemBackground))
+                )
+        }
+        .buttonStyle(.plain)
+    }
+}
+
+// MARK: - Selectable App Row
+private struct SelectableAppRow: View {
+    let app: ASRepository.App
+    let source: AltSource
+    let repo: ASRepository
+    let onSelect: () -> Void
+    
+    var body: some View {
+        Button(action: onSelect) {
+            HStack(spacing: 12) {
+                // App Icon
+                if let iconURL = app.iconURL {
+                    AsyncImage(url: iconURL) { image in
+                        image
+                            .resizable()
+                            .aspectRatio(contentMode: .fill)
+                    } placeholder: {
+                        RoundedRectangle(cornerRadius: 10, style: .continuous)
+                            .fill(Color.gray.opacity(0.2))
+                    }
+                    .frame(width: 44, height: 44)
+                    .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+                } else {
+                    RoundedRectangle(cornerRadius: 10, style: .continuous)
+                        .fill(Color.blue.opacity(0.2))
+                        .frame(width: 44, height: 44)
+                        .overlay(
+                            Image(systemName: "app.fill")
+                                .foregroundStyle(.blue)
+                        )
+                }
+                
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(app.name ?? "Unknown")
+                        .font(.subheadline.weight(.medium))
+                        .foregroundStyle(.primary)
+                    
+                    Text(source.name ?? "Unknown Source")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                    
+                    if let version = app.version {
+                        Text("v\(version)")
+                            .font(.caption2)
+                            .foregroundStyle(.tertiary)
+                    }
+                }
+                
+                Spacer()
+                
+                Image(systemName: "plus.circle.fill")
+                    .font(.title2)
+                    .foregroundStyle(.green)
+            }
+        }
+        .buttonStyle(.plain)
     }
 }
 
