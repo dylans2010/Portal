@@ -743,6 +743,9 @@ struct AppUpdateTrackingSettingsView: View {
     var body: some View {
         NavigationStack {
             List {
+                // Fetch Sources Section
+                fetchSourcesSection
+                
                 if updateManager.trackedApps.isEmpty {
                     emptyStateSection
                 } else {
@@ -784,6 +787,85 @@ struct AppUpdateTrackingSettingsView: View {
             .task {
                 await sourcesViewModel.fetchSources(sources)
             }
+        }
+    }
+    
+    // MARK: - Fetch Sources Section
+    private var fetchSourcesSection: some View {
+        Section {
+            // Manual Fetch Button
+            Button {
+                Task {
+                    await updateManager.manualFetchAllSources()
+                }
+            } label: {
+                HStack {
+                    Image(systemName: "arrow.clockwise.circle.fill")
+                        .foregroundStyle(.blue)
+                        .font(.system(size: 22))
+                    
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Fetch All Sources")
+                            .font(.subheadline.weight(.medium))
+                            .foregroundStyle(.primary)
+                        
+                        if updateManager.isFetchingAllSources {
+                            Text("Fetching... \(Int(updateManager.autoFetchProgress * 100))%")
+                                .font(.caption)
+                                .foregroundStyle(.blue)
+                        } else if let lastFetch = updateManager.lastAutoFetchDate {
+                            Text("Last fetched: \(lastFetch, style: .relative) ago")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        } else {
+                            Text("Never fetched")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                    
+                    Spacer()
+                    
+                    if updateManager.isFetchingAllSources {
+                        ProgressView()
+                            .scaleEffect(0.8)
+                    }
+                }
+            }
+            .disabled(updateManager.isFetchingAllSources)
+            
+            // Progress bar when fetching
+            if updateManager.isFetchingAllSources {
+                ProgressView(value: updateManager.autoFetchProgress)
+                    .progressViewStyle(LinearProgressViewStyle(tint: .blue))
+            }
+            
+            // Cache info
+            if !updateManager.cachedApps.isEmpty {
+                HStack {
+                    Image(systemName: "archivebox.fill")
+                        .foregroundStyle(.green)
+                        .font(.system(size: 18))
+                    
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("\(updateManager.cachedApps.count) apps cached")
+                            .font(.caption)
+                            .foregroundStyle(.primary)
+                        
+                        if let cacheDate = updateManager.lastCacheDate {
+                            Text("Cache updated: \(cacheDate, style: .relative) ago")
+                                .font(.caption2)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                    
+                    Spacer()
+                }
+            }
+        } header: {
+            Text("Source Data")
+        } footer: {
+            Text("Sources are automatically fetched every hour. Tap to manually refresh all sources and update the app cache.")
         }
     }
     
