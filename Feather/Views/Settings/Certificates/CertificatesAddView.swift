@@ -169,30 +169,11 @@ struct CertificatesAddView: View {
     private func _handlePortalCertImport(_ url: URL) {
         Logger.misc.info("[PortalCert Import] Starting import from: \(url.lastPathComponent)")
         
-        // Start accessing security-scoped resource
-        guard url.startAccessingSecurityScopedResource() else {
-            Logger.misc.error("[PortalCert Import] Failed to access security-scoped resource")
-            UIAlertController.showAlertWithOk(
-                title: .localized("Import Failed"),
-                message: .localized("Unable to access the selected file")
-            )
-            return
-        }
-        
-        defer {
-            url.stopAccessingSecurityScopedResource()
-        }
-        
+        // FileImporterRepresentableView uses asCopy: true, so the file is already copied
+        // and we don't need security-scoped resource access
         do {
-            // Copy file to temporary location first
-            let tempURL = FileManager.default.temporaryDirectory.appendingPathComponent(url.lastPathComponent)
-            if FileManager.default.fileExists(atPath: tempURL.path) {
-                try FileManager.default.removeItem(at: tempURL)
-            }
-            try FileManager.default.copyItem(at: url, to: tempURL)
-            
-            // Extract the .portalcert bundle
-            let (p12URL, provisionURL, metadata) = try PortalCertHandler.extractPortalCert(from: tempURL)
+            // Extract the .portalcert bundle directly from the copied file
+            let (p12URL, provisionURL, metadata) = try PortalCertHandler.extractPortalCert(from: url)
             
             Logger.misc.info("[PortalCert Import] Successfully extracted bundle")
             Logger.misc.debug("[PortalCert Import] P12: \(p12URL.lastPathComponent)")
@@ -215,6 +196,11 @@ struct CertificatesAddView: View {
             // Set nickname if available
             if let nickname = metadata.nickname {
                 _certificateName = nickname
+            }
+            
+            // Set password hint if available
+            if metadata.hasPassword {
+                // Show a hint that password is required
             }
             
             Logger.misc.info("[PortalCert Import] Import complete, files ready for saving")
