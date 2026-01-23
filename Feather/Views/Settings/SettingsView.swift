@@ -39,7 +39,7 @@ struct SettingsView: View {
                 // Preferences
                 Section {
                     NavigationLink(destination: HomeSettingsView()) {
-                        modernSettingsRow(icon: "house.fill", title: "Home", color: .blue)
+                        modernSettingsRow(icon: "house.fill", title: "Customize Home", color: .blue)
                     }
                     NavigationLink(destination: AppearanceView()) {
                         modernSettingsRow(icon: "paintbrush.fill", title: "Appearance & Haptics", color: .pink)
@@ -57,7 +57,7 @@ struct SettingsView: View {
                         modernSettingsRow(icon: "signature", title: "Signing Options", color: .orange)
                     }
                 } header: {
-                    sectionHeader("Signing & Security", icon: "lock.shield.fill")
+                    sectionHeader("Signing", icon: "lock.shield.fill")
                 }
                 
                 // Data & Storage
@@ -77,7 +77,7 @@ struct SettingsView: View {
                 // Resources
                 Section {
                     NavigationLink(destination: GuidesSettingsView()) {
-                        modernSettingsRow(icon: "book.fill", title: "Guides", color: .orange)
+                        modernSettingsRow(icon: "book.fill", title: "Guides & AI", color: .orange)
                     }
                     NavigationLink(destination: FeedbackView()) {
                         modernSettingsRow(icon: "bubble.left.and.bubble.right.fill", title: "Feedback", color: .purple)
@@ -120,7 +120,7 @@ struct SettingsView: View {
                 HapticsManager.shared.success()
             }
         } message: {
-            Text("Developer mode provides advanced tools for developers and advanced users.")
+            Text("Developer mode provides advanced tools for developers. This can make the app crash and is NOT intended for regular users.")
         }
         .onChange(of: navigateToUpdates.wrappedValue) { shouldNavigate in
             if shouldNavigate {
