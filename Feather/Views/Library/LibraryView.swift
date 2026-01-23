@@ -1253,7 +1253,12 @@ struct BatchSigningView: View {
     }
     
     private func startBatchSigning() {
-        guard !certificates.isEmpty, certificates.indices.contains(selectedCertificateIndex) else { return }
+        guard !certificates.isEmpty, certificates.indices.contains(selectedCertificateIndex) else { 
+            AppLogManager.shared.error("No certificates available for batch signing", category: "BatchSign")
+            return 
+        }
+        
+        AppLogManager.shared.info("Starting batch signing for \(apps.count) apps", category: "BatchSign")
         
         isSigningInProgress = true
         isCancelled = false
@@ -1273,16 +1278,87 @@ struct BatchSigningView: View {
         }
         
         HapticsManager.shared.impact()
-        signNextApp()
+        
+        // Start signing in background
+        Task {
+            await signAppsSequentially()
+        }
     }
     
-    private func signNextApp() {
-        guard currentSigningIndex < apps.count, isSigningInProgress, !isCancelled else {
-            // All apps signed, check if we need to install
+    private func signAppsSequentially() async {
+        for (index, app) in apps.enumerated() {
+            guard !isCancelled else {
+                await MainActor.run {
+                    isSigningInProgress = false
+                    currentPhase = .completed
+                }
+                return
+            }
+            
+            guard let uuid = app.uuid else { continue }
+            
+            await MainActor.run {
+                currentSigningIndex = index
+                withAnimation {
+                    signingProgress[uuid] = .signing
+                }
+            }
+            
+            // Get the selected certificate
+            let certificate = certificates[selectedCertificateIndex]
+            let options = OptionsManager.shared.options
+            
+            AppLogManager.shared.info("Signing app \(index + 1)/\(apps.count): \(app.name ?? "Unknown")", category: "BatchSign")
+            
+            // Sign the app and wait for completion
+            let signResult = await withCheckedContinuation { continuation in
+                FR.signPackageFile(
+                    app,
+                    using: options,
+                    icon: nil,
+                    certificate: certificate
+                ) { error in
+                    continuation.resume(returning: error)
+                }
+            }
+            
+            await MainActor.run {
+                if let error = signResult {
+                    // Signing failed
+                    withAnimation {
+                        signingProgress[uuid] = .failed(error.localizedDescription)
+                        failedCount += 1
+                        overallProgress = Double(completedCount + failedCount) / Double(apps.count)
+                    }
+                    AppLogManager.shared.error("Batch signing failed for \(app.name ?? "Unknown"): \(error.localizedDescription)", category: "BatchSign")
+                } else {
+                    // Signing succeeded
+                    withAnimation {
+                        signingProgress[uuid] = autoInstall ? .signed : .success
+                        completedCount += 1
+                        overallProgress = Double(completedCount + failedCount) / Double(apps.count)
+                    }
+                    AppLogManager.shared.success("Batch signing succeeded for \(app.name ?? "Unknown")", category: "BatchSign")
+                    
+                    // Get the newly signed app from storage and add to install queue
+                    if autoInstall {
+                        if let signedApp = Storage.shared.getLatestSignedApp() {
+                            signedAppsForInstall.append(signedApp)
+                        }
+                    }
+                }
+            }
+            
+            // Small delay between apps
+            try? await Task.sleep(nanoseconds: 300_000_000)
+        }
+        
+        // All apps signed, check if we need to install
+        await MainActor.run {
             if autoInstall && !signedAppsForInstall.isEmpty && !isCancelled {
                 currentPhase = .installing
                 overallProgress = 0
-                installNextApp()
+                installAppsSequentially()
             } else {
                 currentPhase = .completed
                 isSigningInProgress = false
@@ -1290,100 +1366,46 @@ struct BatchSigningView: View {
                     HapticsManager.shared.success()
                 }
             }
-            return
-        }
-        
-        let app = apps[currentSigningIndex]
-        guard let uuid = app.uuid else {
-            currentSigningIndex += 1
-            signNextApp()
-            return
-        }
-        
-        // Update status to signing
-        withAnimation {
-            signingProgress[uuid] = .signing
-        }
-        
-        // Get the selected certificate
-        let certificate = certificates[selectedCertificateIndex]
-        
-        // Use default options for batch signing
-        let options = OptionsManager.shared.options
-        
-        // Actually sign the app using FR.signPackageFile
-        FR.signPackageFile(
-            app,
-            using: options,
-            icon: nil,
-            certificate: certificate
-        ) { error in
-            guard !isCancelled else { return }
-            
-            if let error = error {
-                // Signing failed
-                withAnimation {
-                    signingProgress[uuid] = .failed(error.localizedDescription)
-                    failedCount += 1
-                    overallProgress = Double(completedCount + failedCount) / Double(apps.count)
-                }
-                AppLogManager.shared.error("Batch signing failed for \(app.name ?? "Unknown"): \(error.localizedDescription)", category: "BatchSign")
-            } else {
-                // Signing succeeded - mark as signed (not success yet if auto-install is on)
-                withAnimation {
-                    signingProgress[uuid] = autoInstall ? .signed : .success
-                    completedCount += 1
-                    overallProgress = Double(completedCount + failedCount) / Double(apps.count)
-                }
-                AppLogManager.shared.success("Batch signing succeeded for \(app.name ?? "Unknown")", category: "BatchSign")
-                
-                // Get the newly signed app from storage and add to install queue
-                if autoInstall {
-                    if let signedApp = Storage.shared.getLatestSignedApp() {
-                        signedAppsForInstall.append(signedApp)
-                    }
-                }
-            }
-            
-            currentSigningIndex += 1
-            
-            // Sign next app after a short delay
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                signNextApp()
-            }
         }
     }
     
-    private func installNextApp() {
-        guard installationIndex < signedAppsForInstall.count, isSigningInProgress, !isCancelled else {
-            currentPhase = .completed
-            isSigningInProgress = false
-            BackgroundAudioManager.shared.stop()
-            HapticsManager.shared.success()
-            AppLogManager.shared.success("Batch installation completed: \(installationIndex) apps installed", category: "BatchSign")
-            return
-        }
-        
-        let app = signedAppsForInstall[installationIndex]
-        guard let uuid = app.uuid else {
-            installationIndex += 1
-            installNextApp()
-            return
-        }
-        
-        // Update status to installing
-        withAnimation {
-            signingProgress[uuid] = .installing
-            overallProgress = Double(installationIndex) / Double(signedAppsForInstall.count)
-        }
-        
-        // Start background audio to keep app alive during installation
-        BackgroundAudioManager.shared.start()
-        
-        // Create a view model for installation tracking
-        let viewModel = InstallerStatusViewModel(isIdevice: installationMethod == 1)
-        
+    private func installAppsSequentially() {
         Task {
+            await installAppsSequentiallyAsync()
+        }
+    }
+    
+    private func installAppsSequentiallyAsync() async {
+        // Start background audio to keep app alive during installation
+        await MainActor.run {
+            BackgroundAudioManager.shared.start()
+        }
+        
+        for (index, app) in signedAppsForInstall.enumerated() {
+            guard !isCancelled else {
+                await MainActor.run {
+                    isSigningInProgress = false
+                    currentPhase = .completed
+                    BackgroundAudioManager.shared.stop()
+                }
+                return
+            }
+            
+            guard let uuid = app.uuid else { continue }
+            
+            await MainActor.run {
+                installationIndex = index
+                withAnimation {
+                    signingProgress[uuid] = .installing
+                    overallProgress = Double(index) / Double(signedAppsForInstall.count)
+                }
+            }
+            
+            AppLogManager.shared.info("Installing app \(index + 1)/\(signedAppsForInstall.count): \(app.name ?? "Unknown")", category: "BatchSign")
+            
+            // Create a view model for installation tracking
+            let viewModel = InstallerStatusViewModel(isIdevice: installationMethod == 1)
+            
             do {
                 // Create archive handler to package the app
                 let archiveHandler = ArchiveHandler(app: app, viewModel: viewModel)
@@ -1400,25 +1422,21 @@ struct BatchSigningView: View {
                     
                     await MainActor.run {
                         viewModel.status = .ready
-                    }
-                    
-                    if serverMethod == 0 {
-                        // Direct iTunes link
-                        await MainActor.run {
+                        
+                        if serverMethod == 0 {
+                            // Direct iTunes link
                             UIApplication.shared.open(URL(string: installer.iTunesLink)!)
-                        }
-                    } else {
-                        // Web page method
-                        await MainActor.run {
+                        } else {
+                            // Web page method
                             UIApplication.shared.open(installer.pageEndpoint)
                         }
                     }
                     
-                    // Wait for installation to complete (monitor viewModel status)
+                    // Wait for installation to complete
                     var waitCount = 0
                     let maxWait = 60 // 30 seconds max wait
                     while waitCount < maxWait {
-                        try await Task.sleep(nanoseconds: 500_000_000) // 0.5 second
+                        try await Task.sleep(nanoseconds: 500_000_000)
                         waitCount += 1
                         
                         if case .completed = viewModel.status {
@@ -1450,16 +1468,21 @@ struct BatchSigningView: View {
                 }
             }
             
-            await MainActor.run {
-                installationIndex += 1
-                
-                // Install next app after a short delay
-                DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
-                    installNextApp()
-                }
-            }
+            // Delay between installations
+            try? await Task.sleep(nanoseconds: 1_000_000_000)
+        }
+        
+        // All done
+        await MainActor.run {
+            installationIndex = signedAppsForInstall.count
+            currentPhase = .completed
+            isSigningInProgress = false
+            BackgroundAudioManager.shared.stop()
+            HapticsManager.shared.success()
+            AppLogManager.shared.success("Batch installation completed: \(signedAppsForInstall.count) apps processed", category: "BatchSign")
         }
     }
+    
 }
 
 // MARK: - Batch Signing App Row
