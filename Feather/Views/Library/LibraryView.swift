@@ -1002,7 +1002,7 @@ struct SelectableAppCard: View {
         .buttonStyle(.plain)
     }
     
-    // Selection badge on app icon
+    // Selection badge on app icon - ALWAYS shows when in selection mode
     private var selectionBadge: some View {
         ZStack {
             Circle()
@@ -1014,21 +1014,22 @@ struct SelectableAppCard: View {
                 .stroke(isSelected ? Color.accentColor : Color.secondary.opacity(0.4), lineWidth: 2)
                 .frame(width: 22, height: 22)
             
-            if isSelected {
-                Image(systemName: "checkmark")
-                    .font(.system(size: 11, weight: .bold))
-                    .foregroundStyle(.white)
-            }
+            // Always show checkmark indicator - filled when selected, empty circle when not
+            Image(systemName: isSelected ? "checkmark" : "")
+                .font(.system(size: 11, weight: .bold))
+                .foregroundStyle(.white)
         }
     }
     
-    // Right side selection indicator
+    // Right side selection indicator - ALWAYS shows when in selection mode
     private var selectionIndicator: some View {
         ZStack {
+            // Always show the circle outline
             Circle()
                 .stroke(isSelected ? Color.accentColor : Color.secondary.opacity(0.3), lineWidth: 2)
                 .frame(width: 26, height: 26)
             
+            // Fill and checkmark when selected
             if isSelected {
                 Circle()
                     .fill(Color.accentColor)
@@ -1055,6 +1056,12 @@ struct BatchSigningView: View {
     @State private var completedCount = 0
     @State private var failedCount = 0
     @State private var isCancelled = false
+    @State private var autoInstall = true
+    @State private var signedAppsForInstall: [AppInfoPresentable] = []
+    @State private var currentPhase: BatchPhase = .signing
+    @State private var installationIndex = 0
+    
+    @AppStorage("Feather.installationMethod") private var installationMethod: Int = 0
     
     @FetchRequest(
         entity: CertificatePair.entity(),
@@ -1063,15 +1070,24 @@ struct BatchSigningView: View {
     
     @State private var selectedCertificateIndex = 0
     
+    enum BatchPhase {
+        case signing
+        case installing
+        case completed
+    }
+    
     enum BatchSigningStatus: Equatable {
         case pending
         case signing
+        case signed
+        case installing
         case success
         case failed(String)
         
         static func == (lhs: BatchSigningStatus, rhs: BatchSigningStatus) -> Bool {
             switch (lhs, rhs) {
-            case (.pending, .pending), (.signing, .signing), (.success, .success):
+            case (.pending, .pending), (.signing, .signing), (.signed, .signed), 
+                 (.installing, .installing), (.success, .success):
                 return true
             case (.failed(let a), .failed(let b)):
                 return a == b
@@ -1087,9 +1103,10 @@ struct BatchSigningView: View {
                 // Header
                 headerSection
                 
-                // Certificate Selection
-                if !isSigningInProgress && completedCount < apps.count {
+                // Certificate Selection and Options
+                if !isSigningInProgress && completedCount < apps.count && currentPhase == .signing {
                     certificateSelectionSection
+                    autoInstallToggleSection
                 }
                 
                 // Apps List
@@ -1122,6 +1139,33 @@ struct BatchSigningView: View {
         }
     }
     
+    private var autoInstallToggleSection: some View {
+        Section {
+            Toggle(isOn: $autoInstall) {
+                HStack(spacing: 12) {
+                    Image(systemName: "arrow.down.app.fill")
+                        .font(.system(size: 18))
+                        .foregroundStyle(.green)
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Auto Install")
+                            .font(.subheadline.weight(.medium))
+                        Text("Automatically install apps after signing")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+            }
+            .tint(.green)
+            .padding()
+            .background(
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .fill(Color(UIColor.tertiarySystemBackground))
+            )
+        }
+        .padding(.horizontal, 20)
+        .padding(.bottom, 8)
+    }
+    
     private func getStatusForApp(_ app: AppInfoPresentable) -> BatchSigningStatus {
         guard let uuid = app.uuid else { return .pending }
         return signingProgress[uuid] ?? .pending
@@ -1142,8 +1186,15 @@ struct BatchSigningView: View {
                 
                 Spacer()
                 
-                Text("Batch Signing")
-                    .font(.headline)
+                VStack(spacing: 2) {
+                    Text("Batch Signing")
+                        .font(.headline)
+                    if currentPhase == .installing {
+                        Text("Installing Apps...")
+                            .font(.caption)
+                            .foregroundStyle(.green)
+                    }
+                }
                 
                 Spacer()
                 
@@ -1159,9 +1210,11 @@ struct BatchSigningView: View {
             if isSigningInProgress {
                 VStack(spacing: 8) {
                     ProgressView(value: overallProgress)
-                        .progressViewStyle(LinearProgressViewStyle(tint: .accentColor))
+                        .progressViewStyle(LinearProgressViewStyle(tint: currentPhase == .installing ? .green : .accentColor))
                     
-                    Text("Signing \(min(completedCount + failedCount + 1, apps.count)) of \(apps.count)")
+                    Text(currentPhase == .installing 
+                         ? "Installing \(min(installationIndex + 1, signedAppsForInstall.count)) of \(signedAppsForInstall.count)"
+                         : "Signing \(min(completedCount + failedCount + 1, apps.count)) of \(apps.count)")
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
@@ -1171,7 +1224,10 @@ struct BatchSigningView: View {
             // Stats
             HStack(spacing: 24) {
                 StatBadge(title: "Total", value: "\(apps.count)", color: .blue)
-                StatBadge(title: "Completed", value: "\(completedCount)", color: .green)
+                StatBadge(title: "Signed", value: "\(completedCount)", color: .green)
+                if autoInstall && !signedAppsForInstall.isEmpty {
+                    StatBadge(title: "Installed", value: "\(installationIndex)", color: .cyan)
+                }
                 if failedCount > 0 {
                     StatBadge(title: "Failed", value: "\(failedCount)", color: .red)
                 }
@@ -1324,6 +1380,9 @@ struct BatchSigningView: View {
         completedCount = 0
         failedCount = 0
         overallProgress = 0
+        currentPhase = .signing
+        signedAppsForInstall = []
+        installationIndex = 0
         
         // Reset all statuses to pending
         for app in apps {
@@ -1338,9 +1397,17 @@ struct BatchSigningView: View {
     
     private func signNextApp() {
         guard currentSigningIndex < apps.count, isSigningInProgress, !isCancelled else {
-            isSigningInProgress = false
-            if completedCount > 0 {
-                HapticsManager.shared.success()
+            // All apps signed, check if we need to install
+            if autoInstall && !signedAppsForInstall.isEmpty && !isCancelled {
+                currentPhase = .installing
+                overallProgress = 0
+                installNextApp()
+            } else {
+                currentPhase = .completed
+                isSigningInProgress = false
+                if completedCount > 0 {
+                    HapticsManager.shared.success()
+                }
             }
             return
         }
@@ -1381,13 +1448,20 @@ struct BatchSigningView: View {
                 }
                 AppLogManager.shared.error("Batch signing failed for \(app.name ?? "Unknown"): \(error.localizedDescription)", category: "BatchSign")
             } else {
-                // Signing succeeded
+                // Signing succeeded - mark as signed (not success yet if auto-install is on)
                 withAnimation {
-                    signingProgress[uuid] = .success
+                    signingProgress[uuid] = autoInstall ? .signed : .success
                     completedCount += 1
                     overallProgress = Double(completedCount + failedCount) / Double(apps.count)
                 }
                 AppLogManager.shared.success("Batch signing succeeded for \(app.name ?? "Unknown")", category: "BatchSign")
+                
+                // Get the newly signed app from storage and add to install queue
+                if autoInstall {
+                    if let signedApp = Storage.shared.getLatestSignedApp() {
+                        signedAppsForInstall.append(signedApp)
+                    }
+                }
             }
             
             currentSigningIndex += 1
@@ -1395,6 +1469,82 @@ struct BatchSigningView: View {
             // Sign next app after a short delay
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
                 signNextApp()
+            }
+        }
+    }
+    
+    private func installNextApp() {
+        guard installationIndex < signedAppsForInstall.count, isSigningInProgress, !isCancelled else {
+            currentPhase = .completed
+            isSigningInProgress = false
+            HapticsManager.shared.success()
+            AppLogManager.shared.success("Batch installation completed: \(installationIndex) apps installed", category: "BatchSign")
+            return
+        }
+        
+        let app = signedAppsForInstall[installationIndex]
+        guard let uuid = app.uuid else {
+            installationIndex += 1
+            installNextApp()
+            return
+        }
+        
+        // Update status to installing
+        withAnimation {
+            signingProgress[uuid] = .installing
+            overallProgress = Double(installationIndex) / Double(signedAppsForInstall.count)
+        }
+        
+        // Create a simple view model for installation tracking
+        let viewModel = InstallerStatusViewModel(isIdevice: installationMethod == 1)
+        
+        Task {
+            do {
+                // Create archive handler to package the app
+                let archiveHandler = ArchiveHandler(app: app, viewModel: viewModel)
+                try await archiveHandler.move()
+                let packageUrl = try await archiveHandler.archive()
+                
+                if installationMethod == 0 {
+                    // Server-based installation - open iTunes link
+                    if let installer = try? ServerInstaller(app: app, viewModel: viewModel) {
+                        installer.packageUrl = packageUrl
+                        await MainActor.run {
+                            if let iTunesLink = URL(string: installer.iTunesLink) {
+                                UIApplication.shared.open(iTunesLink)
+                            }
+                        }
+                        // Wait a bit for the installation to start
+                        try await Task.sleep(nanoseconds: 2_000_000_000)
+                    }
+                } else if installationMethod == 1 {
+                    // Direct installation via InstallationProxy
+                    let installProxy = InstallationProxy(viewModel: viewModel)
+                    try await installProxy.install(at: packageUrl, suspend: false)
+                }
+                
+                await MainActor.run {
+                    withAnimation {
+                        signingProgress[uuid] = .success
+                    }
+                    AppLogManager.shared.success("Batch installation succeeded for \(app.name ?? "Unknown")", category: "BatchSign")
+                }
+            } catch {
+                await MainActor.run {
+                    withAnimation {
+                        signingProgress[uuid] = .failed("Install failed: \(error.localizedDescription)")
+                    }
+                    AppLogManager.shared.error("Batch installation failed for \(app.name ?? "Unknown"): \(error.localizedDescription)", category: "BatchSign")
+                }
+            }
+            
+            await MainActor.run {
+                installationIndex += 1
+                
+                // Install next app after a short delay
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                    installNextApp()
+                }
             }
         }
     }
@@ -1422,6 +1572,9 @@ private struct BatchSigningAppRow: View {
                         .foregroundStyle(.secondary)
                         .lineLimit(1)
                 }
+                
+                // Status text
+                statusText
             }
             
             Spacer()
@@ -1437,6 +1590,35 @@ private struct BatchSigningAppRow: View {
     }
     
     @ViewBuilder
+    private var statusText: some View {
+        switch status {
+        case .pending:
+            EmptyView()
+        case .signing:
+            Text("Signing...")
+                .font(.caption2)
+                .foregroundStyle(.blue)
+        case .signed:
+            Text("Signed - Waiting to install")
+                .font(.caption2)
+                .foregroundStyle(.orange)
+        case .installing:
+            Text("Installing...")
+                .font(.caption2)
+                .foregroundStyle(.green)
+        case .success:
+            Text("Completed")
+                .font(.caption2)
+                .foregroundStyle(.green)
+        case .failed(let error):
+            Text(error)
+                .font(.caption2)
+                .foregroundStyle(.red)
+                .lineLimit(1)
+        }
+    }
+    
+    @ViewBuilder
     private var statusIndicator: some View {
         switch status {
         case .pending:
@@ -1446,6 +1628,14 @@ private struct BatchSigningAppRow: View {
         case .signing:
             ProgressView()
                 .scaleEffect(0.8)
+        case .signed:
+            Image(systemName: "checkmark.seal.fill")
+                .font(.system(size: 20))
+                .foregroundStyle(.orange)
+        case .installing:
+            ProgressView()
+                .scaleEffect(0.8)
+                .tint(.green)
         case .success:
             Image(systemName: "checkmark.circle.fill")
                 .font(.system(size: 20))

@@ -2,6 +2,7 @@ import Foundation
 import SwiftUI
 import AltSourceKit
 import Combine
+import NimbleJSON
 
 // MARK: - Tracked App Configuration
 struct TrackedAppConfig: Codable, Identifiable, Equatable {
@@ -76,7 +77,9 @@ final class AppUpdateTrackingManager: ObservableObject {
     private let lastCheckKey = "Feather.lastUpdateCheck"
     private let dismissedUpdatesKey = "Feather.dismissedAppUpdates"
     private let cachedAppsKey = "Feather.cachedAvailableApps"
+    private let lastAutoFetchKey = "Feather.lastAutoSourceFetch"
     private let cacheExpirationInterval: TimeInterval = 3600 // 1 hour cache
+    private let autoFetchInterval: TimeInterval = 3600 // 1 hour auto-fetch interval
     
     @Published var trackedApps: [TrackedAppConfig] = []
     @Published var availableUpdates: [AppUpdateInfo] = []
@@ -88,12 +91,164 @@ final class AppUpdateTrackingManager: ObservableObject {
     @Published var isCacheLoading = false
     @Published var lastCacheDate: Date?
     
+    // Auto-fetch state
+    @Published var isFetchingAllSources = false
+    @Published var lastAutoFetchDate: Date?
+    @Published var autoFetchProgress: Double = 0
+    
     private var cancellables = Set<AnyCancellable>()
+    private var autoFetchTimer: Timer?
+    private let dataService = NBFetchService()
     
     init() {
         loadTrackedApps()
         loadLastCheckDate()
         loadCachedApps()
+        loadLastAutoFetchDate()
+        startAutoFetchTimer()
+    }
+    
+    deinit {
+        stopAutoFetchTimer()
+    }
+    
+    // MARK: - Auto Fetch Timer
+    private func startAutoFetchTimer() {
+        // Check immediately if we need to fetch
+        checkAndPerformAutoFetch()
+        
+        // Set up hourly timer
+        autoFetchTimer = Timer.scheduledTimer(withTimeInterval: autoFetchInterval, repeats: true) { [weak self] _ in
+            self?.checkAndPerformAutoFetch()
+        }
+    }
+    
+    private func stopAutoFetchTimer() {
+        autoFetchTimer?.invalidate()
+        autoFetchTimer = nil
+    }
+    
+    private func checkAndPerformAutoFetch() {
+        // Check if it's been more than an hour since last fetch
+        if let lastFetch = lastAutoFetchDate {
+            let timeSinceLastFetch = Date().timeIntervalSince(lastFetch)
+            if timeSinceLastFetch < autoFetchInterval {
+                AppLogManager.shared.debug("Skipping auto-fetch - last fetch was \(Int(timeSinceLastFetch / 60)) minutes ago", category: "AutoFetch")
+                return
+            }
+        }
+        
+        // Perform auto-fetch
+        Task {
+            await fetchAllSourcesAutomatically()
+        }
+    }
+    
+    private func loadLastAutoFetchDate() {
+        if let date = UserDefaults.standard.object(forKey: lastAutoFetchKey) as? Date {
+            lastAutoFetchDate = date
+        }
+    }
+    
+    private func saveLastAutoFetchDate() {
+        lastAutoFetchDate = Date()
+        UserDefaults.standard.set(lastAutoFetchDate, forKey: lastAutoFetchKey)
+    }
+    
+    // MARK: - Fetch All Sources
+    func fetchAllSourcesAutomatically() async {
+        guard !isFetchingAllSources else {
+            AppLogManager.shared.debug("Already fetching sources, skipping", category: "AutoFetch")
+            return
+        }
+        
+        await MainActor.run {
+            isFetchingAllSources = true
+            autoFetchProgress = 0
+        }
+        
+        AppLogManager.shared.info("Starting automatic source fetch for all sources", category: "AutoFetch")
+        
+        // Get all sources from CoreData
+        let context = Storage.shared.container.viewContext
+        let fetchRequest = AltSource.fetchRequest()
+        
+        do {
+            let sources = try context.fetch(fetchRequest)
+            let totalSources = sources.count
+            
+            guard totalSources > 0 else {
+                await MainActor.run {
+                    isFetchingAllSources = false
+                    autoFetchProgress = 1.0
+                }
+                AppLogManager.shared.info("No sources to fetch", category: "AutoFetch")
+                return
+            }
+            
+            var fetchedSources: [AltSource: ASRepository] = [:]
+            var completedCount = 0
+            
+            for source in sources {
+                guard let url = source.sourceURL else {
+                    completedCount += 1
+                    continue
+                }
+                
+                // Fetch the source
+                let result = await fetchSourceRepository(from: url)
+                if let repo = result {
+                    fetchedSources[source] = repo
+                }
+                
+                completedCount += 1
+                await MainActor.run {
+                    autoFetchProgress = Double(completedCount) / Double(totalSources)
+                }
+            }
+            
+            // Clear old cache and update with new data
+            await MainActor.run {
+                clearCache()
+                updateCache(from: fetchedSources)
+                saveLastAutoFetchDate()
+                isFetchingAllSources = false
+                autoFetchProgress = 1.0
+            }
+            
+            AppLogManager.shared.success("Auto-fetch completed: \(fetchedSources.count)/\(totalSources) sources fetched, \(cachedApps.count) apps cached", category: "AutoFetch")
+            
+            // Also check for updates after fetching
+            await checkForUpdates(sources: fetchedSources)
+            
+        } catch {
+            await MainActor.run {
+                isFetchingAllSources = false
+                autoFetchProgress = 0
+            }
+            AppLogManager.shared.error("Auto-fetch failed: \(error.localizedDescription)", category: "AutoFetch")
+        }
+    }
+    
+    // Manual fetch triggered by user
+    func manualFetchAllSources() async {
+        // Reset the last fetch date to force a new fetch
+        lastAutoFetchDate = nil
+        await fetchAllSourcesAutomatically()
+    }
+    
+    private func fetchSourceRepository(from url: URL) async -> ASRepository? {
+        return await withCheckedContinuation { continuation in
+            dataService.fetch(from: url) { (result: Result<ASRepository, Error>) in
+                switch result {
+                case .success(let repo):
+                    continuation.resume(returning: repo)
+                case .failure(let error):
+                    AppLogManager.shared.warning("Failed to fetch source \(url.absoluteString): \(error.localizedDescription)", category: "AutoFetch")
+                    continuation.resume(returning: nil)
+                }
+            }
+        }
     }
     
     // MARK: - Persistence
