@@ -602,13 +602,12 @@ extension LibraryView {
         } else {
             LazyVStack(spacing: 14) {
                 ForEach(displayedApps, id: \.uuid) { app in
-                    if _isSelectionMode {
-                        SelectableAppCard(
-                            app: app,
-                            isSelected: app.uuid != nil && _selectedApps.contains(app.uuid!),
-                            onToggleSelection: {
+                    HStack(spacing: 12) {
+                        // Selection checkmark - always visible when in selection mode
+                        if _isSelectionMode {
+                            Button {
                                 guard let uuid = app.uuid else { return }
-                                withAnimation(.spring(response: 0.25, dampingFraction: 0.8)) {
+                                withAnimation(.easeInOut(duration: 0.2)) {
                                     if _selectedApps.contains(uuid) {
                                         _selectedApps.remove(uuid)
                                     } else {
@@ -616,18 +615,24 @@ extension LibraryView {
                                     }
                                 }
                                 HapticsManager.shared.softImpact()
+                            } label: {
+                                Image(systemName: app.uuid != nil && _selectedApps.contains(app.uuid!) ? "checkmark.circle.fill" : "circle")
+                                    .font(.system(size: 24))
+                                    .foregroundStyle(app.uuid != nil && _selectedApps.contains(app.uuid!) ? Color.accentColor : Color.secondary.opacity(0.5))
                             }
-                        )
-                        .id(app.uuid)
-                    } else {
+                            .buttonStyle(.plain)
+                        }
+                        
+                        // App card
                         PremiumAppCard(
                             app: app,
                             selectedInfoAppPresenting: $_selectedInfoAppPresenting,
                             selectedSigningAppPresenting: $_selectedSigningAppPresenting,
                             selectedInstallAppPresenting: $_selectedInstallAppPresenting
                         )
-                        .id(app.uuid)
+                        .allowsHitTesting(!_isSelectionMode)
                     }
+                    .id(app.uuid)
                 }
             }
             
@@ -917,132 +922,7 @@ struct CompactFilterChip: View {
     }
 }
 
-// MARK: - Selectable App Card
-struct SelectableAppCard: View {
-    let app: AppInfoPresentable
-    let isSelected: Bool
-    let onToggleSelection: () -> Void
-    
-    @State private var dominantColor: Color = .cyan
-    
-    var body: some View {
-        Button(action: onToggleSelection) {
-            HStack(spacing: 14) {
-                // App icon with selection overlay
-                ZStack(alignment: .topTrailing) {
-                    ZStack {
-                        RoundedRectangle(cornerRadius: 14, style: .continuous)
-                            .fill(dominantColor.opacity(0.12))
-                            .frame(width: 56, height: 56)
-                        
-                        FRAppIconView(app: app, size: 48)
-                            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-                    }
-                    
-                    // Checkmark badge overlay on icon
-                    selectionBadge
-                        .offset(x: 6, y: -6)
-                }
-                
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(app.name ?? String.localized("Unknown"))
-                        .font(.system(size: 15, weight: .semibold, design: .rounded))
-                        .foregroundStyle(.primary)
-                        .lineLimit(1)
-                    
-                    if let identifier = app.identifier {
-                        Text(identifier)
-                            .font(.system(size: 11, weight: .medium))
-                            .foregroundStyle(.secondary)
-                            .lineLimit(1)
-                    }
-                    
-                    HStack(spacing: 6) {
-                        if let version = app.version {
-                            Text("v\(version)")
-                                .font(.system(size: 10, weight: .semibold))
-                                .foregroundStyle(dominantColor)
-                        }
-                        
-                        if app.isSigned {
-                            HStack(spacing: 3) {
-                                Image(systemName: "checkmark.seal.fill")
-                                    .font(.system(size: 9))
-                                Text("Signed")
-                                    .font(.system(size: 10, weight: .semibold))
-                            }
-                            .foregroundStyle(.green)
-                        } else {
-                            HStack(spacing: 3) {
-                                Image(systemName: "clock")
-                                    .font(.system(size: 9))
-                                Text("Unsigned")
-                                    .font(.system(size: 10, weight: .semibold))
-                            }
-                            .foregroundStyle(.orange)
-                        }
-                    }
-                }
-                
-                Spacer()
-                
-                // Right side selection indicator
-                selectionIndicator
-            }
-            .padding(14)
-            .background(
-                RoundedRectangle(cornerRadius: 18, style: .continuous)
-                    .fill(isSelected ? Color.accentColor.opacity(0.08) : Color(.secondarySystemGroupedBackground))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 18, style: .continuous)
-                            .stroke(isSelected ? Color.accentColor : Color.clear, lineWidth: 2)
-                    )
-            )
-            .shadow(color: .black.opacity(isSelected ? 0.08 : 0.04), radius: isSelected ? 6 : 3, x: 0, y: 2)
-        }
-        .buttonStyle(.plain)
-    }
-    
-    // Selection badge on app icon - ALWAYS shows when in selection mode
-    private var selectionBadge: some View {
-        ZStack {
-            Circle()
-                .fill(isSelected ? Color.accentColor : Color(.systemBackground))
-                .frame(width: 22, height: 22)
-                .shadow(color: .black.opacity(0.15), radius: 2, x: 0, y: 1)
-            
-            Circle()
-                .stroke(isSelected ? Color.accentColor : Color.secondary.opacity(0.4), lineWidth: 2)
-                .frame(width: 22, height: 22)
-            
-            // Always show checkmark indicator - filled when selected, empty circle when not
-            Image(systemName: isSelected ? "checkmark" : "")
-                .font(.system(size: 11, weight: .bold))
-                .foregroundStyle(.white)
-        }
-    }
-    
-    // Right side selection indicator - ALWAYS shows when in selection mode
-    private var selectionIndicator: some View {
-        ZStack {
-            // Always show the circle outline
-            Circle()
-                .stroke(isSelected ? Color.accentColor : Color.secondary.opacity(0.3), lineWidth: 2)
-                .frame(width: 26, height: 26)
-            
-            // Fill and checkmark when selected
-            if isSelected {
-                Circle()
-                    .fill(Color.accentColor)
-                    .frame(width: 26, height: 26)
-                
-                Image(systemName: "checkmark")
-                    .font(.system(size: 13, weight: .bold))
-                    .foregroundStyle(.white)
-            }
-        }
-    }
-}
+
 
 // MARK: - Batch Signing View
 struct BatchSigningView: View {
@@ -1478,6 +1358,7 @@ struct BatchSigningView: View {
         guard installationIndex < signedAppsForInstall.count, isSigningInProgress, !isCancelled else {
             currentPhase = .completed
             isSigningInProgress = false
+            BackgroundAudioManager.shared.stop()
             HapticsManager.shared.success()
             AppLogManager.shared.success("Batch installation completed: \(installationIndex) apps installed", category: "BatchSign")
             return
@@ -1496,7 +1377,10 @@ struct BatchSigningView: View {
             overallProgress = Double(installationIndex) / Double(signedAppsForInstall.count)
         }
         
-        // Create a simple view model for installation tracking
+        // Start background audio to keep app alive during installation
+        BackgroundAudioManager.shared.start()
+        
+        // Create a view model for installation tracking
         let viewModel = InstallerStatusViewModel(isIdevice: installationMethod == 1)
         
         Task {
@@ -1507,19 +1391,46 @@ struct BatchSigningView: View {
                 let packageUrl = try await archiveHandler.archive()
                 
                 if installationMethod == 0 {
-                    // Server-based installation - open iTunes link
-                    if let installer = try? ServerInstaller(app: app, viewModel: viewModel) {
-                        installer.packageUrl = packageUrl
-                        await MainActor.run {
-                            if let iTunesLink = URL(string: installer.iTunesLink) {
-                                UIApplication.shared.open(iTunesLink)
-                            }
-                        }
-                        // Wait a bit for the installation to start
-                        try await Task.sleep(nanoseconds: 2_000_000_000)
+                    // Server-based installation using ServerInstaller
+                    let installer = try ServerInstaller(app: app, viewModel: viewModel)
+                    installer.packageUrl = packageUrl
+                    
+                    // Get server method preference
+                    let serverMethod = UserDefaults.standard.integer(forKey: "Feather.serverMethod")
+                    
+                    await MainActor.run {
+                        viewModel.status = .ready
                     }
+                    
+                    if serverMethod == 0 {
+                        // Direct iTunes link
+                        await MainActor.run {
+                            UIApplication.shared.open(URL(string: installer.iTunesLink)!)
+                        }
+                    } else {
+                        // Web page method
+                        await MainActor.run {
+                            UIApplication.shared.open(installer.pageEndpoint)
+                        }
+                    }
+                    
+                    // Wait for installation to complete (monitor viewModel status)
+                    var waitCount = 0
+                    let maxWait = 60 // 30 seconds max wait
+                    while waitCount < maxWait {
+                        try await Task.sleep(nanoseconds: 500_000_000) // 0.5 second
+                        waitCount += 1
+                        
+                        if case .completed = viewModel.status {
+                            break
+                        }
+                        if case .broken = viewModel.status {
+                            throw NSError(domain: "BatchInstall", code: -1, userInfo: [NSLocalizedDescriptionKey: "Installation failed"])
+                        }
+                    }
+                    
                 } else if installationMethod == 1 {
-                    // Direct installation via InstallationProxy
+                    // Direct installation via InstallationProxy (requires pairing)
                     let installProxy = InstallationProxy(viewModel: viewModel)
                     try await installProxy.install(at: packageUrl, suspend: false)
                 }
@@ -1543,7 +1454,7 @@ struct BatchSigningView: View {
                 installationIndex += 1
                 
                 // Install next app after a short delay
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
                     installNextApp()
                 }
             }
