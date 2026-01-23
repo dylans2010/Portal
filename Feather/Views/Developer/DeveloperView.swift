@@ -5668,7 +5668,7 @@ struct IPASigningDashboardView: View {
             
             // Batch Signing Section
             Section {
-                NavigationLink(destination: BatchSigningView()) {
+                NavigationLink(destination: DeveloperBatchSigningView()) {
                     DeveloperMenuRow(icon: "square.stack.3d.up.fill", title: "Batch Signing", color: .green)
                 }
             } header: {
@@ -6155,8 +6155,8 @@ struct SigningLogRow: View {
     }
 }
 
-// MARK: - Batch Signing View
-struct BatchSigningView: View {
+// MARK: - Developer Batch Signing View
+struct DeveloperBatchSigningView: View {
     @FetchRequest(
         entity: Imported.entity(),
         sortDescriptors: [NSSortDescriptor(keyPath: \Imported.dateAdded, ascending: false)]
@@ -6172,10 +6172,10 @@ struct BatchSigningView: View {
     @State private var isSigningBatch = false
     @State private var batchProgress: Double = 0
     @State private var currentSigningApp: String = ""
-    @State private var batchResults: [BatchSignResult] = []
+    @State private var batchResults: [DeveloperBatchSignResult] = []
     @State private var showResults = false
     
-    struct BatchSignResult: Identifiable {
+    struct DeveloperBatchSignResult: Identifiable {
         let id = UUID()
         let appName: String
         let success: Bool
@@ -6319,7 +6319,7 @@ struct BatchSigningView: View {
                 
                 // Add result
                 await MainActor.run {
-                    let result = BatchSignResult(
+                    let result = DeveloperBatchSignResult(
                         appName: app.name ?? "Unknown",
                         success: true,
                         message: "Signed successfully"

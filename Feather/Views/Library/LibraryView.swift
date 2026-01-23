@@ -1017,12 +1017,13 @@ struct BatchSigningView: View {
     let apps: [AppInfoPresentable]
     let onComplete: () -> Void
     
-    @State private var signingProgress: [UUID: SigningStatus] = [:]
+    @State private var signingProgress: [String: BatchSigningStatus] = [:]
     @State private var currentSigningIndex = 0
     @State private var isSigningInProgress = false
     @State private var overallProgress: Double = 0
     @State private var completedCount = 0
     @State private var failedCount = 0
+    @State private var isCancelled = false
     
     @FetchRequest(
         entity: CertificatePair.entity(),
@@ -1031,11 +1032,22 @@ struct BatchSigningView: View {
     
     @State private var selectedCertificateIndex = 0
     
-    enum SigningStatus {
+    enum BatchSigningStatus: Equatable {
         case pending
         case signing
         case success
         case failed(String)
+        
+        static func == (lhs: BatchSigningStatus, rhs: BatchSigningStatus) -> Bool {
+            switch (lhs, rhs) {
+            case (.pending, .pending), (.signing, .signing), (.success, .success):
+                return true
+            case (.failed(let a), .failed(let b)):
+                return a == b
+            default:
+                return false
+            }
+        }
     }
     
     var body: some View {
@@ -1045,7 +1057,7 @@ struct BatchSigningView: View {
                 headerSection
                 
                 // Certificate Selection
-                if !isSigningInProgress {
+                if !isSigningInProgress && completedCount < apps.count {
                     certificateSelectionSection
                 }
                 
@@ -1055,7 +1067,7 @@ struct BatchSigningView: View {
                         ForEach(apps, id: \.uuid) { app in
                             BatchSigningAppRow(
                                 app: app,
-                                status: app.uuid != nil ? signingProgress[app.uuid!] ?? .pending : .pending
+                                status: getStatusForApp(app)
                             )
                         }
                     }
@@ -1073,16 +1085,23 @@ struct BatchSigningView: View {
             // Initialize all apps as pending
             for app in apps {
                 if let uuid = app.uuid {
-                    signingProgress[uuid] = .pending
+                    signingProgress[uuid.uuidString] = .pending
                 }
             }
         }
+    }
+    
+    private func getStatusForApp(_ app: AppInfoPresentable) -> BatchSigningStatus {
+        guard let uuid = app.uuid else { return .pending }
+        return signingProgress[uuid.uuidString] ?? .pending
     }
     
     private var headerSection: some View {
         VStack(spacing: 16) {
             HStack {
                 Button {
+                    isCancelled = true
+                    isSigningInProgress = false
                     dismiss()
                 } label: {
                     Image(systemName: "xmark.circle.fill")
@@ -1111,7 +1130,7 @@ struct BatchSigningView: View {
                     ProgressView(value: overallProgress)
                         .progressViewStyle(LinearProgressViewStyle(tint: .accentColor))
                     
-                    Text("Signing \(completedCount + 1) of \(apps.count)")
+                    Text("Signing \(min(completedCount + failedCount + 1, apps.count)) of \(apps.count)")
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
@@ -1176,6 +1195,7 @@ struct BatchSigningView: View {
             if isSigningInProgress {
                 Button {
                     // Cancel signing
+                    isCancelled = true
                     isSigningInProgress = false
                 } label: {
                     Text("Cancel")
@@ -1188,7 +1208,7 @@ struct BatchSigningView: View {
                                 .fill(Color.red.opacity(0.1))
                         )
                 }
-            } else if completedCount == apps.count {
+            } else if completedCount + failedCount == apps.count {
                 Button {
                     onComplete()
                 } label: {
@@ -1231,19 +1251,32 @@ struct BatchSigningView: View {
     }
     
     private func startBatchSigning() {
-        guard !certificates.isEmpty else { return }
+        guard !certificates.isEmpty, certificates.indices.contains(selectedCertificateIndex) else { return }
         
         isSigningInProgress = true
+        isCancelled = false
         currentSigningIndex = 0
         completedCount = 0
         failedCount = 0
+        overallProgress = 0
         
+        // Reset all statuses to pending
+        for app in apps {
+            if let uuid = app.uuid {
+                signingProgress[uuid.uuidString] = .pending
+            }
+        }
+        
+        HapticsManager.shared.impact()
         signNextApp()
     }
     
     private func signNextApp() {
-        guard currentSigningIndex < apps.count, isSigningInProgress else {
+        guard currentSigningIndex < apps.count, isSigningInProgress, !isCancelled else {
             isSigningInProgress = false
+            if completedCount > 0 {
+                HapticsManager.shared.success()
+            }
             return
         }
         
@@ -1254,19 +1287,44 @@ struct BatchSigningView: View {
             return
         }
         
+        let uuidString = uuid.uuidString
+        
         // Update status to signing
         withAnimation {
-            signingProgress[uuid] = .signing
+            signingProgress[uuidString] = .signing
         }
         
-        // Simulate signing process (in real implementation, this would call the actual signing logic)
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
-            // For now, simulate success
-            // In real implementation, you would call the signing service here
-            withAnimation {
-                signingProgress[uuid] = .success
-                completedCount += 1
-                overallProgress = Double(completedCount) / Double(apps.count)
+        // Get the selected certificate
+        let certificate = certificates[selectedCertificateIndex]
+        
+        // Use default options for batch signing
+        let options = OptionsManager.shared.options
+        
+        // Actually sign the app using FR.signPackageFile
+        FR.signPackageFile(
+            app,
+            using: options,
+            icon: nil,
+            certificate: certificate
+        ) { error in
+            guard !isCancelled else { return }
+            
+            if let error = error {
+                // Signing failed
+                withAnimation {
+                    signingProgress[uuidString] = .failed(error.localizedDescription)
+                    failedCount += 1
+                    overallProgress = Double(completedCount + failedCount) / Double(apps.count)
+                }
+                AppLogManager.shared.error("Batch signing failed for \(app.name ?? "Unknown"): \(error.localizedDescription)", category: "BatchSign")
+            } else {
+                // Signing succeeded
+                withAnimation {
+                    signingProgress[uuidString] = .success
+                    completedCount += 1
+                    overallProgress = Double(completedCount + failedCount) / Double(apps.count)
+                }
+                AppLogManager.shared.success("Batch signing succeeded for \(app.name ?? "Unknown")", category: "BatchSign")
             }
             
             currentSigningIndex += 1
@@ -1282,7 +1340,7 @@ struct BatchSigningView: View {
 // MARK: - Batch Signing App Row
 private struct BatchSigningAppRow: View {
     let app: AppInfoPresentable
-    let status: BatchSigningView.SigningStatus
+    let status: BatchSigningView.BatchSigningStatus
     
     var body: some View {
         HStack(spacing: 14) {
@@ -1329,7 +1387,7 @@ private struct BatchSigningAppRow: View {
             Image(systemName: "checkmark.circle.fill")
                 .font(.system(size: 20))
                 .foregroundStyle(.green)
-        case .failed(let error):
+        case .failed(_):
             Image(systemName: "xmark.circle.fill")
                 .font(.system(size: 20))
                 .foregroundStyle(.red)

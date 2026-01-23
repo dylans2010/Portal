@@ -170,17 +170,17 @@ final class AppUpdateTrackingManager: ObservableObject {
             isCheckingForUpdates = true
         }
         
-        defer {
-            Task { @MainActor in
+        let enabledTrackedApps = trackedApps.filter { $0.isEnabled }
+        guard !enabledTrackedApps.isEmpty else {
+            await MainActor.run {
                 isCheckingForUpdates = false
                 saveLastCheckDate()
             }
+            return
         }
         
-        let enabledTrackedApps = trackedApps.filter { $0.isEnabled }
-        guard !enabledTrackedApps.isEmpty else { return }
-        
-        var newUpdates: [AppUpdateInfo] = []
+        // Collect updates in a local array first
+        var foundUpdates: [AppUpdateInfo] = []
         
         for trackedApp in enabledTrackedApps {
             // Find the source
@@ -213,20 +213,25 @@ final class AppUpdateTrackingManager: ObservableObject {
                 updateDate: Date()
             )
             
-            newUpdates.append(updateInfo)
+            foundUpdates.append(updateInfo)
         }
         
+        // Update on main actor with the collected updates
+        let updatesToAdd = foundUpdates
         await MainActor.run {
             // Merge with existing updates, avoiding duplicates
-            for update in newUpdates {
+            for update in updatesToAdd {
                 if !availableUpdates.contains(where: { $0.bundleIdentifier == update.bundleIdentifier && $0.newVersion == update.newVersion }) {
                     availableUpdates.append(update)
                 }
             }
             
-            if !newUpdates.isEmpty {
-                AppLogManager.shared.info("Found \(newUpdates.count) app update(s)", category: "AppUpdates")
+            if !updatesToAdd.isEmpty {
+                AppLogManager.shared.info("Found \(updatesToAdd.count) app update(s)", category: "AppUpdates")
             }
+            
+            isCheckingForUpdates = false
+            saveLastCheckDate()
         }
     }
     
