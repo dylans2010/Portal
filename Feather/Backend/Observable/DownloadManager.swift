@@ -202,12 +202,15 @@ extension DownloadManager: URLSessionDownloadDelegate {
 						userInfo: ["appName": appName, "downloadId": dl.id]
 					)
 					
-					// ALWAYS show Install/Modify popup after successful download
-					DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-						NotificationCenter.default.post(
-							name: Notification.Name("Feather.showInstallModifyPopup"),
-							object: url
-						)
+					// Only show Install/Modify popup for downloads from Sources (not manual imports)
+					// Manual imports have IDs starting with "FeatherManualDownload"
+					if !DownloadManager.shared.isManualDownload(dl.id) {
+						DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+							NotificationCenter.default.post(
+								name: Notification.Name("Feather.showInstallModifyPopup"),
+								object: url
+							)
+						}
 					}
 				}
 			}

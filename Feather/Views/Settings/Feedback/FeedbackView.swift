@@ -1127,6 +1127,50 @@ actor GitHubFeedbackService {
         let state: String
     }
     
+    struct GitHubIssueDetail: Codable, Identifiable {
+        let id: Int
+        let number: Int
+        let html_url: String
+        let title: String
+        let body: String?
+        let state: String
+        let created_at: String
+        let updated_at: String
+        let labels: [GitHubLabel]
+        let user: GitHubUser?
+        let comments: Int
+        
+        var createdDate: Date? {
+            let formatter = ISO8601DateFormatter()
+            return formatter.date(from: created_at)
+        }
+        
+        var categoryFromLabels: FeedbackView.FeedbackCategory {
+            for label in labels {
+                switch label.name.lowercased() {
+                case "bug": return .bug
+                case "enhancement": return .suggestion
+                case "feature-request": return .feature
+                case "question": return .question
+                case "crash": return .crash
+                default: continue
+                }
+            }
+            return .other
+        }
+    }
+    
+    struct GitHubLabel: Codable {
+        let id: Int
+        let name: String
+        let color: String
+    }
+    
+    struct GitHubUser: Codable {
+        let login: String
+        let avatar_url: String
+    }
+    
     struct TokenResponse: Codable {
         let token: String
         let expiresIn: Int?
@@ -1196,6 +1240,78 @@ actor GitHubFeedbackService {
         
         return try JSONDecoder().decode(GitHubIssueResponse.self, from: data)
     }
+    
+    func fetchIssues(state: String = "all", labels: String = "app-feedback", perPage: Int = 30) async throws -> [GitHubIssueDetail] {
+        let token = try await fetchToken()
+        
+        guard let url = URL(string: "\(githubAPIBase)/repos/\(repoOwner)/\(repoName)/issues?state=\(state)&labels=\(labels)&per_page=\(perPage)&sort=created&direction=desc") else {
+            throw FeedbackError.invalidURL
+        }
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        request.setValue("application/vnd.github+json", forHTTPHeaderField: "Accept")
+        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        request.timeoutInterval = 30
+        
+        let (data, response) = try await URLSession.shared.data(for: request)
+        
+        guard let httpResponse = response as? HTTPURLResponse else {
+            throw FeedbackError.invalidResponse
+        }
+        
+        guard (200...299).contains(httpResponse.statusCode) else {
+            if let errorBody = String(data: data, encoding: .utf8) {
+                throw FeedbackError.githubAPIError(statusCode: httpResponse.statusCode, message: errorBody)
+            }
+            throw FeedbackError.serverError(statusCode: httpResponse.statusCode)
+        }
+        
+        return try JSONDecoder().decode([GitHubIssueDetail].self, from: data)
+    }
+}
+
+// MARK: - Local Feedback Storage
+class LocalFeedbackStorage {
+    static let shared = LocalFeedbackStorage()
+    private let userDefaultsKey = "Portal.SubmittedFeedback"
+    
+    struct SubmittedFeedback: Codable, Identifiable {
+        let id: String
+        let issueNumber: Int
+        let issueURL: String
+        let title: String
+        let category: String
+        let submittedAt: Date
+        
+        var categoryEnum: FeedbackView.FeedbackCategory {
+            FeedbackView.FeedbackCategory.allCases.first { $0.rawValue == category } ?? .other
+        }
+    }
+    
+    func saveFeedback(_ feedback: SubmittedFeedback) {
+        var feedbacks = getFeedbacks()
+        feedbacks.insert(feedback, at: 0)
+        if let data = try? JSONEncoder().encode(feedbacks) {
+            UserDefaults.standard.set(data, forKey: userDefaultsKey)
+        }
+    }
+    
+    func getFeedbacks() -> [SubmittedFeedback] {
+        guard let data = UserDefaults.standard.data(forKey: userDefaultsKey),
+              let feedbacks = try? JSONDecoder().decode([SubmittedFeedback].self, from: data) else {
+            return []
+        }
+        return feedbacks
+    }
+    
+    func deleteFeedback(id: String) {
+        var feedbacks = getFeedbacks()
+        feedbacks.removeAll { $0.id == id }
+        if let data = try? JSONEncoder().encode(feedbacks) {
+            UserDefaults.standard.set(data, forKey: userDefaultsKey)
+        }
+    }
 }
 
 // MARK: - Modern Feedback View
@@ -1229,10 +1345,32 @@ struct FeedbackView: View {
     @State private var showCategoryInfo: Bool = false
     @State private var showPreview: Bool = false
     
+    // New state for feedback sections
+    @State private var selectedTab: FeedbackTab = .submit
+    @State private var recentFeedbacks: [GitHubFeedbackService.GitHubIssueDetail] = []
+    @State private var myFeedbacks: [LocalFeedbackStorage.SubmittedFeedback] = []
+    @State private var isLoadingRecentFeedback: Bool = false
+    @State private var recentFeedbackError: String? = nil
+    @State private var selectedIssue: GitHubFeedbackService.GitHubIssueDetail? = nil
+    
     @FocusState private var focusedField: FocusedField?
     
     enum FocusedField {
         case title, message
+    }
+    
+    enum FeedbackTab: String, CaseIterable {
+        case submit = "Submit"
+        case recent = "Recent Feedback"
+        case myFeedback = "My Feedback"
+        
+        var icon: String {
+            switch self {
+            case .submit: return "paperplane.fill"
+            case .recent: return "bubble.left.and.bubble.right.fill"
+            case .myFeedback: return "person.crop.circle.fill"
+            }
+        }
     }
     
     enum FeedbackCategory: String, CaseIterable {
@@ -1284,27 +1422,48 @@ struct FeedbackView: View {
     
     var body: some View {
         ZStack {
-            mainScrollView
-                .background(Color(.systemGroupedBackground))
-                .navigationTitle("Feedback")
-                .navigationBarTitleDisplayMode(.inline)
-                .onAppear { animateAppearance() }
-                .sheet(isPresented: $showCodeEditor) {
-                    CodeEditorSheet(code: $codeSnippet)
+            VStack(spacing: 0) {
+                // Tab Selector
+                feedbackTabSelector
+                    .padding(.horizontal, 16)
+                    .padding(.top, 8)
+                
+                // Content based on selected tab
+                switch selectedTab {
+                case .submit:
+                    mainScrollView
+                case .recent:
+                    recentFeedbackView
+                case .myFeedback:
+                    myFeedbackView
                 }
-                .sheet(isPresented: $showSuccessSheet) {
-                    FeedbackSuccessSheet(issueNumber: createdIssueNumber, issueURL: createdIssueURL, onDismiss: { dismiss() })
-                }
-                .sheet(isPresented: $showErrorSheet) {
-                    FeedbackErrorSheet(errorMessage: errorMessage, onRetry: { submitFeedback() }, onDismiss: { showErrorSheet = false })
-                }
-                .toolbar {
-                    ToolbarItemGroup(placement: .keyboard) {
-                        if focusedField == .message {
-                            ModernFormattingToolbar(text: $feedbackMessage, showLinkDialog: $showLinkDialog)
-                        }
+            }
+            .background(Color(.systemGroupedBackground))
+            .navigationTitle("Feedback")
+            .navigationBarTitleDisplayMode(.inline)
+            .onAppear {
+                animateAppearance()
+                loadMyFeedbacks()
+            }
+            .sheet(isPresented: $showCodeEditor) {
+                CodeEditorSheet(code: $codeSnippet)
+            }
+            .sheet(isPresented: $showSuccessSheet) {
+                FeedbackSuccessSheet(issueNumber: createdIssueNumber, issueURL: createdIssueURL, onDismiss: { dismiss() })
+            }
+            .sheet(isPresented: $showErrorSheet) {
+                FeedbackErrorSheet(errorMessage: errorMessage, onRetry: { submitFeedback() }, onDismiss: { showErrorSheet = false })
+            }
+            .sheet(item: $selectedIssue) { issue in
+                FeedbackDetailSheet(issue: issue)
+            }
+            .toolbar {
+                ToolbarItemGroup(placement: .keyboard) {
+                    if focusedField == .message {
+                        ModernFormattingToolbar(text: $feedbackMessage, showLinkDialog: $showLinkDialog)
                     }
                 }
+            }
             
             // Link Dialog Overlay
             if showLinkDialog {
@@ -1349,6 +1508,201 @@ struct FeedbackView: View {
         .animation(.spring(response: 0.3, dampingFraction: 0.8), value: showScreenshotError)
         .animation(.spring(response: 0.3, dampingFraction: 0.8), value: showCategoryInfo)
         .animation(.spring(response: 0.3, dampingFraction: 0.8), value: showPreview)
+        .animation(.spring(response: 0.3, dampingFraction: 0.8), value: selectedTab)
+    }
+    
+    // MARK: - Tab Selector
+    private var feedbackTabSelector: some View {
+        HStack(spacing: 8) {
+            ForEach(FeedbackTab.allCases, id: \.self) { tab in
+                Button {
+                    withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+                        selectedTab = tab
+                    }
+                    if tab == .recent && recentFeedbacks.isEmpty {
+                        loadRecentFeedback()
+                    }
+                    HapticsManager.shared.softImpact()
+                } label: {
+                    HStack(spacing: 6) {
+                        Image(systemName: tab.icon)
+                            .font(.system(size: 12, weight: .semibold))
+                        Text(tab.rawValue)
+                            .font(.system(size: 12, weight: .semibold))
+                            .lineLimit(1)
+                    }
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 10)
+                    .frame(maxWidth: .infinity)
+                    .background(
+                        RoundedRectangle(cornerRadius: 10, style: .continuous)
+                            .fill(selectedTab == tab ? Color.accentColor : Color(.tertiarySystemGroupedBackground))
+                    )
+                    .foregroundStyle(selectedTab == tab ? .white : .primary)
+                }
+                .buttonStyle(.plain)
+            }
+        }
+        .padding(.bottom, 8)
+    }
+    
+    // MARK: - Recent Feedback View
+    private var recentFeedbackView: some View {
+        ScrollView {
+            LazyVStack(spacing: 12) {
+                if isLoadingRecentFeedback {
+                    VStack(spacing: 16) {
+                        ProgressView()
+                            .scaleEffect(1.2)
+                        Text("Loading feedback...")
+                            .font(.system(size: 14))
+                            .foregroundStyle(.secondary)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 60)
+                } else if let error = recentFeedbackError {
+                    VStack(spacing: 16) {
+                        Image(systemName: "exclamationmark.triangle.fill")
+                            .font(.system(size: 40))
+                            .foregroundStyle(.orange)
+                        Text("Failed to load feedback")
+                            .font(.system(size: 16, weight: .semibold))
+                        Text(error)
+                            .font(.system(size: 13))
+                            .foregroundStyle(.secondary)
+                            .multilineTextAlignment(.center)
+                        Button {
+                            loadRecentFeedback()
+                        } label: {
+                            HStack(spacing: 6) {
+                                Image(systemName: "arrow.clockwise")
+                                Text("Retry")
+                            }
+                            .font(.system(size: 14, weight: .semibold))
+                            .foregroundStyle(.white)
+                            .padding(.horizontal, 20)
+                            .padding(.vertical, 10)
+                            .background(Color.accentColor)
+                            .clipShape(Capsule())
+                        }
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 40)
+                } else if recentFeedbacks.isEmpty {
+                    VStack(spacing: 16) {
+                        Image(systemName: "bubble.left.and.bubble.right")
+                            .font(.system(size: 50))
+                            .foregroundStyle(.secondary)
+                        Text("No feedback yet")
+                            .font(.system(size: 16, weight: .semibold))
+                        Text("Be the first to submit feedback!")
+                            .font(.system(size: 13))
+                            .foregroundStyle(.secondary)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 60)
+                } else {
+                    ForEach(recentFeedbacks) { issue in
+                        RecentFeedbackCard(issue: issue) {
+                            selectedIssue = issue
+                        }
+                    }
+                }
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 12)
+        }
+        .refreshable {
+            await refreshRecentFeedback()
+        }
+    }
+    
+    // MARK: - My Feedback View
+    private var myFeedbackView: some View {
+        ScrollView {
+            LazyVStack(spacing: 12) {
+                if myFeedbacks.isEmpty {
+                    VStack(spacing: 16) {
+                        Image(systemName: "person.crop.circle.badge.questionmark")
+                            .font(.system(size: 50))
+                            .foregroundStyle(.secondary)
+                        Text("No submissions yet")
+                            .font(.system(size: 16, weight: .semibold))
+                        Text("Your submitted feedback will appear here")
+                            .font(.system(size: 13))
+                            .foregroundStyle(.secondary)
+                        Button {
+                            withAnimation {
+                                selectedTab = .submit
+                            }
+                        } label: {
+                            HStack(spacing: 6) {
+                                Image(systemName: "plus.circle.fill")
+                                Text("Submit Feedback")
+                            }
+                            .font(.system(size: 14, weight: .semibold))
+                            .foregroundStyle(.white)
+                            .padding(.horizontal, 20)
+                            .padding(.vertical, 10)
+                            .background(Color.accentColor)
+                            .clipShape(Capsule())
+                        }
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 60)
+                } else {
+                    ForEach(myFeedbacks) { feedback in
+                        MyFeedbackCard(feedback: feedback) {
+                            if let url = URL(string: feedback.issueURL) {
+                                openURL(url)
+                            }
+                        } onDelete: {
+                            withAnimation {
+                                LocalFeedbackStorage.shared.deleteFeedback(id: feedback.id)
+                                loadMyFeedbacks()
+                            }
+                        }
+                    }
+                }
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 12)
+        }
+    }
+    
+    private func loadRecentFeedback() {
+        isLoadingRecentFeedback = true
+        recentFeedbackError = nil
+        
+        Task {
+            do {
+                let issues = try await GitHubFeedbackService.shared.fetchIssues()
+                await MainActor.run {
+                    recentFeedbacks = issues
+                    isLoadingRecentFeedback = false
+                }
+            } catch {
+                await MainActor.run {
+                    recentFeedbackError = error.localizedDescription
+                    isLoadingRecentFeedback = false
+                }
+            }
+        }
+    }
+    
+    private func refreshRecentFeedback() async {
+        do {
+            let issues = try await GitHubFeedbackService.shared.fetchIssues()
+            await MainActor.run {
+                recentFeedbacks = issues
+            }
+        } catch {
+            // Silently fail on refresh
+        }
+    }
+    
+    private func loadMyFeedbacks() {
+        myFeedbacks = LocalFeedbackStorage.shared.getFeedbacks()
     }
     
     private var mainScrollView: some View {
@@ -1978,11 +2332,12 @@ struct FeedbackView: View {
                 
                 let issueBody = buildIssueBody()
                 let labels = [feedbackCategory.githubLabel, "app-feedback"]
+                let trimmedTitle = feedbackTitle.trimmingCharacters(in: .whitespacesAndNewlines)
                 
                 submissionStep = "Creating GitHub Issue..."
                 
                 let response = try await GitHubFeedbackService.shared.createIssue(
-                    title: "[\(feedbackCategory.rawValue)] \(feedbackTitle.trimmingCharacters(in: .whitespacesAndNewlines))",
+                    title: "[\(feedbackCategory.rawValue)] \(trimmedTitle)",
                     body: issueBody,
                     labels: labels
                 )
@@ -1991,6 +2346,19 @@ struct FeedbackView: View {
                     isSubmitting = false
                     createdIssueURL = response.html_url
                     createdIssueNumber = response.number
+                    
+                    // Save to local storage
+                    let localFeedback = LocalFeedbackStorage.SubmittedFeedback(
+                        id: UUID().uuidString,
+                        issueNumber: response.number,
+                        issueURL: response.html_url,
+                        title: trimmedTitle,
+                        category: feedbackCategory.rawValue,
+                        submittedAt: Date()
+                    )
+                    LocalFeedbackStorage.shared.saveFeedback(localFeedback)
+                    loadMyFeedbacks()
+                    
                     HapticsManager.shared.success()
                     showSuccessSheet = true
                 }
@@ -2684,6 +3052,419 @@ extension UIDevice {
             return identifier + String(UnicodeScalar(UInt8(value)))
         }
         return identifier
+    }
+}
+
+// MARK: - Recent Feedback Card
+struct RecentFeedbackCard: View {
+    let issue: GitHubFeedbackService.GitHubIssueDetail
+    let onTap: () -> Void
+    
+    private var relativeDate: String {
+        guard let date = issue.createdDate else { return "" }
+        let formatter = RelativeDateTimeFormatter()
+        formatter.unitsStyle = .abbreviated
+        return formatter.localizedString(for: date, relativeTo: Date())
+    }
+    
+    var body: some View {
+        Button(action: onTap) {
+            VStack(alignment: .leading, spacing: 12) {
+                // Header
+                HStack(spacing: 10) {
+                    // Category icon
+                    ZStack {
+                        Circle()
+                            .fill(issue.categoryFromLabels.color.opacity(0.15))
+                            .frame(width: 36, height: 36)
+                        Image(systemName: issue.categoryFromLabels.icon)
+                            .font(.system(size: 14, weight: .semibold))
+                            .foregroundStyle(issue.categoryFromLabels.color)
+                    }
+                    
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("#\(issue.number)")
+                            .font(.system(size: 12, weight: .medium))
+                            .foregroundStyle(.secondary)
+                        Text(relativeDate)
+                            .font(.system(size: 11))
+                            .foregroundStyle(.tertiary)
+                    }
+                    
+                    Spacer()
+                    
+                    // Status badge
+                    HStack(spacing: 4) {
+                        Circle()
+                            .fill(issue.state == "open" ? Color.green : Color.purple)
+                            .frame(width: 6, height: 6)
+                        Text(issue.state.capitalized)
+                            .font(.system(size: 11, weight: .medium))
+                    }
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
+                    .background(
+                        Capsule()
+                            .fill((issue.state == "open" ? Color.green : Color.purple).opacity(0.12))
+                    )
+                    .foregroundStyle(issue.state == "open" ? .green : .purple)
+                }
+                
+                // Title
+                Text(issue.title.replacingOccurrences(of: "\\[.*?\\]\\s*", with: "", options: .regularExpression))
+                    .font(.system(size: 15, weight: .semibold))
+                    .foregroundStyle(.primary)
+                    .lineLimit(2)
+                    .multilineTextAlignment(.leading)
+                
+                // Body preview
+                if let body = issue.body, !body.isEmpty {
+                    Text(body.replacingOccurrences(of: "## Description\n", with: "").prefix(120) + (body.count > 120 ? "..." : ""))
+                        .font(.system(size: 13))
+                        .foregroundStyle(.secondary)
+                        .lineLimit(2)
+                        .multilineTextAlignment(.leading)
+                }
+                
+                // Footer
+                HStack(spacing: 12) {
+                    if issue.comments > 0 {
+                        HStack(spacing: 4) {
+                            Image(systemName: "bubble.left.fill")
+                                .font(.system(size: 10))
+                            Text("\(issue.comments)")
+                                .font(.system(size: 11, weight: .medium))
+                        }
+                        .foregroundStyle(.secondary)
+                    }
+                    
+                    // Labels
+                    HStack(spacing: 4) {
+                        ForEach(issue.labels.prefix(3), id: \.id) { label in
+                            Text(label.name)
+                                .font(.system(size: 10, weight: .medium))
+                                .padding(.horizontal, 6)
+                                .padding(.vertical, 2)
+                                .background(
+                                    Capsule()
+                                        .fill(Color(hex: label.color)?.opacity(0.2) ?? Color.gray.opacity(0.2))
+                                )
+                                .foregroundStyle(Color(hex: label.color) ?? .gray)
+                        }
+                    }
+                    
+                    Spacer()
+                    
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundStyle(.tertiary)
+                }
+            }
+            .padding(16)
+            .background(
+                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .fill(Color(.secondarySystemGroupedBackground))
+            )
+        }
+        .buttonStyle(.plain)
+    }
+}
+
+// MARK: - My Feedback Card
+struct MyFeedbackCard: View {
+    let feedback: LocalFeedbackStorage.SubmittedFeedback
+    let onTap: () -> Void
+    let onDelete: () -> Void
+    
+    private var relativeDate: String {
+        let formatter = RelativeDateTimeFormatter()
+        formatter.unitsStyle = .abbreviated
+        return formatter.localizedString(for: feedback.submittedAt, relativeTo: Date())
+    }
+    
+    var body: some View {
+        HStack(spacing: 14) {
+            // Category icon
+            ZStack {
+                Circle()
+                    .fill(feedback.categoryEnum.color.opacity(0.15))
+                    .frame(width: 44, height: 44)
+                Image(systemName: feedback.categoryEnum.icon)
+                    .font(.system(size: 18, weight: .semibold))
+                    .foregroundStyle(feedback.categoryEnum.color)
+            }
+            
+            VStack(alignment: .leading, spacing: 4) {
+                Text(feedback.title)
+                    .font(.system(size: 15, weight: .semibold))
+                    .foregroundStyle(.primary)
+                    .lineLimit(1)
+                
+                HStack(spacing: 8) {
+                    Text("#\(feedback.issueNumber)")
+                        .font(.system(size: 12, weight: .medium))
+                        .foregroundStyle(.secondary)
+                    
+                    Text("•")
+                        .foregroundStyle(.tertiary)
+                    
+                    Text(relativeDate)
+                        .font(.system(size: 12))
+                        .foregroundStyle(.tertiary)
+                }
+            }
+            
+            Spacer()
+            
+            // Actions
+            HStack(spacing: 8) {
+                Button(action: onTap) {
+                    Image(systemName: "arrow.up.right.square")
+                        .font(.system(size: 18))
+                        .foregroundStyle(.accentColor)
+                }
+                
+                Button(action: onDelete) {
+                    Image(systemName: "trash")
+                        .font(.system(size: 16))
+                        .foregroundStyle(.red)
+                }
+            }
+        }
+        .padding(14)
+        .background(
+            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                .fill(Color(.secondarySystemGroupedBackground))
+        )
+    }
+}
+
+// MARK: - Feedback Detail Sheet
+struct FeedbackDetailSheet: View {
+    @Environment(\.dismiss) private var dismiss
+    @Environment(\.openURL) private var openURL
+    let issue: GitHubFeedbackService.GitHubIssueDetail
+    
+    private var relativeDate: String {
+        guard let date = issue.createdDate else { return "" }
+        let formatter = RelativeDateTimeFormatter()
+        formatter.unitsStyle = .full
+        return formatter.localizedString(for: date, relativeTo: Date())
+    }
+    
+    var body: some View {
+        NavigationStack {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 20) {
+                    // Header
+                    VStack(alignment: .leading, spacing: 12) {
+                        HStack(spacing: 10) {
+                            ZStack {
+                                Circle()
+                                    .fill(issue.categoryFromLabels.color.opacity(0.15))
+                                    .frame(width: 44, height: 44)
+                                Image(systemName: issue.categoryFromLabels.icon)
+                                    .font(.system(size: 18, weight: .semibold))
+                                    .foregroundStyle(issue.categoryFromLabels.color)
+                            }
+                            
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("Issue #\(issue.number)")
+                                    .font(.system(size: 14, weight: .medium))
+                                    .foregroundStyle(.secondary)
+                                Text(relativeDate)
+                                    .font(.system(size: 12))
+                                    .foregroundStyle(.tertiary)
+                            }
+                            
+                            Spacer()
+                            
+                            HStack(spacing: 4) {
+                                Circle()
+                                    .fill(issue.state == "open" ? Color.green : Color.purple)
+                                    .frame(width: 8, height: 8)
+                                Text(issue.state.capitalized)
+                                    .font(.system(size: 13, weight: .semibold))
+                            }
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 6)
+                            .background(
+                                Capsule()
+                                    .fill((issue.state == "open" ? Color.green : Color.purple).opacity(0.12))
+                            )
+                            .foregroundStyle(issue.state == "open" ? .green : .purple)
+                        }
+                        
+                        Text(issue.title.replacingOccurrences(of: "\\[.*?\\]\\s*", with: "", options: .regularExpression))
+                            .font(.system(size: 20, weight: .bold))
+                            .foregroundStyle(.primary)
+                    }
+                    .padding(16)
+                    .background(
+                        RoundedRectangle(cornerRadius: 16, style: .continuous)
+                            .fill(Color(.secondarySystemGroupedBackground))
+                    )
+                    
+                    // Labels
+                    if !issue.labels.isEmpty {
+                        VStack(alignment: .leading, spacing: 10) {
+                            Text("Labels")
+                                .font(.system(size: 14, weight: .semibold))
+                                .foregroundStyle(.secondary)
+                            
+                            FlowLayout(spacing: 8) {
+                                ForEach(issue.labels, id: \.id) { label in
+                                    Text(label.name)
+                                        .font(.system(size: 12, weight: .medium))
+                                        .padding(.horizontal, 10)
+                                        .padding(.vertical, 5)
+                                        .background(
+                                            Capsule()
+                                                .fill(Color(hex: label.color)?.opacity(0.2) ?? Color.gray.opacity(0.2))
+                                        )
+                                        .foregroundStyle(Color(hex: label.color) ?? .gray)
+                                }
+                            }
+                        }
+                        .padding(16)
+                        .background(
+                            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                                .fill(Color(.secondarySystemGroupedBackground))
+                        )
+                    }
+                    
+                    // Body with Markdown
+                    if let body = issue.body, !body.isEmpty {
+                        VStack(alignment: .leading, spacing: 10) {
+                            Text("Description")
+                                .font(.system(size: 14, weight: .semibold))
+                                .foregroundStyle(.secondary)
+                            
+                            FullMarkdownView(text: body)
+                        }
+                        .padding(16)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .background(
+                            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                                .fill(Color(.secondarySystemGroupedBackground))
+                        )
+                    }
+                    
+                    // Open in GitHub button
+                    Button {
+                        if let url = URL(string: issue.html_url) {
+                            openURL(url)
+                        }
+                    } label: {
+                        HStack(spacing: 8) {
+                            Image(systemName: "arrow.up.right.square.fill")
+                            Text("View on GitHub")
+                        }
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundStyle(.white)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 16)
+                        .background(
+                            LinearGradient(
+                                colors: [.accentColor, .accentColor.opacity(0.8)],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                        )
+                        .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+                    }
+                }
+                .padding(16)
+            }
+            .background(Color(.systemGroupedBackground))
+            .navigationTitle("Feedback Details")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Done") {
+                        dismiss()
+                    }
+                }
+            }
+        }
+    }
+}
+
+// MARK: - Full Markdown View
+struct FullMarkdownView: View {
+    let text: String
+    
+    var body: some View {
+        if let attributedString = try? AttributedString(markdown: text, options: AttributedString.MarkdownParsingOptions(interpretedSyntax: .inlineOnlyPreservingWhitespace)) {
+            Text(attributedString)
+                .font(.system(size: 15))
+                .foregroundStyle(.primary)
+                .textSelection(.enabled)
+        } else {
+            Text(text)
+                .font(.system(size: 15))
+                .foregroundStyle(.primary)
+                .textSelection(.enabled)
+        }
+    }
+}
+
+// MARK: - Flow Layout for Labels
+struct FlowLayout: Layout {
+    var spacing: CGFloat = 8
+    
+    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
+        let result = FlowResult(in: proposal.width ?? 0, subviews: subviews, spacing: spacing)
+        return result.size
+    }
+    
+    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
+        let result = FlowResult(in: bounds.width, subviews: subviews, spacing: spacing)
+        for (index, subview) in subviews.enumerated() {
+            subview.place(at: CGPoint(x: bounds.minX + result.positions[index].x, y: bounds.minY + result.positions[index].y), proposal: .unspecified)
+        }
+    }
+    
+    struct FlowResult {
+        var size: CGSize = .zero
+        var positions: [CGPoint] = []
+        
+        init(in maxWidth: CGFloat, subviews: Subviews, spacing: CGFloat) {
+            var x: CGFloat = 0
+            var y: CGFloat = 0
+            var rowHeight: CGFloat = 0
+            
+            for subview in subviews {
+                let size = subview.sizeThatFits(.unspecified)
+                if x + size.width > maxWidth && x > 0 {
+                    x = 0
+                    y += rowHeight + spacing
+                    rowHeight = 0
+                }
+                positions.append(CGPoint(x: x, y: y))
+                rowHeight = max(rowHeight, size.height)
+                x += size.width + spacing
+                self.size.width = max(self.size.width, x)
+            }
+            self.size.height = y + rowHeight
+        }
+    }
+}
+
+// MARK: - Color Extension for Hex
+extension Color {
+    init?(hex: String) {
+        var hexSanitized = hex.trimmingCharacters(in: .whitespacesAndNewlines)
+        hexSanitized = hexSanitized.replacingOccurrences(of: "#", with: "")
+        
+        var rgb: UInt64 = 0
+        guard Scanner(string: hexSanitized).scanHexInt64(&rgb) else { return nil }
+        
+        let r = Double((rgb & 0xFF0000) >> 16) / 255.0
+        let g = Double((rgb & 0x00FF00) >> 8) / 255.0
+        let b = Double(rgb & 0x0000FF) / 255.0
+        
+        self.init(red: r, green: g, blue: b)
     }
 }
 
