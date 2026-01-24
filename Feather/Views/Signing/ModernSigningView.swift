@@ -3608,7 +3608,7 @@ struct ResourceModifierView: View {
                         Image(systemName: "chevron.down")
                     }
                     .font(.caption)
-                    .foregroundStyle(.accentColor)
+                    .foregroundStyle(Color.accentColor)
                 }
                 
                 Spacer()
