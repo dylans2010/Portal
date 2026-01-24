@@ -3452,6 +3452,7 @@ struct FeatureFlagsView: View {
     @AppStorage("feature_enhancedAnimations") var enhancedAnimations = false
     @AppStorage("feature_advancedSigning") var advancedSigning = false
     @AppStorage("feature_usePortalCert") var usePortalCert = false
+    @AppStorage("feature_advancedFilesFeatures") var advancedFilesFeatures = false
     
     var body: some View {
         List {
@@ -3473,6 +3474,22 @@ struct FeatureFlagsView: View {
                 Text("Certificates")
             } footer: {
                 Text("When enabled, allows exporting and importing certificates as a single .portalcert file that bundles the P12 and provisioning profile together. This is a super early beta, does not work.")
+            }
+            
+            Section {
+                Toggle("Advanced Files Features", isOn: $advancedFilesFeatures)
+                
+                if advancedFilesFeatures {
+                    NavigationLink {
+                        FileAdvancedToolsView()
+                    } label: {
+                        Label("Open Advanced File Tools", systemImage: "wrench.and.screwdriver.fill")
+                    }
+                }
+            } header: {
+                Text("Files")
+            } footer: {
+                Text("Enables advanced file management features including binary analysis, hex editing, file forensics, metadata extraction, batch operations, and more powerful file manipulation tools.")
             }
         }
         .navigationTitle("Feature Flags")

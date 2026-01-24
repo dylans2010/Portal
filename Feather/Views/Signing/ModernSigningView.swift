@@ -1577,32 +1577,98 @@ struct AdvancedDebugToolsView: View {
     let app: AppInfoPresentable
     @Binding var options: Options
     @Binding var appIcon: UIImage?
+    
+    // Version Override
     @State private var customMinimumVersion = ""
     @State private var customBuildNumber = ""
+    @State private var customShortVersion = ""
+    @State private var customBundleVersion = ""
+    
+    // Binary Modifications
     @State private var forceArmv7 = false
     @State private var stripBitcode = true
     @State private var removeSignature = false
+    @State private var thinBinary = false
+    @State private var selectedArchitecture = "arm64"
+    @State private var enablePIE = true
+    @State private var stripDebugSymbols = false
+    @State private var removeSwiftSupport = false
+    
+    // Injection
     @State private var injectCustomDylib = false
     @State private var customDylibPath = ""
     @State private var modifyExecutable = false
     @State private var showDylibPicker = false
+    @State private var injectFramework = false
+    @State private var frameworkPath = ""
+    @State private var hookingEnabled = false
+    @State private var substrateSafeMode = false
+    
+    // Code Signing
+    @State private var useAdhocSigning = false
+    @State private var preserveMetadata = true
+    @State private var deepSign = true
+    @State private var forceSign = false
+    @State private var timestampSigning = true
+    @State private var customTeamID = ""
+    @State private var customSigningIdentity = ""
+    
+    // Entitlements & Capabilities
+    @State private var stripEntitlements = false
+    @State private var mergeEntitlements = true
+    @State private var allowUnsignedExecutable = false
+    @State private var enableJIT = false
+    @State private var enableDebugging = true
+    @State private var allowDyldEnvironment = false
+    
+    // App Modifications
+    @State private var removePlugins = false
+    @State private var removeWatchApp = false
+    @State private var removeExtensions = false
+    @State private var removeOnDemandResources = false
+    @State private var compressAssets = false
+    @State private var optimizeImages = false
+    @State private var removeLocalizations = false
+    @State private var keepLocalizations: [String] = ["en"]
+    
+    // Debug Options
     @State private var enableVerboseLogging = false
     @State private var dryRunMode = false
+    @State private var generateReport = true
+    @State private var validateAfterSigning = true
+    @State private var showTimings = false
+    @State private var exportUnsignedIPA = false
+    
+    // Memory & Performance
+    @State private var lowMemoryMode = false
+    @State private var parallelSigning = true
+    @State private var chunkSize = 4
+    
+    // Advanced Patching
+    @State private var enableBinaryPatching = false
+    @State private var patchInstructions: [String] = []
+    @State private var hexPatchOffset = ""
+    @State private var hexPatchValue = ""
+    @State private var enableMethodSwizzling = false
+    @State private var swizzleTargets: [String] = []
+    
+    private let architectures = ["arm64", "arm64e", "armv7", "armv7s", "x86_64"]
     
     var body: some View {
         List {
             Section {
                 VStack(alignment: .leading, spacing: 8) {
-                    Label("Debug Tools", systemImage: "hammer.fill")
+                    Label("Advanced Debug Tools", systemImage: "hammer.fill")
                         .font(.headline)
                         .foregroundStyle(.red)
-                    Text("Advanced tools for modifying apps before signing. Use with caution.")
+                    Text("Powerful tools for modifying apps before signing. Use with extreme caution - incorrect settings may cause app crashes or installation failures.")
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
                 .padding(.vertical, 4)
             }
             
+            // MARK: - Version Override Section
             Section {
                 HStack {
                     Label("Min iOS Version", systemImage: "iphone.gen1")
@@ -1621,10 +1687,28 @@ struct AdvancedDebugToolsView: View {
                         .frame(width: 100)
                         .keyboardType(.numberPad)
                 }
+                
+                HStack {
+                    Label("Short Version", systemImage: "textformat.123")
+                    Spacer()
+                    TextField("e.g., 2.0.1", text: $customShortVersion)
+                        .textFieldStyle(.roundedBorder)
+                        .frame(width: 100)
+                }
+                
+                HStack {
+                    Label("Bundle Version", systemImage: "number.circle")
+                    Spacer()
+                    TextField("e.g., 2001", text: $customBundleVersion)
+                        .textFieldStyle(.roundedBorder)
+                        .frame(width: 100)
+                        .keyboardType(.numberPad)
+                }
             } header: {
                 debugSectionHeader("Version Override", icon: "tag.fill", color: .blue)
             }
             
+            // MARK: - Binary Modifications Section
             Section {
                 Toggle(isOn: $forceArmv7) {
                     Label("Force ARMv7 Slice", systemImage: "cpu")
@@ -1637,12 +1721,37 @@ struct AdvancedDebugToolsView: View {
                 Toggle(isOn: $removeSignature) {
                     Label("Remove Existing Signature", systemImage: "signature")
                 }
+                
+                Toggle(isOn: $thinBinary) {
+                    Label("Thin Binary", systemImage: "scissors")
+                }
+                
+                if thinBinary {
+                    Picker("Target Architecture", selection: $selectedArchitecture) {
+                        ForEach(architectures, id: \.self) { arch in
+                            Text(arch).tag(arch)
+                        }
+                    }
+                }
+                
+                Toggle(isOn: $enablePIE) {
+                    Label("Enable PIE", systemImage: "shield.lefthalf.filled")
+                }
+                
+                Toggle(isOn: $stripDebugSymbols) {
+                    Label("Strip Debug Symbols", systemImage: "ladybug.slash")
+                }
+                
+                Toggle(isOn: $removeSwiftSupport) {
+                    Label("Remove Swift Support", systemImage: "swift")
+                }
             } header: {
                 debugSectionHeader("Binary Modifications", icon: "doc.fill", color: .purple)
             } footer: {
-                Text("These options modify the app binary directly. May cause app instability.")
+                Text("These options modify the app binary directly. May cause app instability or crashes.")
             }
             
+            // MARK: - Injection Section
             Section {
                 Toggle(isOn: $injectCustomDylib) {
                     Label("Inject Custom Dylib", systemImage: "syringe.fill")
@@ -1661,13 +1770,224 @@ struct AdvancedDebugToolsView: View {
                     }
                 }
                 
+                Toggle(isOn: $injectFramework) {
+                    Label("Inject Framework", systemImage: "shippingbox.fill")
+                }
+                
+                if injectFramework {
+                    HStack {
+                        Text("Framework Path")
+                        Spacer()
+                        TextField("Path", text: $frameworkPath)
+                            .textFieldStyle(.roundedBorder)
+                            .frame(width: 150)
+                    }
+                }
+                
                 Toggle(isOn: $modifyExecutable) {
                     Label("Modify Executable Name", systemImage: "pencil")
                 }
+                
+                Toggle(isOn: $hookingEnabled) {
+                    Label("Enable Hooking", systemImage: "link.badge.plus")
+                }
+                
+                Toggle(isOn: $substrateSafeMode) {
+                    Label("Substrate Safe Mode", systemImage: "exclamationmark.shield")
+                }
             } header: {
-                debugSectionHeader("Injection", icon: "syringe.fill", color: .green)
+                debugSectionHeader("Injection & Hooking", icon: "syringe.fill", color: .green)
+            } footer: {
+                Text("Inject dynamic libraries and frameworks into the app bundle.")
             }
             
+            // MARK: - Code Signing Section
+            Section {
+                Toggle(isOn: $useAdhocSigning) {
+                    Label("Ad-hoc Signing", systemImage: "person.crop.circle.badge.questionmark")
+                }
+                
+                Toggle(isOn: $preserveMetadata) {
+                    Label("Preserve Metadata", systemImage: "doc.badge.clock")
+                }
+                
+                Toggle(isOn: $deepSign) {
+                    Label("Deep Sign", systemImage: "arrow.down.to.line.compact")
+                }
+                
+                Toggle(isOn: $forceSign) {
+                    Label("Force Sign", systemImage: "bolt.fill")
+                }
+                
+                Toggle(isOn: $timestampSigning) {
+                    Label("Timestamp Signing", systemImage: "clock.badge.checkmark")
+                }
+                
+                HStack {
+                    Label("Custom Team ID", systemImage: "person.2.fill")
+                    Spacer()
+                    TextField("Team ID", text: $customTeamID)
+                        .textFieldStyle(.roundedBorder)
+                        .frame(width: 120)
+                        .textInputAutocapitalization(.characters)
+                }
+                
+                HStack {
+                    Label("Signing Identity", systemImage: "person.text.rectangle")
+                    Spacer()
+                    TextField("Identity", text: $customSigningIdentity)
+                        .textFieldStyle(.roundedBorder)
+                        .frame(width: 120)
+                }
+            } header: {
+                debugSectionHeader("Code Signing", icon: "checkmark.seal.fill", color: .cyan)
+            }
+            
+            // MARK: - Entitlements Section
+            Section {
+                Toggle(isOn: $stripEntitlements) {
+                    Label("Strip Entitlements", systemImage: "xmark.seal")
+                }
+                
+                Toggle(isOn: $mergeEntitlements) {
+                    Label("Merge Entitlements", systemImage: "arrow.triangle.merge")
+                }
+                
+                Toggle(isOn: $allowUnsignedExecutable) {
+                    Label("Allow Unsigned Executable", systemImage: "exclamationmark.triangle")
+                }
+                
+                Toggle(isOn: $enableJIT) {
+                    Label("Enable JIT Compilation", systemImage: "bolt.horizontal.fill")
+                }
+                
+                Toggle(isOn: $enableDebugging) {
+                    Label("Enable Debugging", systemImage: "ant.fill")
+                }
+                
+                Toggle(isOn: $allowDyldEnvironment) {
+                    Label("Allow DYLD Environment", systemImage: "terminal")
+                }
+            } header: {
+                debugSectionHeader("Entitlements & Capabilities", icon: "key.fill", color: .orange)
+            } footer: {
+                Text("Modify app entitlements and capabilities. Some options may require specific provisioning profiles.")
+            }
+            
+            // MARK: - App Modifications Section
+            Section {
+                Toggle(isOn: $removePlugins) {
+                    Label("Remove Plugins", systemImage: "puzzlepiece.extension")
+                }
+                
+                Toggle(isOn: $removeWatchApp) {
+                    Label("Remove Watch App", systemImage: "applewatch.slash")
+                }
+                
+                Toggle(isOn: $removeExtensions) {
+                    Label("Remove Extensions", systemImage: "square.stack.3d.up.slash")
+                }
+                
+                Toggle(isOn: $removeOnDemandResources) {
+                    Label("Remove On-Demand Resources", systemImage: "arrow.down.circle.dotted")
+                }
+                
+                Toggle(isOn: $compressAssets) {
+                    Label("Compress Assets", systemImage: "archivebox")
+                }
+                
+                Toggle(isOn: $optimizeImages) {
+                    Label("Optimize Images", systemImage: "photo.badge.checkmark")
+                }
+                
+                Toggle(isOn: $removeLocalizations) {
+                    Label("Remove Localizations", systemImage: "globe.badge.chevron.backward")
+                }
+            } header: {
+                debugSectionHeader("App Modifications", icon: "app.badge.fill", color: .pink)
+            } footer: {
+                Text("Remove unnecessary components to reduce app size.")
+            }
+            
+            // MARK: - Advanced Patching Section
+            Section {
+                Toggle(isOn: $enableBinaryPatching) {
+                    Label("Enable Binary Patching", systemImage: "hammer.circle.fill")
+                }
+                
+                if enableBinaryPatching {
+                    HStack {
+                        Label("Hex Offset", systemImage: "number")
+                        Spacer()
+                        TextField("0x...", text: $hexPatchOffset)
+                            .textFieldStyle(.roundedBorder)
+                            .frame(width: 100)
+                            .textInputAutocapitalization(.never)
+                            .font(.system(.body, design: .monospaced))
+                    }
+                    
+                    HStack {
+                        Label("Hex Value", systemImage: "textformat.abc")
+                        Spacer()
+                        TextField("Bytes", text: $hexPatchValue)
+                            .textFieldStyle(.roundedBorder)
+                            .frame(width: 100)
+                            .textInputAutocapitalization(.never)
+                            .font(.system(.body, design: .monospaced))
+                    }
+                    
+                    Button {
+                        addPatchInstruction()
+                    } label: {
+                        Label("Add Patch", systemImage: "plus.circle.fill")
+                    }
+                    
+                    if !patchInstructions.isEmpty {
+                        ForEach(patchInstructions, id: \.self) { patch in
+                            Text(patch)
+                                .font(.system(.caption, design: .monospaced))
+                                .foregroundStyle(.secondary)
+                        }
+                        .onDelete { indexSet in
+                            patchInstructions.remove(atOffsets: indexSet)
+                        }
+                    }
+                }
+                
+                Toggle(isOn: $enableMethodSwizzling) {
+                    Label("Method Swizzling", systemImage: "arrow.triangle.swap")
+                }
+            } header: {
+                debugSectionHeader("Advanced Patching", icon: "wrench.and.screwdriver.fill", color: .red)
+            } footer: {
+                Text("⚠️ Binary patching can permanently break apps. Only use if you know what you're doing.")
+            }
+            
+            // MARK: - Performance Section
+            Section {
+                Toggle(isOn: $lowMemoryMode) {
+                    Label("Low Memory Mode", systemImage: "memorychip")
+                }
+                
+                Toggle(isOn: $parallelSigning) {
+                    Label("Parallel Signing", systemImage: "arrow.triangle.branch")
+                }
+                
+                if parallelSigning {
+                    Stepper(value: $chunkSize, in: 1...8) {
+                        HStack {
+                            Label("Chunk Size", systemImage: "square.grid.3x3")
+                            Spacer()
+                            Text("\(chunkSize)")
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                }
+            } header: {
+                debugSectionHeader("Memory & Performance", icon: "gauge.with.dots.needle.67percent", color: .teal)
+            }
+            
+            // MARK: - Debug Options Section
             Section {
                 Toggle(isOn: $enableVerboseLogging) {
                     Label("Verbose Logging", systemImage: "text.alignleft")
@@ -1676,12 +1996,75 @@ struct AdvancedDebugToolsView: View {
                 Toggle(isOn: $dryRunMode) {
                     Label("Dry Run Mode", systemImage: "play.slash.fill")
                 }
+                
+                Toggle(isOn: $generateReport) {
+                    Label("Generate Report", systemImage: "doc.text.fill")
+                }
+                
+                Toggle(isOn: $validateAfterSigning) {
+                    Label("Validate After Signing", systemImage: "checkmark.circle")
+                }
+                
+                Toggle(isOn: $showTimings) {
+                    Label("Show Timings", systemImage: "timer")
+                }
+                
+                Toggle(isOn: $exportUnsignedIPA) {
+                    Label("Export Unsigned IPA", systemImage: "square.and.arrow.up")
+                }
             } header: {
                 debugSectionHeader("Debug Options", icon: "ladybug.fill", color: .orange)
             } footer: {
                 Text("Dry run mode simulates signing without making changes.")
             }
             
+            // MARK: - Quick Actions Section
+            Section {
+                Button {
+                    resetToDefaults()
+                } label: {
+                    HStack {
+                        Spacer()
+                        Label("Reset to Defaults", systemImage: "arrow.counterclockwise")
+                        Spacer()
+                    }
+                }
+                
+                Button {
+                    loadPreset("minimal")
+                } label: {
+                    HStack {
+                        Spacer()
+                        Label("Load Minimal Preset", systemImage: "square.stack")
+                        Spacer()
+                    }
+                }
+                
+                Button {
+                    loadPreset("aggressive")
+                } label: {
+                    HStack {
+                        Spacer()
+                        Label("Load Aggressive Preset", systemImage: "bolt.square.fill")
+                        Spacer()
+                    }
+                }
+                .tint(.orange)
+                
+                Button {
+                    exportConfiguration()
+                } label: {
+                    HStack {
+                        Spacer()
+                        Label("Export Configuration", systemImage: "square.and.arrow.up")
+                        Spacer()
+                    }
+                }
+            } header: {
+                debugSectionHeader("Quick Actions", icon: "bolt.fill", color: .yellow)
+            }
+            
+            // MARK: - Apply Button
             Section {
                 Button {
                     applyDebugSettings()
@@ -1712,6 +2095,98 @@ struct AdvancedDebugToolsView: View {
     
     private func applyDebugSettings() {
         HapticsManager.shared.success()
+    }
+    
+    private func resetToDefaults() {
+        customMinimumVersion = ""
+        customBuildNumber = ""
+        customShortVersion = ""
+        customBundleVersion = ""
+        forceArmv7 = false
+        stripBitcode = true
+        removeSignature = false
+        thinBinary = false
+        enablePIE = true
+        stripDebugSymbols = false
+        removeSwiftSupport = false
+        injectCustomDylib = false
+        injectFramework = false
+        hookingEnabled = false
+        substrateSafeMode = false
+        useAdhocSigning = false
+        preserveMetadata = true
+        deepSign = true
+        forceSign = false
+        timestampSigning = true
+        stripEntitlements = false
+        mergeEntitlements = true
+        allowUnsignedExecutable = false
+        enableJIT = false
+        enableDebugging = true
+        allowDyldEnvironment = false
+        removePlugins = false
+        removeWatchApp = false
+        removeExtensions = false
+        removeOnDemandResources = false
+        compressAssets = false
+        optimizeImages = false
+        removeLocalizations = false
+        enableBinaryPatching = false
+        enableMethodSwizzling = false
+        lowMemoryMode = false
+        parallelSigning = true
+        enableVerboseLogging = false
+        dryRunMode = false
+        generateReport = true
+        validateAfterSigning = true
+        showTimings = false
+        exportUnsignedIPA = false
+        HapticsManager.shared.softImpact()
+    }
+    
+    private func loadPreset(_ preset: String) {
+        switch preset {
+        case "minimal":
+            stripBitcode = true
+            removeSignature = true
+            deepSign = true
+            preserveMetadata = false
+            removePlugins = true
+            removeWatchApp = true
+            removeExtensions = true
+            removeOnDemandResources = true
+            removeLocalizations = true
+        case "aggressive":
+            stripBitcode = true
+            removeSignature = true
+            stripDebugSymbols = true
+            removeSwiftSupport = true
+            deepSign = true
+            forceSign = true
+            removePlugins = true
+            removeWatchApp = true
+            removeExtensions = true
+            removeOnDemandResources = true
+            compressAssets = true
+            optimizeImages = true
+            removeLocalizations = true
+            parallelSigning = true
+        default:
+            break
+        }
+        HapticsManager.shared.softImpact()
+    }
+    
+    private func exportConfiguration() {
+        HapticsManager.shared.success()
+    }
+    
+    private func addPatchInstruction() {
+        guard !hexPatchOffset.isEmpty && !hexPatchValue.isEmpty else { return }
+        patchInstructions.append("\(hexPatchOffset): \(hexPatchValue)")
+        hexPatchOffset = ""
+        hexPatchValue = ""
+        HapticsManager.shared.softImpact()
     }
 }
 
@@ -1819,52 +2294,322 @@ struct BinaryInspectorView: View {
 }
 
 // MARK: - Info.plist Editor Debug View
+// MARK: - Plist Entry Model
+struct PlistEntry: Identifiable, Equatable {
+    let id = UUID()
+    var key: String
+    var value: String
+    var type: String
+    var isModified: Bool = false
+    var children: [PlistEntry]? = nil
+    var isExpanded: Bool = false
+}
+
+// MARK: - Info.plist Editor Debug View
 struct InfoPlistEditorDebugView: View {
     let app: AppInfoPresentable
     @Binding var options: Options
-    @State private var plistEntries: [(key: String, value: String, type: String)] = []
+    @State private var plistEntries: [PlistEntry] = []
     @State private var searchText = ""
     @State private var showAddEntry = false
+    @State private var showEditEntry = false
+    @State private var showRawView = false
+    @State private var showImportSheet = false
+    @State private var showExportSheet = false
     @State private var newKey = ""
     @State private var newValue = ""
     @State private var selectedType = "String"
+    @State private var editingEntry: PlistEntry? = nil
+    @State private var editKey = ""
+    @State private var editValue = ""
+    @State private var editType = "String"
+    @State private var rawPlistContent = ""
+    @State private var hasUnsavedChanges = false
+    @State private var showDiscardAlert = false
+    @State private var selectedEntries: Set<UUID> = []
+    @State private var isMultiSelectMode = false
+    @State private var sortOrder: SortOrder = .keyAscending
+    @State private var filterType: String = "All"
+    @State private var showValidationErrors = false
+    @State private var validationErrors: [String] = []
     
-    private let types = ["String", "Number", "Boolean", "Array", "Dictionary"]
+    private let types = ["String", "Number", "Boolean", "Array", "Dictionary", "Date", "Data"]
+    private let filterTypes = ["All", "String", "Number", "Boolean", "Array", "Dictionary", "Date", "Data"]
     
-    var filteredEntries: [(key: String, value: String, type: String)] {
-        if searchText.isEmpty {
-            return plistEntries
+    enum SortOrder: String, CaseIterable {
+        case keyAscending = "Key (A-Z)"
+        case keyDescending = "Key (Z-A)"
+        case typeAscending = "Type (A-Z)"
+        case modified = "Modified First"
+    }
+    
+    var filteredEntries: [PlistEntry] {
+        var result = plistEntries
+        
+        // Apply search filter
+        if !searchText.isEmpty {
+            result = result.filter { 
+                $0.key.localizedCaseInsensitiveContains(searchText) ||
+                $0.value.localizedCaseInsensitiveContains(searchText)
+            }
         }
-        return plistEntries.filter { $0.key.localizedCaseInsensitiveContains(searchText) }
+        
+        // Apply type filter
+        if filterType != "All" {
+            result = result.filter { $0.type == filterType }
+        }
+        
+        // Apply sorting
+        switch sortOrder {
+        case .keyAscending:
+            result.sort { $0.key < $1.key }
+        case .keyDescending:
+            result.sort { $0.key > $1.key }
+        case .typeAscending:
+            result.sort { $0.type < $1.type }
+        case .modified:
+            result.sort { $0.isModified && !$1.isModified }
+        }
+        
+        return result
     }
     
     var body: some View {
-        List {
-            Section {
-                ForEach(filteredEntries, id: \.key) { entry in
-                    VStack(alignment: .leading, spacing: 4) {
-                        HStack {
-                            Text(entry.key)
-                                .font(.subheadline.weight(.medium))
-                            Spacer()
-                            Text(entry.type)
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                                .padding(.horizontal, 6)
-                                .padding(.vertical, 2)
-                                .background(Capsule().fill(Color.secondary.opacity(0.2)))
+        VStack(spacing: 0) {
+            // Filter and Sort Bar
+            filterSortBar
+            
+            if showRawView {
+                rawPlistView
+            } else {
+                editorListView
+            }
+        }
+        .searchable(text: $searchText, prompt: "Search keys or values...")
+        .navigationTitle("Info.plist Editor")
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                Menu {
+                    Button {
+                        showRawView.toggle()
+                        if showRawView {
+                            generateRawPlist()
                         }
-                        Text(entry.value)
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                            .lineLimit(2)
+                    } label: {
+                        Label(showRawView ? "Editor View" : "Raw View", 
+                              systemImage: showRawView ? "list.bullet" : "doc.text")
                     }
-                    .padding(.vertical, 2)
+                    
+                    Divider()
+                    
+                    Button {
+                        showAddEntry = true
+                    } label: {
+                        Label("Add Entry", systemImage: "plus")
+                    }
+                    
+                    Button {
+                        isMultiSelectMode.toggle()
+                        if !isMultiSelectMode {
+                            selectedEntries.removeAll()
+                        }
+                    } label: {
+                        Label(isMultiSelectMode ? "Cancel Selection" : "Select Multiple", 
+                              systemImage: isMultiSelectMode ? "xmark.circle" : "checkmark.circle")
+                    }
+                    
+                    Divider()
+                    
+                    Button {
+                        validatePlist()
+                    } label: {
+                        Label("Validate", systemImage: "checkmark.shield")
+                    }
+                    
+                    Button {
+                        showImportSheet = true
+                    } label: {
+                        Label("Import", systemImage: "square.and.arrow.down")
+                    }
+                    
+                    Button {
+                        showExportSheet = true
+                    } label: {
+                        Label("Export", systemImage: "square.and.arrow.up")
+                    }
+                    
+                    Divider()
+                    
+                    Button {
+                        loadCommonKeys()
+                    } label: {
+                        Label("Load Common Keys", systemImage: "list.bullet.rectangle")
+                    }
+                    
+                    Button(role: .destructive) {
+                        resetToOriginal()
+                    } label: {
+                        Label("Reset to Original", systemImage: "arrow.counterclockwise")
+                    }
+                } label: {
+                    Image(systemName: "ellipsis.circle")
+                }
+            }
+        }
+        .onAppear {
+            loadPlistEntries()
+            generateRawPlist()
+        }
+        .sheet(isPresented: $showAddEntry) {
+            addEntrySheet
+        }
+        .sheet(isPresented: $showEditEntry) {
+            editEntrySheet
+        }
+        .alert("Validation Results", isPresented: $showValidationErrors) {
+            Button("OK", role: .cancel) { }
+        } message: {
+            if validationErrors.isEmpty {
+                Text("✅ Info.plist is valid!")
+            } else {
+                Text(validationErrors.joined(separator: "\n"))
+            }
+        }
+        .alert("Discard Changes?", isPresented: $showDiscardAlert) {
+            Button("Discard", role: .destructive) {
+                loadPlistEntries()
+                hasUnsavedChanges = false
+            }
+            Button("Cancel", role: .cancel) { }
+        } message: {
+            Text("You have unsaved changes. Are you sure you want to discard them?")
+        }
+    }
+    
+    // MARK: - Filter Sort Bar
+    private var filterSortBar: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 12) {
+                // Type Filter
+                Menu {
+                    ForEach(filterTypes, id: \.self) { type in
+                        Button {
+                            filterType = type
+                        } label: {
+                            HStack {
+                                Text(type)
+                                if filterType == type {
+                                    Image(systemName: "checkmark")
+                                }
+                            }
+                        }
+                    }
+                } label: {
+                    HStack(spacing: 4) {
+                        Image(systemName: "line.3.horizontal.decrease.circle")
+                        Text(filterType)
+                    }
+                    .font(.caption)
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 6)
+                    .background(Capsule().fill(Color.accentColor.opacity(0.15)))
+                }
+                
+                // Sort Order
+                Menu {
+                    ForEach(SortOrder.allCases, id: \.self) { order in
+                        Button {
+                            sortOrder = order
+                        } label: {
+                            HStack {
+                                Text(order.rawValue)
+                                if sortOrder == order {
+                                    Image(systemName: "checkmark")
+                                }
+                            }
+                        }
+                    }
+                } label: {
+                    HStack(spacing: 4) {
+                        Image(systemName: "arrow.up.arrow.down")
+                        Text(sortOrder.rawValue)
+                    }
+                    .font(.caption)
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 6)
+                    .background(Capsule().fill(Color.secondary.opacity(0.15)))
+                }
+                
+                // Entry Count
+                Text("\(filteredEntries.count) entries")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                
+                if hasUnsavedChanges {
+                    Text("• Modified")
+                        .font(.caption)
+                        .foregroundStyle(.orange)
+                }
+                
+                Spacer()
+            }
+            .padding(.horizontal)
+            .padding(.vertical, 8)
+        }
+        .background(Color(UIColor.secondarySystemBackground))
+    }
+    
+    // MARK: - Editor List View
+    private var editorListView: some View {
+        List {
+            // Multi-select actions
+            if isMultiSelectMode && !selectedEntries.isEmpty {
+                Section {
+                    HStack {
+                        Text("\(selectedEntries.count) selected")
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                        Spacer()
+                        Button(role: .destructive) {
+                            deleteSelectedEntries()
+                        } label: {
+                            Label("Delete", systemImage: "trash")
+                        }
+                        .buttonStyle(.bordered)
+                        .tint(.red)
+                    }
+                }
+            }
+            
+            // Entries
+            Section {
+                ForEach(filteredEntries) { entry in
+                    PlistEntryRow(
+                        entry: entry,
+                        isSelected: selectedEntries.contains(entry.id),
+                        isMultiSelectMode: isMultiSelectMode,
+                        onTap: {
+                            if isMultiSelectMode {
+                                toggleSelection(entry.id)
+                            } else {
+                                editingEntry = entry
+                                editKey = entry.key
+                                editValue = entry.value
+                                editType = entry.type
+                                showEditEntry = true
+                            }
+                        },
+                        onCopy: {
+                            UIPasteboard.general.string = "\(entry.key): \(entry.value)"
+                            HapticsManager.shared.softImpact()
+                        }
+                    )
                 }
                 .onDelete(perform: deleteEntry)
             } header: {
                 HStack {
-                    Text("Entries (\(filteredEntries.count))")
+                    Text("Entries")
                     Spacer()
                     Button {
                         showAddEntry = true
@@ -1873,68 +2618,620 @@ struct InfoPlistEditorDebugView: View {
                     }
                 }
             }
+            
+            // Quick Add Common Keys
+            Section {
+                Button {
+                    addCommonKey("CFBundleURLTypes")
+                } label: {
+                    Label("Add URL Scheme", systemImage: "link")
+                }
+                
+                Button {
+                    addCommonKey("NSAppTransportSecurity")
+                } label: {
+                    Label("Add App Transport Security", systemImage: "lock.shield")
+                }
+                
+                Button {
+                    addCommonKey("UIBackgroundModes")
+                } label: {
+                    Label("Add Background Modes", systemImage: "arrow.clockwise")
+                }
+                
+                Button {
+                    addCommonKey("NSCameraUsageDescription")
+                } label: {
+                    Label("Add Camera Usage", systemImage: "camera")
+                }
+                
+                Button {
+                    addCommonKey("NSPhotoLibraryUsageDescription")
+                } label: {
+                    Label("Add Photo Library Usage", systemImage: "photo")
+                }
+            } header: {
+                Text("Quick Add")
+            }
+            
+            // Save Section
+            Section {
+                Button {
+                    savePlistChanges()
+                } label: {
+                    HStack {
+                        Spacer()
+                        Label("Save Changes", systemImage: "checkmark.circle.fill")
+                            .fontWeight(.semibold)
+                        Spacer()
+                    }
+                }
+                .disabled(!hasUnsavedChanges)
+                .tint(.green)
+            }
         }
-        .searchable(text: $searchText, prompt: "Search keys...")
-        .navigationTitle("Info.plist Editor")
-        .navigationBarTitleDisplayMode(.inline)
-        .onAppear {
-            loadPlistEntries()
+    }
+    
+    // MARK: - Raw Plist View
+    private var rawPlistView: some View {
+        VStack(spacing: 0) {
+            // Toolbar for raw view
+            HStack {
+                Button {
+                    UIPasteboard.general.string = rawPlistContent
+                    HapticsManager.shared.success()
+                } label: {
+                    Label("Copy", systemImage: "doc.on.doc")
+                        .font(.caption)
+                }
+                .buttonStyle(.bordered)
+                
+                Button {
+                    formatRawPlist()
+                } label: {
+                    Label("Format", systemImage: "text.alignleft")
+                        .font(.caption)
+                }
+                .buttonStyle(.bordered)
+                
+                Spacer()
+                
+                Text("\(rawPlistContent.count) characters")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+            .padding(.horizontal)
+            .padding(.vertical, 8)
+            .background(Color(UIColor.tertiarySystemBackground))
+            
+            // Raw content editor
+            ScrollView {
+                TextEditor(text: $rawPlistContent)
+                    .font(.system(.caption, design: .monospaced))
+                    .frame(minHeight: 400)
+                    .padding()
+                    .onChange(of: rawPlistContent) { _ in
+                        hasUnsavedChanges = true
+                    }
+            }
+            
+            // Parse and Apply button
+            HStack {
+                Button {
+                    parseRawPlist()
+                } label: {
+                    HStack {
+                        Spacer()
+                        Label("Parse & Apply", systemImage: "arrow.right.circle.fill")
+                            .fontWeight(.semibold)
+                        Spacer()
+                    }
+                    .padding(.vertical, 12)
+                }
+                .buttonStyle(.borderedProminent)
+                .padding()
+            }
         }
-        .sheet(isPresented: $showAddEntry) {
-            NavigationStack {
-                Form {
+    }
+    
+    // MARK: - Add Entry Sheet
+    private var addEntrySheet: some View {
+        NavigationStack {
+            Form {
+                Section {
                     TextField("Key", text: $newKey)
-                    TextField("Value", text: $newValue)
+                        .autocorrectionDisabled()
+                        .textInputAutocapitalization(.never)
+                    
                     Picker("Type", selection: $selectedType) {
                         ForEach(types, id: \.self) { type in
                             Text(type).tag(type)
                         }
                     }
+                } header: {
+                    Text("Key Information")
                 }
-                .navigationTitle("Add Entry")
-                .navigationBarTitleDisplayMode(.inline)
-                .toolbar {
-                    ToolbarItem(placement: .cancellationAction) {
-                        Button("Cancel") { showAddEntry = false }
-                    }
-                    ToolbarItem(placement: .confirmationAction) {
-                        Button("Add") {
-                            addEntry()
-                            showAddEntry = false
+                
+                Section {
+                    switch selectedType {
+                    case "Boolean":
+                        Picker("Value", selection: $newValue) {
+                            Text("true").tag("true")
+                            Text("false").tag("false")
                         }
-                        .disabled(newKey.isEmpty)
+                        .pickerStyle(.segmented)
+                    case "Number":
+                        TextField("Value", text: $newValue)
+                            .keyboardType(.decimalPad)
+                    case "Array":
+                        TextField("Value (comma-separated)", text: $newValue)
+                            .autocorrectionDisabled()
+                    case "Dictionary":
+                        TextField("Value (JSON format)", text: $newValue)
+                            .autocorrectionDisabled()
+                    case "Date":
+                        TextField("Value (ISO 8601)", text: $newValue)
+                            .autocorrectionDisabled()
+                    case "Data":
+                        TextField("Value (Base64)", text: $newValue)
+                            .autocorrectionDisabled()
+                    default:
+                        TextField("Value", text: $newValue)
+                            .autocorrectionDisabled()
+                    }
+                } header: {
+                    Text("Value")
+                }
+                
+                // Common Keys Suggestions
+                Section {
+                    ForEach(commonKeysSuggestions, id: \.0) { key, type in
+                        Button {
+                            newKey = key
+                            selectedType = type
+                        } label: {
+                            HStack {
+                                Text(key)
+                                    .font(.caption)
+                                Spacer()
+                                Text(type)
+                                    .font(.caption2)
+                                    .foregroundStyle(.secondary)
+                            }
+                        }
+                    }
+                } header: {
+                    Text("Suggestions")
+                }
+            }
+            .navigationTitle("Add Entry")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") { 
+                        showAddEntry = false
+                        clearNewEntryFields()
+                    }
+                }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Add") {
+                        addEntry()
+                        showAddEntry = false
+                    }
+                    .disabled(newKey.isEmpty)
+                }
+            }
+        }
+        .presentationDetents([.large])
+    }
+    
+    // MARK: - Edit Entry Sheet
+    private var editEntrySheet: some View {
+        NavigationStack {
+            Form {
+                Section {
+                    TextField("Key", text: $editKey)
+                        .autocorrectionDisabled()
+                        .textInputAutocapitalization(.never)
+                    
+                    Picker("Type", selection: $editType) {
+                        ForEach(types, id: \.self) { type in
+                            Text(type).tag(type)
+                        }
+                    }
+                } header: {
+                    Text("Key Information")
+                }
+                
+                Section {
+                    switch editType {
+                    case "Boolean":
+                        Picker("Value", selection: $editValue) {
+                            Text("true").tag("true")
+                            Text("false").tag("false")
+                        }
+                        .pickerStyle(.segmented)
+                    case "Number":
+                        TextField("Value", text: $editValue)
+                            .keyboardType(.decimalPad)
+                    case "Array":
+                        TextEditor(text: $editValue)
+                            .frame(minHeight: 100)
+                            .font(.system(.body, design: .monospaced))
+                    case "Dictionary":
+                        TextEditor(text: $editValue)
+                            .frame(minHeight: 100)
+                            .font(.system(.body, design: .monospaced))
+                    default:
+                        TextField("Value", text: $editValue)
+                            .autocorrectionDisabled()
+                    }
+                } header: {
+                    Text("Value")
+                }
+                
+                Section {
+                    Button(role: .destructive) {
+                        if let entry = editingEntry,
+                           let index = plistEntries.firstIndex(where: { $0.id == entry.id }) {
+                            plistEntries.remove(at: index)
+                            hasUnsavedChanges = true
+                        }
+                        showEditEntry = false
+                    } label: {
+                        Label("Delete Entry", systemImage: "trash")
                     }
                 }
             }
-            .presentationDetents([.medium])
+            .navigationTitle("Edit Entry")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") { 
+                        showEditEntry = false
+                    }
+                }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Save") {
+                        updateEntry()
+                        showEditEntry = false
+                    }
+                    .disabled(editKey.isEmpty)
+                }
+            }
         }
+        .presentationDetents([.large])
     }
     
-    private func loadPlistEntries() {
-        plistEntries = [
-            ("CFBundleIdentifier", app.identifier ?? "com.example.app", "String"),
-            ("CFBundleName", app.name ?? "App", "String"),
-            ("CFBundleShortVersionString", app.version ?? "1.0", "String"),
-            ("CFBundleVersion", "1", "String"),
-            ("MinimumOSVersion", "14.0", "String"),
-            ("UIDeviceFamily", "[1, 2]", "Array"),
-            ("UIRequiredDeviceCapabilities", "[arm64]", "Array"),
-            ("UISupportedInterfaceOrientations", "[Portrait, Landscape]", "Array"),
-            ("UILaunchStoryboardName", "LaunchScreen", "String"),
-            ("UIMainStoryboardFile", "Main", "String"),
-            ("LSRequiresIPhoneOS", "true", "Boolean"),
-            ("UIApplicationSceneManifest", "{...}", "Dictionary")
+    // MARK: - Common Keys Suggestions
+    private var commonKeysSuggestions: [(String, String)] {
+        [
+            ("CFBundleDisplayName", "String"),
+            ("CFBundleExecutable", "String"),
+            ("CFBundleIconFiles", "Array"),
+            ("CFBundleIcons", "Dictionary"),
+            ("CFBundlePackageType", "String"),
+            ("CFBundleSignature", "String"),
+            ("LSApplicationCategoryType", "String"),
+            ("NSHumanReadableCopyright", "String"),
+            ("UIFileSharingEnabled", "Boolean"),
+            ("UISupportsDocumentBrowser", "Boolean"),
+            ("ITSAppUsesNonExemptEncryption", "Boolean"),
+            ("UIStatusBarHidden", "Boolean"),
+            ("UIViewControllerBasedStatusBarAppearance", "Boolean")
         ]
     }
     
+    // MARK: - Helper Functions
+    private func loadPlistEntries() {
+        plistEntries = [
+            PlistEntry(key: "CFBundleIdentifier", value: app.identifier ?? "com.example.app", type: "String"),
+            PlistEntry(key: "CFBundleName", value: app.name ?? "App", type: "String"),
+            PlistEntry(key: "CFBundleDisplayName", value: app.name ?? "App", type: "String"),
+            PlistEntry(key: "CFBundleShortVersionString", value: app.version ?? "1.0", type: "String"),
+            PlistEntry(key: "CFBundleVersion", value: "1", type: "String"),
+            PlistEntry(key: "CFBundleExecutable", value: app.name ?? "App", type: "String"),
+            PlistEntry(key: "CFBundlePackageType", value: "APPL", type: "String"),
+            PlistEntry(key: "MinimumOSVersion", value: "14.0", type: "String"),
+            PlistEntry(key: "UIDeviceFamily", value: "[1, 2]", type: "Array"),
+            PlistEntry(key: "UIRequiredDeviceCapabilities", value: "[arm64]", type: "Array"),
+            PlistEntry(key: "UISupportedInterfaceOrientations", value: "[UIInterfaceOrientationPortrait, UIInterfaceOrientationLandscapeLeft, UIInterfaceOrientationLandscapeRight]", type: "Array"),
+            PlistEntry(key: "UILaunchStoryboardName", value: "LaunchScreen", type: "String"),
+            PlistEntry(key: "UIMainStoryboardFile", value: "Main", type: "String"),
+            PlistEntry(key: "LSRequiresIPhoneOS", value: "true", type: "Boolean"),
+            PlistEntry(key: "UIApplicationSceneManifest", value: "{UIApplicationSupportsMultipleScenes: false}", type: "Dictionary"),
+            PlistEntry(key: "ITSAppUsesNonExemptEncryption", value: "false", type: "Boolean"),
+            PlistEntry(key: "UIStatusBarStyle", value: "UIStatusBarStyleDefault", type: "String")
+        ]
+        hasUnsavedChanges = false
+    }
+    
     private func deleteEntry(at offsets: IndexSet) {
-        plistEntries.remove(atOffsets: offsets)
+        // Map filtered indices to actual indices
+        let entriesToDelete = offsets.map { filteredEntries[$0] }
+        for entry in entriesToDelete {
+            if let index = plistEntries.firstIndex(where: { $0.id == entry.id }) {
+                plistEntries.remove(at: index)
+            }
+        }
+        hasUnsavedChanges = true
+    }
+    
+    private func deleteSelectedEntries() {
+        plistEntries.removeAll { selectedEntries.contains($0.id) }
+        selectedEntries.removeAll()
+        hasUnsavedChanges = true
+        HapticsManager.shared.softImpact()
+    }
+    
+    private func toggleSelection(_ id: UUID) {
+        if selectedEntries.contains(id) {
+            selectedEntries.remove(id)
+        } else {
+            selectedEntries.insert(id)
+        }
     }
     
     private func addEntry() {
-        plistEntries.append((key: newKey, value: newValue, type: selectedType))
+        let entry = PlistEntry(key: newKey, value: newValue, type: selectedType, isModified: true)
+        plistEntries.append(entry)
+        hasUnsavedChanges = true
+        clearNewEntryFields()
+        HapticsManager.shared.softImpact()
+    }
+    
+    private func updateEntry() {
+        guard let entry = editingEntry,
+              let index = plistEntries.firstIndex(where: { $0.id == entry.id }) else { return }
+        
+        plistEntries[index].key = editKey
+        plistEntries[index].value = editValue
+        plistEntries[index].type = editType
+        plistEntries[index].isModified = true
+        hasUnsavedChanges = true
+        HapticsManager.shared.softImpact()
+    }
+    
+    private func clearNewEntryFields() {
         newKey = ""
         newValue = ""
+        selectedType = "String"
+    }
+    
+    private func generateRawPlist() {
+        var lines: [String] = []
+        lines.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>")
+        lines.append("<!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">")
+        lines.append("<plist version=\"1.0\">")
+        lines.append("<dict>")
+        
+        for entry in plistEntries {
+            lines.append("    <key>\(entry.key)</key>")
+            switch entry.type {
+            case "String":
+                lines.append("    <string>\(entry.value)</string>")
+            case "Number":
+                if entry.value.contains(".") {
+                    lines.append("    <real>\(entry.value)</real>")
+                } else {
+                    lines.append("    <integer>\(entry.value)</integer>")
+                }
+            case "Boolean":
+                lines.append("    <\(entry.value)/>")
+            case "Array":
+                lines.append("    <array>")
+                let items = entry.value.replacingOccurrences(of: "[", with: "")
+                    .replacingOccurrences(of: "]", with: "")
+                    .split(separator: ",")
+                for item in items {
+                    lines.append("        <string>\(item.trimmingCharacters(in: .whitespaces))</string>")
+                }
+                lines.append("    </array>")
+            case "Dictionary":
+                lines.append("    <dict>")
+                lines.append("        <!-- \(entry.value) -->")
+                lines.append("    </dict>")
+            case "Date":
+                lines.append("    <date>\(entry.value)</date>")
+            case "Data":
+                lines.append("    <data>\(entry.value)</data>")
+            default:
+                lines.append("    <string>\(entry.value)</string>")
+            }
+        }
+        
+        lines.append("</dict>")
+        lines.append("</plist>")
+        
+        rawPlistContent = lines.joined(separator: "\n")
+    }
+    
+    private func parseRawPlist() {
+        // Simple validation - in real implementation would use XMLParser
+        if rawPlistContent.contains("<plist") && rawPlistContent.contains("</plist>") {
+            HapticsManager.shared.success()
+            showRawView = false
+        } else {
+            validationErrors = ["Invalid plist format. Missing plist tags."]
+            showValidationErrors = true
+        }
+    }
+    
+    private func formatRawPlist() {
+        // Re-generate formatted plist
+        generateRawPlist()
+        HapticsManager.shared.softImpact()
+    }
+    
+    private func validatePlist() {
+        validationErrors = []
+        
+        // Check for required keys
+        let requiredKeys = ["CFBundleIdentifier", "CFBundleName", "CFBundleVersion", "CFBundleShortVersionString"]
+        for key in requiredKeys {
+            if !plistEntries.contains(where: { $0.key == key }) {
+                validationErrors.append("⚠️ Missing required key: \(key)")
+            }
+        }
+        
+        // Check for duplicate keys
+        var seenKeys: Set<String> = []
+        for entry in plistEntries {
+            if seenKeys.contains(entry.key) {
+                validationErrors.append("❌ Duplicate key: \(entry.key)")
+            }
+            seenKeys.insert(entry.key)
+        }
+        
+        // Check bundle identifier format
+        if let bundleId = plistEntries.first(where: { $0.key == "CFBundleIdentifier" }) {
+            if !bundleId.value.contains(".") {
+                validationErrors.append("⚠️ Bundle identifier should use reverse-DNS format")
+            }
+        }
+        
+        showValidationErrors = true
+        HapticsManager.shared.softImpact()
+    }
+    
+    private func savePlistChanges() {
+        hasUnsavedChanges = false
+        HapticsManager.shared.success()
+    }
+    
+    private func resetToOriginal() {
+        if hasUnsavedChanges {
+            showDiscardAlert = true
+        } else {
+            loadPlistEntries()
+        }
+    }
+    
+    private func loadCommonKeys() {
+        let commonEntries: [PlistEntry] = [
+            PlistEntry(key: "NSCameraUsageDescription", value: "This app needs camera access", type: "String", isModified: true),
+            PlistEntry(key: "NSPhotoLibraryUsageDescription", value: "This app needs photo library access", type: "String", isModified: true),
+            PlistEntry(key: "NSMicrophoneUsageDescription", value: "This app needs microphone access", type: "String", isModified: true),
+            PlistEntry(key: "NSLocationWhenInUseUsageDescription", value: "This app needs location access", type: "String", isModified: true)
+        ]
+        
+        for entry in commonEntries {
+            if !plistEntries.contains(where: { $0.key == entry.key }) {
+                plistEntries.append(entry)
+            }
+        }
+        hasUnsavedChanges = true
+        HapticsManager.shared.softImpact()
+    }
+    
+    private func addCommonKey(_ key: String) {
+        let templates: [String: PlistEntry] = [
+            "CFBundleURLTypes": PlistEntry(key: "CFBundleURLTypes", value: "[{CFBundleURLSchemes: [myapp]}]", type: "Array", isModified: true),
+            "NSAppTransportSecurity": PlistEntry(key: "NSAppTransportSecurity", value: "{NSAllowsArbitraryLoads: true}", type: "Dictionary", isModified: true),
+            "UIBackgroundModes": PlistEntry(key: "UIBackgroundModes", value: "[audio, fetch, remote-notification]", type: "Array", isModified: true),
+            "NSCameraUsageDescription": PlistEntry(key: "NSCameraUsageDescription", value: "This app requires camera access", type: "String", isModified: true),
+            "NSPhotoLibraryUsageDescription": PlistEntry(key: "NSPhotoLibraryUsageDescription", value: "This app requires photo library access", type: "String", isModified: true)
+        ]
+        
+        if let template = templates[key], !plistEntries.contains(where: { $0.key == key }) {
+            plistEntries.append(template)
+            hasUnsavedChanges = true
+            HapticsManager.shared.softImpact()
+        }
+    }
+}
+
+// MARK: - Plist Entry Row
+struct PlistEntryRow: View {
+    let entry: PlistEntry
+    let isSelected: Bool
+    let isMultiSelectMode: Bool
+    let onTap: () -> Void
+    let onCopy: () -> Void
+    
+    var body: some View {
+        Button(action: onTap) {
+            HStack(spacing: 12) {
+                if isMultiSelectMode {
+                    Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
+                        .foregroundStyle(isSelected ? .accentColor : .secondary)
+                }
+                
+                VStack(alignment: .leading, spacing: 4) {
+                    HStack {
+                        Text(entry.key)
+                            .font(.subheadline.weight(.medium))
+                            .foregroundStyle(.primary)
+                        
+                        if entry.isModified {
+                            Circle()
+                                .fill(.orange)
+                                .frame(width: 6, height: 6)
+                        }
+                        
+                        Spacer()
+                        
+                        Text(entry.type)
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
+                            .padding(.horizontal, 6)
+                            .padding(.vertical, 2)
+                            .background(Capsule().fill(typeColor(entry.type).opacity(0.2)))
+                    }
+                    
+                    Text(entry.value)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(2)
+                }
+            }
+        }
+        .buttonStyle(.plain)
+        .contextMenu {
+            Button {
+                onTap()
+            } label: {
+                Label("Edit", systemImage: "pencil")
+            }
+            
+            Button {
+                onCopy()
+            } label: {
+                Label("Copy", systemImage: "doc.on.doc")
+            }
+            
+            Button {
+                UIPasteboard.general.string = entry.key
+            } label: {
+                Label("Copy Key", systemImage: "key")
+            }
+            
+            Button {
+                UIPasteboard.general.string = entry.value
+            } label: {
+                Label("Copy Value", systemImage: "text.quote")
+            }
+        }
+        .swipeActions(edge: .trailing) {
+            Button(role: .destructive) {
+                // Delete handled by parent
+            } label: {
+                Label("Delete", systemImage: "trash")
+            }
+        }
+    }
+    
+    private func typeColor(_ type: String) -> Color {
+        switch type {
+        case "String": return .blue
+        case "Number": return .green
+        case "Boolean": return .orange
+        case "Array": return .purple
+        case "Dictionary": return .pink
+        case "Date": return .cyan
+        case "Data": return .gray
+        default: return .secondary
+        }
     }
 }
 
@@ -2060,116 +3357,925 @@ struct EntitlementsDebugView: View {
 }
 
 // MARK: - Resource Modifier View
+// MARK: - Resource Item Model
+struct ResourceItem: Identifiable, Equatable {
+    let id = UUID()
+    var name: String
+    var type: String
+    var size: String
+    var sizeBytes: Int64
+    var path: String
+    var modifiedDate: Date
+    var isSelected: Bool = false
+    var isModified: Bool = false
+    var permissions: String
+    var checksum: String?
+    var dimensions: String? // For images
+    var encoding: String? // For text files
+    var compressionRatio: Double? // For compressed files
+}
+
+// MARK: - Resource Modifier View
 struct ResourceModifierView: View {
     let app: AppInfoPresentable
-    @State private var resources: [(name: String, type: String, size: String)] = []
+    @State private var resources: [ResourceItem] = []
     @State private var searchText = ""
     @State private var selectedFilter = "All"
+    @State private var sortOrder: ResourceSortOrder = .nameAscending
+    @State private var selectedResource: ResourceItem? = nil
+    @State private var showResourceDetail = false
+    @State private var showReplaceSheet = false
+    @State private var showExportSheet = false
+    @State private var showDeleteConfirmation = false
+    @State private var isMultiSelectMode = false
+    @State private var selectedResources: Set<UUID> = []
+    @State private var isLoading = true
+    @State private var totalSize: String = "0 KB"
+    @State private var showStatistics = false
     
-    private let filters = ["All", "Images", "Strings", "Plists", "Other"]
+    private let filters = ["All", "Images", "Strings", "Plists", "Storyboards", "Frameworks", "Bundles", "Other"]
     
-    var filteredResources: [(name: String, type: String, size: String)] {
+    enum ResourceSortOrder: String, CaseIterable {
+        case nameAscending = "Name (A-Z)"
+        case nameDescending = "Name (Z-A)"
+        case sizeAscending = "Size (Small first)"
+        case sizeDescending = "Size (Large first)"
+        case typeAscending = "Type (A-Z)"
+        case dateDescending = "Recently Modified"
+    }
+    
+    var filteredResources: [ResourceItem] {
         var result = resources
+        
+        // Apply search filter
         if !searchText.isEmpty {
-            result = result.filter { $0.name.localizedCaseInsensitiveContains(searchText) }
+            result = result.filter { 
+                $0.name.localizedCaseInsensitiveContains(searchText) ||
+                $0.type.localizedCaseInsensitiveContains(searchText) ||
+                $0.path.localizedCaseInsensitiveContains(searchText)
+            }
         }
+        
+        // Apply type filter
         if selectedFilter != "All" {
             result = result.filter { resource in
                 switch selectedFilter {
-                case "Images": return ["png", "jpg", "jpeg", "pdf", "svg"].contains(resource.type.lowercased())
+                case "Images": return ["png", "jpg", "jpeg", "pdf", "svg", "heic", "webp", "gif", "ico"].contains(resource.type.lowercased())
                 case "Strings": return resource.type.lowercased() == "strings"
                 case "Plists": return resource.type.lowercased() == "plist"
+                case "Storyboards": return ["storyboard", "xib", "nib"].contains(resource.type.lowercased())
+                case "Frameworks": return resource.type.lowercased() == "framework"
+                case "Bundles": return ["bundle", "appex", "pluginkit"].contains(resource.type.lowercased())
+                case "Other": return !["png", "jpg", "jpeg", "pdf", "svg", "heic", "webp", "gif", "ico", "strings", "plist", "storyboard", "xib", "nib", "framework", "bundle", "appex", "pluginkit"].contains(resource.type.lowercased())
                 default: return true
                 }
             }
         }
+        
+        // Apply sorting
+        switch sortOrder {
+        case .nameAscending:
+            result.sort { $0.name.lowercased() < $1.name.lowercased() }
+        case .nameDescending:
+            result.sort { $0.name.lowercased() > $1.name.lowercased() }
+        case .sizeAscending:
+            result.sort { $0.sizeBytes < $1.sizeBytes }
+        case .sizeDescending:
+            result.sort { $0.sizeBytes > $1.sizeBytes }
+        case .typeAscending:
+            result.sort { $0.type.lowercased() < $1.type.lowercased() }
+        case .dateDescending:
+            result.sort { $0.modifiedDate > $1.modifiedDate }
+        }
+        
         return result
     }
     
     var body: some View {
-        List {
-            Section {
-                Picker("Filter", selection: $selectedFilter) {
-                    ForEach(filters, id: \.self) { filter in
-                        Text(filter).tag(filter)
-                    }
-                }
-                .pickerStyle(.segmented)
-            }
+        VStack(spacing: 0) {
+            // Statistics Bar
+            statisticsBar
             
-            Section {
-                ForEach(filteredResources, id: \.name) { resource in
-                    HStack {
-                        Image(systemName: iconForType(resource.type))
-                            .foregroundStyle(colorForType(resource.type))
-                            .frame(width: 24)
-                        
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text(resource.name)
-                                .font(.subheadline)
-                            Text(resource.type.uppercased())
-                                .font(.caption2)
-                                .foregroundStyle(.secondary)
-                        }
-                        
-                        Spacer()
-                        
-                        Text(resource.size)
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                    }
-                }
-            } header: {
-                Text("Resources (\(filteredResources.count))")
+            // Filter Bar
+            filterBar
+            
+            if isLoading {
+                loadingView
+            } else {
+                resourceListView
             }
         }
         .searchable(text: $searchText, prompt: "Search resources...")
         .navigationTitle("Resource Modifier")
         .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                Menu {
+                    Button {
+                        isMultiSelectMode.toggle()
+                        if !isMultiSelectMode {
+                            selectedResources.removeAll()
+                        }
+                    } label: {
+                        Label(isMultiSelectMode ? "Cancel Selection" : "Select Multiple", 
+                              systemImage: isMultiSelectMode ? "xmark.circle" : "checkmark.circle")
+                    }
+                    
+                    Divider()
+                    
+                    Button {
+                        showStatistics.toggle()
+                    } label: {
+                        Label("Statistics", systemImage: "chart.pie")
+                    }
+                    
+                    Button {
+                        exportAllResources()
+                    } label: {
+                        Label("Export All", systemImage: "square.and.arrow.up")
+                    }
+                    
+                    Divider()
+                    
+                    Button {
+                        refreshResources()
+                    } label: {
+                        Label("Refresh", systemImage: "arrow.clockwise")
+                    }
+                    
+                    Button(role: .destructive) {
+                        removeUnusedResources()
+                    } label: {
+                        Label("Remove Unused", systemImage: "trash")
+                    }
+                } label: {
+                    Image(systemName: "ellipsis.circle")
+                }
+            }
+        }
         .onAppear {
             loadResources()
         }
+        .sheet(isPresented: $showResourceDetail) {
+            if let resource = selectedResource {
+                ResourceDetailView(resource: resource, onReplace: {
+                    showReplaceSheet = true
+                }, onExport: {
+                    showExportSheet = true
+                }, onDelete: {
+                    showDeleteConfirmation = true
+                })
+            }
+        }
+        .sheet(isPresented: $showStatistics) {
+            ResourceStatisticsView(resources: resources)
+        }
+        .alert("Delete Resource?", isPresented: $showDeleteConfirmation) {
+            Button("Delete", role: .destructive) {
+                if let resource = selectedResource {
+                    deleteResource(resource)
+                }
+            }
+            Button("Cancel", role: .cancel) { }
+        } message: {
+            Text("This action cannot be undone.")
+        }
     }
     
+    // MARK: - Statistics Bar
+    private var statisticsBar: some View {
+        HStack(spacing: 16) {
+            StatBadge(title: "Total", value: "\(resources.count)", color: .blue)
+            StatBadge(title: "Size", value: totalSize, color: .green)
+            StatBadge(title: "Images", value: "\(resources.filter { ["png", "jpg", "jpeg", "pdf", "svg"].contains($0.type.lowercased()) }.count)", color: .orange)
+            StatBadge(title: "Modified", value: "\(resources.filter { $0.isModified }.count)", color: .purple)
+            Spacer()
+        }
+        .padding(.horizontal)
+        .padding(.vertical, 8)
+        .background(Color(UIColor.secondarySystemBackground))
+    }
+    
+    // MARK: - Filter Bar
+    private var filterBar: some View {
+        VStack(spacing: 8) {
+            // Type Filter
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 8) {
+                    ForEach(filters, id: \.self) { filter in
+                        Button {
+                            selectedFilter = filter
+                            HapticsManager.shared.softImpact()
+                        } label: {
+                            Text(filter)
+                                .font(.caption)
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 6)
+                                .background(
+                                    Capsule()
+                                        .fill(selectedFilter == filter ? Color.accentColor : Color.secondary.opacity(0.15))
+                                )
+                                .foregroundStyle(selectedFilter == filter ? .white : .primary)
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+                .padding(.horizontal)
+            }
+            
+            // Sort Order
+            HStack {
+                Text("Sort:")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                
+                Menu {
+                    ForEach(ResourceSortOrder.allCases, id: \.self) { order in
+                        Button {
+                            sortOrder = order
+                        } label: {
+                            HStack {
+                                Text(order.rawValue)
+                                if sortOrder == order {
+                                    Image(systemName: "checkmark")
+                                }
+                            }
+                        }
+                    }
+                } label: {
+                    HStack(spacing: 4) {
+                        Text(sortOrder.rawValue)
+                        Image(systemName: "chevron.down")
+                    }
+                    .font(.caption)
+                    .foregroundStyle(.accentColor)
+                }
+                
+                Spacer()
+                
+                Text("\(filteredResources.count) items")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+            .padding(.horizontal)
+            .padding(.bottom, 4)
+        }
+        .background(Color(UIColor.tertiarySystemBackground))
+    }
+    
+    // MARK: - Loading View
+    private var loadingView: some View {
+        VStack(spacing: 16) {
+            ProgressView()
+                .scaleEffect(1.2)
+            Text("Scanning resources...")
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+    
+    // MARK: - Resource List View
+    private var resourceListView: some View {
+        List {
+            // Multi-select actions
+            if isMultiSelectMode && !selectedResources.isEmpty {
+                Section {
+                    HStack {
+                        Text("\(selectedResources.count) selected")
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                        Spacer()
+                        
+                        Button {
+                            exportSelectedResources()
+                        } label: {
+                            Label("Export", systemImage: "square.and.arrow.up")
+                        }
+                        .buttonStyle(.bordered)
+                        
+                        Button(role: .destructive) {
+                            deleteSelectedResources()
+                        } label: {
+                            Label("Delete", systemImage: "trash")
+                        }
+                        .buttonStyle(.bordered)
+                        .tint(.red)
+                    }
+                }
+            }
+            
+            // Resources
+            Section {
+                ForEach(filteredResources) { resource in
+                    ResourceRow(
+                        resource: resource,
+                        isSelected: selectedResources.contains(resource.id),
+                        isMultiSelectMode: isMultiSelectMode,
+                        onTap: {
+                            if isMultiSelectMode {
+                                toggleSelection(resource.id)
+                            } else {
+                                selectedResource = resource
+                                showResourceDetail = true
+                            }
+                        }
+                    )
+                }
+                .onDelete(perform: deleteResources)
+            } header: {
+                Text("Resources")
+            }
+            
+            // Quick Actions
+            Section {
+                Button {
+                    optimizeImages()
+                } label: {
+                    Label("Optimize All Images", systemImage: "photo.badge.checkmark")
+                }
+                
+                Button {
+                    removeUnusedLocalizations()
+                } label: {
+                    Label("Remove Unused Localizations", systemImage: "globe.badge.chevron.backward")
+                }
+                
+                Button {
+                    compressResources()
+                } label: {
+                    Label("Compress Resources", systemImage: "archivebox")
+                }
+                
+                Button {
+                    validateResources()
+                } label: {
+                    Label("Validate Resources", systemImage: "checkmark.shield")
+                }
+            } header: {
+                Text("Quick Actions")
+            }
+        }
+    }
+    
+    // MARK: - Helper Functions
     private func loadResources() {
-        resources = [
-            ("AppIcon", "png", "124 KB"),
-            ("LaunchScreen", "storyboard", "8 KB"),
-            ("Main", "storyboard", "45 KB"),
-            ("Localizable", "strings", "12 KB"),
-            ("Info", "plist", "4 KB"),
-            ("Assets", "car", "2.4 MB"),
-            ("Default@2x", "png", "89 KB"),
-            ("Default@3x", "png", "156 KB"),
-            ("Settings", "bundle", "32 KB"),
-            ("Frameworks", "framework", "8.2 MB")
-        ]
+        isLoading = true
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+            resources = [
+                ResourceItem(name: "AppIcon", type: "png", size: "124 KB", sizeBytes: 126976, path: "Assets.xcassets/AppIcon.appiconset", modifiedDate: Date().addingTimeInterval(-86400), permissions: "rw-r--r--", checksum: "a1b2c3d4e5f6", dimensions: "1024x1024"),
+                ResourceItem(name: "AppIcon@2x", type: "png", size: "48 KB", sizeBytes: 49152, path: "Assets.xcassets/AppIcon.appiconset", modifiedDate: Date().addingTimeInterval(-86400), permissions: "rw-r--r--", checksum: "b2c3d4e5f6a1", dimensions: "120x120"),
+                ResourceItem(name: "AppIcon@3x", type: "png", size: "72 KB", sizeBytes: 73728, path: "Assets.xcassets/AppIcon.appiconset", modifiedDate: Date().addingTimeInterval(-86400), permissions: "rw-r--r--", checksum: "c3d4e5f6a1b2", dimensions: "180x180"),
+                ResourceItem(name: "LaunchScreen", type: "storyboard", size: "8 KB", sizeBytes: 8192, path: "Base.lproj/LaunchScreen.storyboard", modifiedDate: Date().addingTimeInterval(-172800), permissions: "rw-r--r--", checksum: "d4e5f6a1b2c3"),
+                ResourceItem(name: "Main", type: "storyboard", size: "45 KB", sizeBytes: 46080, path: "Base.lproj/Main.storyboard", modifiedDate: Date().addingTimeInterval(-259200), permissions: "rw-r--r--", checksum: "e5f6a1b2c3d4"),
+                ResourceItem(name: "Localizable", type: "strings", size: "12 KB", sizeBytes: 12288, path: "en.lproj/Localizable.strings", modifiedDate: Date().addingTimeInterval(-345600), permissions: "rw-r--r--", checksum: "f6a1b2c3d4e5", encoding: "UTF-8"),
+                ResourceItem(name: "Localizable (Spanish)", type: "strings", size: "14 KB", sizeBytes: 14336, path: "es.lproj/Localizable.strings", modifiedDate: Date().addingTimeInterval(-345600), permissions: "rw-r--r--", checksum: "a1b2c3d4e5f7", encoding: "UTF-8"),
+                ResourceItem(name: "Localizable (French)", type: "strings", size: "13 KB", sizeBytes: 13312, path: "fr.lproj/Localizable.strings", modifiedDate: Date().addingTimeInterval(-345600), permissions: "rw-r--r--", checksum: "b2c3d4e5f6a2", encoding: "UTF-8"),
+                ResourceItem(name: "Info", type: "plist", size: "4 KB", sizeBytes: 4096, path: "Info.plist", modifiedDate: Date(), permissions: "rw-r--r--", checksum: "g7h8i9j0k1l2"),
+                ResourceItem(name: "Entitlements", type: "plist", size: "2 KB", sizeBytes: 2048, path: "App.entitlements", modifiedDate: Date().addingTimeInterval(-86400), permissions: "rw-r--r--", checksum: "h8i9j0k1l2m3"),
+                ResourceItem(name: "Assets", type: "car", size: "2.4 MB", sizeBytes: 2516582, path: "Assets.car", modifiedDate: Date().addingTimeInterval(-432000), permissions: "rw-r--r--", checksum: "i9j0k1l2m3n4", compressionRatio: 0.65),
+                ResourceItem(name: "Default@2x", type: "png", size: "89 KB", sizeBytes: 91136, path: "Images/Default@2x.png", modifiedDate: Date().addingTimeInterval(-518400), permissions: "rw-r--r--", checksum: "j0k1l2m3n4o5", dimensions: "640x1136"),
+                ResourceItem(name: "Default@3x", type: "png", size: "156 KB", sizeBytes: 159744, path: "Images/Default@3x.png", modifiedDate: Date().addingTimeInterval(-518400), permissions: "rw-r--r--", checksum: "k1l2m3n4o5p6", dimensions: "1242x2208"),
+                ResourceItem(name: "Background", type: "jpg", size: "245 KB", sizeBytes: 250880, path: "Images/Background.jpg", modifiedDate: Date().addingTimeInterval(-604800), permissions: "rw-r--r--", checksum: "l2m3n4o5p6q7", dimensions: "1920x1080"),
+                ResourceItem(name: "Logo", type: "svg", size: "18 KB", sizeBytes: 18432, path: "Images/Logo.svg", modifiedDate: Date().addingTimeInterval(-691200), permissions: "rw-r--r--", checksum: "m3n4o5p6q7r8"),
+                ResourceItem(name: "Settings", type: "bundle", size: "32 KB", sizeBytes: 32768, path: "Settings.bundle", modifiedDate: Date().addingTimeInterval(-777600), permissions: "rwxr-xr-x", checksum: "n4o5p6q7r8s9"),
+                ResourceItem(name: "UIKit", type: "framework", size: "0 KB", sizeBytes: 0, path: "Frameworks/UIKit.framework", modifiedDate: Date().addingTimeInterval(-864000), permissions: "rwxr-xr-x", checksum: nil),
+                ResourceItem(name: "Foundation", type: "framework", size: "0 KB", sizeBytes: 0, path: "Frameworks/Foundation.framework", modifiedDate: Date().addingTimeInterval(-864000), permissions: "rwxr-xr-x", checksum: nil),
+                ResourceItem(name: "SwiftUI", type: "framework", size: "8.2 MB", sizeBytes: 8598323, path: "Frameworks/SwiftUI.framework", modifiedDate: Date().addingTimeInterval(-864000), permissions: "rwxr-xr-x", checksum: "o5p6q7r8s9t0"),
+                ResourceItem(name: "Combine", type: "framework", size: "1.8 MB", sizeBytes: 1887436, path: "Frameworks/Combine.framework", modifiedDate: Date().addingTimeInterval(-864000), permissions: "rwxr-xr-x", checksum: "p6q7r8s9t0u1"),
+                ResourceItem(name: "WidgetKit", type: "appex", size: "456 KB", sizeBytes: 466944, path: "PlugIns/Widget.appex", modifiedDate: Date().addingTimeInterval(-950400), permissions: "rwxr-xr-x", checksum: "q7r8s9t0u1v2"),
+                ResourceItem(name: "NotificationService", type: "appex", size: "128 KB", sizeBytes: 131072, path: "PlugIns/NotificationService.appex", modifiedDate: Date().addingTimeInterval(-950400), permissions: "rwxr-xr-x", checksum: "r8s9t0u1v2w3"),
+                ResourceItem(name: "Sounds", type: "bundle", size: "1.2 MB", sizeBytes: 1258291, path: "Sounds.bundle", modifiedDate: Date().addingTimeInterval(-1036800), permissions: "rwxr-xr-x", checksum: "s9t0u1v2w3x4"),
+                ResourceItem(name: "Fonts", type: "bundle", size: "890 KB", sizeBytes: 911360, path: "Fonts.bundle", modifiedDate: Date().addingTimeInterval(-1123200), permissions: "rwxr-xr-x", checksum: "t0u1v2w3x4y5")
+            ]
+            
+            calculateTotalSize()
+            isLoading = false
+        }
+    }
+    
+    private func calculateTotalSize() {
+        let total = resources.reduce(0) { $0 + $1.sizeBytes }
+        totalSize = formatBytes(total)
+    }
+    
+    private func formatBytes(_ bytes: Int64) -> String {
+        let formatter = ByteCountFormatter()
+        formatter.countStyle = .file
+        return formatter.string(fromByteCount: bytes)
+    }
+    
+    private func toggleSelection(_ id: UUID) {
+        if selectedResources.contains(id) {
+            selectedResources.remove(id)
+        } else {
+            selectedResources.insert(id)
+        }
+    }
+    
+    private func deleteResource(_ resource: ResourceItem) {
+        resources.removeAll { $0.id == resource.id }
+        calculateTotalSize()
+        HapticsManager.shared.softImpact()
+    }
+    
+    private func deleteResources(at offsets: IndexSet) {
+        let resourcesToDelete = offsets.map { filteredResources[$0] }
+        for resource in resourcesToDelete {
+            resources.removeAll { $0.id == resource.id }
+        }
+        calculateTotalSize()
+    }
+    
+    private func deleteSelectedResources() {
+        resources.removeAll { selectedResources.contains($0.id) }
+        selectedResources.removeAll()
+        calculateTotalSize()
+        HapticsManager.shared.softImpact()
+    }
+    
+    private func exportSelectedResources() {
+        HapticsManager.shared.success()
+    }
+    
+    private func exportAllResources() {
+        HapticsManager.shared.success()
+    }
+    
+    private func refreshResources() {
+        loadResources()
+        HapticsManager.shared.softImpact()
+    }
+    
+    private func removeUnusedResources() {
+        HapticsManager.shared.softImpact()
+    }
+    
+    private func optimizeImages() {
+        HapticsManager.shared.success()
+    }
+    
+    private func removeUnusedLocalizations() {
+        HapticsManager.shared.softImpact()
+    }
+    
+    private func compressResources() {
+        HapticsManager.shared.success()
+    }
+    
+    private func validateResources() {
+        HapticsManager.shared.success()
+    }
+}
+
+// MARK: - Stat Badge
+struct StatBadge: View {
+    let title: String
+    let value: String
+    let color: Color
+    
+    var body: some View {
+        VStack(spacing: 2) {
+            Text(value)
+                .font(.caption.weight(.bold))
+                .foregroundStyle(color)
+            Text(title)
+                .font(.caption2)
+                .foregroundStyle(.secondary)
+        }
+        .padding(.horizontal, 8)
+        .padding(.vertical, 4)
+        .background(
+            RoundedRectangle(cornerRadius: 8, style: .continuous)
+                .fill(color.opacity(0.1))
+        )
+    }
+}
+
+// MARK: - Resource Row
+struct ResourceRow: View {
+    let resource: ResourceItem
+    let isSelected: Bool
+    let isMultiSelectMode: Bool
+    let onTap: () -> Void
+    
+    var body: some View {
+        Button(action: onTap) {
+            HStack(spacing: 12) {
+                if isMultiSelectMode {
+                    Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
+                        .foregroundStyle(isSelected ? .accentColor : .secondary)
+                }
+                
+                // Icon
+                ZStack {
+                    RoundedRectangle(cornerRadius: 8, style: .continuous)
+                        .fill(colorForType(resource.type).opacity(0.15))
+                        .frame(width: 40, height: 40)
+                    
+                    Image(systemName: iconForType(resource.type))
+                        .font(.system(size: 18))
+                        .foregroundStyle(colorForType(resource.type))
+                }
+                
+                // Info
+                VStack(alignment: .leading, spacing: 4) {
+                    HStack {
+                        Text(resource.name)
+                            .font(.subheadline.weight(.medium))
+                            .foregroundStyle(.primary)
+                        
+                        if resource.isModified {
+                            Circle()
+                                .fill(.orange)
+                                .frame(width: 6, height: 6)
+                        }
+                    }
+                    
+                    HStack(spacing: 8) {
+                        Text(resource.type.uppercased())
+                            .font(.caption2.weight(.medium))
+                            .foregroundStyle(.secondary)
+                            .padding(.horizontal, 6)
+                            .padding(.vertical, 2)
+                            .background(Capsule().fill(Color.secondary.opacity(0.15)))
+                        
+                        if let dimensions = resource.dimensions {
+                            Text(dimensions)
+                                .font(.caption2)
+                                .foregroundStyle(.secondary)
+                        }
+                        
+                        Text(resource.path)
+                            .font(.caption2)
+                            .foregroundStyle(.tertiary)
+                            .lineLimit(1)
+                    }
+                }
+                
+                Spacer()
+                
+                // Size
+                VStack(alignment: .trailing, spacing: 2) {
+                    Text(resource.size)
+                        .font(.caption.weight(.medium))
+                        .foregroundStyle(.secondary)
+                    
+                    if let ratio = resource.compressionRatio {
+                        Text("\(Int(ratio * 100))% compressed")
+                            .font(.caption2)
+                            .foregroundStyle(.green)
+                    }
+                }
+                
+                Image(systemName: "chevron.right")
+                    .font(.caption)
+                    .foregroundStyle(.tertiary)
+            }
+        }
+        .buttonStyle(.plain)
+        .contextMenu {
+            Button {
+                onTap()
+            } label: {
+                Label("View Details", systemImage: "info.circle")
+            }
+            
+            Button {
+                UIPasteboard.general.string = resource.path
+            } label: {
+                Label("Copy Path", systemImage: "doc.on.doc")
+            }
+            
+            if let checksum = resource.checksum {
+                Button {
+                    UIPasteboard.general.string = checksum
+                } label: {
+                    Label("Copy Checksum", systemImage: "number")
+                }
+            }
+            
+            Divider()
+            
+            Button {
+                // Export
+            } label: {
+                Label("Export", systemImage: "square.and.arrow.up")
+            }
+            
+            Button {
+                // Replace
+            } label: {
+                Label("Replace", systemImage: "arrow.triangle.2.circlepath")
+            }
+            
+            Divider()
+            
+            Button(role: .destructive) {
+                // Delete
+            } label: {
+                Label("Delete", systemImage: "trash")
+            }
+        }
     }
     
     private func iconForType(_ type: String) -> String {
         switch type.lowercased() {
-        case "png", "jpg", "jpeg", "pdf", "svg": return "photo.fill"
+        case "png", "jpg", "jpeg", "heic", "webp", "gif", "ico": return "photo.fill"
+        case "pdf": return "doc.richtext.fill"
+        case "svg": return "square.on.circle"
         case "strings": return "textformat"
         case "plist": return "doc.text.fill"
-        case "storyboard": return "rectangle.3.group.fill"
+        case "storyboard", "xib", "nib": return "rectangle.3.group.fill"
         case "car": return "folder.fill"
         case "framework": return "shippingbox.fill"
         case "bundle": return "archivebox.fill"
+        case "appex", "pluginkit": return "puzzlepiece.extension.fill"
+        case "dylib": return "gearshape.2.fill"
         default: return "doc.fill"
         }
     }
     
     private func colorForType(_ type: String) -> Color {
         switch type.lowercased() {
-        case "png", "jpg", "jpeg", "pdf", "svg": return .blue
+        case "png", "jpg", "jpeg", "heic", "webp", "gif", "ico": return .blue
+        case "pdf": return .red
+        case "svg": return .purple
         case "strings": return .green
         case "plist": return .orange
-        case "storyboard": return .purple
+        case "storyboard", "xib", "nib": return .purple
         case "car": return .pink
         case "framework": return .cyan
         case "bundle": return .indigo
+        case "appex", "pluginkit": return .teal
+        case "dylib": return .brown
         default: return .gray
         }
+    }
+}
+
+// MARK: - Resource Detail View
+struct ResourceDetailView: View {
+    let resource: ResourceItem
+    let onReplace: () -> Void
+    let onExport: () -> Void
+    let onDelete: () -> Void
+    @Environment(\.dismiss) var dismiss
+    
+    var body: some View {
+        NavigationStack {
+            List {
+                // Preview Section (for images)
+                if ["png", "jpg", "jpeg", "heic", "webp", "gif"].contains(resource.type.lowercased()) {
+                    Section {
+                        HStack {
+                            Spacer()
+                            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                .fill(Color.secondary.opacity(0.1))
+                                .frame(width: 150, height: 150)
+                                .overlay(
+                                    Image(systemName: "photo")
+                                        .font(.system(size: 40))
+                                        .foregroundStyle(.secondary)
+                                )
+                            Spacer()
+                        }
+                    } header: {
+                        Text("Preview")
+                    }
+                }
+                
+                // Basic Info
+                Section {
+                    DetailRow(title: "Name", value: resource.name)
+                    DetailRow(title: "Type", value: resource.type.uppercased())
+                    DetailRow(title: "Size", value: resource.size)
+                    DetailRow(title: "Path", value: resource.path)
+                } header: {
+                    Text("Basic Information")
+                }
+                
+                // File Details
+                Section {
+                    DetailRow(title: "Modified", value: formatDate(resource.modifiedDate))
+                    DetailRow(title: "Permissions", value: resource.permissions)
+                    if let checksum = resource.checksum {
+                        DetailRow(title: "Checksum (MD5)", value: checksum)
+                    }
+                } header: {
+                    Text("File Details")
+                }
+                
+                // Type-specific Info
+                if let dimensions = resource.dimensions {
+                    Section {
+                        DetailRow(title: "Dimensions", value: dimensions)
+                        DetailRow(title: "Color Space", value: "sRGB")
+                        DetailRow(title: "Bit Depth", value: "8-bit")
+                        DetailRow(title: "Has Alpha", value: "Yes")
+                    } header: {
+                        Text("Image Details")
+                    }
+                }
+                
+                if let encoding = resource.encoding {
+                    Section {
+                        DetailRow(title: "Encoding", value: encoding)
+                        DetailRow(title: "Line Count", value: "~150 lines")
+                    } header: {
+                        Text("Text Details")
+                    }
+                }
+                
+                if let ratio = resource.compressionRatio {
+                    Section {
+                        DetailRow(title: "Compression", value: "\(Int(ratio * 100))%")
+                        DetailRow(title: "Original Size", value: formatBytes(Int64(Double(resource.sizeBytes) / ratio)))
+                    } header: {
+                        Text("Compression Details")
+                    }
+                }
+                
+                // Actions
+                Section {
+                    Button {
+                        onExport()
+                    } label: {
+                        Label("Export Resource", systemImage: "square.and.arrow.up")
+                    }
+                    
+                    Button {
+                        onReplace()
+                    } label: {
+                        Label("Replace Resource", systemImage: "arrow.triangle.2.circlepath")
+                    }
+                    
+                    Button {
+                        UIPasteboard.general.string = resource.path
+                        HapticsManager.shared.softImpact()
+                    } label: {
+                        Label("Copy Path", systemImage: "doc.on.doc")
+                    }
+                    
+                    Button(role: .destructive) {
+                        onDelete()
+                        dismiss()
+                    } label: {
+                        Label("Delete Resource", systemImage: "trash")
+                    }
+                } header: {
+                    Text("Actions")
+                }
+            }
+            .navigationTitle(resource.name)
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button("Done") {
+                        dismiss()
+                    }
+                }
+            }
+        }
+        .presentationDetents([.large])
+    }
+    
+    private func formatDate(_ date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.dateStyle = .medium
+        formatter.timeStyle = .short
+        return formatter.string(from: date)
+    }
+    
+    private func formatBytes(_ bytes: Int64) -> String {
+        let formatter = ByteCountFormatter()
+        formatter.countStyle = .file
+        return formatter.string(fromByteCount: bytes)
+    }
+}
+
+// MARK: - Detail Row
+struct DetailRow: View {
+    let title: String
+    let value: String
+    
+    var body: some View {
+        HStack {
+            Text(title)
+                .foregroundStyle(.secondary)
+            Spacer()
+            Text(value)
+                .font(.system(.body, design: .monospaced))
+                .foregroundStyle(.primary)
+                .lineLimit(1)
+        }
+    }
+}
+
+// MARK: - Resource Statistics View
+struct ResourceStatisticsView: View {
+    let resources: [ResourceItem]
+    @Environment(\.dismiss) var dismiss
+    
+    var typeBreakdown: [(String, Int, Int64)] {
+        var breakdown: [String: (count: Int, size: Int64)] = [:]
+        for resource in resources {
+            let type = resource.type.lowercased()
+            let existing = breakdown[type] ?? (0, 0)
+            breakdown[type] = (existing.count + 1, existing.size + resource.sizeBytes)
+        }
+        return breakdown.map { ($0.key, $0.value.count, $0.value.size) }
+            .sorted { $0.2 > $1.2 }
+    }
+    
+    var totalSize: Int64 {
+        resources.reduce(0) { $0 + $1.sizeBytes }
+    }
+    
+    var body: some View {
+        NavigationStack {
+            List {
+                Section {
+                    HStack {
+                        Text("Total Resources")
+                        Spacer()
+                        Text("\(resources.count)")
+                            .fontWeight(.semibold)
+                    }
+                    
+                    HStack {
+                        Text("Total Size")
+                        Spacer()
+                        Text(formatBytes(totalSize))
+                            .fontWeight(.semibold)
+                    }
+                    
+                    HStack {
+                        Text("Average Size")
+                        Spacer()
+                        Text(formatBytes(resources.isEmpty ? 0 : totalSize / Int64(resources.count)))
+                            .fontWeight(.semibold)
+                    }
+                } header: {
+                    Text("Overview")
+                }
+                
+                Section {
+                    ForEach(typeBreakdown, id: \.0) { type, count, size in
+                        HStack {
+                            Text(type.uppercased())
+                                .font(.caption.weight(.medium))
+                                .padding(.horizontal, 8)
+                                .padding(.vertical, 4)
+                                .background(Capsule().fill(Color.secondary.opacity(0.15)))
+                            
+                            Spacer()
+                            
+                            VStack(alignment: .trailing) {
+                                Text("\(count) files")
+                                    .font(.subheadline)
+                                Text(formatBytes(size))
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
+                        }
+                    }
+                } header: {
+                    Text("By Type")
+                }
+                
+                Section {
+                    let largestResources = resources.sorted { $0.sizeBytes > $1.sizeBytes }.prefix(5)
+                    ForEach(Array(largestResources)) { resource in
+                        HStack {
+                            Text(resource.name)
+                            Spacer()
+                            Text(resource.size)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                } header: {
+                    Text("Largest Resources")
+                }
+            }
+            .navigationTitle("Statistics")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button("Done") {
+                        dismiss()
+                    }
+                }
+            }
+        }
+        .presentationDetents([.large])
+    }
+    
+    private func formatBytes(_ bytes: Int64) -> String {
+        let formatter = ByteCountFormatter()
+        formatter.countStyle = .file
+        return formatter.string(fromByteCount: bytes)
     }
 }
 
