@@ -816,171 +816,73 @@ struct DeveloperControlPanelView: View {
     @State private var showResetConfirmation = false
     @AppStorage("Feather.enableCustomTabBar") private var enableCustomTabBar = false
     @Environment(\.scenePhase) private var scenePhase
+    @State private var searchText = ""
+    
+    // Grouped menu items for cleaner organization
+    private var menuCategories: [(title: String, icon: String, color: Color, items: [DevMenuItem])] {
+        [
+            ("App Management", "app.badge.fill", .blue, [
+                DevMenuItem(icon: "arrow.down.circle.fill", title: "Updates & Releases", color: .blue, destination: AnyView(UpdatesReleasesView())),
+                DevMenuItem(icon: "server.rack", title: "Sources & Library", color: .purple, destination: AnyView(SourcesLibraryDevView())),
+                DevMenuItem(icon: "doc.zipper", title: "Install & IPA", color: .orange, destination: AnyView(InstallIPADevView()))
+            ]),
+            ("Signing", "signature", .green, [
+                DevMenuItem(icon: "signature", title: "Signing Dashboard", color: .blue, destination: AnyView(IPASigningDashboardView())),
+                DevMenuItem(icon: "flag.fill", title: "Feature Flags", color: .mint, destination: AnyView(FeatureFlagsView()))
+            ]),
+            ("Interface", "paintbrush.fill", .pink, [
+                DevMenuItem(icon: "paintbrush.fill", title: "UI & Layout", color: .pink, destination: AnyView(UILayoutDevView())),
+                DevMenuItem(icon: "house.fill", title: "Home UI Testing", color: .blue, destination: AnyView(HomeUITestingView()))
+            ]),
+            ("System", "gearshape.2.fill", .gray, [
+                DevMenuItem(icon: "network", title: "Network & System", color: .green, destination: AnyView(NetworkSystemDevView())),
+                DevMenuItem(icon: "cylinder.split.1x2.fill", title: "State & Persistence", color: .cyan, destination: AnyView(StatePersistenceDevView())),
+                DevMenuItem(icon: "gauge.with.dots.needle.67percent", title: "Performance", color: .purple, destination: AnyView(PerformanceMonitorView()))
+            ]),
+            ("Diagnostics", "stethoscope", .red, [
+                DevMenuItem(icon: "terminal.fill", title: "App Logs", color: .gray, destination: AnyView(AppLogsView())),
+                DevMenuItem(icon: "iphone", title: "Device Info", color: .indigo, destination: AnyView(DeviceInfoView())),
+                DevMenuItem(icon: "gearshape.2.fill", title: "Environment", color: .teal, destination: AnyView(EnvironmentInspectorView())),
+                DevMenuItem(icon: "exclamationmark.triangle.fill", title: "Crash Logs", color: .red, destination: AnyView(CrashLogViewer())),
+                DevMenuItem(icon: "bell.badge.fill", title: "Notifications", color: .yellow, destination: AnyView(TestNotificationsView()))
+            ]),
+            ("Tools", "bolt.fill", .yellow, [
+                DevMenuItem(icon: "bolt.fill", title: "Quick Actions", color: .yellow, destination: AnyView(QuickActionsDevView()))
+            ])
+        ]
+    }
+    
+    var filteredCategories: [(title: String, icon: String, color: Color, items: [DevMenuItem])] {
+        if searchText.isEmpty { return menuCategories }
+        return menuCategories.compactMap { category in
+            let filtered = category.items.filter { $0.title.localizedCaseInsensitiveContains(searchText) }
+            return filtered.isEmpty ? nil : (category.title, category.icon, category.color, filtered)
+        }
+    }
     
     var body: some View {
         NBNavigationView("Developer Mode") {
-            List {
-                // Experimental UI Section
-                Section {
-                    Toggle(isOn: $enableCustomTabBar) {
-                        DeveloperMenuRow(icon: "dock.rectangle", title: "Enable New Tab Bar", color: .cyan)
-                    }
-                    .tint(.cyan)
-                } header: {
-                    Text("Experimental UI")
-                } footer: {
-                    Text("Enable a fully custom modern tab bar with animations and glass effects. This can change through any Portal updates.")
-                }
-                
-                // Updates & Releases Section
-                Section {
-                    NavigationLink(destination: UpdatesReleasesView()) {
-                        DeveloperMenuRow(icon: "arrow.down.circle.fill", title: "Updates & Releases", color: .blue)
-                    }
-                } header: {
-                    Text("Updates & Releases")
-                } footer: {
-                    Text("GitHub release checks, prerelease filtering, update enforcement.")
-                }
-                
-                // Sources & Library Section
-                Section {
-                    NavigationLink(destination: SourcesLibraryDevView()) {
-                        DeveloperMenuRow(icon: "server.rack", title: "Sources & Library", color: .purple)
-                    }
-                } header: {
-                    Text("Sources & Library")
-                } footer: {
-                    Text("Source reloads, cache invalidation, raw JSON inspection.")
-                }
-                
-                // Install & IPA Section
-                Section {
-                    NavigationLink(destination: InstallIPADevView()) {
-                        DeveloperMenuRow(icon: "doc.zipper", title: "Install & IPA", color: .orange)
-                    }
-                } header: {
-                    Text("Install & IPA")
-                } footer: {
-                    Text("IPA validation, install queue, logs, InstallModifyDialog testing.")
-                }
-                
-                // IPA Signing Dashboard Section
-                Section {
-                    NavigationLink(destination: IPASigningDashboardView()) {
-                        DeveloperMenuRow(icon: "signature", title: "IPA Signing Dashboard", color: .blue)
-                    }
-                } header: {
-                    Text("IPA Signing")
-                } footer: {
-                    Text("Full signing dashboard with certificates, batch signing, logs, entitlements editor, and API integration.")
-                }
-                
-                // UI & Layout Section
-                Section {
-                    NavigationLink(destination: UILayoutDevView()) {
-                        DeveloperMenuRow(icon: "paintbrush.fill", title: "UI & Layout", color: .pink)
-                    }
-                } header: {
-                    Text("UI & Layout")
-                } footer: {
-                    Text("Appearance overrides, dynamic type, animations, debugging overlays")
-                }
-                
-                // Network & System Section
-                Section {
-                    NavigationLink(destination: NetworkSystemDevView()) {
-                        DeveloperMenuRow(icon: "network", title: "Network & System", color: .green)
-                    }
-                } header: {
-                    Text("Network & System")
-                } footer: {
-                    Text("Offline simulation, latency injection, request logging.")
-                }
-                
-                // State & Persistence Section
-                Section {
-                    NavigationLink(destination: StatePersistenceDevView()) {
-                        DeveloperMenuRow(icon: "cylinder.split.1x2.fill", title: "State & Persistence", color: .cyan)
-                    }
-                } header: {
-                    Text("State & Persistence")
-                } footer: {
-                    Text("AppStorage, UserDefaults, caches, onboarding state.")
-                }
-                
-                // Diagnostics & Debug Tools Section
-                Section {
-                    NavigationLink(destination: AppLogsView()) {
-                        DeveloperMenuRow(icon: "terminal.fill", title: "App Logs", color: .gray)
-                    }
-                    NavigationLink(destination: DeviceInfoView()) {
-                        DeveloperMenuRow(icon: "iphone", title: "Device Information", color: .indigo)
-                    }
-                    NavigationLink(destination: EnvironmentInspectorView()) {
-                        DeveloperMenuRow(icon: "gearshape.2.fill", title: "Environment Inspector", color: .teal)
-                    }
-                    NavigationLink(destination: CrashLogViewer()) {
-                        DeveloperMenuRow(icon: "exclamationmark.triangle.fill", title: "Crash Logs", color: .red)
-                    }
-                    NavigationLink(destination: TestNotificationsView()) {
-                        DeveloperMenuRow(icon: "bell.badge.fill", title: "Test Notifications", color: .yellow)
-                    }
-                } header: {
-                    Text("Diagnostics & Debugging")
-                } footer: {
-                    Text("Device info, environment variables, crash logs, and notification testing.")
-                }
-                
-                // Power Tools Section
-                Section {
-                    NavigationLink(destination: QuickActionsDevView()) {
-                        DeveloperMenuRow(icon: "bolt.fill", title: "Quick Actions", color: .yellow)
-                    }
-                    NavigationLink(destination: FeatureFlagsView()) {
-                        DeveloperMenuRow(icon: "flag.fill", title: "Feature Flags", color: .mint)
-                    }
-                    NavigationLink(destination: PerformanceMonitorView()) {
-                        DeveloperMenuRow(icon: "gauge.with.dots.needle.67percent", title: "Performance Monitor", color: .purple)
-                    }
-                } header: {
-                    Text("Power Tools")
-                } footer: {
-                    Text("Quick actions, feature flags, and performance monitoring.")
-                }
-                
-                // Home & UI Testing Section
-                Section {
-                    NavigationLink(destination: HomeUITestingView()) {
-                        DeveloperMenuRow(icon: "house.fill", title: "Home UI Testing", color: .blue)
-                    }
-                } header: {
-                    Text("Home & UI Testing")
-                } footer: {
-                    Text("Test Home screen features like app update banners with simulated data.")
-                }
-                
-                // Security Section
-                Section {
-                    NavigationLink(destination: DeveloperSecurityView()) {
-                        DeveloperMenuRow(icon: "lock.shield.fill", title: "Security Settings", color: .orange)
+            ScrollView {
+                LazyVStack(spacing: 16) {
+                    // Header Card
+                    devHeaderCard
+                    
+                    // Quick Toggle Card
+                    quickToggleCard
+                    
+                    // Category Cards
+                    ForEach(filteredCategories, id: \.title) { category in
+                        devCategoryCard(category)
                     }
                     
-                    Button {
-                        authManager.lockDeveloperMode()
-                        UserDefaults.standard.set(false, forKey: "isDeveloperModeEnabled")
-                    } label: {
-                        HStack {
-                            Image(systemName: "lock.fill")
-                                .foregroundStyle(.red)
-                            Text("Lock Developer Mode")
-                                .foregroundStyle(.red)
-                        }
-                    }
-                } header: {
-                    Text("Security")
+                    // Security Card
+                    securityCard
                 }
+                .padding(.horizontal, 16)
+                .padding(.vertical, 12)
             }
+            .background(Color(UIColor.systemGroupedBackground))
+            .searchable(text: $searchText, prompt: "Search developer tools...")
         }
         .withToast()
         .onChange(of: scenePhase) { newPhase in
@@ -989,9 +891,239 @@ struct DeveloperControlPanelView: View {
             }
         }
     }
+    
+    // MARK: - Header Card
+    private var devHeaderCard: some View {
+        HStack(spacing: 14) {
+            ZStack {
+                Circle()
+                    .fill(
+                        LinearGradient(colors: [.orange, .red], startPoint: .topLeading, endPoint: .bottomTrailing)
+                    )
+                    .frame(width: 50, height: 50)
+                Image(systemName: "hammer.fill")
+                    .font(.system(size: 22, weight: .semibold))
+                    .foregroundStyle(.white)
+            }
+            
+            VStack(alignment: .leading, spacing: 4) {
+                Text("Developer Mode")
+                    .font(.headline)
+                Text("Advanced tools and debugging options")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+            
+            Spacer()
+            
+            Text("Active")
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(.white)
+                .padding(.horizontal, 10)
+                .padding(.vertical, 5)
+                .background(Capsule().fill(.green))
+        }
+        .padding(16)
+        .background(
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .fill(Color(UIColor.secondarySystemGroupedBackground))
+        )
+    }
+    
+    // MARK: - Quick Toggle Card
+    private var quickToggleCard: some View {
+        VStack(spacing: 0) {
+            HStack(spacing: 10) {
+                Image(systemName: "sparkles")
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundStyle(.cyan)
+                Text("EXPERIMENTAL")
+                    .font(.caption.weight(.bold))
+                    .foregroundStyle(.secondary)
+                Spacer()
+            }
+            .padding(.horizontal, 16)
+            .padding(.top, 12)
+            .padding(.bottom, 8)
+            
+            Toggle(isOn: $enableCustomTabBar) {
+                HStack(spacing: 12) {
+                    ZStack {
+                        RoundedRectangle(cornerRadius: 8, style: .continuous)
+                            .fill(Color.cyan.opacity(0.15))
+                            .frame(width: 36, height: 36)
+                        Image(systemName: "dock.rectangle")
+                            .font(.system(size: 16, weight: .semibold))
+                            .foregroundStyle(.cyan)
+                    }
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Modern Tab Bar")
+                            .font(.subheadline.weight(.medium))
+                        Text("Glass effects & animations")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+            }
+            .tint(.cyan)
+            .padding(.horizontal, 16)
+            .padding(.bottom, 14)
+        }
+        .background(
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .fill(Color(UIColor.secondarySystemGroupedBackground))
+        )
+    }
+    
+    // MARK: - Category Card
+    private func devCategoryCard(_ category: (title: String, icon: String, color: Color, items: [DevMenuItem])) -> some View {
+        VStack(spacing: 0) {
+            // Category Header
+            HStack(spacing: 10) {
+                Image(systemName: category.icon)
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundStyle(category.color)
+                Text(category.title.uppercased())
+                    .font(.caption.weight(.bold))
+                    .foregroundStyle(.secondary)
+                Spacer()
+                Text("\(category.items.count)")
+                    .font(.caption2.weight(.semibold))
+                    .foregroundStyle(.secondary)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 3)
+                    .background(Capsule().fill(Color.secondary.opacity(0.15)))
+            }
+            .padding(.horizontal, 16)
+            .padding(.top, 12)
+            .padding(.bottom, 8)
+            
+            // Menu Items
+            ForEach(category.items.indices, id: \.self) { index in
+                let item = category.items[index]
+                NavigationLink(destination: item.destination) {
+                    devMenuItemRow(item: item, isLast: index == category.items.count - 1)
+                }
+                .buttonStyle(.plain)
+            }
+        }
+        .background(
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .fill(Color(UIColor.secondarySystemGroupedBackground))
+        )
+    }
+    
+    private func devMenuItemRow(item: DevMenuItem, isLast: Bool) -> some View {
+        VStack(spacing: 0) {
+            HStack(spacing: 12) {
+                ZStack {
+                    RoundedRectangle(cornerRadius: 8, style: .continuous)
+                        .fill(item.color.opacity(0.15))
+                        .frame(width: 36, height: 36)
+                    Image(systemName: item.icon)
+                        .font(.system(size: 15, weight: .semibold))
+                        .foregroundStyle(item.color)
+                }
+                
+                Text(item.title)
+                    .font(.subheadline.weight(.medium))
+                    .foregroundStyle(.primary)
+                
+                Spacer()
+                
+                Image(systemName: "chevron.right")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(.tertiary)
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 10)
+            
+            if !isLast {
+                Divider()
+                    .padding(.leading, 64)
+            }
+        }
+    }
+    
+    // MARK: - Security Card
+    private var securityCard: some View {
+        VStack(spacing: 0) {
+            HStack(spacing: 10) {
+                Image(systemName: "lock.shield.fill")
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundStyle(.orange)
+                Text("SECURITY")
+                    .font(.caption.weight(.bold))
+                    .foregroundStyle(.secondary)
+                Spacer()
+            }
+            .padding(.horizontal, 16)
+            .padding(.top, 12)
+            .padding(.bottom, 8)
+            
+            NavigationLink(destination: DeveloperSecurityView()) {
+                HStack(spacing: 12) {
+                    ZStack {
+                        RoundedRectangle(cornerRadius: 8, style: .continuous)
+                            .fill(Color.orange.opacity(0.15))
+                            .frame(width: 36, height: 36)
+                        Image(systemName: "lock.shield.fill")
+                            .font(.system(size: 15, weight: .semibold))
+                            .foregroundStyle(.orange)
+                    }
+                    Text("Security Settings")
+                        .font(.subheadline.weight(.medium))
+                    Spacer()
+                    Image(systemName: "chevron.right")
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(.tertiary)
+                }
+                .padding(.horizontal, 16)
+                .padding(.vertical, 10)
+            }
+            .buttonStyle(.plain)
+            
+            Divider().padding(.leading, 64)
+            
+            Button {
+                authManager.lockDeveloperMode()
+                UserDefaults.standard.set(false, forKey: "isDeveloperModeEnabled")
+            } label: {
+                HStack(spacing: 12) {
+                    ZStack {
+                        RoundedRectangle(cornerRadius: 8, style: .continuous)
+                            .fill(Color.red.opacity(0.15))
+                            .frame(width: 36, height: 36)
+                        Image(systemName: "lock.fill")
+                            .font(.system(size: 15, weight: .semibold))
+                            .foregroundStyle(.red)
+                    }
+                    Text("Lock Developer Mode")
+                        .font(.subheadline.weight(.medium))
+                        .foregroundStyle(.red)
+                    Spacer()
+                }
+                .padding(.horizontal, 16)
+                .padding(.vertical, 10)
+            }
+            .padding(.bottom, 4)
+        }
+        .background(
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .fill(Color(UIColor.secondarySystemGroupedBackground))
+        )
+    }
 }
 
-// MARK: - Developer Menu Row
+// MARK: - Developer Menu Item Model
+struct DevMenuItem {
+    let icon: String
+    let title: String
+    let color: Color
+    let destination: AnyView
+}
+
+// MARK: - Developer Menu Row (Legacy Support)
 struct DeveloperMenuRow: View {
     let icon: String
     let title: String

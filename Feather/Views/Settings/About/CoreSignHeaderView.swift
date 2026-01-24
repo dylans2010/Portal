@@ -2,42 +2,29 @@ import SwiftUI
 
 /// A SwiftUI header view for Portal with rotating subtitles
 /// Changes subtitle when user switches tabs or when app returns to foreground
+///
+/// ## Adding New Subtitles
+/// Simply add a new entry to the `HeaderSubtitle.allSubtitles` array.
+/// Each subtitle is a simple string that will be displayed below the app name.
+///
+/// Example:
+/// ```swift
+/// HeaderSubtitle.allSubtitles.append("Your new subtitle here")
+/// ```
 struct CoreSignHeaderView: View {
     // MARK: - State
     @State private var currentSubtitleIndex: Int = 0
-    @State private var isAnimating = false
     @State private var showCredits = false
     var hideAboutButton: Bool = false
 
-    // MARK: - Subtitle Definitions
-    /// All available subtitle options as individual localized keys
-    private let subtitles: [LocalizedStringKey] = [
-        "subtitle.kravashit",
-        "subtitle.wsf_top",
-        "subtitle.just_when",
-        "subtitle.no_competition",
-        "subtitle.love_ragebaiting",
-        "subtitle.drizzy_kendrick",
-        "subtitle.crashouts",
-        "subtitle.random_project",
-        "subtitle.want_s",
-        "subtitle.use_coresign",
-        "subtitle.made_in",
-        "subtitle.swiftui",
-        "subtitle.kravasigner_who",
-        "subtitle.most_modern_signer",
-        "subtitle.greatest_signer",
-        "subtitle.forgotten_signers",
-        "subtitle.vibecoded"
-    ]
-    
-    private var currentSubtitle: LocalizedStringKey {
-        subtitles[currentSubtitleIndex]
+    // MARK: - Current Subtitle
+    private var currentSubtitle: String {
+        HeaderSubtitle.allSubtitles[safe: currentSubtitleIndex] ?? HeaderSubtitle.defaultSubtitle
     }
 
     // MARK: - Body
     var body: some View {
-        mainContent
+        headerCard
             .onAppear {
                 setupLifecycleObservers()
                 rotateSubtitle()
@@ -47,26 +34,54 @@ struct CoreSignHeaderView: View {
             }
     }
     
-    private var mainContent: some View {
-        VStack(spacing: 0) {
-            headerContent
-                .padding(.vertical, 14)
-                .padding(.horizontal, 16)
+    // MARK: - Header Card
+    private var headerCard: some View {
+        HStack(spacing: 12) {
+            // App Icon
+            appIcon
+            
+            // Title & Subtitle
+            VStack(alignment: .leading, spacing: 3) {
+                Text("Portal")
+                    .font(.system(size: 19, weight: .bold, design: .rounded))
+                    .foregroundStyle(.primary)
+                
+                Text(currentSubtitle)
+                    .font(.caption)
+                    .fontWeight(.medium)
+                    .foregroundStyle(.secondary)
+                    .transition(.asymmetric(
+                        insertion: .move(edge: .bottom).combined(with: .opacity),
+                        removal: .move(edge: .top).combined(with: .opacity)
+                    ))
+                    .id(currentSubtitleIndex)
+            }
+            
+            Spacer()
+            
+            // Action Buttons
+            VStack(alignment: .trailing, spacing: 6) {
+                versionBadge
+                if !hideAboutButton {
+                    creditsButton
+                }
+            }
         }
-        .background(backgroundShape)
-        .overlay(borderShape)
+        .padding(.vertical, 14)
+        .padding(.horizontal, 16)
+        .background(
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .fill(Color(UIColor.secondarySystemGroupedBackground))
+                .shadow(color: .black.opacity(0.08), radius: 12, x: 0, y: 4)
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .stroke(Color.accentColor.opacity(0.15), lineWidth: 1)
+        )
         .padding(.horizontal)
     }
     
-    private var headerContent: some View {
-        HStack(spacing: 12) {
-            appIcon
-            titleSection
-            Spacer()
-            actionButtons
-        }
-    }
-    
+    // MARK: - App Icon
     @ViewBuilder
     private var appIcon: some View {
         if let iconName = Bundle.main.iconFileName,
@@ -90,39 +105,7 @@ struct CoreSignHeaderView: View {
         }
     }
     
-    private var titleSection: some View {
-        VStack(alignment: .leading, spacing: 3) {
-            Text("Portal")
-                .font(.system(size: 19, weight: .bold, design: .rounded))
-                .foregroundStyle(
-                    LinearGradient(
-                        colors: [.primary, .primary.opacity(0.8)],
-                        startPoint: .leading,
-                        endPoint: .trailing
-                    )
-                )
-            
-            Text(currentSubtitle)
-                .font(.caption)
-                .fontWeight(.medium)
-                .foregroundStyle(.secondary)
-                .transition(.asymmetric(
-                    insertion: .move(edge: .bottom).combined(with: .opacity),
-                    removal: .move(edge: .top).combined(with: .opacity)
-                ))
-                .id(currentSubtitleIndex)
-        }
-    }
-    
-    private var actionButtons: some View {
-        VStack(alignment: .trailing, spacing: 6) {
-            versionBadge
-            if !hideAboutButton {
-                creditsButton
-            }
-        }
-    }
-    
+    // MARK: - Version Badge
     private var versionBadge: some View {
         HStack(spacing: 4) {
             Image(systemName: "checkmark.seal.fill")
@@ -136,39 +119,16 @@ struct CoreSignHeaderView: View {
                 .foregroundStyle(.white)
                 .padding(.horizontal, 6)
                 .padding(.vertical, 2)
-                .background(
-                    Capsule()
-                        .fill(
-                            LinearGradient(
-                                colors: [Color.orange, Color.orange.opacity(0.8)],
-                                startPoint: .leading,
-                                endPoint: .trailing
-                            )
-                        )
-                )
+                .background(Capsule().fill(Color.orange))
         }
         .foregroundStyle(.primary)
         .padding(.horizontal, 8)
         .padding(.vertical, 4)
-        .background(
-            Capsule()
-                .fill(
-                    LinearGradient(
-                        colors: [
-                            Color.accentColor.opacity(0.15),
-                            Color.accentColor.opacity(0.08)
-                        ],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    )
-                )
-        )
-        .overlay(
-            Capsule()
-                .strokeBorder(Color.accentColor.opacity(0.2), lineWidth: 0.5)
-        )
+        .background(Capsule().fill(Color.accentColor.opacity(0.12)))
+        .overlay(Capsule().strokeBorder(Color.accentColor.opacity(0.2), lineWidth: 0.5))
     }
     
+    // MARK: - Credits Button
     private var creditsButton: some View {
         Button {
             showCredits = true
@@ -181,58 +141,16 @@ struct CoreSignHeaderView: View {
                 Text(.localized("Credits"))
                     .font(.system(size: 11, weight: .semibold))
             }
-            .foregroundStyle(Color.white)
+            .foregroundStyle(.white)
             .padding(.horizontal, 10)
             .padding(.vertical, 5)
-            .background(
-                Capsule()
-                    .fill(
-                        LinearGradient(
-                            colors: [Color.accentColor, Color.accentColor.opacity(0.85)],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        )
-                    )
-            )
+            .background(Capsule().fill(Color.accentColor))
             .shadow(color: Color.accentColor.opacity(0.3), radius: 4, x: 0, y: 2)
         }
     }
-    
-    private var backgroundShape: some View {
-        RoundedRectangle(cornerRadius: 16, style: .continuous)
-            .fill(
-                LinearGradient(
-                    colors: [
-                        Color(uiColor: .secondarySystemGroupedBackground),
-                        Color(uiColor: .secondarySystemGroupedBackground).opacity(0.95)
-                    ],
-                    startPoint: .topLeading,
-                    endPoint: .bottomTrailing
-                )
-            )
-            .shadow(color: Color.black.opacity(0.08), radius: 12, x: 0, y: 4)
-    }
-    
-    private var borderShape: some View {
-        RoundedRectangle(cornerRadius: 16, style: .continuous)
-            .stroke(
-                LinearGradient(
-                    colors: [
-                        Color.accentColor.opacity(0.15),
-                        Color(uiColor: .separator).opacity(0.3)
-                    ],
-                    startPoint: .topLeading,
-                    endPoint: .bottomTrailing
-                ),
-                lineWidth: 1
-            )
-    }
 
-    // MARK: - Methods
-
-    /// Sets up observers for app lifecycle and tab changes
+    // MARK: - Lifecycle Observers
     private func setupLifecycleObservers() {
-        // Observe when app becomes active (foreground)
         NotificationCenter.default.addObserver(
             forName: UIApplication.didBecomeActiveNotification,
             object: nil,
@@ -240,25 +158,15 @@ struct CoreSignHeaderView: View {
         ) { _ in
             rotateSubtitle()
         }
-
-        // Observe when app will resign active (background)
-        NotificationCenter.default.addObserver(
-            forName: UIApplication.willResignActiveNotification,
-            object: nil,
-            queue: .main
-        ) { _ in
-            // Optional: Could pause animations here if needed
-        }
     }
 
-    /// Rotates to a new random subtitle with animation
+    // MARK: - Subtitle Rotation
     private func rotateSubtitle() {
+        let subtitles = HeaderSubtitle.allSubtitles
         guard !subtitles.isEmpty else { return }
 
-        // Get a random subtitle index different from current
         var newIndex = Int.random(in: 0..<subtitles.count)
-
-        // Ensure it's different from current (if we have multiple options)
+        
         if subtitles.count > 1 {
             var attempts = 0
             while newIndex == currentSubtitleIndex && attempts < 10 {
@@ -267,7 +175,6 @@ struct CoreSignHeaderView: View {
             }
         }
 
-        // Animate the change
         withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) {
             currentSubtitleIndex = newIndex
         }
@@ -276,6 +183,56 @@ struct CoreSignHeaderView: View {
     /// Public method to trigger subtitle rotation (call this when tab changes)
     func onTabChange() {
         rotateSubtitle()
+    }
+}
+
+// MARK: - Header Subtitles
+/// Easy-to-edit subtitle configuration
+/// To add a new subtitle, simply add a string to the `allSubtitles` array
+enum HeaderSubtitle {
+    /// Default subtitle shown if array is empty
+    static let defaultSubtitle = "The Modern Signer"
+    
+    /// All available subtitles - ADD NEW SUBTITLES HERE
+    /// Just add a new string to this array!
+    static var allSubtitles: [String] = [
+        "The Modern Signer",
+        "Sign Apps Your Way",
+        "Built with SwiftUI",
+        "No Competition",
+        "Just Works™",
+        "Made with ❤️",
+        "Vibe Coded",
+        "The Greatest Signer",
+        "Most Modern Signer",
+        "Use Portal",
+        "Random Project",
+        "Crashouts Welcome",
+        "WSF Top",
+        "Kravashit",
+        "Just When You Thought",
+        "Love Ragebaiting",
+        "Drizzy vs Kendrick",
+        "Want S?",
+        "Kravasigner Who?",
+        "Forgotten Signers"
+    ]
+    
+    /// Add a new subtitle at runtime
+    static func add(_ subtitle: String) {
+        allSubtitles.append(subtitle)
+    }
+    
+    /// Remove a subtitle at runtime
+    static func remove(_ subtitle: String) {
+        allSubtitles.removeAll { $0 == subtitle }
+    }
+}
+
+// MARK: - Safe Array Access
+private extension Array {
+    subscript(safe index: Int) -> Element? {
+        indices.contains(index) ? self[index] : nil
     }
 }
 

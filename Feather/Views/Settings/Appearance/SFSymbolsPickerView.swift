@@ -1,9 +1,15 @@
 import SwiftUI
 
-// MARK: - SF Symbols Picker
+// MARK: - Enhanced SF Symbols Picker
 struct SFSymbolsPickerView: View {
     @ObservedObject var viewModel: StatusBarViewModel
     @Environment(\.dismiss) var dismiss
+    @State private var customSymbolName = ""
+    @State private var showCustomSymbolInput = false
+    @State private var selectedWeight: Font.Weight = .regular
+    @State private var selectedSize: CGFloat = 24
+    @State private var previewColor: Color = .accentColor
+    @State private var showCustomizationPanel = false
     
     // Symbol categories for filtering
     private let categories = [
@@ -101,15 +107,6 @@ struct SFSymbolsPickerView: View {
         ]
     ]
     
-    // Symbol weights
-    private let weights = ["ultraLight", "thin", "light", "regular", "medium", "semibold", "bold", "heavy", "black"]
-    
-    // Symbol scales
-    private let scales = ["small", "medium", "large"]
-    
-    // Rendering modes
-    private let renderingModes = ["monochrome", "multicolor", "hierarchical", "palette"]
-    
     var filteredSymbols: [String] {
         var symbols: [String] = []
         
@@ -120,113 +117,44 @@ struct SFSymbolsPickerView: View {
         }
         
         if !viewModel.searchText.isEmpty {
-            symbols = symbols.filter { 
+            // Search in all symbols, not just the current category
+            let allSymbols = symbolsByCategory.values.flatMap { $0 }
+            symbols = allSymbols.filter { 
                 $0.lowercased().contains(viewModel.searchText.lowercased()) 
             }
         }
         
-        return symbols
+        return Array(Set(symbols)).sorted()
     }
     
     var body: some View {
         NavigationView {
             VStack(spacing: 0) {
-                // Search bar
-                HStack {
-                    Image(systemName: "magnifyingglass")
-                        .foregroundStyle(.secondary)
-                    TextField("Search SF Symbols", text: $viewModel.searchText)
-                        .textFieldStyle(.plain)
-                        .autocapitalization(.none)
-                }
-                .padding(8)
-                .background(Color(uiColor: .secondarySystemGroupedBackground))
-                .cornerRadius(10)
-                .padding()
+                // Enhanced Search Bar with Custom Symbol Input
+                searchSection
                 
-                // Category picker
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 8) {
-                        ForEach(categories, id: \.self) { category in
-                            Button {
-                                withAnimation(.easeInOut(duration: 0.2)) {
-                                    viewModel.selectedCategory = category
-                                }
-                            } label: {
-                                Text(category)
-                                    .font(.subheadline)
-                                    .padding(.horizontal, 12)
-                                    .padding(.vertical, 6)
-                                    .background(
-                                        Capsule()
-                                            .fill(viewModel.selectedCategory == category ? 
-                                                  Color.accentColor : 
-                                                  Color(uiColor: .secondarySystemGroupedBackground))
-                                    )
-                                    .foregroundStyle(viewModel.selectedCategory == category ? 
-                                                    .white : 
-                                                    .primary)
-                            }
-                            .buttonStyle(.plain)
-                        }
-                    }
-                    .padding(.horizontal)
-                }
-                .padding(.bottom, 8)
+                // Category Picker
+                categoryPicker
                 
-
+                // Quick Access Tabs
+                quickAccessTabs
                 
-                // Tabs for Recents and Favorites
-                if !viewModel.recentSymbols.isEmpty || !viewModel.favoriteSymbols.isEmpty {
-                    HStack(spacing: 0) {
-                        if !viewModel.recentSymbols.isEmpty {
-                            Button {
-                                withAnimation {
-                                    viewModel.selectedCategory = "Recents"
-                                }
-                            } label: {
-                                VStack(spacing: 4) {
-                                    Text("Recents")
-                                        .font(.subheadline)
-                                    Rectangle()
-                                        .fill(viewModel.selectedCategory == "Recents" ? Color.accentColor : Color.clear)
-                                        .frame(height: 2)
-                                }
-                                .frame(maxWidth: .infinity)
-                            }
-                            .buttonStyle(.plain)
-                        }
-                        
-                        if !viewModel.favoriteSymbols.isEmpty {
-                            Button {
-                                withAnimation {
-                                    viewModel.selectedCategory = "Favorites"
-                                }
-                            } label: {
-                                VStack(spacing: 4) {
-                                    Text("Favorites")
-                                        .font(.subheadline)
-                                    Rectangle()
-                                        .fill(viewModel.selectedCategory == "Favorites" ? Color.accentColor : Color.clear)
-                                        .frame(height: 2)
-                                }
-                                .frame(maxWidth: .infinity)
-                            }
-                            .buttonStyle(.plain)
-                        }
-                    }
-                    .padding(.horizontal)
-                }
-                
-                // Symbol grid
+                // Symbol Grid
                 ScrollView {
                     if viewModel.selectedCategory == "Recents" && !viewModel.recentSymbols.isEmpty {
                         symbolGrid(for: viewModel.recentSymbols)
                     } else if viewModel.selectedCategory == "Favorites" && !viewModel.favoriteSymbols.isEmpty {
                         symbolGrid(for: viewModel.favoriteSymbols)
+                    } else if filteredSymbols.isEmpty && !viewModel.searchText.isEmpty {
+                        noResultsView
                     } else {
                         symbolGrid(for: filteredSymbols)
                     }
+                }
+                
+                // Customization Panel
+                if showCustomizationPanel {
+                    customizationPanel
                 }
             }
             .navigationTitle("SF Symbols")
@@ -237,50 +165,308 @@ struct SFSymbolsPickerView: View {
                         dismiss()
                     }
                 }
+                ToolbarItem(placement: .primaryAction) {
+                    Button {
+                        withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                            showCustomizationPanel.toggle()
+                        }
+                    } label: {
+                        Image(systemName: showCustomizationPanel ? "slider.horizontal.3" : "slider.horizontal.3")
+                            .foregroundStyle(showCustomizationPanel ? .accentColor : .primary)
+                    }
+                }
             }
         }
     }
     
+    // MARK: - Search Section
+    private var searchSection: some View {
+        VStack(spacing: 12) {
+            // Main Search Bar
+            HStack(spacing: 10) {
+                Image(systemName: "magnifyingglass")
+                    .foregroundStyle(.secondary)
+                
+                TextField("Search any SF Symbol...", text: $viewModel.searchText)
+                    .textFieldStyle(.plain)
+                    .autocapitalization(.none)
+                    .autocorrectionDisabled()
+                
+                if !viewModel.searchText.isEmpty {
+                    Button {
+                        viewModel.searchText = ""
+                    } label: {
+                        Image(systemName: "xmark.circle.fill")
+                            .foregroundStyle(.secondary)
+                    }
+                }
+            }
+            .padding(12)
+            .background(
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .fill(Color(UIColor.secondarySystemGroupedBackground))
+            )
+            
+            // Custom Symbol Input
+            HStack(spacing: 10) {
+                Image(systemName: "plus.circle.fill")
+                    .foregroundStyle(.accentColor)
+                
+                TextField("Enter custom symbol name...", text: $customSymbolName)
+                    .textFieldStyle(.plain)
+                    .autocapitalization(.none)
+                    .autocorrectionDisabled()
+                
+                if !customSymbolName.isEmpty {
+                    Button {
+                        tryCustomSymbol()
+                    } label: {
+                        Text("Try")
+                            .font(.subheadline.weight(.semibold))
+                            .foregroundStyle(.white)
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 6)
+                            .background(Capsule().fill(Color.accentColor))
+                    }
+                }
+            }
+            .padding(12)
+            .background(
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .fill(Color(UIColor.secondarySystemGroupedBackground))
+            )
+        }
+        .padding(.horizontal, 16)
+        .padding(.top, 12)
+    }
+    
+    // MARK: - Category Picker
+    private var categoryPicker: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 8) {
+                ForEach(categories, id: \.self) { category in
+                    Button {
+                        withAnimation(.easeInOut(duration: 0.2)) {
+                            viewModel.selectedCategory = category
+                            HapticsManager.shared.softImpact()
+                        }
+                    } label: {
+                        Text(category)
+                            .font(.subheadline.weight(viewModel.selectedCategory == category ? .semibold : .regular))
+                            .padding(.horizontal, 14)
+                            .padding(.vertical, 8)
+                            .background(
+                                Capsule()
+                                    .fill(viewModel.selectedCategory == category ? 
+                                          Color.accentColor : 
+                                          Color(UIColor.tertiarySystemGroupedBackground))
+                            )
+                            .foregroundStyle(viewModel.selectedCategory == category ? .white : .primary)
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+            .padding(.horizontal, 16)
+        }
+        .padding(.vertical, 10)
+    }
+    
+    // MARK: - Quick Access Tabs
+    @ViewBuilder
+    private var quickAccessTabs: some View {
+        if !viewModel.recentSymbols.isEmpty || !viewModel.favoriteSymbols.isEmpty {
+            HStack(spacing: 0) {
+                if !viewModel.recentSymbols.isEmpty {
+                    quickAccessTab(title: "Recents", icon: "clock.fill", category: "Recents")
+                }
+                
+                if !viewModel.favoriteSymbols.isEmpty {
+                    quickAccessTab(title: "Favorites", icon: "heart.fill", category: "Favorites")
+                }
+            }
+            .padding(.horizontal, 16)
+            .padding(.bottom, 8)
+        }
+    }
+    
+    private func quickAccessTab(title: String, icon: String, category: String) -> some View {
+        Button {
+            withAnimation {
+                viewModel.selectedCategory = category
+            }
+        } label: {
+            HStack(spacing: 6) {
+                Image(systemName: icon)
+                    .font(.caption)
+                Text(title)
+                    .font(.subheadline)
+            }
+            .foregroundStyle(viewModel.selectedCategory == category ? .accentColor : .secondary)
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 8)
+            .background(
+                Rectangle()
+                    .fill(viewModel.selectedCategory == category ? Color.accentColor.opacity(0.1) : Color.clear)
+            )
+            .overlay(alignment: .bottom) {
+                Rectangle()
+                    .fill(viewModel.selectedCategory == category ? Color.accentColor : Color.clear)
+                    .frame(height: 2)
+            }
+        }
+        .buttonStyle(.plain)
+    }
+    
+    // MARK: - No Results View
+    private var noResultsView: some View {
+        VStack(spacing: 16) {
+            Image(systemName: "magnifyingglass")
+                .font(.system(size: 48))
+                .foregroundStyle(.secondary)
+            
+            Text("No symbols found")
+                .font(.headline)
+            
+            Text("Try a different search term or enter the exact SF Symbol name above")
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+                .multilineTextAlignment(.center)
+            
+            if !viewModel.searchText.isEmpty {
+                Button {
+                    customSymbolName = viewModel.searchText
+                    tryCustomSymbol()
+                } label: {
+                    Label("Try as custom symbol", systemImage: "plus.circle.fill")
+                        .font(.subheadline.weight(.semibold))
+                }
+                .buttonStyle(.borderedProminent)
+            }
+        }
+        .padding(40)
+    }
+    
+    // MARK: - Customization Panel
+    private var customizationPanel: some View {
+        VStack(spacing: 16) {
+            Divider()
+            
+            VStack(alignment: .leading, spacing: 12) {
+                Text("CUSTOMIZATION")
+                    .font(.caption.weight(.bold))
+                    .foregroundStyle(.secondary)
+                
+                // Preview
+                HStack {
+                    Text("Preview")
+                        .font(.subheadline)
+                    Spacer()
+                    Image(systemName: viewModel.sfSymbol)
+                        .font(.system(size: selectedSize, weight: selectedWeight))
+                        .foregroundStyle(previewColor)
+                        .frame(width: 50, height: 50)
+                        .background(
+                            RoundedRectangle(cornerRadius: 10)
+                                .fill(Color(UIColor.tertiarySystemGroupedBackground))
+                        )
+                }
+                
+                // Size Slider
+                VStack(alignment: .leading, spacing: 6) {
+                    HStack {
+                        Text("Size")
+                            .font(.subheadline)
+                        Spacer()
+                        Text("\(Int(selectedSize)) pt")
+                            .font(.caption.monospacedDigit())
+                            .foregroundStyle(.secondary)
+                    }
+                    Slider(value: $selectedSize, in: 12...48, step: 2)
+                        .tint(.accentColor)
+                }
+                
+                // Weight Picker
+                HStack {
+                    Text("Weight")
+                        .font(.subheadline)
+                    Spacer()
+                    Picker("", selection: $selectedWeight) {
+                        Text("Light").tag(Font.Weight.light)
+                        Text("Regular").tag(Font.Weight.regular)
+                        Text("Medium").tag(Font.Weight.medium)
+                        Text("Semibold").tag(Font.Weight.semibold)
+                        Text("Bold").tag(Font.Weight.bold)
+                    }
+                    .pickerStyle(.menu)
+                }
+                
+                // Color Picker
+                HStack {
+                    Text("Color")
+                        .font(.subheadline)
+                    Spacer()
+                    ColorPicker("", selection: $previewColor)
+                        .labelsHidden()
+                }
+                
+                // Apply Button
+                Button {
+                    applyCustomization()
+                } label: {
+                    Text("Apply Customization")
+                        .font(.subheadline.weight(.semibold))
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 12)
+                        .background(Color.accentColor)
+                        .foregroundStyle(.white)
+                        .clipShape(RoundedRectangle(cornerRadius: 10))
+                }
+            }
+            .padding(.horizontal, 16)
+            .padding(.bottom, 16)
+        }
+        .background(Color(UIColor.secondarySystemGroupedBackground))
+        .transition(.move(edge: .bottom).combined(with: .opacity))
+    }
+    
+    // MARK: - Symbol Grid
     @ViewBuilder
     private func symbolGrid(for symbols: [String]) -> some View {
-        LazyVGrid(columns: [GridItem(.adaptive(minimum: 70))], spacing: 16) {
+        LazyVGrid(columns: [GridItem(.adaptive(minimum: 75))], spacing: 16) {
             ForEach(symbols, id: \.self) { symbol in
                 symbolCell(symbol: symbol)
             }
         }
-        .padding()
+        .padding(16)
     }
     
     @ViewBuilder
     private func symbolCell(symbol: String) -> some View {
-        VStack(spacing: 4) {
+        let isSelected = viewModel.sfSymbol == symbol
+        
+        VStack(spacing: 6) {
             ZStack(alignment: .topTrailing) {
                 Button {
-                    withAnimation(.easeInOut(duration: 0.2)) {
+                    withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
                         viewModel.selectSymbol(symbol)
+                        HapticsManager.shared.softImpact()
                     }
                 } label: {
-                    VStack(spacing: 4) {
-                        symbolImage(symbol)
-                            .font(fontForSymbol())
-                            .foregroundStyle(viewModel.sfSymbol == symbol ? 
-                                           Color(hex: viewModel.colorHex) : 
-                                           .secondary)
-                            .frame(width: 60, height: 60)
+                    VStack(spacing: 6) {
+                        Image(systemName: symbol)
+                            .font(.system(size: 24, weight: isSelected ? .semibold : .regular))
+                            .foregroundStyle(isSelected ? Color(hex: viewModel.colorHex) : .secondary)
+                            .frame(width: 56, height: 56)
                             .background(
-                                RoundedRectangle(cornerRadius: 10)
-                                    .fill(viewModel.sfSymbol == symbol ? 
-                                         Color.accentColor.opacity(0.1) : 
-                                         Color.clear)
+                                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                    .fill(isSelected ? Color.accentColor.opacity(0.15) : Color(UIColor.tertiarySystemGroupedBackground))
                             )
                             .overlay(
-                                RoundedRectangle(cornerRadius: 10)
-                                    .stroke(viewModel.sfSymbol == symbol ? 
-                                           Color.accentColor : 
-                                           Color.clear, lineWidth: 2)
+                                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                    .stroke(isSelected ? Color.accentColor : Color.clear, lineWidth: 2)
                             )
                         
-                        Text(symbol.split(separator: ".").first?.capitalized ?? symbol)
+                        Text(formatSymbolName(symbol))
                             .font(.caption2)
                             .foregroundStyle(.secondary)
                             .lineLimit(1)
@@ -291,37 +477,66 @@ struct SFSymbolsPickerView: View {
                 
                 // Favorite button
                 Button {
-                    withAnimation(.easeInOut(duration: 0.2)) {
+                    withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
                         viewModel.toggleFavorite(symbol)
+                        HapticsManager.shared.softImpact()
                     }
                 } label: {
                     Image(systemName: viewModel.isFavorite(symbol) ? "heart.fill" : "heart")
-                        .font(.caption)
+                        .font(.system(size: 10, weight: .semibold))
                         .foregroundStyle(viewModel.isFavorite(symbol) ? .red : .secondary)
-                        .padding(4)
+                        .padding(5)
                         .background(Circle().fill(.ultraThinMaterial))
                 }
                 .buttonStyle(.plain)
-                .offset(x: 5, y: -5)
+                .offset(x: 4, y: -4)
             }
         }
     }
     
-    private func symbolImage(_ name: String) -> Image {
-        Image(systemName: name)
+    // MARK: - Helper Functions
+    private func formatSymbolName(_ name: String) -> String {
+        let parts = name.split(separator: ".")
+        if let first = parts.first {
+            return String(first).capitalized
+        }
+        return name
     }
     
-    private func fontForSymbol() -> Font {
-        let baseFont: Font
-        switch viewModel.selectedScale {
-        case "small":
-            baseFont = .title3
-        case "large":
-            baseFont = .title
-        default:
-            baseFont = .title2
+    private func tryCustomSymbol() {
+        guard !customSymbolName.isEmpty else { return }
+        
+        // Check if the symbol exists by trying to create an image
+        let testImage = UIImage(systemName: customSymbolName)
+        if testImage != nil {
+            viewModel.selectSymbol(customSymbolName)
+            customSymbolName = ""
+            HapticsManager.shared.success()
+        } else {
+            HapticsManager.shared.error()
+        }
+    }
+    
+    private func applyCustomization() {
+        viewModel.iconSize = selectedSize
+        viewModel.colorHex = previewColor.toHex() ?? "#007AFF"
+        
+        switch selectedWeight {
+        case .ultraLight: viewModel.iconWeight = "ultralight"
+        case .thin: viewModel.iconWeight = "thin"
+        case .light: viewModel.iconWeight = "light"
+        case .regular: viewModel.iconWeight = "regular"
+        case .medium: viewModel.iconWeight = "medium"
+        case .semibold: viewModel.iconWeight = "semibold"
+        case .bold: viewModel.iconWeight = "bold"
+        case .heavy: viewModel.iconWeight = "heavy"
+        case .black: viewModel.iconWeight = "black"
+        default: viewModel.iconWeight = "regular"
         }
         
-        return baseFont.weight(.regular)
+        HapticsManager.shared.success()
+        withAnimation {
+            showCustomizationPanel = false
+        }
     }
 }
