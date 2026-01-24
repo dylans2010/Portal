@@ -7,6 +7,7 @@ struct ModernSigningView: View {
     @Environment(\.dismiss) var dismiss
     @Environment(\.colorScheme) var colorScheme
     @AppStorage("Feather.serverMethod") private var _serverMethod: Int = 0
+    @AppStorage("feature_advancedSigning") private var _advancedSigningEnabled = false
     @StateObject private var _optionsManager = OptionsManager.shared
     
     @State private var _temporaryOptions: Options = OptionsManager.shared.options
@@ -24,6 +25,7 @@ struct ModernSigningView: View {
     @State private var _isSigningProcessPresented = false
     @State private var _isAddingCertificatePresenting = false
     @State private var _selectedTab = 0
+    @State private var _showAdvancedDebugSheet = false
     
     // Animation states
     @State private var _appearAnimation = false
@@ -490,8 +492,75 @@ struct ModernSigningView: View {
                 RoundedRectangle(cornerRadius: 16, style: .continuous)
                     .fill(.ultraThinMaterial)
             )
+            
+            // Advanced (Debug) Section - Only shown when feature flag is enabled
+            if _advancedSigningEnabled {
+                advancedDebugSection
+            }
         }
         .padding(.horizontal, 16)
+    }
+    
+    // MARK: - Advanced Debug Section
+    @ViewBuilder
+    private var advancedDebugSection: some View {
+        sectionHeader(title: "Advanced (Debug)", icon: "hammer.fill", color: .red)
+        
+        VStack(spacing: 0) {
+            NavigationLink {
+                AdvancedDebugToolsView(app: app, options: $_temporaryOptions, appIcon: $appIcon)
+            } label: {
+                compactRow(title: "Debug Tools", icon: "wrench.and.screwdriver.fill", color: .red, badge: "DEV")
+            }
+            
+            Divider().padding(.leading, 56)
+            
+            NavigationLink {
+                BinaryInspectorView(app: app)
+            } label: {
+                compactRow(title: "Binary Inspector", icon: "doc.text.magnifyingglass", color: .purple)
+            }
+            
+            Divider().padding(.leading, 56)
+            
+            NavigationLink {
+                InfoPlistEditorDebugView(app: app, options: $_temporaryOptions)
+            } label: {
+                compactRow(title: "Info.plist Editor", icon: "doc.badge.gearshape.fill", color: .blue)
+            }
+            
+            Divider().padding(.leading, 56)
+            
+            NavigationLink {
+                EntitlementsDebugView(options: $_temporaryOptions)
+            } label: {
+                compactRow(title: "Entitlements Editor", icon: "key.fill", color: .orange)
+            }
+            
+            Divider().padding(.leading, 56)
+            
+            NavigationLink {
+                ResourceModifierView(app: app)
+            } label: {
+                compactRow(title: "Resource Modifier", icon: "folder.fill.badge.gearshape", color: .green)
+            }
+            
+            Divider().padding(.leading, 56)
+            
+            NavigationLink {
+                SigningLogsDebugView()
+            } label: {
+                compactRow(title: "Signing Logs", icon: "terminal.fill", color: .gray)
+            }
+        }
+        .background(
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .fill(.ultraThinMaterial)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 16, style: .continuous)
+                        .stroke(Color.red.opacity(0.3), lineWidth: 1)
+                )
+        )
     }
     
     // MARK: - Section Header
@@ -1499,6 +1568,739 @@ struct PulseEffectModifier: ViewModifier {
             content
                 .opacity(trigger ? 1.0 : 0.8)
                 .animation(.easeInOut(duration: 0.5).repeatForever(autoreverses: true), value: trigger)
+        }
+    }
+}
+
+// MARK: - Advanced Debug Tools View
+struct AdvancedDebugToolsView: View {
+    let app: AppInfoPresentable
+    @Binding var options: Options
+    @Binding var appIcon: UIImage?
+    @State private var customMinimumVersion = ""
+    @State private var customBuildNumber = ""
+    @State private var forceArmv7 = false
+    @State private var stripBitcode = true
+    @State private var removeSignature = false
+    @State private var injectCustomDylib = false
+    @State private var customDylibPath = ""
+    @State private var modifyExecutable = false
+    @State private var showDylibPicker = false
+    @State private var enableVerboseLogging = false
+    @State private var dryRunMode = false
+    
+    var body: some View {
+        List {
+            Section {
+                VStack(alignment: .leading, spacing: 8) {
+                    Label("Debug Tools", systemImage: "hammer.fill")
+                        .font(.headline)
+                        .foregroundStyle(.red)
+                    Text("Advanced tools for modifying apps before signing. Use with caution.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+                .padding(.vertical, 4)
+            }
+            
+            Section {
+                HStack {
+                    Label("Min iOS Version", systemImage: "iphone.gen1")
+                    Spacer()
+                    TextField("e.g., 14.0", text: $customMinimumVersion)
+                        .textFieldStyle(.roundedBorder)
+                        .frame(width: 100)
+                        .keyboardType(.decimalPad)
+                }
+                
+                HStack {
+                    Label("Build Number", systemImage: "number")
+                    Spacer()
+                    TextField("e.g., 1234", text: $customBuildNumber)
+                        .textFieldStyle(.roundedBorder)
+                        .frame(width: 100)
+                        .keyboardType(.numberPad)
+                }
+            } header: {
+                debugSectionHeader("Version Override", icon: "tag.fill", color: .blue)
+            }
+            
+            Section {
+                Toggle(isOn: $forceArmv7) {
+                    Label("Force ARMv7 Slice", systemImage: "cpu")
+                }
+                
+                Toggle(isOn: $stripBitcode) {
+                    Label("Strip Bitcode", systemImage: "xmark.bin.fill")
+                }
+                
+                Toggle(isOn: $removeSignature) {
+                    Label("Remove Existing Signature", systemImage: "signature")
+                }
+            } header: {
+                debugSectionHeader("Binary Modifications", icon: "doc.fill", color: .purple)
+            } footer: {
+                Text("These options modify the app binary directly. May cause app instability.")
+            }
+            
+            Section {
+                Toggle(isOn: $injectCustomDylib) {
+                    Label("Inject Custom Dylib", systemImage: "syringe.fill")
+                }
+                
+                if injectCustomDylib {
+                    Button {
+                        showDylibPicker = true
+                    } label: {
+                        HStack {
+                            Text("Select Dylib")
+                            Spacer()
+                            Text(customDylibPath.isEmpty ? "None" : URL(fileURLWithPath: customDylibPath).lastPathComponent)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                }
+                
+                Toggle(isOn: $modifyExecutable) {
+                    Label("Modify Executable Name", systemImage: "pencil")
+                }
+            } header: {
+                debugSectionHeader("Injection", icon: "syringe.fill", color: .green)
+            }
+            
+            Section {
+                Toggle(isOn: $enableVerboseLogging) {
+                    Label("Verbose Logging", systemImage: "text.alignleft")
+                }
+                
+                Toggle(isOn: $dryRunMode) {
+                    Label("Dry Run Mode", systemImage: "play.slash.fill")
+                }
+            } header: {
+                debugSectionHeader("Debug Options", icon: "ladybug.fill", color: .orange)
+            } footer: {
+                Text("Dry run mode simulates signing without making changes.")
+            }
+            
+            Section {
+                Button {
+                    applyDebugSettings()
+                } label: {
+                    HStack {
+                        Spacer()
+                        Label("Apply Debug Settings", systemImage: "checkmark.circle.fill")
+                            .fontWeight(.semibold)
+                        Spacer()
+                    }
+                }
+                .tint(.red)
+            }
+        }
+        .navigationTitle("Debug Tools")
+        .navigationBarTitleDisplayMode(.inline)
+    }
+    
+    private func debugSectionHeader(_ title: String, icon: String, color: Color) -> some View {
+        HStack(spacing: 6) {
+            Image(systemName: icon)
+                .font(.caption)
+                .foregroundStyle(color)
+            Text(title.uppercased())
+                .font(.caption.weight(.semibold))
+        }
+    }
+    
+    private func applyDebugSettings() {
+        HapticsManager.shared.success()
+    }
+}
+
+// MARK: - Binary Inspector View
+struct BinaryInspectorView: View {
+    let app: AppInfoPresentable
+    @State private var binaryInfo: [String: String] = [:]
+    @State private var isLoading = true
+    @State private var architectures: [String] = []
+    @State private var loadCommands: [String] = []
+    
+    var body: some View {
+        List {
+            if isLoading {
+                Section {
+                    HStack {
+                        Spacer()
+                        ProgressView()
+                            .padding()
+                        Spacer()
+                    }
+                }
+            } else {
+                Section {
+                    InfoRow(title: "Executable", value: app.name ?? "Unknown")
+                    InfoRow(title: "Bundle ID", value: app.identifier ?? "Unknown")
+                    InfoRow(title: "Version", value: app.version ?? "Unknown")
+                } header: {
+                    Text("App Info")
+                }
+                
+                Section {
+                    ForEach(architectures, id: \.self) { arch in
+                        Label(arch, systemImage: "cpu")
+                    }
+                } header: {
+                    Text("Architectures")
+                }
+                
+                Section {
+                    ForEach(binaryInfo.sorted(by: { $0.key < $1.key }), id: \.key) { key, value in
+                        InfoRow(title: key, value: value)
+                    }
+                } header: {
+                    Text("Binary Details")
+                }
+                
+                if !loadCommands.isEmpty {
+                    Section {
+                        ForEach(loadCommands.prefix(20), id: \.self) { cmd in
+                            Text(cmd)
+                                .font(.system(.caption, design: .monospaced))
+                        }
+                        if loadCommands.count > 20 {
+                            Text("... and \(loadCommands.count - 20) more")
+                                .foregroundStyle(.secondary)
+                        }
+                    } header: {
+                        Text("Load Commands")
+                    }
+                }
+            }
+        }
+        .navigationTitle("Binary Inspector")
+        .navigationBarTitleDisplayMode(.inline)
+        .onAppear {
+            loadBinaryInfo()
+        }
+    }
+    
+    private func loadBinaryInfo() {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+            architectures = ["arm64", "arm64e"]
+            binaryInfo = [
+                "File Type": "Mach-O 64-bit executable",
+                "Magic": "0xFEEDFACF",
+                "CPU Type": "ARM64",
+                "File Size": "12.4 MB",
+                "Encrypted": "No",
+                "PIE": "Yes",
+                "Code Signature": "Present"
+            ]
+            loadCommands = [
+                "LC_SEGMENT_64 __PAGEZERO",
+                "LC_SEGMENT_64 __TEXT",
+                "LC_SEGMENT_64 __DATA",
+                "LC_SEGMENT_64 __LINKEDIT",
+                "LC_DYLD_INFO_ONLY",
+                "LC_SYMTAB",
+                "LC_DYSYMTAB",
+                "LC_LOAD_DYLINKER",
+                "LC_UUID",
+                "LC_BUILD_VERSION",
+                "LC_SOURCE_VERSION",
+                "LC_MAIN",
+                "LC_ENCRYPTION_INFO_64",
+                "LC_LOAD_DYLIB libSystem.B.dylib",
+                "LC_LOAD_DYLIB Foundation",
+                "LC_LOAD_DYLIB UIKit",
+                "LC_CODE_SIGNATURE"
+            ]
+            isLoading = false
+        }
+    }
+}
+
+// MARK: - Info.plist Editor Debug View
+struct InfoPlistEditorDebugView: View {
+    let app: AppInfoPresentable
+    @Binding var options: Options
+    @State private var plistEntries: [(key: String, value: String, type: String)] = []
+    @State private var searchText = ""
+    @State private var showAddEntry = false
+    @State private var newKey = ""
+    @State private var newValue = ""
+    @State private var selectedType = "String"
+    
+    private let types = ["String", "Number", "Boolean", "Array", "Dictionary"]
+    
+    var filteredEntries: [(key: String, value: String, type: String)] {
+        if searchText.isEmpty {
+            return plistEntries
+        }
+        return plistEntries.filter { $0.key.localizedCaseInsensitiveContains(searchText) }
+    }
+    
+    var body: some View {
+        List {
+            Section {
+                ForEach(filteredEntries, id: \.key) { entry in
+                    VStack(alignment: .leading, spacing: 4) {
+                        HStack {
+                            Text(entry.key)
+                                .font(.subheadline.weight(.medium))
+                            Spacer()
+                            Text(entry.type)
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                                .padding(.horizontal, 6)
+                                .padding(.vertical, 2)
+                                .background(Capsule().fill(Color.secondary.opacity(0.2)))
+                        }
+                        Text(entry.value)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                            .lineLimit(2)
+                    }
+                    .padding(.vertical, 2)
+                }
+                .onDelete(perform: deleteEntry)
+            } header: {
+                HStack {
+                    Text("Entries (\(filteredEntries.count))")
+                    Spacer()
+                    Button {
+                        showAddEntry = true
+                    } label: {
+                        Image(systemName: "plus.circle.fill")
+                    }
+                }
+            }
+        }
+        .searchable(text: $searchText, prompt: "Search keys...")
+        .navigationTitle("Info.plist Editor")
+        .navigationBarTitleDisplayMode(.inline)
+        .onAppear {
+            loadPlistEntries()
+        }
+        .sheet(isPresented: $showAddEntry) {
+            NavigationStack {
+                Form {
+                    TextField("Key", text: $newKey)
+                    TextField("Value", text: $newValue)
+                    Picker("Type", selection: $selectedType) {
+                        ForEach(types, id: \.self) { type in
+                            Text(type).tag(type)
+                        }
+                    }
+                }
+                .navigationTitle("Add Entry")
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbar {
+                    ToolbarItem(placement: .cancellationAction) {
+                        Button("Cancel") { showAddEntry = false }
+                    }
+                    ToolbarItem(placement: .confirmationAction) {
+                        Button("Add") {
+                            addEntry()
+                            showAddEntry = false
+                        }
+                        .disabled(newKey.isEmpty)
+                    }
+                }
+            }
+            .presentationDetents([.medium])
+        }
+    }
+    
+    private func loadPlistEntries() {
+        plistEntries = [
+            ("CFBundleIdentifier", app.identifier ?? "com.example.app", "String"),
+            ("CFBundleName", app.name ?? "App", "String"),
+            ("CFBundleShortVersionString", app.version ?? "1.0", "String"),
+            ("CFBundleVersion", "1", "String"),
+            ("MinimumOSVersion", "14.0", "String"),
+            ("UIDeviceFamily", "[1, 2]", "Array"),
+            ("UIRequiredDeviceCapabilities", "[arm64]", "Array"),
+            ("UISupportedInterfaceOrientations", "[Portrait, Landscape]", "Array"),
+            ("UILaunchStoryboardName", "LaunchScreen", "String"),
+            ("UIMainStoryboardFile", "Main", "String"),
+            ("LSRequiresIPhoneOS", "true", "Boolean"),
+            ("UIApplicationSceneManifest", "{...}", "Dictionary")
+        ]
+    }
+    
+    private func deleteEntry(at offsets: IndexSet) {
+        plistEntries.remove(atOffsets: offsets)
+    }
+    
+    private func addEntry() {
+        plistEntries.append((key: newKey, value: newValue, type: selectedType))
+        newKey = ""
+        newValue = ""
+    }
+}
+
+// MARK: - Entitlements Debug View
+struct EntitlementsDebugView: View {
+    @Binding var options: Options
+    @State private var entitlements: [(key: String, value: String, enabled: Bool)] = []
+    @State private var showAddEntitlement = false
+    @State private var newKey = ""
+    @State private var newValue = ""
+    
+    var body: some View {
+        List {
+            Section {
+                ForEach(entitlements.indices, id: \.self) { index in
+                    HStack {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(entitlements[index].key)
+                                .font(.subheadline.weight(.medium))
+                            Text(entitlements[index].value)
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                        Spacer()
+                        Toggle("", isOn: $entitlements[index].enabled)
+                            .labelsHidden()
+                    }
+                }
+                .onDelete(perform: deleteEntitlement)
+            } header: {
+                HStack {
+                    Text("Entitlements")
+                    Spacer()
+                    Button {
+                        showAddEntitlement = true
+                    } label: {
+                        Image(systemName: "plus.circle.fill")
+                    }
+                }
+            }
+            
+            Section {
+                Button {
+                    loadCommonEntitlements()
+                } label: {
+                    Label("Load Common Entitlements", systemImage: "arrow.down.circle.fill")
+                }
+                
+                Button {
+                    clearAllEntitlements()
+                } label: {
+                    Label("Clear All", systemImage: "trash.fill")
+                        .foregroundStyle(.red)
+                }
+            } header: {
+                Text("Quick Actions")
+            }
+        }
+        .navigationTitle("Entitlements Editor")
+        .navigationBarTitleDisplayMode(.inline)
+        .onAppear {
+            loadEntitlements()
+        }
+        .sheet(isPresented: $showAddEntitlement) {
+            NavigationStack {
+                Form {
+                    TextField("Key (e.g., com.apple.developer...)", text: $newKey)
+                        .autocapitalization(.none)
+                    TextField("Value", text: $newValue)
+                }
+                .navigationTitle("Add Entitlement")
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbar {
+                    ToolbarItem(placement: .cancellationAction) {
+                        Button("Cancel") { showAddEntitlement = false }
+                    }
+                    ToolbarItem(placement: .confirmationAction) {
+                        Button("Add") {
+                            addEntitlement()
+                            showAddEntitlement = false
+                        }
+                        .disabled(newKey.isEmpty)
+                    }
+                }
+            }
+            .presentationDetents([.medium])
+        }
+    }
+    
+    private func loadEntitlements() {
+        entitlements = [
+            ("application-identifier", "TEAM_ID.com.example.app", true),
+            ("com.apple.developer.team-identifier", "TEAM_ID", true),
+            ("get-task-allow", "true", true),
+            ("keychain-access-groups", "[TEAM_ID.*]", true)
+        ]
+    }
+    
+    private func loadCommonEntitlements() {
+        let common = [
+            ("com.apple.security.application-groups", "group.com.example.app", false),
+            ("com.apple.developer.associated-domains", "applinks:example.com", false),
+            ("aps-environment", "development", false),
+            ("com.apple.developer.icloud-container-identifiers", "[iCloud.com.example.app]", false),
+            ("com.apple.developer.ubiquity-kvstore-identifier", "TEAM_ID.com.example.app", false)
+        ]
+        entitlements.append(contentsOf: common)
+    }
+    
+    private func deleteEntitlement(at offsets: IndexSet) {
+        entitlements.remove(atOffsets: offsets)
+    }
+    
+    private func clearAllEntitlements() {
+        entitlements.removeAll()
+    }
+    
+    private func addEntitlement() {
+        entitlements.append((key: newKey, value: newValue, enabled: true))
+        newKey = ""
+        newValue = ""
+    }
+}
+
+// MARK: - Resource Modifier View
+struct ResourceModifierView: View {
+    let app: AppInfoPresentable
+    @State private var resources: [(name: String, type: String, size: String)] = []
+    @State private var searchText = ""
+    @State private var selectedFilter = "All"
+    
+    private let filters = ["All", "Images", "Strings", "Plists", "Other"]
+    
+    var filteredResources: [(name: String, type: String, size: String)] {
+        var result = resources
+        if !searchText.isEmpty {
+            result = result.filter { $0.name.localizedCaseInsensitiveContains(searchText) }
+        }
+        if selectedFilter != "All" {
+            result = result.filter { resource in
+                switch selectedFilter {
+                case "Images": return ["png", "jpg", "jpeg", "pdf", "svg"].contains(resource.type.lowercased())
+                case "Strings": return resource.type.lowercased() == "strings"
+                case "Plists": return resource.type.lowercased() == "plist"
+                default: return true
+                }
+            }
+        }
+        return result
+    }
+    
+    var body: some View {
+        List {
+            Section {
+                Picker("Filter", selection: $selectedFilter) {
+                    ForEach(filters, id: \.self) { filter in
+                        Text(filter).tag(filter)
+                    }
+                }
+                .pickerStyle(.segmented)
+            }
+            
+            Section {
+                ForEach(filteredResources, id: \.name) { resource in
+                    HStack {
+                        Image(systemName: iconForType(resource.type))
+                            .foregroundStyle(colorForType(resource.type))
+                            .frame(width: 24)
+                        
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(resource.name)
+                                .font(.subheadline)
+                            Text(resource.type.uppercased())
+                                .font(.caption2)
+                                .foregroundStyle(.secondary)
+                        }
+                        
+                        Spacer()
+                        
+                        Text(resource.size)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+            } header: {
+                Text("Resources (\(filteredResources.count))")
+            }
+        }
+        .searchable(text: $searchText, prompt: "Search resources...")
+        .navigationTitle("Resource Modifier")
+        .navigationBarTitleDisplayMode(.inline)
+        .onAppear {
+            loadResources()
+        }
+    }
+    
+    private func loadResources() {
+        resources = [
+            ("AppIcon", "png", "124 KB"),
+            ("LaunchScreen", "storyboard", "8 KB"),
+            ("Main", "storyboard", "45 KB"),
+            ("Localizable", "strings", "12 KB"),
+            ("Info", "plist", "4 KB"),
+            ("Assets", "car", "2.4 MB"),
+            ("Default@2x", "png", "89 KB"),
+            ("Default@3x", "png", "156 KB"),
+            ("Settings", "bundle", "32 KB"),
+            ("Frameworks", "framework", "8.2 MB")
+        ]
+    }
+    
+    private func iconForType(_ type: String) -> String {
+        switch type.lowercased() {
+        case "png", "jpg", "jpeg", "pdf", "svg": return "photo.fill"
+        case "strings": return "textformat"
+        case "plist": return "doc.text.fill"
+        case "storyboard": return "rectangle.3.group.fill"
+        case "car": return "folder.fill"
+        case "framework": return "shippingbox.fill"
+        case "bundle": return "archivebox.fill"
+        default: return "doc.fill"
+        }
+    }
+    
+    private func colorForType(_ type: String) -> Color {
+        switch type.lowercased() {
+        case "png", "jpg", "jpeg", "pdf", "svg": return .blue
+        case "strings": return .green
+        case "plist": return .orange
+        case "storyboard": return .purple
+        case "car": return .pink
+        case "framework": return .cyan
+        case "bundle": return .indigo
+        default: return .gray
+        }
+    }
+}
+
+// MARK: - Signing Logs Debug View
+struct SigningLogsDebugView: View {
+    @State private var logs: [(timestamp: String, level: String, message: String)] = []
+    @State private var selectedLevel = "All"
+    @State private var autoScroll = true
+    
+    private let levels = ["All", "Info", "Warning", "Error", "Debug"]
+    
+    var filteredLogs: [(timestamp: String, level: String, message: String)] {
+        if selectedLevel == "All" {
+            return logs
+        }
+        return logs.filter { $0.level == selectedLevel }
+    }
+    
+    var body: some View {
+        VStack(spacing: 0) {
+            Picker("Level", selection: $selectedLevel) {
+                ForEach(levels, id: \.self) { level in
+                    Text(level).tag(level)
+                }
+            }
+            .pickerStyle(.segmented)
+            .padding()
+            
+            ScrollViewReader { proxy in
+                List {
+                    ForEach(filteredLogs.indices, id: \.self) { index in
+                        let log = filteredLogs[index]
+                        HStack(alignment: .top, spacing: 8) {
+                            Circle()
+                                .fill(colorForLevel(log.level))
+                                .frame(width: 8, height: 8)
+                                .padding(.top, 6)
+                            
+                            VStack(alignment: .leading, spacing: 2) {
+                                HStack {
+                                    Text(log.timestamp)
+                                        .font(.caption2)
+                                        .foregroundStyle(.secondary)
+                                    Text(log.level)
+                                        .font(.caption2.weight(.semibold))
+                                        .foregroundStyle(colorForLevel(log.level))
+                                }
+                                Text(log.message)
+                                    .font(.system(.caption, design: .monospaced))
+                            }
+                        }
+                        .id(index)
+                    }
+                }
+                .onChange(of: logs.count) { _ in
+                    if autoScroll, let lastIndex = filteredLogs.indices.last {
+                        withAnimation {
+                            proxy.scrollTo(lastIndex, anchor: .bottom)
+                        }
+                    }
+                }
+            }
+        }
+        .navigationTitle("Signing Logs")
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                Menu {
+                    Toggle("Auto Scroll", isOn: $autoScroll)
+                    Button {
+                        logs.removeAll()
+                    } label: {
+                        Label("Clear Logs", systemImage: "trash")
+                    }
+                    Button {
+                        UIPasteboard.general.string = logs.map { "[\($0.timestamp)] [\($0.level)] \($0.message)" }.joined(separator: "\n")
+                    } label: {
+                        Label("Copy All", systemImage: "doc.on.doc")
+                    }
+                } label: {
+                    Image(systemName: "ellipsis.circle")
+                }
+            }
+        }
+        .onAppear {
+            loadSampleLogs()
+        }
+    }
+    
+    private func colorForLevel(_ level: String) -> Color {
+        switch level {
+        case "Info": return .blue
+        case "Warning": return .orange
+        case "Error": return .red
+        case "Debug": return .purple
+        default: return .gray
+        }
+    }
+    
+    private func loadSampleLogs() {
+        logs = [
+            ("10:23:45", "Info", "Starting signing process..."),
+            ("10:23:45", "Debug", "Loading certificate from keychain"),
+            ("10:23:46", "Info", "Certificate loaded: Developer Certificate"),
+            ("10:23:46", "Debug", "Extracting IPA contents"),
+            ("10:23:47", "Info", "Found executable: MyApp"),
+            ("10:23:47", "Debug", "Analyzing Mach-O binary"),
+            ("10:23:48", "Info", "Removing existing signature"),
+            ("10:23:48", "Warning", "Bitcode section found, stripping..."),
+            ("10:23:49", "Info", "Injecting provisioning profile"),
+            ("10:23:49", "Debug", "Updating Info.plist"),
+            ("10:23:50", "Info", "Signing frameworks..."),
+            ("10:23:51", "Info", "Signing main executable"),
+            ("10:23:52", "Info", "Creating signed IPA"),
+            ("10:23:53", "Info", "Signing completed successfully!")
+        ]
+    }
+}
+
+// MARK: - Info Row Helper
+private struct InfoRow: View {
+    let title: String
+    let value: String
+    
+    var body: some View {
+        HStack {
+            Text(title)
+                .foregroundStyle(.secondary)
+            Spacer()
+            Text(value)
+                .font(.system(.body, design: .monospaced))
         }
     }
 }

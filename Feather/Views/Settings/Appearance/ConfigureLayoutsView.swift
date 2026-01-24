@@ -1,11 +1,10 @@
 import SwiftUI
 
-// MARK: - Configure Layouts View (Splash Screen Style)
+// MARK: - Configure Layouts View (Simplified & Modern)
 struct ConfigureLayoutsView: View {
     @Environment(\.dismiss) var dismiss
     @ObservedObject var viewModel: StatusBarViewModel
     @State private var selectedLayout: LayoutType = .text
-    @State private var floatingAnimation = false
     
     enum LayoutType: String, CaseIterable {
         case text = "Text"
@@ -15,7 +14,6 @@ struct ConfigureLayoutsView: View {
         case network = "Network"
         case memory = "Memory"
         case date = "Date"
-        case cpu = "CPU"
         
         var icon: String {
             switch self {
@@ -26,7 +24,6 @@ struct ConfigureLayoutsView: View {
             case .network: return "wifi"
             case .memory: return "memorychip.fill"
             case .date: return "calendar"
-            case .cpu: return "cpu.fill"
             }
         }
         
@@ -39,7 +36,6 @@ struct ConfigureLayoutsView: View {
             case .network: return .cyan
             case .memory: return .pink
             case .date: return .indigo
-            case .cpu: return .red
             }
         }
         
@@ -52,205 +48,100 @@ struct ConfigureLayoutsView: View {
             case .network: return "Network connectivity"
             case .memory: return "Memory usage"
             case .date: return "Current date"
-            case .cpu: return "CPU performance"
             }
         }
     }
     
     var body: some View {
         NavigationView {
-            ZStack {
-                // Modern animated background
-                modernBackground
-                
-                VStack(spacing: 0) {
-                    // Top section with icon grid
-                    modernLayoutSelector
-                        .padding(.top, 16)
+            ScrollView {
+                VStack(spacing: 16) {
+                    // Widget Type Selector
+                    widgetTypeSelector
                     
-                    // Bottom section with controls
-                    ScrollView {
-                        VStack(spacing: 20) {
-                            // Info card
-                            infoCard
-                            
-                            // Layout controls
-                            layoutControls
-                        }
-                        .padding(.horizontal, 20)
-                        .padding(.vertical, 16)
-                    }
+                    // Selected Widget Info
+                    selectedWidgetInfo
+                    
+                    // Position Settings
+                    positionSettingsCard
+                    
+                    // Widget-specific options
+                    widgetSpecificOptions
                 }
+                .padding(16)
             }
+            .background(Color(UIColor.systemGroupedBackground))
             .navigationTitle("Configure Layouts")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button {
+                    Button("Done") {
                         dismiss()
-                    } label: {
-                        Text("Done")
-                            .fontWeight(.semibold)
                     }
+                    .fontWeight(.semibold)
                 }
-            }
-        }
-        .onAppear {
-            withAnimation(.easeInOut(duration: 4).repeatForever(autoreverses: true)) {
-                floatingAnimation = true
             }
         }
     }
     
-    // MARK: - Modern Background
-    @ViewBuilder
-    private var modernBackground: some View {
-        ZStack {
-            LinearGradient(
-                colors: [
-                    Color.accentColor.opacity(0.12),
-                    Color.accentColor.opacity(0.05),
-                    Color(uiColor: .systemBackground)
-                ],
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
-            .ignoresSafeArea()
+    // MARK: - Widget Type Selector
+    private var widgetTypeSelector: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            sectionHeader("Widget Type", icon: "square.grid.2x2.fill", color: .accentColor)
             
-            GeometryReader { geo in
-                Circle()
-                    .fill(
-                        RadialGradient(
-                            colors: [selectedLayout.color.opacity(0.2), selectedLayout.color.opacity(0)],
-                            center: .center,
-                            startRadius: 0,
-                            endRadius: 150
-                        )
-                    )
-                    .frame(width: 300, height: 300)
-                    .blur(radius: 60)
-                    .offset(x: floatingAnimation ? -30 : 30, y: floatingAnimation ? -20 : 20)
-                    .position(x: geo.size.width * 0.8, y: geo.size.height * 0.2)
-            }
-            .ignoresSafeArea()
-        }
-    }
-    
-    // MARK: - Modern Layout Selector
-    @ViewBuilder
-    private var modernLayoutSelector: some View {
-        VStack(spacing: 16) {
-            Text("Choose Widget Type")
-                .font(.subheadline.weight(.semibold))
-                .foregroundStyle(.secondary)
-                .textCase(.uppercase)
-                .tracking(0.5)
-            
-            // Two rows of widgets
-            VStack(spacing: 12) {
-                // First row
-                HStack(spacing: 12) {
-                    ForEach(Array(LayoutType.allCases.prefix(4)), id: \.rawValue) { layout in
-                        modernLayoutButton(layout: layout)
-                    }
-                }
-                
-                // Second row
-                HStack(spacing: 12) {
-                    ForEach(Array(LayoutType.allCases.suffix(4)), id: \.rawValue) { layout in
-                        modernLayoutButton(layout: layout)
-                    }
+            LazyVGrid(columns: [GridItem(.adaptive(minimum: 80))], spacing: 12) {
+                ForEach(LayoutType.allCases, id: \.rawValue) { layout in
+                    widgetTypeButton(layout)
                 }
             }
-            .padding(.horizontal, 16)
         }
-        .padding(.vertical, 12)
+        .padding(16)
+        .background(cardBackground)
     }
     
-    @ViewBuilder
-    private func modernLayoutButton(layout: LayoutType) -> some View {
+    private func widgetTypeButton(_ layout: LayoutType) -> some View {
         let isSelected = selectedLayout == layout
         
-        Button {
-            withAnimation(.spring(response: 0.35, dampingFraction: 0.7)) {
+        return Button {
+            withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
                 selectedLayout = layout
+                HapticsManager.shared.softImpact()
             }
         } label: {
-            VStack(spacing: 6) {
+            VStack(spacing: 8) {
                 ZStack {
-                    // Glow effect for selected
-                    if isSelected {
-                        Circle()
-                            .fill(layout.color.opacity(0.3))
-                            .frame(width: 56, height: 56)
-                            .blur(radius: 8)
-                    }
-                    
                     Circle()
-                        .fill(
-                            isSelected ?
-                            LinearGradient(
-                                colors: [layout.color, layout.color.opacity(0.8)],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            ) :
-                            LinearGradient(
-                                colors: [Color(uiColor: .secondarySystemGroupedBackground), Color(uiColor: .secondarySystemGroupedBackground)],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            )
-                        )
-                        .frame(width: 50, height: 50)
-                        .overlay(
-                            Circle()
-                                .stroke(
-                                    isSelected ?
-                                    LinearGradient(colors: [.white.opacity(0.4), .white.opacity(0.1)], startPoint: .topLeading, endPoint: .bottomTrailing) :
-                                    LinearGradient(colors: [.clear, .clear], startPoint: .topLeading, endPoint: .bottomTrailing),
-                                    lineWidth: 1
-                                )
-                        )
-                        .shadow(color: isSelected ? layout.color.opacity(0.4) : .clear, radius: 8, x: 0, y: 4)
+                        .fill(isSelected ? layout.color : Color(UIColor.tertiarySystemGroupedBackground))
+                        .frame(width: 44, height: 44)
                     
                     Image(systemName: layout.icon)
-                        .font(.system(size: 20, weight: .semibold))
+                        .font(.system(size: 18, weight: .semibold))
                         .foregroundStyle(isSelected ? .white : .primary)
-                        .modifier(ConfigureBounceEffectModifier(trigger: isSelected))
                 }
                 
                 Text(layout.rawValue)
-                    .font(.system(size: 10, weight: isSelected ? .semibold : .medium))
+                    .font(.caption2.weight(isSelected ? .semibold : .medium))
                     .foregroundStyle(isSelected ? .primary : .secondary)
             }
-            .frame(maxWidth: .infinity)
         }
         .buttonStyle(.plain)
     }
     
-    // MARK: - Info Card
-    @ViewBuilder
-    private var infoCard: some View {
-        HStack(spacing: 14) {
+    // MARK: - Selected Widget Info
+    private var selectedWidgetInfo: some View {
+        HStack(spacing: 12) {
             ZStack {
-                RoundedRectangle(cornerRadius: 10, style: .continuous)
-                    .fill(
-                        LinearGradient(
-                            colors: [selectedLayout.color.opacity(0.3), selectedLayout.color.opacity(0.15)],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        )
-                    )
+                Circle()
+                    .fill(selectedLayout.color.opacity(0.15))
                     .frame(width: 40, height: 40)
-                
-                Image(systemName: "info.circle.fill")
-                    .font(.system(size: 18))
+                Image(systemName: selectedLayout.icon)
+                    .font(.system(size: 16, weight: .semibold))
                     .foregroundStyle(selectedLayout.color)
             }
             
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: 2) {
                 Text(selectedLayout.rawValue)
                     .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(.primary)
                 Text(selectedLayout.description)
                     .font(.caption)
                     .foregroundStyle(.secondary)
@@ -258,415 +149,104 @@ struct ConfigureLayoutsView: View {
             
             Spacer()
         }
-        .padding(16)
-        .background(
-            RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .fill(.ultraThinMaterial)
-                .shadow(color: .black.opacity(0.06), radius: 12, x: 0, y: 6)
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .stroke(
-                    LinearGradient(
-                        colors: [.white.opacity(0.3), .white.opacity(0.1)],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    ),
-                    lineWidth: 1
-                )
-        )
+        .padding(14)
+        .background(cardBackground)
     }
     
-    // MARK: - Layout Controls
-    private var layoutControls: some View {
-        VStack(spacing: 20) {
-            // Alignment picker with modern design
-            modernAlignmentSection
-            
-            // Padding controls with modern design
-            modernPaddingSection
-            
-            // Widget-specific options
-            widgetSpecificOptions
-            
-            Spacer(minLength: 40)
-        }
-    }
-    
-    // MARK: - Modern Alignment Section
-    @ViewBuilder
-    private var modernAlignmentSection: some View {
+    // MARK: - Position Settings Card
+    private var positionSettingsCard: some View {
         VStack(alignment: .leading, spacing: 14) {
-            HStack(spacing: 8) {
-                Image(systemName: "arrow.left.and.right")
-                    .font(.system(size: 12, weight: .semibold))
-                    .foregroundStyle(selectedLayout.color)
+            sectionHeader("Position", icon: "arrow.left.and.right", color: selectedLayout.color)
+            
+            // Alignment Picker
+            VStack(alignment: .leading, spacing: 8) {
                 Text("Alignment")
-                    .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(.secondary)
-                    .textCase(.uppercase)
-                    .tracking(0.5)
-            }
-            
-            let availablePositions = viewModel.getAvailablePositions(for: selectedLayout.rawValue)
-            let allAlignments = [StatusBarAlignment.left, StatusBarAlignment.center, StatusBarAlignment.right]
-            
-            HStack(spacing: 10) {
-                ForEach(allAlignments, id: \.rawValue) { alignment in
-                    let position = alignment.rawValue
-                    let isAvailable = availablePositions.contains(position)
-                    let isSelected = getAlignment() == position
-                    
-                    Button {
-                        if isAvailable {
-                            withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-                                setAlignment(position)
-                            }
-                        }
-                    } label: {
-                        VStack(spacing: 6) {
-                            Image(systemName: alignmentIcon(for: position))
-                                .font(.system(size: 16, weight: .semibold))
-                            Text(position.capitalized)
-                                .font(.caption.weight(.medium))
-                        }
-                        .foregroundStyle(isAvailable ? (isSelected ? .white : .primary) : .secondary.opacity(0.5))
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 14)
-                        .background(
-                            RoundedRectangle(cornerRadius: 12, style: .continuous)
-                                .fill(
-                                    isSelected ?
-                                    LinearGradient(colors: [selectedLayout.color, selectedLayout.color.opacity(0.8)], startPoint: .topLeading, endPoint: .bottomTrailing) :
-                                    LinearGradient(colors: [Color(uiColor: .tertiarySystemGroupedBackground), Color(uiColor: .tertiarySystemGroupedBackground)], startPoint: .topLeading, endPoint: .bottomTrailing)
-                                )
-                        )
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 12, style: .continuous)
-                                .stroke(isSelected ? Color.white.opacity(0.3) : Color.clear, lineWidth: 1)
-                        )
-                        .shadow(color: isSelected ? selectedLayout.color.opacity(0.3) : .clear, radius: 8, x: 0, y: 4)
+                    .font(.subheadline.weight(.medium))
+                
+                HStack(spacing: 8) {
+                    ForEach(["left", "center", "right"], id: \.self) { position in
+                        alignmentButton(position)
                     }
-                    .disabled(!isAvailable)
                 }
             }
             
-            if !availablePositions.contains("center") && getAlignment() != "center" {
-                HStack(spacing: 6) {
-                    Image(systemName: "exclamationmark.triangle.fill")
-                        .font(.caption)
-                    Text("Center position is occupied by another widget")
-                        .font(.caption)
-                }
-                .foregroundStyle(.orange)
-                .padding(.top, 4)
-            }
-        }
-        .padding(16)
-        .background(
-            RoundedRectangle(cornerRadius: 18, style: .continuous)
-                .fill(.ultraThinMaterial)
-                .shadow(color: .black.opacity(0.06), radius: 12, x: 0, y: 6)
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: 18, style: .continuous)
-                .stroke(
-                    LinearGradient(colors: [.white.opacity(0.3), .white.opacity(0.1)], startPoint: .topLeading, endPoint: .bottomTrailing),
-                    lineWidth: 1
-                )
-        )
-    }
-    
-    private func alignmentIcon(for position: String) -> String {
-        switch position {
-        case "left": return "text.alignleft"
-        case "center": return "text.aligncenter"
-        case "right": return "text.alignright"
-        default: return "text.aligncenter"
-        }
-    }
-    
-    // MARK: - Modern Padding Section
-    @ViewBuilder
-    private var modernPaddingSection: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            HStack(spacing: 8) {
-                Image(systemName: "arrow.up.left.and.arrow.down.right")
-                    .font(.system(size: 12, weight: .semibold))
-                    .foregroundStyle(selectedLayout.color)
-                Text("Padding")
-                    .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(.secondary)
-                    .textCase(.uppercase)
-                    .tracking(0.5)
-            }
+            Divider()
             
+            // Padding Controls
             VStack(spacing: 12) {
-                modernPaddingControl(title: "Left", icon: "arrow.left", value: leftPaddingBinding)
-                modernPaddingControl(title: "Right", icon: "arrow.right", value: rightPaddingBinding)
-                modernPaddingControl(title: "Top", icon: "arrow.up", value: topPaddingBinding)
-                modernPaddingControl(title: "Bottom", icon: "arrow.down", value: bottomPaddingBinding)
+                paddingRow(title: "Left", icon: "arrow.left", value: leftPaddingBinding)
+                paddingRow(title: "Right", icon: "arrow.right", value: rightPaddingBinding)
+                paddingRow(title: "Top", icon: "arrow.up", value: topPaddingBinding)
+                paddingRow(title: "Bottom", icon: "arrow.down", value: bottomPaddingBinding)
             }
         }
         .padding(16)
-        .background(
-            RoundedRectangle(cornerRadius: 18, style: .continuous)
-                .fill(.ultraThinMaterial)
-                .shadow(color: .black.opacity(0.06), radius: 12, x: 0, y: 6)
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: 18, style: .continuous)
-                .stroke(
-                    LinearGradient(colors: [.white.opacity(0.3), .white.opacity(0.1)], startPoint: .topLeading, endPoint: .bottomTrailing),
-                    lineWidth: 1
-                )
-        )
+        .background(cardBackground)
     }
     
-    @ViewBuilder
-    private func modernPaddingControl(title: String, icon: String, value: Binding<Double>) -> some View {
-        VStack(spacing: 8) {
-            HStack {
-                HStack(spacing: 6) {
-                    Image(systemName: icon)
-                        .font(.system(size: 10, weight: .semibold))
-                        .foregroundStyle(selectedLayout.color)
-                    Text(title)
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                }
-                Spacer()
-                Text("\(Int(value.wrappedValue)) pt")
-                    .font(.subheadline.weight(.semibold).monospacedDigit())
-                    .foregroundStyle(.primary)
-                    .padding(.horizontal, 10)
-                    .padding(.vertical, 4)
-                    .background(
-                        Capsule()
-                            .fill(Color(uiColor: .tertiarySystemGroupedBackground))
-                    )
+    private func alignmentButton(_ position: String) -> some View {
+        let isSelected = getAlignment() == position
+        let icon = position == "left" ? "text.alignleft" : (position == "center" ? "text.aligncenter" : "text.alignright")
+        
+        return Button {
+            withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                setAlignment(position)
+                HapticsManager.shared.softImpact()
             }
+        } label: {
+            VStack(spacing: 4) {
+                Image(systemName: icon)
+                    .font(.system(size: 14, weight: .semibold))
+                Text(position.capitalized)
+                    .font(.caption2)
+            }
+            .foregroundStyle(isSelected ? .white : .primary)
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 10)
+            .background(
+                RoundedRectangle(cornerRadius: 10, style: .continuous)
+                    .fill(isSelected ? selectedLayout.color : Color(UIColor.tertiarySystemGroupedBackground))
+            )
+        }
+        .buttonStyle(.plain)
+    }
+    
+    private func paddingRow(title: String, icon: String, value: Binding<Double>) -> some View {
+        HStack(spacing: 12) {
+            Image(systemName: icon)
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundStyle(selectedLayout.color)
+                .frame(width: 20)
             
-            Slider(value: value, in: 0...100, step: 1)
+            Text(title)
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+            
+            Slider(value: value, in: 0...50, step: 1)
                 .tint(selectedLayout.color)
+            
+            Text("\(Int(value.wrappedValue))")
+                .font(.caption.weight(.semibold).monospacedDigit())
+                .foregroundStyle(.secondary)
+                .frame(width: 30)
         }
     }
     
-    // MARK: - Widget Specific Options
-    @ViewBuilder
-    private var widgetSpecificOptions: some View {
-        switch selectedLayout {
-        case .network:
-            networkOptions
-        case .memory:
-            memoryOptions
-        case .battery:
-            batteryOptions
-        case .date:
-            dateOptions
-        default:
-            EmptyView()
+    // MARK: - Helper Views
+    private func sectionHeader(_ title: String, icon: String, color: Color) -> some View {
+        HStack(spacing: 8) {
+            Image(systemName: icon)
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundStyle(color)
+            Text(title.uppercased())
+                .font(.caption.weight(.bold))
+                .foregroundStyle(.secondary)
         }
     }
     
-    @ViewBuilder
-    private var networkOptions: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            HStack(spacing: 8) {
-                Image(systemName: "wifi")
-                    .font(.system(size: 12, weight: .semibold))
-                    .foregroundStyle(.cyan)
-                Text("Network Options")
-                    .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(.secondary)
-                    .textCase(.uppercase)
-                    .tracking(0.5)
-            }
-            
-            Toggle(isOn: $viewModel.showNetworkStatus) {
-                HStack {
-                    Text("Show Network Status")
-                        .font(.subheadline)
-                    Spacer()
-                }
-            }
-            .tint(.cyan)
-            
-            if viewModel.showNetworkStatus {
-                Picker("Display Style", selection: $viewModel.networkIconStyle) {
-                    Text("Bars").tag("bars")
-                    Text("Dot").tag("dot")
-                    Text("Text").tag("text")
-                }
-                .pickerStyle(.segmented)
-            }
-        }
-        .padding(16)
-        .background(
-            RoundedRectangle(cornerRadius: 18, style: .continuous)
-                .fill(.ultraThinMaterial)
-                .shadow(color: .black.opacity(0.06), radius: 12, x: 0, y: 6)
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: 18, style: .continuous)
-                .stroke(
-                    LinearGradient(colors: [.white.opacity(0.3), .white.opacity(0.1)], startPoint: .topLeading, endPoint: .bottomTrailing),
-                    lineWidth: 1
-                )
-        )
-    }
-    
-    @ViewBuilder
-    private var memoryOptions: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            HStack(spacing: 8) {
-                Image(systemName: "memorychip.fill")
-                    .font(.system(size: 12, weight: .semibold))
-                    .foregroundStyle(.pink)
-                Text("Memory Options")
-                    .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(.secondary)
-                    .textCase(.uppercase)
-                    .tracking(0.5)
-            }
-            
-            Toggle(isOn: $viewModel.showMemoryUsage) {
-                HStack {
-                    Text("Show Memory Usage")
-                        .font(.subheadline)
-                    Spacer()
-                }
-            }
-            .tint(.pink)
-            
-            if viewModel.showMemoryUsage {
-                Picker("Display Style", selection: $viewModel.memoryDisplayStyle) {
-                    Text("Percentage").tag("percentage")
-                    Text("MB").tag("mb")
-                    Text("Both").tag("both")
-                }
-                .pickerStyle(.segmented)
-            }
-        }
-        .padding(16)
-        .background(
-            RoundedRectangle(cornerRadius: 18, style: .continuous)
-                .fill(.ultraThinMaterial)
-                .shadow(color: .black.opacity(0.06), radius: 12, x: 0, y: 6)
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: 18, style: .continuous)
-                .stroke(
-                    LinearGradient(colors: [.white.opacity(0.3), .white.opacity(0.1)], startPoint: .topLeading, endPoint: .bottomTrailing),
-                    lineWidth: 1
-                )
-        )
-    }
-    
-    @ViewBuilder
-    private var batteryOptions: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            HStack(spacing: 8) {
-                Image(systemName: "battery.100")
-                    .font(.system(size: 12, weight: .semibold))
-                    .foregroundStyle(.green)
-                Text("Battery Options")
-                    .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(.secondary)
-                    .textCase(.uppercase)
-                    .tracking(0.5)
-            }
-            
-            Toggle(isOn: $viewModel.showBattery) {
-                HStack {
-                    Text("Show Battery")
-                        .font(.subheadline)
-                    Spacer()
-                }
-            }
-            .tint(.green)
-            
-            if viewModel.showBattery {
-                Picker("Display Style", selection: $viewModel.batteryStyle) {
-                    Text("Icon").tag("icon")
-                    Text("Percentage").tag("percentage")
-                    Text("Both").tag("both")
-                }
-                .pickerStyle(.segmented)
-                
-                Toggle(isOn: $viewModel.batteryUseAutoColor) {
-                    Text("Auto Color Based on Level")
-                        .font(.subheadline)
-                }
-                .tint(.green)
-            }
-        }
-        .padding(16)
-        .background(
-            RoundedRectangle(cornerRadius: 18, style: .continuous)
-                .fill(.ultraThinMaterial)
-                .shadow(color: .black.opacity(0.06), radius: 12, x: 0, y: 6)
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: 18, style: .continuous)
-                .stroke(
-                    LinearGradient(colors: [.white.opacity(0.3), .white.opacity(0.1)], startPoint: .topLeading, endPoint: .bottomTrailing),
-                    lineWidth: 1
-                )
-        )
-    }
-    
-    @ViewBuilder
-    private var dateOptions: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            HStack(spacing: 8) {
-                Image(systemName: "calendar")
-                    .font(.system(size: 12, weight: .semibold))
-                    .foregroundStyle(.indigo)
-                Text("Date Options")
-                    .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(.secondary)
-                    .textCase(.uppercase)
-                    .tracking(0.5)
-            }
-            
-            Toggle(isOn: $viewModel.showDate) {
-                HStack {
-                    Text("Show Date")
-                        .font(.subheadline)
-                    Spacer()
-                }
-            }
-            .tint(.indigo)
-            
-            if viewModel.showDate {
-                Toggle(isOn: $viewModel.showWeekday) {
-                    Text("Show Weekday")
-                        .font(.subheadline)
-                }
-                .tint(.indigo)
-                
-                Picker("Date Format", selection: $viewModel.dateFormat) {
-                    Text("Short").tag("short")
-                    Text("Medium").tag("medium")
-                    Text("Long").tag("long")
-                }
-                .pickerStyle(.segmented)
-            }
-        }
-        .padding(16)
-        .background(
-            RoundedRectangle(cornerRadius: 18, style: .continuous)
-                .fill(.ultraThinMaterial)
-                .shadow(color: .black.opacity(0.06), radius: 12, x: 0, y: 6)
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: 18, style: .continuous)
-                .stroke(
-                    LinearGradient(colors: [.white.opacity(0.3), .white.opacity(0.1)], startPoint: .topLeading, endPoint: .bottomTrailing),
-                    lineWidth: 1
-                )
-        )
+    private var cardBackground: some View {
+        RoundedRectangle(cornerRadius: 16, style: .continuous)
+            .fill(Color(UIColor.secondarySystemGroupedBackground))
     }
     
     // MARK: - Padding Bindings
@@ -675,7 +255,8 @@ struct ConfigureLayoutsView: View {
         case .text: return $viewModel.textLeftPadding
         case .sfSymbol: return $viewModel.sfSymbolLeftPadding
         case .time: return $viewModel.timeLeftPadding
-        case .battery, .network, .memory, .date, .cpu: return $viewModel.batteryLeftPadding
+        case .battery: return $viewModel.batteryLeftPadding
+        default: return $viewModel.leftPadding
         }
     }
     
@@ -684,7 +265,8 @@ struct ConfigureLayoutsView: View {
         case .text: return $viewModel.textRightPadding
         case .sfSymbol: return $viewModel.sfSymbolRightPadding
         case .time: return $viewModel.timeRightPadding
-        case .battery, .network, .memory, .date, .cpu: return $viewModel.batteryRightPadding
+        case .battery: return $viewModel.batteryRightPadding
+        default: return $viewModel.rightPadding
         }
     }
     
@@ -693,7 +275,8 @@ struct ConfigureLayoutsView: View {
         case .text: return $viewModel.textTopPadding
         case .sfSymbol: return $viewModel.sfSymbolTopPadding
         case .time: return $viewModel.timeTopPadding
-        case .battery, .network, .memory, .date, .cpu: return $viewModel.batteryTopPadding
+        case .battery: return $viewModel.batteryTopPadding
+        default: return $viewModel.topPadding
         }
     }
     
@@ -702,31 +285,189 @@ struct ConfigureLayoutsView: View {
         case .text: return $viewModel.textBottomPadding
         case .sfSymbol: return $viewModel.sfSymbolBottomPadding
         case .time: return $viewModel.timeBottomPadding
-        case .battery, .network, .memory, .date, .cpu: return $viewModel.batteryBottomPadding
+        case .battery: return $viewModel.batteryBottomPadding
+        default: return $viewModel.bottomPadding
         }
     }
     
-    // Helper methods for alignment
+    // MARK: - Alignment Helpers
     private func getAlignment() -> String {
         switch selectedLayout {
         case .text: return viewModel.textAlignment
         case .sfSymbol: return viewModel.sfSymbolAlignment
         case .time: return viewModel.timeAlignment
-        case .battery, .network, .memory, .date, .cpu: return viewModel.batteryAlignment
+        case .battery: return viewModel.batteryAlignment
+        default: return viewModel.alignment
         }
     }
     
-    private func setAlignment(_ position: String) {
+    private func setAlignment(_ value: String) {
         switch selectedLayout {
-        case .text: viewModel.textAlignment = position
-        case .sfSymbol: viewModel.sfSymbolAlignment = position
-        case .time: viewModel.timeAlignment = position
-        case .battery, .network, .memory, .date, .cpu: viewModel.batteryAlignment = position
+        case .text: viewModel.textAlignment = value
+        case .sfSymbol: viewModel.sfSymbolAlignment = value
+        case .time: viewModel.timeAlignment = value
+        case .battery: viewModel.batteryAlignment = value
+        default: viewModel.alignment = value
         }
+    }
+    
+    // MARK: - Widget Specific Options
+    @ViewBuilder
+    private var widgetSpecificOptions: some View {
+        switch selectedLayout {
+        case .text:
+            textOptions
+        case .sfSymbol:
+            symbolOptions
+        case .time:
+            timeOptions
+        case .battery:
+            batteryOptions
+        case .network:
+            networkOptions
+        case .memory:
+            memoryOptions
+        case .date:
+            dateOptions
+        }
+    }
+    
+    private var textOptions: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            sectionHeader("Text Options", icon: "textformat", color: .blue)
+            
+            TextField("Enter custom text", text: $viewModel.customText)
+                .textFieldStyle(.roundedBorder)
+            
+            Toggle("Enable Custom Text", isOn: $viewModel.showCustomText)
+                .tint(.blue)
+        }
+        .padding(16)
+        .background(cardBackground)
+    }
+    
+    private var symbolOptions: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            sectionHeader("Symbol Options", icon: "star.fill", color: .purple)
+            
+            HStack {
+                Text("Current Symbol")
+                Spacer()
+                Image(systemName: viewModel.sfSymbol)
+                    .font(.title2)
+                    .foregroundStyle(.purple)
+            }
+            
+            Toggle("Enable SF Symbol", isOn: $viewModel.showSFSymbol)
+                .tint(.purple)
+        }
+        .padding(16)
+        .background(cardBackground)
+    }
+    
+    private var timeOptions: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            sectionHeader("Time Options", icon: "clock.fill", color: .orange)
+            
+            Toggle("Enable Time Display", isOn: $viewModel.showTime)
+                .tint(.orange)
+            
+            if viewModel.showTime {
+                Toggle("Show Seconds", isOn: $viewModel.showSeconds)
+                Toggle("24-Hour Format", isOn: $viewModel.use24HourClock)
+                Toggle("Animate Changes", isOn: $viewModel.animateTime)
+            }
+        }
+        .padding(16)
+        .background(cardBackground)
+    }
+    
+    private var batteryOptions: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            sectionHeader("Battery Options", icon: "battery.100", color: .green)
+            
+            Toggle("Enable Battery Display", isOn: $viewModel.showBattery)
+                .tint(.green)
+            
+            if viewModel.showBattery {
+                Picker("Style", selection: $viewModel.batteryStyle) {
+                    Text("Icon").tag("icon")
+                    Text("Percentage").tag("percentage")
+                    Text("Both").tag("both")
+                }
+                .pickerStyle(.segmented)
+                
+                Toggle("Auto Color by Level", isOn: $viewModel.batteryUseAutoColor)
+            }
+        }
+        .padding(16)
+        .background(cardBackground)
+    }
+    
+    private var networkOptions: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            sectionHeader("Network Options", icon: "wifi", color: .cyan)
+            
+            Toggle("Enable Network Status", isOn: $viewModel.showNetworkStatus)
+                .tint(.cyan)
+            
+            if viewModel.showNetworkStatus {
+                Picker("Style", selection: $viewModel.networkIconStyle) {
+                    Text("Bars").tag("bars")
+                    Text("Dot").tag("dot")
+                    Text("Text").tag("text")
+                }
+                .pickerStyle(.segmented)
+            }
+        }
+        .padding(16)
+        .background(cardBackground)
+    }
+    
+    private var memoryOptions: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            sectionHeader("Memory Options", icon: "memorychip.fill", color: .pink)
+            
+            Toggle("Enable Memory Display", isOn: $viewModel.showMemoryUsage)
+                .tint(.pink)
+            
+            if viewModel.showMemoryUsage {
+                Picker("Style", selection: $viewModel.memoryDisplayStyle) {
+                    Text("Percentage").tag("percentage")
+                    Text("MB").tag("mb")
+                    Text("Both").tag("both")
+                }
+                .pickerStyle(.segmented)
+            }
+        }
+        .padding(16)
+        .background(cardBackground)
+    }
+    
+    private var dateOptions: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            sectionHeader("Date Options", icon: "calendar", color: .indigo)
+            
+            Toggle("Enable Date Display", isOn: $viewModel.showDate)
+                .tint(.indigo)
+            
+            if viewModel.showDate {
+                Toggle("Show Weekday", isOn: $viewModel.showWeekday)
+                
+                Picker("Format", selection: $viewModel.dateFormat) {
+                    Text("Short").tag("short")
+                    Text("Medium").tag("medium")
+                    Text("Long").tag("long")
+                }
+                .pickerStyle(.segmented)
+            }
+        }
+        .padding(16)
+        .background(cardBackground)
     }
 }
 
-// MARK: - iOS 17 Symbol Effect Compatibility Modifier
+// MARK: - Bounce Effect Modifier
 struct ConfigureBounceEffectModifier: ViewModifier {
     let trigger: Bool
     
@@ -737,9 +478,4 @@ struct ConfigureBounceEffectModifier: ViewModifier {
             content
         }
     }
-}
-
-// MARK: - Preview
-#Preview {
-    ConfigureLayoutsView(viewModel: StatusBarViewModel())
 }
