@@ -213,7 +213,7 @@ enum HeaderSubtitle {
         "Drizzy > Kendrick",
         "love my future gf S ❤️",
         "Kravasigner Who?",
-        "Forgotten Signers"t
+        "Forgotten Signers",
     ]
     
     /// Add a new subtitle at runtime
