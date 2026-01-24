@@ -3154,7 +3154,7 @@ struct PlistEntryRow: View {
             HStack(spacing: 12) {
                 if isMultiSelectMode {
                     Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
-                        .foregroundStyle(isSelected ? .accentColor : .secondary)
+                        .foregroundStyle(isSelected ? Color.accentColor : Color.secondary)
                 }
                 
                 VStack(alignment: .leading, spacing: 4) {
@@ -3545,10 +3545,10 @@ struct ResourceModifierView: View {
     // MARK: - Statistics Bar
     private var statisticsBar: some View {
         HStack(spacing: 16) {
-            StatBadge(title: "Total", value: "\(resources.count)", color: .blue)
-            StatBadge(title: "Size", value: totalSize, color: .green)
-            StatBadge(title: "Images", value: "\(resources.filter { ["png", "jpg", "jpeg", "pdf", "svg"].contains($0.type.lowercased()) }.count)", color: .orange)
-            StatBadge(title: "Modified", value: "\(resources.filter { $0.isModified }.count)", color: .purple)
+            ResourceStatBadge(title: "Total", value: "\(resources.count)", color: .blue)
+            ResourceStatBadge(title: "Size", value: totalSize, color: .green)
+            ResourceStatBadge(title: "Images", value: "\(resources.filter { ["png", "jpg", "jpeg", "pdf", "svg"].contains($0.type.lowercased()) }.count)", color: .orange)
+            ResourceStatBadge(title: "Modified", value: "\(resources.filter { $0.isModified }.count)", color: .purple)
             Spacer()
         }
         .padding(.horizontal)
@@ -3829,8 +3829,8 @@ struct ResourceModifierView: View {
     }
 }
 
-// MARK: - Stat Badge
-struct StatBadge: View {
+// MARK: - Resource Stat Badge
+struct ResourceStatBadge: View {
     let title: String
     let value: String
     let color: Color
@@ -3865,7 +3865,7 @@ struct ResourceRow: View {
             HStack(spacing: 12) {
                 if isMultiSelectMode {
                     Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
-                        .foregroundStyle(isSelected ? .accentColor : .secondary)
+                        .foregroundStyle(isSelected ? Color.accentColor : Color.secondary)
                 }
                 
                 // Icon
@@ -4048,20 +4048,20 @@ struct ResourceDetailView: View {
                 
                 // Basic Info
                 Section {
-                    DetailRow(title: "Name", value: resource.name)
-                    DetailRow(title: "Type", value: resource.type.uppercased())
-                    DetailRow(title: "Size", value: resource.size)
-                    DetailRow(title: "Path", value: resource.path)
+                    ResourceDetailRow(title: "Name", value: resource.name)
+                    ResourceDetailRow(title: "Type", value: resource.type.uppercased())
+                    ResourceDetailRow(title: "Size", value: resource.size)
+                    ResourceDetailRow(title: "Path", value: resource.path)
                 } header: {
                     Text("Basic Information")
                 }
                 
                 // File Details
                 Section {
-                    DetailRow(title: "Modified", value: formatDate(resource.modifiedDate))
-                    DetailRow(title: "Permissions", value: resource.permissions)
+                    ResourceDetailRow(title: "Modified", value: formatDate(resource.modifiedDate))
+                    ResourceDetailRow(title: "Permissions", value: resource.permissions)
                     if let checksum = resource.checksum {
-                        DetailRow(title: "Checksum (MD5)", value: checksum)
+                        ResourceDetailRow(title: "Checksum (MD5)", value: checksum)
                     }
                 } header: {
                     Text("File Details")
@@ -4070,10 +4070,10 @@ struct ResourceDetailView: View {
                 // Type-specific Info
                 if let dimensions = resource.dimensions {
                     Section {
-                        DetailRow(title: "Dimensions", value: dimensions)
-                        DetailRow(title: "Color Space", value: "sRGB")
-                        DetailRow(title: "Bit Depth", value: "8-bit")
-                        DetailRow(title: "Has Alpha", value: "Yes")
+                        ResourceDetailRow(title: "Dimensions", value: dimensions)
+                        ResourceDetailRow(title: "Color Space", value: "sRGB")
+                        ResourceDetailRow(title: "Bit Depth", value: "8-bit")
+                        ResourceDetailRow(title: "Has Alpha", value: "Yes")
                     } header: {
                         Text("Image Details")
                     }
@@ -4081,8 +4081,8 @@ struct ResourceDetailView: View {
                 
                 if let encoding = resource.encoding {
                     Section {
-                        DetailRow(title: "Encoding", value: encoding)
-                        DetailRow(title: "Line Count", value: "~150 lines")
+                        ResourceDetailRow(title: "Encoding", value: encoding)
+                        ResourceDetailRow(title: "Line Count", value: "~150 lines")
                     } header: {
                         Text("Text Details")
                     }
@@ -4090,8 +4090,8 @@ struct ResourceDetailView: View {
                 
                 if let ratio = resource.compressionRatio {
                     Section {
-                        DetailRow(title: "Compression", value: "\(Int(ratio * 100))%")
-                        DetailRow(title: "Original Size", value: formatBytes(Int64(Double(resource.sizeBytes) / ratio)))
+                        ResourceDetailRow(title: "Compression", value: "\(Int(ratio * 100))%")
+                        ResourceDetailRow(title: "Original Size", value: formatBytes(Int64(Double(resource.sizeBytes) / ratio)))
                     } header: {
                         Text("Compression Details")
                     }
@@ -4155,8 +4155,8 @@ struct ResourceDetailView: View {
     }
 }
 
-// MARK: - Detail Row
-struct DetailRow: View {
+// MARK: - Resource Detail Row
+struct ResourceDetailRow: View {
     let title: String
     let value: String
     

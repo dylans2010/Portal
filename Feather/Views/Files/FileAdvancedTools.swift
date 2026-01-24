@@ -1,6 +1,24 @@
 import SwiftUI
 import UniformTypeIdentifiers
 
+// MARK: - File Tools Detail Row
+struct FileToolsDetailRow: View {
+    let title: String
+    let value: String
+    
+    var body: some View {
+        HStack {
+            Text(title)
+                .foregroundStyle(.secondary)
+            Spacer()
+            Text(value)
+                .font(.system(.body, design: .monospaced))
+                .foregroundStyle(.primary)
+                .lineLimit(1)
+        }
+    }
+}
+
 // MARK: - File Advanced Tools View
 struct FileAdvancedToolsView: View {
     @State private var selectedTool: AdvancedFileTool? = nil
@@ -774,11 +792,11 @@ struct BinaryAnalysisView: View {
                 }
             } else if let result = analysisResult {
                 Section {
-                    DetailRow(title: "Magic", value: result.magic)
-                    DetailRow(title: "CPU Type", value: result.cpuType)
-                    DetailRow(title: "File Type", value: result.fileType)
-                    DetailRow(title: "Encrypted", value: result.isEncrypted ? "Yes" : "No")
-                    DetailRow(title: "Code Signed", value: result.hasCodeSignature ? "Yes" : "No")
+                    FileToolsDetailRow(title: "Magic", value: result.magic)
+                    FileToolsDetailRow(title: "CPU Type", value: result.cpuType)
+                    FileToolsDetailRow(title: "File Type", value: result.fileType)
+                    FileToolsDetailRow(title: "Encrypted", value: result.isEncrypted ? "Yes" : "No")
+                    FileToolsDetailRow(title: "Code Signed", value: result.hasCodeSignature ? "Yes" : "No")
                 } header: {
                     Text("Header Information")
                 }
