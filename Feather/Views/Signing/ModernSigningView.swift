@@ -1736,9 +1736,9 @@ struct BinaryInspectorView: View {
                 }
             } else {
                 Section {
-                    InfoRow(title: "Executable", value: app.name ?? "Unknown")
-                    InfoRow(title: "Bundle ID", value: app.identifier ?? "Unknown")
-                    InfoRow(title: "Version", value: app.version ?? "Unknown")
+                    SigningInfoRow(title: "Executable", value: app.name ?? "Unknown")
+                    SigningInfoRow(title: "Bundle ID", value: app.identifier ?? "Unknown")
+                    SigningInfoRow(title: "Version", value: app.version ?? "Unknown")
                 } header: {
                     Text("App Info")
                 }
@@ -1753,7 +1753,7 @@ struct BinaryInspectorView: View {
                 
                 Section {
                     ForEach(binaryInfo.sorted(by: { $0.key < $1.key }), id: \.key) { key, value in
-                        InfoRow(title: key, value: value)
+                        SigningInfoRow(title: key, value: value)
                     }
                 } header: {
                     Text("Binary Details")
@@ -2289,8 +2289,8 @@ struct SigningLogsDebugView: View {
     }
 }
 
-// MARK: - Info Row Helper
-private struct InfoRow: View {
+// MARK: - Signing Info Row Helper
+private struct SigningInfoRow: View {
     let title: String
     let value: String
     
