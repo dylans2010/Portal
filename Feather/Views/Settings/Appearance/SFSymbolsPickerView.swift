@@ -172,7 +172,7 @@ struct SFSymbolsPickerView: View {
                         }
                     } label: {
                         Image(systemName: showCustomizationPanel ? "slider.horizontal.3" : "slider.horizontal.3")
-                            .foregroundStyle(showCustomizationPanel ? .accentColor : .primary)
+                            .foregroundColor(showCustomizationPanel ? .accentColor : .primary)
                     }
                 }
             }
@@ -210,7 +210,7 @@ struct SFSymbolsPickerView: View {
             // Custom Symbol Input
             HStack(spacing: 10) {
                 Image(systemName: "plus.circle.fill")
-                    .foregroundStyle(.accentColor)
+                    .foregroundColor(.accentColor)
                 
                 TextField("Enter custom symbol name...", text: $customSymbolName)
                     .textFieldStyle(.plain)
@@ -301,7 +301,7 @@ struct SFSymbolsPickerView: View {
                 Text(title)
                     .font(.subheadline)
             }
-            .foregroundStyle(viewModel.selectedCategory == category ? .accentColor : .secondary)
+            .foregroundColor(viewModel.selectedCategory == category ? .accentColor : .secondary)
             .frame(maxWidth: .infinity)
             .padding(.vertical, 8)
             .background(
