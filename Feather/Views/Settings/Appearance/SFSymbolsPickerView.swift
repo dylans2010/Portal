@@ -187,7 +187,7 @@ struct SFSymbolsPickerView: View {
                 Image(systemName: "magnifyingglass")
                     .foregroundStyle(.secondary)
                 
-                TextField("Search any SF Symbol...", text: $viewModel.searchText)
+                TextField("Search SF Symbols", text: $viewModel.searchText)
                     .textFieldStyle(.plain)
                     .autocapitalization(.none)
                     .autocorrectionDisabled()
@@ -212,7 +212,7 @@ struct SFSymbolsPickerView: View {
                 Image(systemName: "plus.circle.fill")
                     .foregroundColor(.accentColor)
                 
-                TextField("Enter custom symbol name...", text: $customSymbolName)
+                TextField("Search Any SF Symbol", text: $customSymbolName)
                     .textFieldStyle(.plain)
                     .autocapitalization(.none)
                     .autocorrectionDisabled()
@@ -324,7 +324,7 @@ struct SFSymbolsPickerView: View {
                 .font(.system(size: 48))
                 .foregroundStyle(.secondary)
             
-            Text("No symbols found")
+            Text("No Symbols Found")
                 .font(.headline)
             
             Text("Try a different search term or enter the exact SF Symbol name above")

@@ -196,26 +196,24 @@ enum HeaderSubtitle {
     /// All available subtitles - ADD NEW SUBTITLES HERE
     /// Just add a new string to this array!
     static var allSubtitles: [String] = [
-        "The Modern Signer",
-        "Sign Apps Your Way",
-        "Built with SwiftUI",
-        "No Competition",
+        "the modern signer",
+        "no competition",
+        "Built with Swift",
+        "Kravashit are a scam",
         "Just Works™",
-        "Made with ❤️",
-        "Vibe Coded",
+        "Made with some crashouts",
+        "vibe coded project lol",
         "The Greatest Signer",
-        "Most Modern Signer",
         "Use Portal",
         "Random Project",
-        "Crashouts Welcome",
         "WSF Top",
         "Kravashit",
         "Just When You Thought",
         "Love Ragebaiting",
-        "Drizzy vs Kendrick",
-        "Want S?",
+        "Drizzy > Kendrick",
+        "love my future gf S ❤️",
         "Kravasigner Who?",
-        "Forgotten Signers"
+        "Forgotten Signers"t
     ]
     
     /// Add a new subtitle at runtime

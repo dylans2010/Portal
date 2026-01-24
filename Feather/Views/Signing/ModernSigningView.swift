@@ -1804,7 +1804,7 @@ struct AdvancedDebugToolsView: View {
             // MARK: - Code Signing Section
             Section {
                 Toggle(isOn: $useAdhocSigning) {
-                    Label("Ad-hoc Signing", systemImage: "person.crop.circle.badge.questionmark")
+                    Label("AdHoc Signing", systemImage: "person.crop.circle.badge.questionmark")
                 }
                 
                 Toggle(isOn: $preserveMetadata) {
@@ -2471,7 +2471,7 @@ struct InfoPlistEditorDebugView: View {
             Button("OK", role: .cancel) { }
         } message: {
             if validationErrors.isEmpty {
-                Text("✅ Info.plist is valid!")
+                Text("✅ Info.plist Is Valid!")
             } else {
                 Text(validationErrors.joined(separator: "\n"))
             }
@@ -3398,8 +3398,8 @@ struct ResourceModifierView: View {
     enum ResourceSortOrder: String, CaseIterable {
         case nameAscending = "Name (A-Z)"
         case nameDescending = "Name (Z-A)"
-        case sizeAscending = "Size (Small first)"
-        case sizeDescending = "Size (Large first)"
+        case sizeAscending = "Size (Small First)"
+        case sizeDescending = "Size (Large First)"
         case typeAscending = "Type (A-Z)"
         case dateDescending = "Recently Modified"
     }
@@ -3465,7 +3465,7 @@ struct ResourceModifierView: View {
                 resourceListView
             }
         }
-        .searchable(text: $searchText, prompt: "Search resources...")
+        .searchable(text: $searchText, prompt: "Search Resources")
         .navigationTitle("Resource Modifier")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
@@ -3628,7 +3628,7 @@ struct ResourceModifierView: View {
         VStack(spacing: 16) {
             ProgressView()
                 .scaleEffect(1.2)
-            Text("Scanning resources...")
+            Text("Scanning Resources...")
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
         }
@@ -4384,13 +4384,13 @@ struct SigningLogsDebugView: View {
             ("10:23:47", "Info", "Found executable: MyApp"),
             ("10:23:47", "Debug", "Analyzing Mach-O binary"),
             ("10:23:48", "Info", "Removing existing signature"),
-            ("10:23:48", "Warning", "Bitcode section found, stripping..."),
-            ("10:23:49", "Info", "Injecting provisioning profile"),
+            ("10:23:48", "Warning", "Bitcode Section Found, Stripping..."),
+            ("10:23:49", "Info", "Injecting Provisioning Profile"),
             ("10:23:49", "Debug", "Updating Info.plist"),
-            ("10:23:50", "Info", "Signing frameworks..."),
-            ("10:23:51", "Info", "Signing main executable"),
-            ("10:23:52", "Info", "Creating signed IPA"),
-            ("10:23:53", "Info", "Signing completed successfully!")
+            ("10:23:50", "Info", "Signing Frameworks..."),
+            ("10:23:51", "Info", "Signing Main Executable"),
+            ("10:23:52", "Info", "Creating Signed IPA"),
+            ("10:23:53", "Info", "Signing Completed Successfully!")
         ]
     }
 }
