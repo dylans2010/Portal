@@ -1,6 +1,7 @@
 import SwiftUI
 import PhotosUI
 import NimbleViews
+import ImageIO
 
 // MARK: - Modern Full Screen Signing View
 struct ModernSigningView: View {
@@ -1578,221 +1579,431 @@ struct AdvancedDebugToolsView: View {
     @Binding var options: Options
     @Binding var appIcon: UIImage?
     
-    // Version Override
-    @State private var customMinimumVersion = ""
-    @State private var customBuildNumber = ""
-    @State private var customShortVersion = ""
-    @State private var customBundleVersion = ""
+    // App Info (loaded from real app)
+    @State private var appDirectory: URL?
+    @State private var appSize: String = "Calculating..."
+    @State private var executableName: String = ""
+    @State private var bundleIdentifier: String = ""
+    @State private var currentVersion: String = ""
+    @State private var minimumOSVersion: String = ""
     
-    // Binary Modifications
-    @State private var forceArmv7 = false
-    @State private var stripBitcode = true
-    @State private var removeSignature = false
-    @State private var thinBinary = false
-    @State private var selectedArchitecture = "arm64"
-    @State private var enablePIE = true
-    @State private var stripDebugSymbols = false
-    @State private var removeSwiftSupport = false
+    // Files to remove (populated from real app structure)
+    @State private var removableFiles: [String] = []
+    @State private var selectedFilesToRemove: Set<String> = []
     
-    // Injection
-    @State private var injectCustomDylib = false
-    @State private var customDylibPath = ""
-    @State private var modifyExecutable = false
+    // Dylib injection
     @State private var showDylibPicker = false
-    @State private var injectFramework = false
-    @State private var frameworkPath = ""
-    @State private var hookingEnabled = false
-    @State private var substrateSafeMode = false
+    @State private var selectedDylibURL: URL?
     
-    // Code Signing
-    @State private var useAdhocSigning = false
-    @State private var preserveMetadata = true
-    @State private var deepSign = true
-    @State private var forceSign = false
-    @State private var timestampSigning = true
-    @State private var customTeamID = ""
-    @State private var customSigningIdentity = ""
+    // Framework injection
+    @State private var showFrameworkPicker = false
+    @State private var selectedFrameworkURL: URL?
     
-    // Entitlements & Capabilities
-    @State private var stripEntitlements = false
-    @State private var mergeEntitlements = true
-    @State private var allowUnsignedExecutable = false
-    @State private var enableJIT = false
-    @State private var enableDebugging = true
-    @State private var allowDyldEnvironment = false
+    // Custom entitlements
+    @State private var showEntitlementsPicker = false
     
-    // App Modifications
-    @State private var removePlugins = false
-    @State private var removeWatchApp = false
-    @State private var removeExtensions = false
-    @State private var removeOnDemandResources = false
-    @State private var compressAssets = false
-    @State private var optimizeImages = false
-    @State private var removeLocalizations = false
-    @State private var keepLocalizations: [String] = ["en"]
-    
-    // Debug Options
-    @State private var enableVerboseLogging = false
-    @State private var dryRunMode = false
-    @State private var generateReport = true
-    @State private var validateAfterSigning = true
-    @State private var showTimings = false
-    @State private var exportUnsignedIPA = false
-    
-    // Memory & Performance
-    @State private var lowMemoryMode = false
-    @State private var parallelSigning = true
-    @State private var chunkSize = 4
-    
-    // Advanced Patching
-    @State private var enableBinaryPatching = false
-    @State private var patchInstructions: [String] = []
-    @State private var hexPatchOffset = ""
-    @State private var hexPatchValue = ""
-    @State private var enableMethodSwizzling = false
-    @State private var swizzleTargets: [String] = []
+    // UI State
+    @State private var isLoading = true
+    @State private var showApplyConfirmation = false
+    @State private var statusMessage = ""
+    @State private var showStatusAlert = false
     
     private let architectures = ["arm64", "arm64e", "armv7", "armv7s", "x86_64"]
     
     var body: some View {
         List {
+            // MARK: - App Info Section (Real Data)
             Section {
-                VStack(alignment: .leading, spacing: 8) {
-                    Label("Advanced Debug Tools", systemImage: "hammer.fill")
-                        .font(.headline)
-                        .foregroundStyle(.red)
-                    Text("Powerful tools for modifying apps before signing. Use with extreme caution - incorrect settings may cause app crashes or installation failures.")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
+                if isLoading {
+                    HStack {
+                        Spacer()
+                        ProgressView("Loading app info...")
+                        Spacer()
+                    }
+                    .padding()
+                } else {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Label("Advanced Debug Tools", systemImage: "hammer.fill")
+                            .font(.headline)
+                            .foregroundStyle(.red)
+                        Text("Modify \(app.name ?? "App") before signing. Changes are applied to the Options.")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                    .padding(.vertical, 4)
+                    
+                    HStack {
+                        Text("Bundle ID")
+                            .foregroundStyle(.secondary)
+                        Spacer()
+                        Text(bundleIdentifier)
+                            .font(.system(.body, design: .monospaced))
+                    }
+                    
+                    HStack {
+                        Text("Version")
+                            .foregroundStyle(.secondary)
+                        Spacer()
+                        Text(currentVersion)
+                            .font(.system(.body, design: .monospaced))
+                    }
+                    
+                    HStack {
+                        Text("Min iOS")
+                            .foregroundStyle(.secondary)
+                        Spacer()
+                        Text(minimumOSVersion.isEmpty ? "Not specified" : minimumOSVersion)
+                            .font(.system(.body, design: .monospaced))
+                    }
+                    
+                    HStack {
+                        Text("Executable")
+                            .foregroundStyle(.secondary)
+                        Spacer()
+                        Text(executableName.isEmpty ? "Unknown" : executableName)
+                            .font(.system(.body, design: .monospaced))
+                    }
+                    
+                    HStack {
+                        Text("App Size")
+                            .foregroundStyle(.secondary)
+                        Spacer()
+                        Text(appSize)
+                            .font(.system(.body, design: .monospaced))
+                    }
                 }
-                .padding(.vertical, 4)
+            } header: {
+                debugSectionHeader("App Information", icon: "info.circle.fill", color: .blue)
             }
             
             // MARK: - Version Override Section
             Section {
-                HStack {
-                    Label("Min iOS Version", systemImage: "iphone.gen1")
-                    Spacer()
-                    TextField("e.g., 14.0", text: $customMinimumVersion)
-                        .textFieldStyle(.roundedBorder)
-                        .frame(width: 100)
-                        .keyboardType(.decimalPad)
-                }
-                
-                HStack {
-                    Label("Build Number", systemImage: "number")
-                    Spacer()
-                    TextField("e.g., 1234", text: $customBuildNumber)
-                        .textFieldStyle(.roundedBorder)
-                        .frame(width: 100)
-                        .keyboardType(.numberPad)
-                }
-                
-                HStack {
-                    Label("Short Version", systemImage: "textformat.123")
-                    Spacer()
-                    TextField("e.g., 2.0.1", text: $customShortVersion)
-                        .textFieldStyle(.roundedBorder)
-                        .frame(width: 100)
-                }
-                
-                HStack {
-                    Label("Bundle Version", systemImage: "number.circle")
-                    Spacer()
-                    TextField("e.g., 2001", text: $customBundleVersion)
-                        .textFieldStyle(.roundedBorder)
-                        .frame(width: 100)
-                        .keyboardType(.numberPad)
-                }
-            } header: {
-                debugSectionHeader("Version Override", icon: "tag.fill", color: .blue)
-            }
-            
-            // MARK: - Binary Modifications Section
-            Section {
-                Toggle(isOn: $forceArmv7) {
-                    Label("Force ARMv7 Slice", systemImage: "cpu")
-                }
-                
-                Toggle(isOn: $stripBitcode) {
-                    Label("Strip Bitcode", systemImage: "xmark.bin.fill")
-                }
-                
-                Toggle(isOn: $removeSignature) {
-                    Label("Remove Existing Signature", systemImage: "signature")
-                }
-                
-                Toggle(isOn: $thinBinary) {
-                    Label("Thin Binary", systemImage: "scissors")
-                }
-                
-                if thinBinary {
-                    Picker("Target Architecture", selection: $selectedArchitecture) {
-                        ForEach(architectures, id: \.self) { arch in
-                            Text(arch).tag(arch)
-                        }
+                Picker("Minimum iOS Version", selection: $options.minimumAppRequirement) {
+                    ForEach(Options.MinimumAppRequirement.allCases, id: \.self) { requirement in
+                        Text(requirement.localizedDescription).tag(requirement)
                     }
                 }
                 
-                Toggle(isOn: $enablePIE) {
-                    Label("Enable PIE", systemImage: "shield.lefthalf.filled")
+                HStack {
+                    Label("Custom App Name", systemImage: "textformat")
+                    Spacer()
+                    TextField(app.name ?? "App Name", text: Binding(
+                        get: { options.appName ?? "" },
+                        set: { options.appName = $0.isEmpty ? nil : $0 }
+                    ))
+                    .textFieldStyle(.roundedBorder)
+                    .frame(width: 150)
                 }
                 
-                Toggle(isOn: $stripDebugSymbols) {
-                    Label("Strip Debug Symbols", systemImage: "ladybug.slash")
+                HStack {
+                    Label("Custom Version", systemImage: "number")
+                    Spacer()
+                    TextField(app.version ?? "1.0", text: Binding(
+                        get: { options.appVersion ?? "" },
+                        set: { options.appVersion = $0.isEmpty ? nil : $0 }
+                    ))
+                    .textFieldStyle(.roundedBorder)
+                    .frame(width: 100)
                 }
                 
-                Toggle(isOn: $removeSwiftSupport) {
-                    Label("Remove Swift Support", systemImage: "swift")
+                HStack {
+                    Label("Custom Bundle ID", systemImage: "app.badge")
+                    Spacer()
+                    TextField(app.identifier ?? "com.example.app", text: Binding(
+                        get: { options.appIdentifier ?? "" },
+                        set: { options.appIdentifier = $0.isEmpty ? nil : $0 }
+                    ))
+                    .textFieldStyle(.roundedBorder)
+                    .frame(width: 180)
+                    .textInputAutocapitalization(.never)
                 }
             } header: {
-                debugSectionHeader("Binary Modifications", icon: "doc.fill", color: .purple)
-            } footer: {
-                Text("These options modify the app binary directly. May cause app instability or crashes.")
+                debugSectionHeader("Version & Identity Override", icon: "tag.fill", color: .blue)
+            }
+            
+            // MARK: - Signing Options Section
+            Section {
+                Picker("Signing Mode", selection: $options.signingOption) {
+                    ForEach(Options.SigningOption.allCases, id: \.self) { option in
+                        Text(option.localizedDescription).tag(option)
+                    }
+                }
+                
+                Toggle(isOn: $options.ppqProtection) {
+                    Label("PPQ Protection", systemImage: "shield.fill")
+                }
+                
+                Toggle(isOn: $options.dynamicProtection) {
+                    Label("Dynamic Protection", systemImage: "shield.lefthalf.filled")
+                }
+                
+                if options.ppqProtection || options.dynamicProtection {
+                    HStack {
+                        Label("PPQ String", systemImage: "textformat.abc")
+                        Spacer()
+                        Text(options.ppqString)
+                            .font(.system(.caption, design: .monospaced))
+                            .foregroundStyle(.secondary)
+                        Button {
+                            options.ppqString = Options.randomString()
+                        } label: {
+                            Image(systemName: "arrow.clockwise")
+                        }
+                    }
+                }
+            } header: {
+                debugSectionHeader("Signing Options", icon: "checkmark.seal.fill", color: .green)
             }
             
             // MARK: - Injection Section
             Section {
-                Toggle(isOn: $injectCustomDylib) {
-                    Label("Inject Custom Dylib", systemImage: "syringe.fill")
+                Picker("Inject Path", selection: $options.injectPath) {
+                    ForEach(Options.InjectPath.allCases, id: \.self) { path in
+                        Text(path.rawValue).tag(path)
+                    }
                 }
                 
-                if injectCustomDylib {
-                    Button {
-                        showDylibPicker = true
-                    } label: {
+                Picker("Inject Folder", selection: $options.injectFolder) {
+                    ForEach(Options.InjectFolder.allCases, id: \.self) { folder in
+                        Text(folder.rawValue).tag(folder)
+                    }
+                }
+                
+                // Current injection files
+                if !options.injectionFiles.isEmpty {
+                    ForEach(options.injectionFiles, id: \.self) { url in
                         HStack {
-                            Text("Select Dylib")
+                            Image(systemName: "syringe.fill")
+                                .foregroundStyle(.green)
+                            Text(url.lastPathComponent)
+                                .font(.caption)
                             Spacer()
-                            Text(customDylibPath.isEmpty ? "None" : URL(fileURLWithPath: customDylibPath).lastPathComponent)
-                                .foregroundStyle(.secondary)
+                            Button {
+                                options.injectionFiles.removeAll { $0 == url }
+                            } label: {
+                                Image(systemName: "xmark.circle.fill")
+                                    .foregroundStyle(.red)
+                            }
                         }
                     }
                 }
                 
-                Toggle(isOn: $injectFramework) {
-                    Label("Inject Framework", systemImage: "shippingbox.fill")
+                Button {
+                    showDylibPicker = true
+                } label: {
+                    Label("Add Dylib/Framework", systemImage: "plus.circle.fill")
                 }
-                
-                if injectFramework {
-                    HStack {
-                        Text("Framework Path")
-                        Spacer()
-                        TextField("Path", text: $frameworkPath)
-                            .textFieldStyle(.roundedBorder)
-                            .frame(width: 150)
+            } header: {
+                debugSectionHeader("Injection", icon: "syringe.fill", color: .purple)
+            } footer: {
+                Text("Files will be injected into the app bundle during signing.")
+            }
+            
+            // MARK: - Files to Remove Section
+            Section {
+                // Current files to remove
+                if !options.removeFiles.isEmpty {
+                    ForEach(options.removeFiles, id: \.self) { file in
+                        HStack {
+                            Image(systemName: "trash.fill")
+                                .foregroundStyle(.red)
+                            Text(file)
+                                .font(.caption)
+                            Spacer()
+                            Button {
+                                options.removeFiles.removeAll { $0 == file }
+                            } label: {
+                                Image(systemName: "xmark.circle.fill")
+                                    .foregroundStyle(.secondary)
+                            }
+                        }
                     }
                 }
                 
-                Toggle(isOn: $modifyExecutable) {
-                    Label("Modify Executable Name", systemImage: "pencil")
+                // Removable files from app
+                if !removableFiles.isEmpty {
+                    ForEach(removableFiles, id: \.self) { file in
+                        if !options.removeFiles.contains(file) {
+                            Button {
+                                options.removeFiles.append(file)
+                                HapticsManager.shared.softImpact()
+                            } label: {
+                                HStack {
+                                    Image(systemName: "folder.fill")
+                                        .foregroundStyle(.orange)
+                                    Text(file)
+                                        .font(.caption)
+                                    Spacer()
+                                    Image(systemName: "plus.circle")
+                                        .foregroundStyle(.green)
+                                }
+                            }
+                        }
+                    }
+                } else if !isLoading {
+                    Text("No removable files found")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+            } header: {
+                debugSectionHeader("Files to Remove", icon: "trash.fill", color: .red)
+            } footer: {
+                Text("Select files/folders to remove from the app bundle.")
+            }
+            
+            // MARK: - Load Paths to Remove Section
+            Section {
+                if !options.disInjectionFiles.isEmpty {
+                    ForEach(options.disInjectionFiles, id: \.self) { path in
+                        HStack {
+                            Image(systemName: "link.badge.plus")
+                                .foregroundStyle(.orange)
+                            Text(path)
+                                .font(.system(.caption, design: .monospaced))
+                            Spacer()
+                            Button {
+                                options.disInjectionFiles.removeAll { $0 == path }
+                            } label: {
+                                Image(systemName: "xmark.circle.fill")
+                                    .foregroundStyle(.red)
+                            }
+                        }
+                    }
                 }
                 
-                Toggle(isOn: $hookingEnabled) {
-                    Label("Enable Hooking", systemImage: "link.badge.plus")
+                HStack {
+                    TextField("@executable_path/...", text: Binding(
+                        get: { "" },
+                        set: { newValue in
+                            if !newValue.isEmpty && !options.disInjectionFiles.contains(newValue) {
+                                options.disInjectionFiles.append(newValue)
+                            }
+                        }
+                    ))
+                    .textFieldStyle(.roundedBorder)
+                    .textInputAutocapitalization(.never)
+                    .font(.system(.caption, design: .monospaced))
+                }
+            } header: {
+                debugSectionHeader("Load Paths to Remove", icon: "link.badge.plus", color: .orange)
+            } footer: {
+                Text("Remove Mach-O load commands (e.g., @executable_path/demo.dylib)")
+            }
+            
+            // MARK: - App Modifications Section
+            Section {
+                Toggle(isOn: $options.fileSharing) {
+                    Label("Enable File Sharing", systemImage: "folder.badge.person.crop")
                 }
                 
-                Toggle(isOn: $substrateSafeMode) {
+                Toggle(isOn: $options.itunesFileSharing) {
+                    Label("iTunes File Sharing", systemImage: "music.note")
+                }
+                
+                Toggle(isOn: $options.proMotion) {
+                    Label("ProMotion Support", systemImage: "display")
+                }
+                
+                Toggle(isOn: $options.gameMode) {
+                    Label("Game Mode", systemImage: "gamecontroller.fill")
+                }
+                
+                Toggle(isOn: $options.ipadFullscreen) {
+                    Label("iPad Fullscreen", systemImage: "rectangle.expand.vertical")
+                }
+                
+                Toggle(isOn: $options.removeURLScheme) {
+                    Label("Remove URL Schemes", systemImage: "link.badge.plus")
+                }
+                
+                Toggle(isOn: $options.removeProvisioning) {
+                    Label("Remove Provisioning Profile", systemImage: "person.badge.minus")
+                }
+                
+                Toggle(isOn: $options.changeLanguageFilesForCustomDisplayName) {
+                    Label("Update Language Files", systemImage: "globe")
+                }
+            } header: {
+                debugSectionHeader("App Modifications", icon: "app.badge.fill", color: .pink)
+            }
+            
+            // MARK: - Appearance Section
+            Section {
+                Picker("App Appearance", selection: $options.appAppearance) {
+                    ForEach(Options.AppAppearance.allCases, id: \.self) { appearance in
+                        Text(appearance.localizedDescription).tag(appearance)
+                    }
+                }
+            } header: {
+                debugSectionHeader("Appearance", icon: "paintbrush.fill", color: .cyan)
+            }
+            
+            // MARK: - Experiments Section
+            Section {
+                Toggle(isOn: $options.experiment_supportLiquidGlass) {
+                    Label("Liquid Glass Support", systemImage: "drop.fill")
+                }
+                
+                Toggle(isOn: $options.experiment_replaceSubstrateWithEllekit) {
+                    Label("Replace Substrate with ElleKit", systemImage: "arrow.triangle.2.circlepath")
+                }
+            } header: {
+                debugSectionHeader("Experiments", icon: "flask.fill", color: .yellow)
+            } footer: {
+                Text("⚠️ Experimental features may cause issues. Use at your own risk.")
+            }
+            
+            // MARK: - Post Signing Section
+            Section {
+                Toggle(isOn: $options.post_installAppAfterSigned) {
+                    Label("Install After Signing", systemImage: "arrow.down.app.fill")
+                }
+                
+                Toggle(isOn: $options.post_deleteAppAfterSigned) {
+                    Label("Delete Original After Signing", systemImage: "trash.fill")
+                }
+            } header: {
+                debugSectionHeader("Post Signing", icon: "checkmark.circle.fill", color: .green)
+            }
+            
+            // MARK: - Apply Button
+            Section {
+                Button {
+                    applyDebugSettings()
+                } label: {
+                    HStack {
+                        Spacer()
+                        Label("Apply Settings", systemImage: "checkmark.circle.fill")
+                            .fontWeight(.semibold)
+                        Spacer()
+                    }
+                }
+                .tint(.green)
+            }
+        }
+        .navigationTitle("Debug Tools")
+        .navigationBarTitleDisplayMode(.inline)
+        .onAppear {
+            loadAppInfo()
+        }
+        .sheet(isPresented: $showDylibPicker) {
+            FileImporterRepresentableView(
+                allowedContentTypes: [.init(filenameExtension: "dylib")!, .init(filenameExtension: "framework")!, .init(filenameExtension: "deb")!],
+                onDocumentsPicked: { urls in
+                    for url in urls {
+                        if !options.injectionFiles.contains(url) {
+                            options.injectionFiles.append(url)
+                        }
+                    }
+                }
+            )
+            .ignoresSafeArea()
+        }
+        .alert("Status", isPresented: $showStatusAlert) {
+            Button("OK", role: .cancel) { }
+        } message: {
+            Text(statusMessage)
+        }
                     Label("Substrate Safe Mode", systemImage: "exclamationmark.shield")
                 }
             } header: {
@@ -2094,99 +2305,113 @@ struct AdvancedDebugToolsView: View {
     }
     
     private func applyDebugSettings() {
+        // All settings are already bound to options via the UI
+        // This function confirms the changes and provides feedback
+        
+        statusMessage = "Debug settings applied successfully to \(app.name ?? "App")"
+        showStatusAlert = true
         HapticsManager.shared.success()
     }
     
-    private func resetToDefaults() {
-        customMinimumVersion = ""
-        customBuildNumber = ""
-        customShortVersion = ""
-        customBundleVersion = ""
-        forceArmv7 = false
-        stripBitcode = true
-        removeSignature = false
-        thinBinary = false
-        enablePIE = true
-        stripDebugSymbols = false
-        removeSwiftSupport = false
-        injectCustomDylib = false
-        injectFramework = false
-        hookingEnabled = false
-        substrateSafeMode = false
-        useAdhocSigning = false
-        preserveMetadata = true
-        deepSign = true
-        forceSign = false
-        timestampSigning = true
-        stripEntitlements = false
-        mergeEntitlements = true
-        allowUnsignedExecutable = false
-        enableJIT = false
-        enableDebugging = true
-        allowDyldEnvironment = false
-        removePlugins = false
-        removeWatchApp = false
-        removeExtensions = false
-        removeOnDemandResources = false
-        compressAssets = false
-        optimizeImages = false
-        removeLocalizations = false
-        enableBinaryPatching = false
-        enableMethodSwizzling = false
-        lowMemoryMode = false
-        parallelSigning = true
-        enableVerboseLogging = false
-        dryRunMode = false
-        generateReport = true
-        validateAfterSigning = true
-        showTimings = false
-        exportUnsignedIPA = false
-        HapticsManager.shared.softImpact()
-    }
-    
-    private func loadPreset(_ preset: String) {
-        switch preset {
-        case "minimal":
-            stripBitcode = true
-            removeSignature = true
-            deepSign = true
-            preserveMetadata = false
-            removePlugins = true
-            removeWatchApp = true
-            removeExtensions = true
-            removeOnDemandResources = true
-            removeLocalizations = true
-        case "aggressive":
-            stripBitcode = true
-            removeSignature = true
-            stripDebugSymbols = true
-            removeSwiftSupport = true
-            deepSign = true
-            forceSign = true
-            removePlugins = true
-            removeWatchApp = true
-            removeExtensions = true
-            removeOnDemandResources = true
-            compressAssets = true
-            optimizeImages = true
-            removeLocalizations = true
-            parallelSigning = true
-        default:
-            break
+    private func loadAppInfo() {
+        isLoading = true
+        
+        DispatchQueue.global(qos: .userInitiated).async {
+            guard let appDir = Storage.shared.getAppDirectory(for: app) else {
+                DispatchQueue.main.async {
+                    isLoading = false
+                }
+                return
+            }
+            
+            let infoPlistURL = appDir.appendingPathComponent("Info.plist")
+            var loadedBundleId = app.identifier ?? ""
+            var loadedVersion = app.version ?? ""
+            var loadedMinOS = ""
+            var loadedExecutable = ""
+            var loadedRemovableFiles: [String] = []
+            var loadedSize = "Unknown"
+            
+            // Load Info.plist data
+            if let plistData = try? Data(contentsOf: infoPlistURL),
+               let plist = try? PropertyListSerialization.propertyList(from: plistData, format: nil) as? [String: Any] {
+                loadedBundleId = plist["CFBundleIdentifier"] as? String ?? loadedBundleId
+                loadedVersion = plist["CFBundleShortVersionString"] as? String ?? loadedVersion
+                loadedMinOS = plist["MinimumOSVersion"] as? String ?? ""
+                loadedExecutable = plist["CFBundleExecutable"] as? String ?? ""
+            }
+            
+            // Find removable files
+            let frameworksDir = appDir.appendingPathComponent("Frameworks")
+            let pluginsDir = appDir.appendingPathComponent("PlugIns")
+            let watchDir = appDir.appendingPathComponent("Watch")
+            
+            if FileManager.default.fileExists(atPath: frameworksDir.path) {
+                if let contents = try? FileManager.default.contentsOfDirectory(atPath: frameworksDir.path) {
+                    for item in contents {
+                        loadedRemovableFiles.append("Frameworks/\(item)")
+                    }
+                }
+            }
+            
+            if FileManager.default.fileExists(atPath: pluginsDir.path) {
+                if let contents = try? FileManager.default.contentsOfDirectory(atPath: pluginsDir.path) {
+                    for item in contents {
+                        loadedRemovableFiles.append("PlugIns/\(item)")
+                    }
+                }
+            }
+            
+            if FileManager.default.fileExists(atPath: watchDir.path) {
+                loadedRemovableFiles.append("Watch")
+            }
+            
+            // Calculate app size
+            if let size = try? FileManager.default.allocatedSizeOfDirectory(at: appDir) {
+                loadedSize = ByteCountFormatter.string(fromByteCount: Int64(size), countStyle: .file)
+            }
+            
+            DispatchQueue.main.async {
+                bundleIdentifier = loadedBundleId
+                currentVersion = loadedVersion
+                minimumOSVersion = loadedMinOS
+                executableName = loadedExecutable
+                removableFiles = loadedRemovableFiles
+                appSize = loadedSize
+                appDirectory = appDir
+                isLoading = false
+            }
         }
-        HapticsManager.shared.softImpact()
     }
     
-    private func exportConfiguration() {
-        HapticsManager.shared.success()
+    private func debugSectionHeader(_ title: String, icon: String, color: Color) -> some View {
+        HStack(spacing: 6) {
+            Image(systemName: icon)
+                .font(.caption)
+                .foregroundStyle(color)
+            Text(title.uppercased())
+                .font(.caption.weight(.semibold))
+        }
     }
-    
-    private func addPatchInstruction() {
-        guard !hexPatchOffset.isEmpty && !hexPatchValue.isEmpty else { return }
-        patchInstructions.append("\(hexPatchOffset): \(hexPatchValue)")
-        hexPatchOffset = ""
-        hexPatchValue = ""
-        HapticsManager.shared.softImpact()
+}
+
+// MARK: - FileManager Extension for Directory Size
+extension FileManager {
+    func allocatedSizeOfDirectory(at url: URL) throws -> UInt64 {
+        var size: UInt64 = 0
+        let resourceKeys: Set<URLResourceKey> = [.isRegularFileKey, .fileAllocatedSizeKey, .totalFileAllocatedSizeKey]
+        
+        guard let enumerator = self.enumerator(at: url, includingPropertiesForKeys: Array(resourceKeys), options: [], errorHandler: nil) else {
+            return 0
+        }
+        
+        for case let fileURL as URL in enumerator {
+            let resourceValues = try fileURL.resourceValues(forKeys: resourceKeys)
+            guard resourceValues.isRegularFile == true else { continue }
+            size += UInt64(resourceValues.totalFileAllocatedSize ?? resourceValues.fileAllocatedSize ?? 0)
+        }
+        
+        return size
     }
 }
 
@@ -2924,26 +3149,69 @@ struct InfoPlistEditorDebugView: View {
     
     // MARK: - Helper Functions
     private func loadPlistEntries() {
-        plistEntries = [
-            PlistEntry(key: "CFBundleIdentifier", value: app.identifier ?? "com.example.app", type: "String"),
-            PlistEntry(key: "CFBundleName", value: app.name ?? "App", type: "String"),
-            PlistEntry(key: "CFBundleDisplayName", value: app.name ?? "App", type: "String"),
-            PlistEntry(key: "CFBundleShortVersionString", value: app.version ?? "1.0", type: "String"),
-            PlistEntry(key: "CFBundleVersion", value: "1", type: "String"),
-            PlistEntry(key: "CFBundleExecutable", value: app.name ?? "App", type: "String"),
-            PlistEntry(key: "CFBundlePackageType", value: "APPL", type: "String"),
-            PlistEntry(key: "MinimumOSVersion", value: "14.0", type: "String"),
-            PlistEntry(key: "UIDeviceFamily", value: "[1, 2]", type: "Array"),
-            PlistEntry(key: "UIRequiredDeviceCapabilities", value: "[arm64]", type: "Array"),
-            PlistEntry(key: "UISupportedInterfaceOrientations", value: "[UIInterfaceOrientationPortrait, UIInterfaceOrientationLandscapeLeft, UIInterfaceOrientationLandscapeRight]", type: "Array"),
-            PlistEntry(key: "UILaunchStoryboardName", value: "LaunchScreen", type: "String"),
-            PlistEntry(key: "UIMainStoryboardFile", value: "Main", type: "String"),
-            PlistEntry(key: "LSRequiresIPhoneOS", value: "true", type: "Boolean"),
-            PlistEntry(key: "UIApplicationSceneManifest", value: "{UIApplicationSupportsMultipleScenes: false}", type: "Dictionary"),
-            PlistEntry(key: "ITSAppUsesNonExemptEncryption", value: "false", type: "Boolean"),
-            PlistEntry(key: "UIStatusBarStyle", value: "UIStatusBarStyleDefault", type: "String")
-        ]
+        // Load real Info.plist from app directory
+        guard let appDir = Storage.shared.getAppDirectory(for: app) else {
+            // Fallback to basic info from app
+            plistEntries = [
+                PlistEntry(key: "CFBundleIdentifier", value: app.identifier ?? "Unknown", type: "String"),
+                PlistEntry(key: "CFBundleName", value: app.name ?? "Unknown", type: "String"),
+                PlistEntry(key: "CFBundleShortVersionString", value: app.version ?? "Unknown", type: "String")
+            ]
+            hasUnsavedChanges = false
+            return
+        }
+        
+        let infoPlistURL = appDir.appendingPathComponent("Info.plist")
+        
+        guard let plistData = try? Data(contentsOf: infoPlistURL),
+              let plist = try? PropertyListSerialization.propertyList(from: plistData, format: nil) as? [String: Any] else {
+            // Fallback to basic info from app
+            plistEntries = [
+                PlistEntry(key: "CFBundleIdentifier", value: app.identifier ?? "Unknown", type: "String"),
+                PlistEntry(key: "CFBundleName", value: app.name ?? "Unknown", type: "String"),
+                PlistEntry(key: "CFBundleShortVersionString", value: app.version ?? "Unknown", type: "String")
+            ]
+            hasUnsavedChanges = false
+            return
+        }
+        
+        // Convert plist dictionary to PlistEntry array
+        plistEntries = plist.map { key, value in
+            let (valueString, typeString) = formatPlistValue(value)
+            return PlistEntry(key: key, value: valueString, type: typeString)
+        }.sorted { $0.key < $1.key }
+        
         hasUnsavedChanges = false
+        generateRawPlist()
+    }
+    
+    private func formatPlistValue(_ value: Any) -> (String, String) {
+        switch value {
+        case let string as String:
+            return (string, "String")
+        case let number as NSNumber:
+            if CFGetTypeID(number) == CFBooleanGetTypeID() {
+                return (number.boolValue ? "true" : "false", "Boolean")
+            }
+            return (number.stringValue, "Number")
+        case let array as [Any]:
+            let items = array.map { item -> String in
+                if let str = item as? String { return str }
+                if let num = item as? NSNumber { return num.stringValue }
+                return String(describing: item)
+            }
+            return ("[\(items.joined(separator: ", "))]", "Array")
+        case let dict as [String: Any]:
+            let items = dict.map { "\($0.key): \(formatPlistValue($0.value).0)" }
+            return ("{\(items.joined(separator: ", "))}", "Dictionary")
+        case let data as Data:
+            return (data.base64EncodedString().prefix(50) + "...", "Data")
+        case let date as Date:
+            let formatter = ISO8601DateFormatter()
+            return (formatter.string(from: date), "Date")
+        default:
+            return (String(describing: value), "String")
+        }
     }
     
     private func deleteEntry(at offsets: IndexSet) {
@@ -3722,36 +3990,95 @@ struct ResourceModifierView: View {
     private func loadResources() {
         isLoading = true
         
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-            resources = [
-                ResourceItem(name: "AppIcon", type: "png", size: "124 KB", sizeBytes: 126976, path: "Assets.xcassets/AppIcon.appiconset", modifiedDate: Date().addingTimeInterval(-86400), permissions: "rw-r--r--", checksum: "a1b2c3d4e5f6", dimensions: "1024x1024"),
-                ResourceItem(name: "AppIcon@2x", type: "png", size: "48 KB", sizeBytes: 49152, path: "Assets.xcassets/AppIcon.appiconset", modifiedDate: Date().addingTimeInterval(-86400), permissions: "rw-r--r--", checksum: "b2c3d4e5f6a1", dimensions: "120x120"),
-                ResourceItem(name: "AppIcon@3x", type: "png", size: "72 KB", sizeBytes: 73728, path: "Assets.xcassets/AppIcon.appiconset", modifiedDate: Date().addingTimeInterval(-86400), permissions: "rw-r--r--", checksum: "c3d4e5f6a1b2", dimensions: "180x180"),
-                ResourceItem(name: "LaunchScreen", type: "storyboard", size: "8 KB", sizeBytes: 8192, path: "Base.lproj/LaunchScreen.storyboard", modifiedDate: Date().addingTimeInterval(-172800), permissions: "rw-r--r--", checksum: "d4e5f6a1b2c3"),
-                ResourceItem(name: "Main", type: "storyboard", size: "45 KB", sizeBytes: 46080, path: "Base.lproj/Main.storyboard", modifiedDate: Date().addingTimeInterval(-259200), permissions: "rw-r--r--", checksum: "e5f6a1b2c3d4"),
-                ResourceItem(name: "Localizable", type: "strings", size: "12 KB", sizeBytes: 12288, path: "en.lproj/Localizable.strings", modifiedDate: Date().addingTimeInterval(-345600), permissions: "rw-r--r--", checksum: "f6a1b2c3d4e5", encoding: "UTF-8"),
-                ResourceItem(name: "Localizable (Spanish)", type: "strings", size: "14 KB", sizeBytes: 14336, path: "es.lproj/Localizable.strings", modifiedDate: Date().addingTimeInterval(-345600), permissions: "rw-r--r--", checksum: "a1b2c3d4e5f7", encoding: "UTF-8"),
-                ResourceItem(name: "Localizable (French)", type: "strings", size: "13 KB", sizeBytes: 13312, path: "fr.lproj/Localizable.strings", modifiedDate: Date().addingTimeInterval(-345600), permissions: "rw-r--r--", checksum: "b2c3d4e5f6a2", encoding: "UTF-8"),
-                ResourceItem(name: "Info", type: "plist", size: "4 KB", sizeBytes: 4096, path: "Info.plist", modifiedDate: Date(), permissions: "rw-r--r--", checksum: "g7h8i9j0k1l2"),
-                ResourceItem(name: "Entitlements", type: "plist", size: "2 KB", sizeBytes: 2048, path: "App.entitlements", modifiedDate: Date().addingTimeInterval(-86400), permissions: "rw-r--r--", checksum: "h8i9j0k1l2m3"),
-                ResourceItem(name: "Assets", type: "car", size: "2.4 MB", sizeBytes: 2516582, path: "Assets.car", modifiedDate: Date().addingTimeInterval(-432000), permissions: "rw-r--r--", checksum: "i9j0k1l2m3n4", compressionRatio: 0.65),
-                ResourceItem(name: "Default@2x", type: "png", size: "89 KB", sizeBytes: 91136, path: "Images/Default@2x.png", modifiedDate: Date().addingTimeInterval(-518400), permissions: "rw-r--r--", checksum: "j0k1l2m3n4o5", dimensions: "640x1136"),
-                ResourceItem(name: "Default@3x", type: "png", size: "156 KB", sizeBytes: 159744, path: "Images/Default@3x.png", modifiedDate: Date().addingTimeInterval(-518400), permissions: "rw-r--r--", checksum: "k1l2m3n4o5p6", dimensions: "1242x2208"),
-                ResourceItem(name: "Background", type: "jpg", size: "245 KB", sizeBytes: 250880, path: "Images/Background.jpg", modifiedDate: Date().addingTimeInterval(-604800), permissions: "rw-r--r--", checksum: "l2m3n4o5p6q7", dimensions: "1920x1080"),
-                ResourceItem(name: "Logo", type: "svg", size: "18 KB", sizeBytes: 18432, path: "Images/Logo.svg", modifiedDate: Date().addingTimeInterval(-691200), permissions: "rw-r--r--", checksum: "m3n4o5p6q7r8"),
-                ResourceItem(name: "Settings", type: "bundle", size: "32 KB", sizeBytes: 32768, path: "Settings.bundle", modifiedDate: Date().addingTimeInterval(-777600), permissions: "rwxr-xr-x", checksum: "n4o5p6q7r8s9"),
-                ResourceItem(name: "UIKit", type: "framework", size: "0 KB", sizeBytes: 0, path: "Frameworks/UIKit.framework", modifiedDate: Date().addingTimeInterval(-864000), permissions: "rwxr-xr-x", checksum: nil),
-                ResourceItem(name: "Foundation", type: "framework", size: "0 KB", sizeBytes: 0, path: "Frameworks/Foundation.framework", modifiedDate: Date().addingTimeInterval(-864000), permissions: "rwxr-xr-x", checksum: nil),
-                ResourceItem(name: "SwiftUI", type: "framework", size: "8.2 MB", sizeBytes: 8598323, path: "Frameworks/SwiftUI.framework", modifiedDate: Date().addingTimeInterval(-864000), permissions: "rwxr-xr-x", checksum: "o5p6q7r8s9t0"),
-                ResourceItem(name: "Combine", type: "framework", size: "1.8 MB", sizeBytes: 1887436, path: "Frameworks/Combine.framework", modifiedDate: Date().addingTimeInterval(-864000), permissions: "rwxr-xr-x", checksum: "p6q7r8s9t0u1"),
-                ResourceItem(name: "WidgetKit", type: "appex", size: "456 KB", sizeBytes: 466944, path: "PlugIns/Widget.appex", modifiedDate: Date().addingTimeInterval(-950400), permissions: "rwxr-xr-x", checksum: "q7r8s9t0u1v2"),
-                ResourceItem(name: "NotificationService", type: "appex", size: "128 KB", sizeBytes: 131072, path: "PlugIns/NotificationService.appex", modifiedDate: Date().addingTimeInterval(-950400), permissions: "rwxr-xr-x", checksum: "r8s9t0u1v2w3"),
-                ResourceItem(name: "Sounds", type: "bundle", size: "1.2 MB", sizeBytes: 1258291, path: "Sounds.bundle", modifiedDate: Date().addingTimeInterval(-1036800), permissions: "rwxr-xr-x", checksum: "s9t0u1v2w3x4"),
-                ResourceItem(name: "Fonts", type: "bundle", size: "890 KB", sizeBytes: 911360, path: "Fonts.bundle", modifiedDate: Date().addingTimeInterval(-1123200), permissions: "rwxr-xr-x", checksum: "t0u1v2w3x4y5")
-            ]
+        DispatchQueue.global(qos: .userInitiated).async {
+            guard let appDir = Storage.shared.getAppDirectory(for: app) else {
+                DispatchQueue.main.async {
+                    resources = []
+                    isLoading = false
+                }
+                return
+            }
             
-            calculateTotalSize()
-            isLoading = false
+            var loadedResources: [ResourceItem] = []
+            
+            // Recursively scan app directory for resources
+            if let enumerator = FileManager.default.enumerator(
+                at: appDir,
+                includingPropertiesForKeys: [.fileSizeKey, .contentModificationDateKey, .isDirectoryKey],
+                options: [.skipsHiddenFiles]
+            ) {
+                for case let fileURL as URL in enumerator {
+                    do {
+                        let resourceValues = try fileURL.resourceValues(forKeys: [.fileSizeKey, .contentModificationDateKey, .isDirectoryKey])
+                        
+                        // Skip directories (but include bundles/frameworks)
+                        let isDirectory = resourceValues.isDirectory ?? false
+                        let pathExtension = fileURL.pathExtension.lowercased()
+                        let isBundleType = ["framework", "bundle", "appex", "app", "xcassets"].contains(pathExtension)
+                        
+                        if isDirectory && !isBundleType {
+                            continue
+                        }
+                        
+                        // If it's a bundle type, don't enumerate its contents
+                        if isDirectory && isBundleType {
+                            enumerator.skipDescendants()
+                        }
+                        
+                        let fileSize = resourceValues.fileSize ?? 0
+                        let modDate = resourceValues.contentModificationDate ?? Date()
+                        let relativePath = fileURL.path.replacingOccurrences(of: appDir.path + "/", with: "")
+                        let fileName = fileURL.deletingPathExtension().lastPathComponent
+                        let fileType = pathExtension.isEmpty ? "file" : pathExtension
+                        
+                        // Get file permissions
+                        let attributes = try? FileManager.default.attributesOfItem(atPath: fileURL.path)
+                        let posixPermissions = attributes?[.posixPermissions] as? Int ?? 0
+                        let permString = String(format: "%o", posixPermissions)
+                        
+                        // Get dimensions for images
+                        var dimensions: String? = nil
+                        if ["png", "jpg", "jpeg", "gif", "heic", "webp"].contains(fileType) {
+                            if let imageSource = CGImageSourceCreateWithURL(fileURL as CFURL, nil),
+                               let properties = CGImageSourceCopyPropertiesAtIndex(imageSource, 0, nil) as? [String: Any],
+                               let width = properties[kCGImagePropertyPixelWidth as String] as? Int,
+                               let height = properties[kCGImagePropertyPixelHeight as String] as? Int {
+                                dimensions = "\(width)x\(height)"
+                            }
+                        }
+                        
+                        // Determine encoding for text files
+                        var encoding: String? = nil
+                        if ["strings", "plist", "txt", "json", "xml"].contains(fileType) {
+                            encoding = "UTF-8"
+                        }
+                        
+                        let resource = ResourceItem(
+                            name: fileName,
+                            type: fileType,
+                            size: ByteCountFormatter.string(fromByteCount: Int64(fileSize), countStyle: .file),
+                            sizeBytes: Int64(fileSize),
+                            path: relativePath,
+                            modifiedDate: modDate,
+                            permissions: permString,
+                            checksum: nil,
+                            dimensions: dimensions,
+                            encoding: encoding,
+                            compressionRatio: nil
+                        )
+                        
+                        loadedResources.append(resource)
+                    } catch {
+                        continue
+                    }
+                }
+            }
+            
+            DispatchQueue.main.async {
+                resources = loadedResources.sorted { $0.name.lowercased() < $1.name.lowercased() }
+                calculateTotalSize()
+                isLoading = false
+            }
         }
     }
     
