@@ -304,11 +304,11 @@ struct ModernSigningView: View {
         }
     }
     
-    // MARK: - Header Section
+    // MARK: - Header Section (Clean Modern Design)
     @ViewBuilder
     private var headerSection: some View {
-        VStack(spacing: 16) {
-            // App Icon with modern glass effect
+        VStack(spacing: 20) {
+            // App Icon - Clean, minimal
             Menu {
                 Button {
                     _isAltPickerPresenting = true
@@ -327,84 +327,63 @@ struct ModernSigningView: View {
                 }
             } label: {
                 ZStack {
-                    // Glow effect behind icon
-                    RoundedRectangle(cornerRadius: 22, style: .continuous)
-                        .fill(Color.accentColor.opacity(_glowAnimation ? 0.4 : 0.2))
-                        .frame(width: 90, height: 90)
-                        .blur(radius: 15)
-                        .scaleEffect(_glowAnimation ? 1.1 : 1.0)
-                    
                     if let icon = appIcon {
                         Image(uiImage: icon)
                             .resizable()
                             .aspectRatio(contentMode: .fill)
-                            .frame(width: 80, height: 80)
-                            .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 18, style: .continuous)
-                                    .stroke(
-                                        LinearGradient(
-                                            colors: [.white.opacity(0.5), .white.opacity(0.1)],
-                                            startPoint: .topLeading,
-                                            endPoint: .bottomTrailing
-                                        ),
-                                        lineWidth: 1
-                                    )
-                            )
+                            .frame(width: 88, height: 88)
+                            .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
                     } else {
-                        FRAppIconView(app: app, size: 80)
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 18, style: .continuous)
-                                    .stroke(
-                                        LinearGradient(
-                                            colors: [.white.opacity(0.5), .white.opacity(0.1)],
-                                            startPoint: .topLeading,
-                                            endPoint: .bottomTrailing
-                                        ),
-                                        lineWidth: 1
-                                    )
-                            )
+                        FRAppIconView(app: app, size: 88)
                     }
                     
-                    // Edit overlay with glass effect
+                    // Edit badge
                     VStack {
                         Spacer()
                         HStack {
                             Spacer()
                             ZStack {
                                 Circle()
-                                    .fill(.ultraThinMaterial)
-                                    .frame(width: 28, height: 28)
+                                    .fill(Color.accentColor)
+                                    .frame(width: 26, height: 26)
                                 Image(systemName: "pencil")
-                                    .font(.system(size: 12, weight: .semibold))
-                                    .foregroundStyle(.primary)
+                                    .font(.system(size: 11, weight: .bold))
+                                    .foregroundStyle(.white)
                             }
-                            .offset(x: 6, y: 6)
+                            .offset(x: 4, y: 4)
                         }
                     }
-                    .frame(width: 80, height: 80)
+                    .frame(width: 88, height: 88)
                 }
-                .shadow(color: Color.accentColor.opacity(0.4), radius: 20, x: 0, y: 10)
+                .shadow(color: .black.opacity(0.15), radius: 12, x: 0, y: 6)
             }
             
-            VStack(spacing: 6) {
+            // App Info
+            VStack(spacing: 8) {
                 Text(_temporaryOptions.appName ?? app.name ?? "Unknown")
-                    .font(.title2.weight(.bold))
+                    .font(.system(size: 22, weight: .bold))
                     .foregroundStyle(.primary)
                 
+                if let version = _temporaryOptions.appVersion ?? app.version {
+                    Text("Version \(version)")
+                        .font(.system(size: 13, weight: .medium))
+                        .foregroundStyle(.secondary)
+                }
+                
+                // Bundle ID pill
                 Text(_temporaryOptions.appIdentifier ?? app.identifier ?? "")
-                    .font(.caption)
+                    .font(.system(size: 11, weight: .medium, design: .monospaced))
                     .foregroundStyle(.secondary)
                     .lineLimit(1)
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 4)
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 5)
                     .background(
                         Capsule()
-                            .fill(.ultraThinMaterial)
+                            .fill(Color(.tertiarySystemGroupedBackground))
                     )
             }
         }
-        .padding(.vertical, 20)
+        .padding(.vertical, 24)
         .frame(maxWidth: .infinity)
         .onAppear {
             withAnimation(.easeInOut(duration: 2).repeatForever(autoreverses: true)) {
@@ -413,93 +392,171 @@ struct ModernSigningView: View {
         }
     }
     
-    // MARK: - Unified Content Section
+    // MARK: - Unified Content Section (Clean Modern Design)
     @ViewBuilder
     private var unifiedContentSection: some View {
-        VStack(spacing: 20) {
+        VStack(spacing: 24) {
             // App Details Section
-            sectionHeader(title: "App Details", icon: "app.badge.fill", color: .blue)
-            
-            VStack(spacing: 0) {
-                modernInfoRow(title: "Name", value: _temporaryOptions.appName ?? app.name, icon: "textformat", color: .blue) {
-                    _isNameDialogPresenting = true
+            VStack(alignment: .leading, spacing: 12) {
+                cleanSectionHeader(title: "App Details", icon: "app.badge.fill")
+                
+                VStack(spacing: 0) {
+                    cleanEditableRow(title: "Name", value: _temporaryOptions.appName ?? app.name ?? "Unknown", icon: "textformat") {
+                        _isNameDialogPresenting = true
+                    }
+                    
+                    Divider().padding(.leading, 52)
+                    
+                    cleanEditableRow(title: "Bundle ID", value: _temporaryOptions.appIdentifier ?? app.identifier ?? "", icon: "barcode") {
+                        _isIdentifierDialogPresenting = true
+                    }
+                    
+                    Divider().padding(.leading, 52)
+                    
+                    cleanEditableRow(title: "Version", value: _temporaryOptions.appVersion ?? app.version ?? "1.0", icon: "tag") {
+                        _isVersionDialogPresenting = true
+                    }
                 }
-                
-                Divider().padding(.leading, 56)
-                
-                modernInfoRow(title: "Bundle ID", value: _temporaryOptions.appIdentifier ?? app.identifier, icon: "barcode", color: .purple) {
-                    _isIdentifierDialogPresenting = true
-                }
-                
-                Divider().padding(.leading, 56)
-                
-                modernInfoRow(title: "Version", value: _temporaryOptions.appVersion ?? app.version, icon: "tag.fill", color: .orange) {
-                    _isVersionDialogPresenting = true
-                }
+                .background(
+                    RoundedRectangle(cornerRadius: 14, style: .continuous)
+                        .fill(Color(.secondarySystemGroupedBackground))
+                )
             }
-            .background(
-                RoundedRectangle(cornerRadius: 16, style: .continuous)
-                    .fill(.ultraThinMaterial)
-            )
             
             // Certificate Section
-            sectionHeader(title: "Certificate", icon: "checkmark.seal.fill", color: .green)
-            
-            certificateCard
+            VStack(alignment: .leading, spacing: 12) {
+                cleanSectionHeader(title: "Certificate", icon: "checkmark.seal.fill")
+                certificateCard
+            }
             
             // Configuration Section
-            sectionHeader(title: "Configuration", icon: "slider.horizontal.3", color: .accentColor)
-            
-            VStack(spacing: 0) {
-                NavigationLink {
-                    ModernSigningOptionsView(options: $_temporaryOptions)
-                } label: {
-                    compactRow(title: "Signing Options", icon: "gearshape.fill", color: .gray)
+            VStack(alignment: .leading, spacing: 12) {
+                cleanSectionHeader(title: "Configuration", icon: "slider.horizontal.3")
+                
+                VStack(spacing: 0) {
+                    NavigationLink {
+                        ModernSigningOptionsView(options: $_temporaryOptions)
+                    } label: {
+                        cleanNavigationRow(title: "Signing Options", icon: "gearshape.fill", color: .gray)
+                    }
+                    
+                    Divider().padding(.leading, 52)
+                    
+                    NavigationLink {
+                        SigningDylibView(app: app, options: $_temporaryOptions.optional())
+                    } label: {
+                        cleanNavigationRow(title: "Existing Dylibs", icon: "puzzlepiece.extension.fill", color: .purple)
+                    }
+                    
+                    Divider().padding(.leading, 52)
+                    
+                    NavigationLink {
+                        SigningFrameworksView(app: app, options: $_temporaryOptions.optional())
+                    } label: {
+                        cleanNavigationRow(title: "Frameworks & Plugins", icon: "cube.fill", color: .blue)
+                    }
+                    
+                    Divider().padding(.leading, 52)
+                    
+                    NavigationLink {
+                        SigningTweaksView(options: $_temporaryOptions)
+                    } label: {
+                        cleanNavigationRow(title: "Inject Tweaks", icon: "wrench.and.screwdriver.fill", color: .green)
+                    }
+                    
+                    Divider().padding(.leading, 52)
+                    
+                    NavigationLink {
+                        SigningEntitlementsView(bindingValue: $_temporaryOptions.appEntitlementsFile)
+                    } label: {
+                        cleanNavigationRow(title: "Entitlements", icon: "lock.shield.fill", color: .orange)
+                    }
                 }
-                
-                Divider().padding(.leading, 56)
-                
-                NavigationLink {
-                    SigningDylibView(app: app, options: $_temporaryOptions.optional())
-                } label: {
-                    compactRow(title: "Existing Dylibs", icon: "puzzlepiece.extension.fill", color: .purple)
-                }
-                
-                Divider().padding(.leading, 56)
-                
-                NavigationLink {
-                    SigningFrameworksView(app: app, options: $_temporaryOptions.optional())
-                } label: {
-                    compactRow(title: "Frameworks & Plugins", icon: "cube.fill", color: .blue)
-                }
-                
-                Divider().padding(.leading, 56)
-                
-                NavigationLink {
-                    SigningTweaksView(options: $_temporaryOptions)
-                } label: {
-                    compactRow(title: "Inject Tweaks", icon: "wrench.and.screwdriver.fill", color: .green)
-                }
-                
-                Divider().padding(.leading, 56)
-                
-                NavigationLink {
-                    SigningEntitlementsView(bindingValue: $_temporaryOptions.appEntitlementsFile)
-                } label: {
-                    compactRow(title: "Entitlements", icon: "lock.shield.fill", color: .orange, badge: "BETA")
-                }
+                .background(
+                    RoundedRectangle(cornerRadius: 14, style: .continuous)
+                        .fill(Color(.secondarySystemGroupedBackground))
+                )
             }
-            .background(
-                RoundedRectangle(cornerRadius: 16, style: .continuous)
-                    .fill(.ultraThinMaterial)
-            )
             
-            // Advanced (Debug) Section - Only shown when feature flag is enabled
+            // Advanced (Debug) Section
             if _advancedSigningEnabled {
                 advancedDebugSection
             }
         }
-        .padding(.horizontal, 16)
+        .padding(.horizontal, 20)
+    }
+    
+    // MARK: - Clean Section Header
+    @ViewBuilder
+    private func cleanSectionHeader(title: String, icon: String) -> some View {
+        HStack(spacing: 6) {
+            Image(systemName: icon)
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundStyle(.secondary)
+            Text(title.uppercased())
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundStyle(.secondary)
+        }
+        .padding(.leading, 4)
+    }
+    
+    // MARK: - Clean Editable Row
+    @ViewBuilder
+    private func cleanEditableRow(title: String, value: String, icon: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            HStack(spacing: 14) {
+                Image(systemName: icon)
+                    .font(.system(size: 16, weight: .medium))
+                    .foregroundStyle(.secondary)
+                    .frame(width: 24)
+                
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(title)
+                        .font(.system(size: 12, weight: .medium))
+                        .foregroundStyle(.secondary)
+                    Text(value)
+                        .font(.system(size: 15, weight: .medium))
+                        .foregroundStyle(.primary)
+                        .lineLimit(1)
+                }
+                
+                Spacer()
+                
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundStyle(.quaternary)
+            }
+            .padding(.horizontal, 14)
+            .padding(.vertical, 12)
+        }
+        .buttonStyle(.plain)
+    }
+    
+    // MARK: - Clean Navigation Row
+    @ViewBuilder
+    private func cleanNavigationRow(title: String, icon: String, color: Color) -> some View {
+        HStack(spacing: 14) {
+            ZStack {
+                RoundedRectangle(cornerRadius: 8, style: .continuous)
+                    .fill(color.opacity(0.12))
+                    .frame(width: 32, height: 32)
+                Image(systemName: icon)
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundStyle(color)
+            }
+            
+            Text(title)
+                .font(.system(size: 15, weight: .medium))
+                .foregroundStyle(.primary)
+            
+            Spacer()
+            
+            Image(systemName: "chevron.right")
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundStyle(.quaternary)
+        }
+        .padding(.horizontal, 14)
+        .padding(.vertical, 10)
     }
     
     // MARK: - Advanced Debug Section
@@ -1040,7 +1097,7 @@ struct ModernSigningView: View {
         .padding(.vertical, 12)
     }
     
-    // MARK: - Modern Sign Button
+    // MARK: - Modern Sign Button (Clean Design)
     @ViewBuilder
     private var modernSignButton: some View {
         Button {
@@ -1050,51 +1107,22 @@ struct ModernSigningView: View {
                 Image(systemName: "signature")
                     .font(.system(size: 16, weight: .semibold))
                 Text("Sign App")
-                    .font(.system(size: 16, weight: .semibold))
+                    .font(.system(size: 17, weight: .semibold))
             }
             .foregroundStyle(.white)
             .frame(maxWidth: .infinity)
             .padding(.vertical, 16)
-            .background(
-                ZStack {
-                    LinearGradient(
-                        colors: [Color.accentColor, Color.accentColor.opacity(0.85)],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    )
-                    
-                    // Subtle shimmer effect
-                    LinearGradient(
-                        colors: [
-                            Color.white.opacity(0),
-                            Color.white.opacity(0.15),
-                            Color.white.opacity(0)
-                        ],
-                        startPoint: .leading,
-                        endPoint: .trailing
-                    )
-                    .offset(x: _glowAnimation ? 200 : -200)
-                    .animation(.easeInOut(duration: 2).repeatForever(autoreverses: false), value: _glowAnimation)
-                }
-            )
+            .background(Color.accentColor)
             .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
-            .shadow(color: Color.accentColor.opacity(0.4), radius: 12, x: 0, y: 6)
         }
         .buttonStyle(SignButtonStyle())
         .padding(.horizontal, 20)
         .padding(.bottom, 20)
-        .padding(.top, 8)
+        .padding(.top, 12)
         .background(
-            LinearGradient(
-                colors: [
-                    Color(UIColor.systemBackground).opacity(0),
-                    Color(UIColor.systemBackground).opacity(0.95),
-                    Color(UIColor.systemBackground)
-                ],
-                startPoint: .top,
-                endPoint: .bottom
-            )
-            .ignoresSafeArea()
+            Rectangle()
+                .fill(.ultraThinMaterial)
+                .ignoresSafeArea()
         )
     }
     
