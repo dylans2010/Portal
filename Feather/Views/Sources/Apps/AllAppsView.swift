@@ -47,30 +47,13 @@ struct AllAppsView: View {
     @State private var _loadedSourcesCount = 0
     @State private var _currentFact = DidYouKnowFacts.random()
     
-    // Computed property for all apps with their sources
-    private var _allAppsWithSource: [(source: ASRepository, app: ASRepository.App)] {
-        guard let sources = _sources else { return [] }
-        return sources.flatMap { source in
-            source.apps.map { (source: source, app: $0) }
-        }
-    }
-    
-    // Filtered apps based on search
-    private var _filteredApps: [(source: ASRepository, app: ASRepository.App)] {
-        if _searchText.isEmpty {
-            return _allAppsWithSource
-        }
-        
-        return _allAppsWithSource.filter { entry in
-            (entry.app.name?.localizedCaseInsensitiveContains(_searchText) ?? false) ||
-            (entry.app.description?.localizedCaseInsensitiveContains(_searchText) ?? false) ||
-            (entry.app.subtitle?.localizedCaseInsensitiveContains(_searchText) ?? false) ||
-            (entry.app.localizedDescription?.localizedCaseInsensitiveContains(_searchText) ?? false)
-        }
-    }
+    // Optimized State for Large Datasets
+    @State private var _allApps: [(source: ASRepository, app: ASRepository.App)] = []
+    @State private var _filteredApps: [(source: ASRepository, app: ASRepository.App)] = []
+    @State private var _searchCancellable: AnyCancellable?
     
     private var _totalAppCount: Int {
-        _allAppsWithSource.count
+        _allApps.count
     }
     
     // MARK: Body
@@ -241,6 +224,7 @@ struct AllAppsView: View {
         }
         .navigationBarHidden(true)
         .onAppear {
+            _setupSearchDebounce()
             _loadAllSources()
         }
         .onChange(of: object) { _ in
@@ -313,6 +297,31 @@ struct AllAppsView: View {
 		.frame(maxWidth: .infinity, maxHeight: .infinity)
 	}
 	
+	// MARK: - Setup Search Debounce
+	private func _setupSearchDebounce() {
+		_searchCancellable = NotificationCenter.default
+			.publisher(for: UITextField.textDidChangeNotification)
+			.debounce(for: .milliseconds(300), scheduler: RunLoop.main)
+			.sink { _ in
+				_filterApps()
+			}
+	}
+
+	private func _filterApps() {
+		if _searchText.isEmpty {
+			_filteredApps = _allApps
+			return
+		}
+
+		let query = _searchText.lowercased()
+		_filteredApps = _allApps.filter { entry in
+			(entry.app.name?.lowercased().contains(query) ?? false) ||
+			(entry.app.description?.lowercased().contains(query) ?? false) ||
+			(entry.app.subtitle?.lowercased().contains(query) ?? false) ||
+			(entry.app.localizedDescription?.lowercased().contains(query) ?? false)
+		}
+	}
+
 	// MARK: - Load All Sources
 	private func _loadAllSources() {
 		_isLoading = true
@@ -320,39 +329,38 @@ struct AllAppsView: View {
 		_currentFact = DidYouKnowFacts.random()
 		
 		Task {
-			_ = object.count
-			
-			// Load all sources one by one with progress updates
-			for (index, _) in object.enumerated() {
-				// Update progress
-				await MainActor.run {
-					_loadedSourcesCount = index + 1
-				}
-				
-				// Small delay for smooth animation
-				try? await Task.sleep(nanoseconds: 100_000_000) // 0.1 seconds
-			}
-			
 			// Ensure viewModel finishes loading if needed
 			if !viewModel.isFinished {
-				// Wait for viewModel to finish with timeout
 				var timeoutCount = 0
-				let maxTimeout = 100 // 10 seconds total (100 * 0.1s)
+				let maxTimeout = 150 // 15 seconds total
 				while !viewModel.isFinished && timeoutCount < maxTimeout {
 					try? await Task.sleep(nanoseconds: 100_000_000)
 					timeoutCount += 1
+
+					// Update progress based on viewModel progress
+					await MainActor.run {
+						_loadedSourcesCount = Int(Double(object.count) * viewModel.fetchProgress)
+					}
 				}
 			}
 			
 			// Get final loaded sources from viewModel
 			let finalSources = object.compactMap { viewModel.sources[$0] }
 			
+			// Flatten apps in background
+			let flattenedApps = finalSources.flatMap { source in
+				source.apps.map { (source: source, app: $0) }
+			}
+
 			await MainActor.run {
 				_sources = finalSources
+				_allApps = flattenedApps
+				_filterApps()
+				_loadedSourcesCount = object.count
 			}
 			
 			// Add a small delay before hiding loading screen for better UX
-			try? await Task.sleep(nanoseconds: 500_000_000) // 0.5 seconds
+			try? await Task.sleep(nanoseconds: 500_000_000)
 			
 			await MainActor.run {
 				withAnimation(.easeInOut(duration: 0.3)) {
@@ -649,67 +657,20 @@ struct SearchSheetView: View {
 import Combine
 
 // MARK: - AllAppsWrapperView
-/// Wrapper view that switches between AllAppsView and SourceAppsView based on settings and app count
+/// Wrapper view that switches between AllAppsView and SourceAppsView based on settings
 struct AllAppsWrapperView: View {
 	@AppStorage("Feather.useNewAllAppsView") private var useNewAllAppsView: Bool = true
 	
 	var object: [AltSource]
 	@ObservedObject var viewModel: SourcesViewModel
 	
-	@State private var totalAppCount: Int = 0
-	@State private var shouldUseFallback: Bool = false
-	@State private var hasShownToast: Bool = false
-	
 	var body: some View {
 		Group {
-			if shouldUseFallback || !useNewAllAppsView || totalAppCount > 250 {
+			if !useNewAllAppsView {
 				SourceAppsView(object: object, viewModel: viewModel)
 			} else {
 				AllAppsView(object: object, viewModel: viewModel)
-					.onAppear {
-						calculateTotalApps()
-						// Monitor if AllAppsView fails to load properly
-						checkViewLoadingHealth()
-					}
 			}
 		}
-		.onAppear {
-			calculateTotalApps()
-			// Automatically switch to old view if more than 250 apps
-			if totalAppCount > 250 && !hasShownToast {
-				shouldUseFallback = true
-			}
-		}
-	}
-	
-	private func calculateTotalApps() {
-		totalAppCount = object.reduce(0) { count, source in
-			count + (viewModel.sources[source]?.apps.count ?? 0)
-		}
-	}
-	
-	private func checkViewLoadingHealth() {
-		// Set a timeout to detect if the view is stuck loading
-		Task {
-			try? await Task.sleep(nanoseconds: 30_000_000_000) // 30 seconds
-			
-			await MainActor.run {
-				// If still loading after 30 seconds, switch to fallback
-				if !viewModel.isFinished && !shouldUseFallback {
-					shouldUseFallback = true
-					showFallbackToast()
-				}
-			}
-		}
-	}
-	
-	private func showFallbackToast() {
-		guard !hasShownToast else { return }
-		hasShownToast = true
-		
-		UIAlertController.showAlertWithOk(
-			title: .localized("Loading Issue"),
-			message: .localized("New Apps view couldn't load, using old view as fallback")
-		)
 	}
 }

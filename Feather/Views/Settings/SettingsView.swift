@@ -87,11 +87,24 @@ struct SettingsView: View {
         }
     }
     
+    @FetchRequest(
+        entity: AltSource.entity(),
+        sortDescriptors: [NSSortDescriptor(keyPath: \AltSource.order, ascending: true)]
+    ) private var _sources: FetchedResults<AltSource>
+
     private var dataSection: some View {
         Section {
             SettingsRow(icon: "folder.fill", title: "Files", color: .blue, destination: FilesSettingsView())
             if !isEnterprise {
                 SettingsRow(icon: "internaldrive.fill", title: "Storage", color: .gray, destination: ManageStorageView())
+            }
+            SettingsRow(icon: "arrow.counterclockwise.circle.fill", title: "Backup & Restore", color: .green, destination: BackupRestoreView())
+
+            SettingsActionRow(icon: "arrow.clockwise.circle.fill", title: "Fetch Full Data", color: .cyan) {
+                Task {
+                    await SourcesViewModel.shared.forceFetchAllSources(_sources)
+                    HapticsManager.shared.success()
+                }
             }
         } header: {
             SettingsSectionHeader(title: "Data & Storage", icon: "externaldrive.fill")
@@ -145,6 +158,19 @@ struct SettingsView: View {
 }
 
 // MARK: - Settings Row Components
+
+private struct SettingsActionRow: View {
+    let icon: String
+    let title: String
+    let color: Color
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            SettingsRowContent(icon: icon, title: title, color: color)
+        }
+    }
+}
 
 private struct SettingsRow<Destination: View>: View {
     let icon: String

@@ -47,6 +47,7 @@ final class SourcesViewModel: ObservableObject {
     @Published var fetchState: SourceFetchState = .idle
     @Published var fetchProgress: Double = 0
     @Published var failedSources: Set<String> = []
+    @Published var errorMessage: String? = nil
     
     @Published var pinnedSourceIDs: [String] = UserDefaults.standard.stringArray(forKey: "pinnedSources") ?? [] {
         didSet {
@@ -113,6 +114,15 @@ final class SourcesViewModel: ObservableObject {
         }
     }
     
+    // MARK: - Full Manual Fetch
+    func forceFetchAllSources(_ sources: FetchedResults<AltSource>) async {
+        await MainActor.run {
+            _cacheManager.clearCache()
+            errorMessage = nil
+        }
+        await fetchSources(sources, refresh: true)
+    }
+
     // MARK: - Optimized Fetch with Cancellation Support
     func fetchSources(_ sources: FetchedResults<AltSource>, refresh: Bool = false, batchSize: Int = 4) async {
         // Cancel any existing fetch task
@@ -135,6 +145,7 @@ final class SourcesViewModel: ObservableObject {
             fetchState = .loading
             fetchProgress = 0
             failedSources = []
+            errorMessage = nil
         }
         
         defer {
@@ -234,7 +245,13 @@ final class SourcesViewModel: ObservableObject {
         }
         
         await MainActor.run {
-            fetchState = failedSources.isEmpty ? .loaded : .error("\(failedSources.count) sources failed to load")
+            if !failedSources.isEmpty {
+                errorMessage = "\(failedSources.count) sources failed to load"
+                fetchState = .error(errorMessage!)
+            } else {
+                fetchState = .loaded
+                errorMessage = nil
+            }
             fetchProgress = 1.0
         }
     }
