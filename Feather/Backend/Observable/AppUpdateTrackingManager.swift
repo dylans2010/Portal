@@ -205,15 +205,17 @@ final class AppUpdateTrackingManager: ObservableObject {
                 }
                 
                 completedCount += 1
+                let currentProgress = Double(completedCount) / Double(totalSources)
                 await MainActor.run {
-                    autoFetchProgress = Double(completedCount) / Double(totalSources)
+                    autoFetchProgress = currentProgress
                 }
             }
             
             // Clear old cache and update with new data
+            let sourcesToCache = fetchedSources
             await MainActor.run {
                 clearCache()
-                updateCache(from: fetchedSources)
+                updateCache(from: sourcesToCache)
                 saveLastAutoFetchDate()
                 isFetchingAllSources = false
                 autoFetchProgress = 1.0
