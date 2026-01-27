@@ -271,31 +271,33 @@ struct SourceAppsDetailView: View {
         .padding(.vertical, 14)
     }
     
-    // MARK: - Full Info View (Original with improvements)
+    // MARK: - Full Info View (Modern - Icon and info inside hero card)
     
     private func fullInfoView(geometry: GeometryProxy) -> some View {
         ScrollView(.vertical, showsIndicators: false) {
             VStack(spacing: 0) {
-                heroBanner(geometry: geometry)
-                mainContent
+                // Hero card with icon, name, developer, and Get button inside
+                heroCardWithAppInfo(geometry: geometry)
+                
+                // Rest of content
+                fullInfoContent
             }
         }
         .ignoresSafeArea(edges: .top)
     }
     
-    private let heroHeight: CGFloat = UIScreen.main.bounds.height * 0.38
+    // MARK: - Hero Card with App Info Inside
     
-    // MARK: - Hero Banner
-    
-    private func heroBanner(geometry: GeometryProxy) -> some View {
+    private func heroCardWithAppInfo(geometry: GeometryProxy) -> some View {
         ZStack(alignment: .bottom) {
+            // Background gradient
             Rectangle()
                 .fill(
                     LinearGradient(
                         colors: [
-                            dominantColor.opacity(colorScheme == .dark ? 0.4 : 0.3),
-                            dominantColor.opacity(colorScheme == .dark ? 0.2 : 0.15),
-                            dominantColor.opacity(colorScheme == .dark ? 0.1 : 0.05)
+                            dominantColor.opacity(colorScheme == .dark ? 0.5 : 0.35),
+                            dominantColor.opacity(colorScheme == .dark ? 0.3 : 0.2),
+                            dominantColor.opacity(colorScheme == .dark ? 0.15 : 0.1)
                         ],
                         startPoint: .top,
                         endPoint: .bottom
@@ -304,7 +306,7 @@ struct SourceAppsDetailView: View {
                 .overlay(
                     Rectangle()
                         .fill(.ultraThinMaterial)
-                        .opacity(0.3)
+                        .opacity(0.2)
                 )
                 .clipShape(
                     UnevenRoundedRectangle(
@@ -314,19 +316,54 @@ struct SourceAppsDetailView: View {
                         topTrailingRadius: 0
                     )
                 )
+            
+            // App info content inside the hero card
+            VStack(spacing: 16) {
+                Spacer()
+                
+                // App Icon
+                appIcon
+                
+                // App Name
+                Text(app.currentName)
+                    .font(.system(size: 24, weight: .bold))
+                    .foregroundStyle(.primary)
+                    .multilineTextAlignment(.center)
+                    .lineLimit(2)
+                
+                // Developer
+                if let developer = app.developer {
+                    Text(developer)
+                        .font(.system(size: 15, weight: .medium))
+                        .foregroundStyle(dominantColor)
+                }
+                
+                // Category
+                if let category = app.category {
+                    Text(category.capitalized)
+                        .font(.system(size: 13))
+                        .foregroundStyle(.secondary)
+                }
+                
+                // Download Button
+                DownloadButtonView(app: app)
+                    .padding(.top, 8)
+                
+                Spacer()
+                    .frame(height: 24)
+            }
+            .padding(.horizontal, horizontalPadding)
+            .padding(.top, geometry.safeAreaInsets.top + 60)
         }
-        .frame(height: heroHeight)
+        .frame(height: UIScreen.main.bounds.height * 0.48)
         .frame(maxWidth: .infinity)
     }
     
-    // MARK: - Main Content
+    // MARK: - Full Info Content (Below hero card)
     
-    private var mainContent: some View {
-        VStack(spacing: 0) {
-            appInfoRow
-                .padding(.top, -60)
-                .padding(.horizontal, horizontalPadding)
-            
+    private var fullInfoContent: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            // Statistics Row
             statisticsRow
                 .padding(.top, 24)
                 .padding(.horizontal, horizontalPadding)
@@ -335,11 +372,13 @@ struct SourceAppsDetailView: View {
                 .padding(.horizontal, horizontalPadding)
                 .padding(.top, 20)
             
+            // Screenshots Preview
             if let screenshotURLs = app.screenshotURLs, !screenshotURLs.isEmpty {
                 screenshotsPreview(screenshotURLs)
                     .padding(.top, 20)
             }
             
+            // What's New Section
             if let currentVer = app.currentVersion,
                let whatsNewDesc = app.currentAppVersion?.localizedDescription {
                 whatsNewSection(version: currentVer, description: whatsNewDesc)
@@ -347,16 +386,19 @@ struct SourceAppsDetailView: View {
                     .padding(.horizontal, horizontalPadding)
             }
             
+            // Description Section
             if let appDesc = app.localizedDescription {
                 descriptionSection(appDesc)
                     .padding(.top, 24)
                     .padding(.horizontal, horizontalPadding)
             }
             
+            // Information Section
             informationSection
                 .padding(.top, 24)
                 .padding(.horizontal, horizontalPadding)
             
+            // Permissions Section
             if let appPermissions = app.appPermissions {
                 permissionsSection(appPermissions)
                     .padding(.top, 24)
@@ -633,11 +675,15 @@ struct SourceAppsDetailView: View {
             Text("Description")
                 .font(.system(size: 22, weight: .bold))
                 .foregroundStyle(.primary)
+                .frame(maxWidth: .infinity, alignment: .leading)
             
             ExpandableText(text: description, lineLimit: 4)
                 .font(.system(size: 15))
                 .foregroundStyle(.primary)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .multilineTextAlignment(.leading)
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
     
     // MARK: - Information Section
