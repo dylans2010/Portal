@@ -198,7 +198,11 @@ struct AllAppsView: View {
                             .padding(.vertical, 12)
                             .background(
                                 RoundedRectangle(cornerRadius: 14, style: .continuous)
-                                    .fill(Color(.secondarySystemGroupedBackground))
+                                    .fill(.ultraThinMaterial)
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 14, style: .continuous)
+                                            .stroke(Color.primary.opacity(0.1), lineWidth: 0.5)
+                                    )
                             )
                             
                             if _searchFieldFocused {
@@ -217,6 +221,7 @@ struct AllAppsView: View {
                         .padding(.vertical, 12)
                         .padding(.bottom, geometry.safeAreaInsets.bottom > 0 ? 0 : 8)
                         .background(.ultraThinMaterial)
+                        .shadow(color: .black.opacity(0.05), radius: 10, y: -5)
                     }
                     .animation(.spring(response: 0.3, dampingFraction: 0.8), value: _searchFieldFocused)
                 }
@@ -239,60 +244,68 @@ struct AllAppsView: View {
 	// MARK: - Loading Screen
 	@ViewBuilder
 	private var loadingScreen: some View {
-		VStack(spacing: 30) {
-			Spacer()
+		ZStack {
+			LinearGradient(colors: [.blue.opacity(0.1), .purple.opacity(0.1)], startPoint: .topLeading, endPoint: .bottomTrailing)
+				.ignoresSafeArea()
 			
-			// Animated loading circle
-			ZStack {
-				Circle()
-					.stroke(Color.secondary.opacity(0.2), lineWidth: 8)
-					.frame(width: 80, height: 80)
+			VStack(spacing: 30) {
+				Spacer()
 				
-				Circle()
-					.trim(from: 0, to: 0.7)
-					.stroke(Color.accentColor, style: StrokeStyle(lineWidth: 8, lineCap: .round))
-					.frame(width: 80, height: 80)
-					.rotationEffect(.degrees(-90))
-					.rotationEffect(.degrees(_isLoading ? 360 : 0))
-					.animation(.linear(duration: 1.5).repeatForever(autoreverses: false), value: _isLoading)
-			}
-			
-			// Progress text
-			VStack(spacing: 8) {
-				Text("Loading Sources")
-					.font(.title2)
-					.fontWeight(.bold)
-					.foregroundStyle(.primary)
-				
-				Text("\(_loadedSourcesCount)/\(object.count) Sources are being loaded...")
-					.font(.subheadline)
-					.foregroundStyle(.secondary)
-					.animation(.easeInOut(duration: 0.3), value: _loadedSourcesCount)
-			}
-			
-			Spacer()
-			
-			// Did you know section
-			VStack(spacing: 12) {
-				HStack(spacing: 8) {
-					Image(systemName: "lightbulb.fill")
-						.font(.system(size: 18))
-						.foregroundStyle(.yellow)
-					Text("Did You Know?")
-						.font(.headline)
-						.fontWeight(.semibold)
-						.foregroundStyle(.primary)
+				// Animated loading circle
+				ZStack {
+					Circle()
+						.stroke(Color.secondary.opacity(0.2), lineWidth: 8)
+						.frame(width: 80, height: 80)
+
+					Circle()
+						.trim(from: 0, to: 0.7)
+						.stroke(Color.accentColor, style: StrokeStyle(lineWidth: 8, lineCap: .round))
+						.frame(width: 80, height: 80)
+						.rotationEffect(.degrees(-90))
+						.rotationEffect(.degrees(_isLoading ? 360 : 0))
+						.animation(.linear(duration: 1.5).repeatForever(autoreverses: false), value: _isLoading)
 				}
 				
-				Text(_currentFact)
-					.font(.subheadline)
-					.foregroundStyle(.secondary)
-					.multilineTextAlignment(.center)
-					.lineLimit(3)
-					.padding(.horizontal, 40)
-					.transition(.opacity.combined(with: .scale))
+				// Progress text
+				VStack(spacing: 8) {
+					Text("Loading Sources")
+						.font(.system(size: 22, weight: .bold, design: .rounded))
+						.foregroundStyle(.primary)
+
+					Text("\(_loadedSourcesCount)/\(object.count) Sources are being loaded...")
+						.font(.subheadline)
+						.foregroundStyle(.secondary)
+						.animation(.easeInOut(duration: 0.3), value: _loadedSourcesCount)
+				}
+				
+				Spacer()
+
+				// Did you know section
+				VStack(spacing: 12) {
+					HStack(spacing: 8) {
+						Image(systemName: "lightbulb.fill")
+							.font(.system(size: 18))
+							.foregroundStyle(.yellow)
+						Text("Did You Know?")
+							.font(.headline)
+							.fontWeight(.semibold)
+							.foregroundStyle(.primary)
+					}
+
+					Text(_currentFact)
+						.font(.subheadline)
+						.foregroundStyle(.secondary)
+						.multilineTextAlignment(.center)
+						.lineLimit(3)
+						.padding(.horizontal, 40)
+						.transition(.opacity.combined(with: .scale))
+				}
+				.padding(.bottom, 40)
 			}
-			.padding(.bottom, 40)
+			.padding(30)
+			.background(.ultraThinMaterial)
+			.cornerRadius(20)
+			.padding(20)
 		}
 		.frame(maxWidth: .infinity, maxHeight: .infinity)
 	}
@@ -324,6 +337,24 @@ struct AllAppsView: View {
 
 	// MARK: - Load All Sources
 	private func _loadAllSources() {
+		// Immediate check for cached data
+		if !viewModel.sources.isEmpty {
+			let cachedSources = object.compactMap { viewModel.sources[$0] }
+			if !cachedSources.isEmpty {
+				_sources = cachedSources
+				_allApps = cachedSources.flatMap { source in
+					source.apps.map { (source: source, app: $0) }
+				}
+				_filterApps()
+				_loadedSourcesCount = object.count
+				_isLoading = false
+
+				if viewModel.isFinished {
+					return
+				}
+			}
+		}
+
 		_isLoading = true
 		_loadedSourcesCount = 0
 		_currentFact = DidYouKnowFacts.random()

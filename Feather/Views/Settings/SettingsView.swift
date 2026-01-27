@@ -16,6 +16,7 @@ enum CertificateExperience: String, CaseIterable {
 struct SettingsView: View {
     @State private var developerTapCount = 0
     @State private var lastTapTime: Date?
+    @State private var _isFetchingFullData = false
     @State private var showDeveloperConfirmation = false
     @State private var navigateToCheckForUpdates = false
     @AppStorage("isDeveloperModeEnabled") private var isDeveloperModeEnabled = false
@@ -100,9 +101,11 @@ struct SettingsView: View {
             }
             SettingsRow(icon: "arrow.counterclockwise.circle.fill", title: "Backup & Restore", color: .green, destination: BackupRestoreView())
 
-            SettingsActionRow(icon: "arrow.clockwise.circle.fill", title: "Fetch Full Data", color: .cyan) {
+            SettingsActionRow(icon: "arrow.clockwise.circle.fill", title: "Fetch Full Data", color: .cyan, isLoading: _isFetchingFullData) {
                 Task {
+                    _isFetchingFullData = true
                     await SourcesViewModel.shared.forceFetchAllSources(_sources)
+                    _isFetchingFullData = false
                     HapticsManager.shared.success()
                 }
             }
@@ -163,12 +166,20 @@ private struct SettingsActionRow: View {
     let icon: String
     let title: String
     let color: Color
+    var isLoading: Bool = false
     let action: () -> Void
 
     var body: some View {
         Button(action: action) {
-            SettingsRowContent(icon: icon, title: title, color: color)
+            HStack {
+                SettingsRowContent(icon: icon, title: title, color: color)
+                Spacer()
+                if isLoading {
+                    ProgressView()
+                }
+            }
         }
+        .disabled(isLoading)
     }
 }
 
