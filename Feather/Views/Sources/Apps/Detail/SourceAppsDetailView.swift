@@ -14,17 +14,25 @@ struct SourceAppsDetailView: View {
     @State private var isScreenshotPreviewPresented: Bool = false
     @State private var selectedScreenshotIndex: Int = 0
     @State private var dominantColor: Color = .accentColor
-    @State private var showShareSheet = false
     @State private var scrollOffset: CGFloat = 0
     
     var source: ASRepository
     var app: ASRepository.App
     
-    private let heroHeight: CGFloat = UIScreen.main.bounds.height * 0.38
     private let horizontalPadding: CGFloat = 20
     private let iconSize: CGFloat = 118
     private let iconCornerRadius: CGFloat = 26
     private let navButtonSize: CGFloat = 36
+    
+    // Check if app has minimal info (no screenshots, no description, no version history)
+    private var hasMinimalInfo: Bool {
+        let hasScreenshots = app.screenshotURLs?.isEmpty == false
+        let hasDescription = app.localizedDescription?.isEmpty == false
+        let hasVersionHistory = (app.versions?.count ?? 0) > 1
+        let hasWhatsNew = app.currentAppVersion?.localizedDescription?.isEmpty == false
+        
+        return !hasScreenshots && !hasDescription && !hasVersionHistory && !hasWhatsNew
+    }
     
     var currentDownload: Download? {
         downloadManager.getDownload(by: app.currentUniqueId)
@@ -36,13 +44,11 @@ struct SourceAppsDetailView: View {
                 Color(UIColor.systemBackground)
                     .ignoresSafeArea()
                 
-                ScrollView(.vertical, showsIndicators: false) {
-                    VStack(spacing: 0) {
-                        heroBanner(geometry: geometry)
-                        mainContent
-                    }
+                if hasMinimalInfo {
+                    minimalInfoView(geometry: geometry)
+                } else {
+                    fullInfoView(geometry: geometry)
                 }
-                .ignoresSafeArea(edges: .top)
                 
                 navigationOverlay(geometry: geometry)
             }
@@ -53,11 +59,6 @@ struct SourceAppsDetailView: View {
                 ScreenshotPreviewView(screenshotURLs: screenshotURLs, initialIndex: selectedScreenshotIndex)
             }
         }
-        .sheet(isPresented: $showShareSheet) {
-            if let downloadURL = app.currentAppVersion?.downloadURL {
-                ShareSheet(urls: [downloadURL])
-            }
-        }
         .onAppear {
             if let iconURL = app.iconURL {
                 extractDominantColor(from: iconURL)
@@ -65,7 +66,7 @@ struct SourceAppsDetailView: View {
         }
     }
     
-    // MARK: - Navigation Overlay
+    // MARK: - Navigation Overlay (No Share Button)
     
     private func navigationOverlay(geometry: GeometryProxy) -> some View {
         HStack {
@@ -81,27 +82,213 @@ struct SourceAppsDetailView: View {
             }
             
             Spacer()
-            
-            Button {
-                showShareSheet = true
-            } label: {
-                Image(systemName: "square.and.arrow.up")
-                    .font(.system(size: 15, weight: .semibold))
-                    .foregroundStyle(.primary)
-                    .frame(width: navButtonSize, height: navButtonSize)
-                    .background(.ultraThinMaterial, in: Circle())
-                    .shadow(color: .black.opacity(0.15), radius: 8, x: 0, y: 4)
-            }
         }
         .padding(.horizontal, horizontalPadding)
         .padding(.top, geometry.safeAreaInsets.top + 8)
     }
     
+    // MARK: - Minimal Info View (Modern, Clean Design)
+    
+    private func minimalInfoView(geometry: GeometryProxy) -> some View {
+        ScrollView(.vertical, showsIndicators: false) {
+            VStack(spacing: 0) {
+                // Top spacing for nav bar
+                Color.clear.frame(height: geometry.safeAreaInsets.top + 60)
+                
+                // App Card with Icon and Name inside
+                VStack(spacing: 20) {
+                    // Icon
+                    minimalAppIcon
+                    
+                    // App Name and Developer
+                    VStack(spacing: 6) {
+                        Text(app.currentName)
+                            .font(.system(size: 24, weight: .bold))
+                            .foregroundStyle(.primary)
+                            .multilineTextAlignment(.center)
+                        
+                        if let developer = app.developer {
+                            Text(developer)
+                                .font(.system(size: 15, weight: .medium))
+                                .foregroundStyle(dominantColor)
+                        }
+                        
+                        if let category = app.category {
+                            Text(category.capitalized)
+                                .font(.system(size: 13))
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                    
+                    // Download Button
+                    DownloadButtonView(app: app)
+                        .padding(.top, 8)
+                }
+                .padding(.vertical, 32)
+                .padding(.horizontal, 24)
+                .frame(maxWidth: .infinity)
+                .background(
+                    RoundedRectangle(cornerRadius: 24, style: .continuous)
+                        .fill(
+                            LinearGradient(
+                                colors: [
+                                    dominantColor.opacity(colorScheme == .dark ? 0.15 : 0.1),
+                                    dominantColor.opacity(colorScheme == .dark ? 0.08 : 0.05)
+                                ],
+                                startPoint: .top,
+                                endPoint: .bottom
+                            )
+                        )
+                )
+                .padding(.horizontal, horizontalPadding)
+                
+                // Information Section (Left-aligned)
+                minimalInformationSection
+                    .padding(.top, 24)
+                    .padding(.horizontal, horizontalPadding)
+                
+                Spacer(minLength: 100)
+            }
+        }
+        .ignoresSafeArea(edges: .top)
+    }
+    
+    private var minimalAppIcon: some View {
+        Group {
+            if let iconURL = app.iconURL {
+                LazyImage(url: iconURL) { state in
+                    if let image = state.image {
+                        image
+                            .resizable()
+                            .aspectRatio(contentMode: .fill)
+                    } else {
+                        minimalIconPlaceholder
+                    }
+                }
+            } else {
+                minimalIconPlaceholder
+            }
+        }
+        .frame(width: 100, height: 100)
+        .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
+        .shadow(color: dominantColor.opacity(0.3), radius: 20, x: 0, y: 10)
+    }
+    
+    private var minimalIconPlaceholder: some View {
+        RoundedRectangle(cornerRadius: 24, style: .continuous)
+            .fill(dominantColor.opacity(0.2))
+            .overlay(
+                Image(systemName: "app.fill")
+                    .font(.system(size: 40))
+                    .foregroundStyle(dominantColor)
+            )
+    }
+    
+    // MARK: - Minimal Information Section (Left-aligned)
+    
+    private var minimalInformationSection: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            Text("Information")
+                .font(.system(size: 20, weight: .bold))
+                .foregroundStyle(.primary)
+            
+            VStack(alignment: .leading, spacing: 0) {
+                if let sourceName = source.name {
+                    minimalInfoRow(icon: "globe", label: "Source", value: sourceName)
+                    Divider().padding(.leading, 44)
+                }
+                
+                if let developer = app.developer {
+                    minimalInfoRow(icon: "person.fill", label: "Developer", value: developer)
+                    Divider().padding(.leading, 44)
+                }
+                
+                if let size = app.size {
+                    minimalInfoRow(icon: "arrow.down.circle", label: "Size", value: size.formattedByteCount)
+                    Divider().padding(.leading, 44)
+                }
+                
+                if let category = app.category {
+                    minimalInfoRow(icon: "square.grid.2x2", label: "Category", value: category.capitalized)
+                    Divider().padding(.leading, 44)
+                }
+                
+                if let version = app.currentVersion {
+                    minimalInfoRow(icon: "number", label: "Version", value: version)
+                    Divider().padding(.leading, 44)
+                }
+                
+                if let bundleId = app.id {
+                    minimalInfoRow(icon: "doc.on.doc", label: "Bundle ID", value: bundleId, isCopyable: true)
+                }
+            }
+            .background(
+                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .fill(Color(UIColor.secondarySystemGroupedBackground))
+            )
+        }
+    }
+    
+    private func minimalInfoRow(icon: String, label: String, value: String, isCopyable: Bool = false) -> some View {
+        HStack(spacing: 12) {
+            Image(systemName: icon)
+                .font(.system(size: 16, weight: .medium))
+                .foregroundStyle(dominantColor)
+                .frame(width: 32)
+            
+            VStack(alignment: .leading, spacing: 2) {
+                Text(label)
+                    .font(.system(size: 12, weight: .medium))
+                    .foregroundStyle(.secondary)
+                
+                if isCopyable {
+                    Button {
+                        UIPasteboard.general.string = value
+                        HapticsManager.shared.success()
+                    } label: {
+                        Text(value)
+                            .font(.system(size: 15, weight: .medium))
+                            .foregroundStyle(.primary)
+                            .lineLimit(1)
+                    }
+                } else {
+                    Text(value)
+                        .font(.system(size: 15, weight: .medium))
+                        .foregroundStyle(.primary)
+                        .lineLimit(1)
+                }
+            }
+            
+            Spacer()
+            
+            if isCopyable {
+                Image(systemName: "doc.on.doc")
+                    .font(.system(size: 12))
+                    .foregroundStyle(.tertiary)
+            }
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 14)
+    }
+    
+    // MARK: - Full Info View (Original with improvements)
+    
+    private func fullInfoView(geometry: GeometryProxy) -> some View {
+        ScrollView(.vertical, showsIndicators: false) {
+            VStack(spacing: 0) {
+                heroBanner(geometry: geometry)
+                mainContent
+            }
+        }
+        .ignoresSafeArea(edges: .top)
+    }
+    
+    private let heroHeight: CGFloat = UIScreen.main.bounds.height * 0.38
+    
     // MARK: - Hero Banner
     
     private func heroBanner(geometry: GeometryProxy) -> some View {
         ZStack(alignment: .bottom) {
-            // Banner background with gradient
             Rectangle()
                 .fill(
                     LinearGradient(
@@ -136,28 +323,23 @@ struct SourceAppsDetailView: View {
     
     private var mainContent: some View {
         VStack(spacing: 0) {
-            // App Info Row - overlaps the banner slightly
             appInfoRow
                 .padding(.top, -60)
                 .padding(.horizontal, horizontalPadding)
             
-            // Statistics Row
             statisticsRow
                 .padding(.top, 24)
                 .padding(.horizontal, horizontalPadding)
             
-            // Divider
             Divider()
                 .padding(.horizontal, horizontalPadding)
                 .padding(.top, 20)
             
-            // Screenshots Preview
             if let screenshotURLs = app.screenshotURLs, !screenshotURLs.isEmpty {
                 screenshotsPreview(screenshotURLs)
                     .padding(.top, 20)
             }
             
-            // What's New Section
             if let currentVer = app.currentVersion,
                let whatsNewDesc = app.currentAppVersion?.localizedDescription {
                 whatsNewSection(version: currentVer, description: whatsNewDesc)
@@ -165,19 +347,16 @@ struct SourceAppsDetailView: View {
                     .padding(.horizontal, horizontalPadding)
             }
             
-            // Description Section
             if let appDesc = app.localizedDescription {
                 descriptionSection(appDesc)
                     .padding(.top, 24)
                     .padding(.horizontal, horizontalPadding)
             }
             
-            // Information Section
             informationSection
                 .padding(.top, 24)
                 .padding(.horizontal, horizontalPadding)
             
-            // Permissions Section
             if let appPermissions = app.appPermissions {
                 permissionsSection(appPermissions)
                     .padding(.top, 24)
@@ -192,10 +371,8 @@ struct SourceAppsDetailView: View {
     
     private var appInfoRow: some View {
         HStack(alignment: .top, spacing: 16) {
-            // App Icon
             appIcon
             
-            // App Details
             VStack(alignment: .leading, spacing: 4) {
                 Text(app.currentName)
                     .font(.system(size: 22, weight: .bold))
@@ -219,7 +396,6 @@ struct SourceAppsDetailView: View {
             
             Spacer(minLength: 8)
             
-            // Action Button
             VStack(spacing: 4) {
                 DownloadButtonView(app: app)
                 
@@ -272,7 +448,6 @@ struct SourceAppsDetailView: View {
     
     private var statisticsRow: some View {
         HStack(spacing: 0) {
-            // Version
             statisticColumn(
                 topLabel: app.versions?.count.description ?? "1",
                 mainValue: app.currentVersion ?? "1.0",
@@ -285,7 +460,6 @@ struct SourceAppsDetailView: View {
             
             statisticDivider
             
-            // Size
             if let size = app.size {
                 statisticColumn(
                     topLabel: "SIZE",
@@ -300,7 +474,6 @@ struct SourceAppsDetailView: View {
                 statisticDivider
             }
             
-            // Category
             if let category = app.category {
                 statisticColumn(
                     topLabel: "CATEGORY",
@@ -316,7 +489,6 @@ struct SourceAppsDetailView: View {
                 statisticDivider
             }
             
-            // Developer
             statisticColumn(
                 topLabel: "DEVELOPER",
                 mainValue: "",
