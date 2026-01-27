@@ -708,7 +708,7 @@ struct SourceAppsListView: View {
                                 }
                             }
                             .font(.system(size: 16, weight: .medium))
-                            .foregroundStyle(.accentColor)
+                            .foregroundStyle(Color.accentColor)
                             .transition(.move(edge: .trailing).combined(with: .opacity))
                         }
                     }
