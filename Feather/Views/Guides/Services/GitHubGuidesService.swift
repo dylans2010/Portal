@@ -4,8 +4,8 @@ import Foundation
 class GitHubGuidesService {
     static let shared = GitHubGuidesService()
     
-    private let baseURL = "https://api.github.com/repos/WSF-Team/WSF/contents/Portal/Guides"
-    private let rawBaseURL = "https://raw.githubusercontent.com/WSF-Team/WSF/main/Portal/Guides"
+    private let baseURL = "https://api.github.com/repos/WSF-Team/WSF/contents/Portal/guides"
+    private let rawBaseURL = "https://raw.githubusercontent.com/WSF-Team/WSF/main/Portal/guides"
     private let plistURL = "https://raw.githubusercontent.com/WSF-Team/WSF/main/Portal/Guides/Markdown_filenames.plist"
     
     private init() {}
