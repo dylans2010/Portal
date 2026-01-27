@@ -199,7 +199,7 @@ enum HeaderSubtitle {
         "Kravashit are a scam",
         "Just Works™",
         "Portal in full Spanish?? maybe...",
-        "should i put my instagram here??"
+        "should i put my instagram here??",
         "Portal made by dylan lol",
         "5-7, 7-3, elite ball knowledge needed to understand",
         "why do I encounter stupid people ffs",
