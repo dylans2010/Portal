@@ -565,12 +565,15 @@ struct SourceNewsListView: View {
 	}
 }
 
-// MARK: - Apps List View (Modern with Search)
+// MARK: - Apps List View (iOS 26 Style with Bottom Search)
 struct SourceAppsListView: View {
     let repository: ASRepository
     let dominantColor: Color
     @State private var _selectedRoute: SourceAppRoute?
     @State private var searchText: String = ""
+    @State private var isSearchFocused: Bool = false
+    @State private var scrollOffset: CGFloat = 0
+    @FocusState private var searchFieldFocused: Bool
     
     private var filteredApps: [ASRepository.App] {
         if searchText.isEmpty {
@@ -584,75 +587,137 @@ struct SourceAppsListView: View {
     }
     
     var body: some View {
-        ScrollView {
-            LazyVStack(spacing: 0) {
-                // Search bar
-                HStack(spacing: 10) {
-                    Image(systemName: "magnifyingglass")
-                        .font(.system(size: 15, weight: .medium))
-                        .foregroundStyle(.secondary)
-                    
-                    TextField("Search \(repository.apps.count) Apps", text: $searchText)
-                        .font(.system(size: 16))
-                    
-                    if !searchText.isEmpty {
-                        Button {
-                            searchText = ""
-                        } label: {
-                            Image(systemName: "xmark.circle.fill")
-                                .font(.system(size: 16))
-                                .foregroundStyle(.tertiary)
+        GeometryReader { geometry in
+            ZStack(alignment: .bottom) {
+                // Main content
+                ScrollView {
+                    LazyVStack(spacing: 0) {
+                        // Header with app count
+                        HStack {
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text("\(repository.apps.count)")
+                                    .font(.system(size: 34, weight: .bold, design: .rounded))
+                                    .foregroundStyle(.primary)
+                                Text("Apps Available")
+                                    .font(.system(size: 15, weight: .medium))
+                                    .foregroundStyle(.secondary)
+                            }
+                            Spacer()
                         }
-                    }
-                }
-                .padding(12)
-                .background(Color(.secondarySystemGroupedBackground))
-                .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-                .padding(.horizontal, 16)
-                .padding(.vertical, 12)
-                
-                // Results count
-                if !searchText.isEmpty {
-                    HStack {
-                        Text("\(filteredApps.count) result\(filteredApps.count == 1 ? "" : "s")")
-                            .font(.system(size: 13, weight: .medium))
-                            .foregroundStyle(.secondary)
-                        Spacer()
-                    }
-                    .padding(.horizontal, 20)
-                    .padding(.bottom, 8)
-                }
-                
-                // Apps list
-                if filteredApps.isEmpty {
-                    VStack(spacing: 16) {
-                        Image(systemName: "magnifyingglass")
-                            .font(.system(size: 40))
-                            .foregroundStyle(.tertiary)
-                        Text("No apps found")
-                            .font(.system(size: 16, weight: .medium))
-                            .foregroundStyle(.secondary)
-                        Text("Try a different search term")
-                            .font(.system(size: 14))
-                            .foregroundStyle(.tertiary)
-                    }
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 60)
-                } else {
-                    ForEach(filteredApps, id: \.id) { app in
-                        Button {
-                            _selectedRoute = SourceAppRoute(source: repository, app: app)
-                        } label: {
-                            ModernAppListRow(app: app, dominantColor: dominantColor)
-                        }
-                        .buttonStyle(.plain)
+                        .padding(.horizontal, 20)
+                        .padding(.top, 16)
+                        .padding(.bottom, 20)
                         
-                        if app.id != filteredApps.last?.id {
-                            Divider()
-                                .padding(.leading, 76)
+                        // Results count when searching
+                        if !searchText.isEmpty {
+                            HStack {
+                                Text("\(filteredApps.count) result\(filteredApps.count == 1 ? "" : "s")")
+                                    .font(.system(size: 13, weight: .medium))
+                                    .foregroundStyle(.secondary)
+                                Spacer()
+                            }
+                            .padding(.horizontal, 20)
+                            .padding(.bottom, 12)
                         }
+                        
+                        // Apps list
+                        if filteredApps.isEmpty && !searchText.isEmpty {
+                            VStack(spacing: 20) {
+                                ZStack {
+                                    Circle()
+                                        .fill(Color.secondary.opacity(0.1))
+                                        .frame(width: 80, height: 80)
+                                    Image(systemName: "magnifyingglass")
+                                        .font(.system(size: 32, weight: .medium))
+                                        .foregroundStyle(.tertiary)
+                                }
+                                VStack(spacing: 6) {
+                                    Text("No Results")
+                                        .font(.system(size: 18, weight: .semibold))
+                                        .foregroundStyle(.primary)
+                                    Text("Try a different search term")
+                                        .font(.system(size: 14))
+                                        .foregroundStyle(.secondary)
+                                }
+                            }
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 80)
+                        } else {
+                            ForEach(filteredApps, id: \.id) { app in
+                                Button {
+                                    _selectedRoute = SourceAppRoute(source: repository, app: app)
+                                } label: {
+                                    ModernAppListRow(app: app, dominantColor: dominantColor)
+                                }
+                                .buttonStyle(.plain)
+                                
+                                if app.id != filteredApps.last?.id {
+                                    Divider()
+                                        .padding(.leading, 76)
+                                }
+                            }
+                        }
+                        
+                        // Bottom padding for search bar
+                        Color.clear.frame(height: 100)
                     }
                 }
+                
+                // iOS 26 Style Bottom Search Bar
+                VStack(spacing: 0) {
+                    // Blur effect divider
+                    Rectangle()
+                        .fill(.ultraThinMaterial)
+                        .frame(height: 1)
+                    
+                    // Search bar container
+                    HStack(spacing: 12) {
+                        HStack(spacing: 10) {
+                            Image(systemName: "magnifyingglass")
+                                .font(.system(size: 16, weight: .medium))
+                                .foregroundStyle(.secondary)
+                            
+                            TextField("Search \(repository.apps.count) Apps", text: $searchText)
+                                .font(.system(size: 16))
+                                .focused($searchFieldFocused)
+                            
+                            if !searchText.isEmpty {
+                                Button {
+                                    withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                                        searchText = ""
+                                    }
+                                } label: {
+                                    Image(systemName: "xmark.circle.fill")
+                                        .font(.system(size: 18))
+                                        .foregroundStyle(.tertiary)
+                                }
+                            }
+                        }
+                        .padding(.horizontal, 14)
+                        .padding(.vertical, 12)
+                        .background(
+                            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                                .fill(Color(.secondarySystemGroupedBackground))
+                        )
+                        
+                        if searchFieldFocused {
+                            Button("Cancel") {
+                                withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                                    searchText = ""
+                                    searchFieldFocused = false
+                                }
+                            }
+                            .font(.system(size: 16, weight: .medium))
+                            .foregroundStyle(.accentColor)
+                            .transition(.move(edge: .trailing).combined(with: .opacity))
+                        }
+                    }
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 12)
+                    .padding(.bottom, geometry.safeAreaInsets.bottom > 0 ? 0 : 8)
+                    .background(.ultraThinMaterial)
+                }
+                .animation(.spring(response: 0.3, dampingFraction: 0.8), value: searchFieldFocused)
             }
         }
         .background(Color(.systemGroupedBackground))
@@ -661,6 +726,7 @@ struct SourceAppsListView: View {
         .navigationDestinationIfAvailable(item: $_selectedRoute) { route in
             SourceAppsDetailView(source: route.source, app: route.app)
         }
+        .ignoresSafeArea(.keyboard, edges: .bottom)
     }
     
     struct SourceAppRoute: Identifiable, Hashable {
