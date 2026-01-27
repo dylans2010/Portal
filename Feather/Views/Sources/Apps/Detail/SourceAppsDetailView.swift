@@ -476,71 +476,94 @@ struct SourceAppsDetailView: View {
                 .font(.system(size: 22, weight: .bold))
                 .foregroundStyle(.primary)
             
-            VStack(spacing: 0) {
-                if let sourceName = source.name {
-                    infoRow(label: "Source", value: sourceName)
-                    Divider().padding(.leading, 0)
+            // Horizontal scrollable info cards
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 12) {
+                    if let sourceName = source.name {
+                        ModernInfoCard(
+                            icon: "globe",
+                            label: "Source",
+                            value: sourceName,
+                            color: dominantColor
+                        )
+                    }
+                    
+                    if let developer = app.developer {
+                        ModernInfoCard(
+                            icon: "person.fill",
+                            label: "Developer",
+                            value: developer,
+                            color: .blue
+                        )
+                    }
+                    
+                    if let size = app.size {
+                        ModernInfoCard(
+                            icon: "arrow.down.circle.fill",
+                            label: "Size",
+                            value: size.formattedByteCount,
+                            color: .green
+                        )
+                    }
+                    
+                    if let category = app.category {
+                        ModernInfoCard(
+                            icon: "square.grid.2x2.fill",
+                            label: "Category",
+                            value: category.capitalized,
+                            color: .purple
+                        )
+                    }
+                    
+                    if let version = app.currentVersion {
+                        ModernInfoCard(
+                            icon: "number",
+                            label: "Version",
+                            value: version,
+                            color: .orange
+                        )
+                    }
                 }
-                
-                if let developer = app.developer {
-                    infoRow(label: "Developer", value: developer)
-                    Divider().padding(.leading, 0)
-                }
-                
-                if let size = app.size {
-                    infoRow(label: "Size", value: size.formattedByteCount)
-                    Divider().padding(.leading, 0)
-                }
-                
-                if let category = app.category {
-                    infoRow(label: "Category", value: category.capitalized)
-                    Divider().padding(.leading, 0)
-                }
-                
-                if let version = app.currentVersion {
-                    infoRow(label: "Version", value: version)
-                    Divider().padding(.leading, 0)
-                }
-                
-                if let bundleId = app.id {
-                    infoRow(label: "Bundle ID", value: bundleId, isCopyable: true)
-                }
+                .padding(.horizontal, 4)
             }
-            .padding(.vertical, 4)
-            .background(
-                RoundedRectangle(cornerRadius: 12, style: .continuous)
-                    .fill(Color(UIColor.secondarySystemGroupedBackground))
-            )
-        }
-    }
-    
-    private func infoRow(label: String, value: String, isCopyable: Bool = false) -> some View {
-        HStack {
-            Text(label)
-                .font(.system(size: 15))
-                .foregroundStyle(.primary)
+            .padding(.horizontal, -4)
             
-            Spacer()
-            
-            if isCopyable {
+            // Bundle ID (copyable, full width)
+            if let bundleId = app.id {
                 Button {
-                    UIPasteboard.general.string = value
+                    UIPasteboard.general.string = bundleId
                     HapticsManager.shared.success()
                 } label: {
-                    Text(value)
-                        .font(.system(size: 15))
-                        .foregroundStyle(.secondary)
-                        .lineLimit(1)
+                    HStack(spacing: 12) {
+                        Image(systemName: "doc.on.doc")
+                            .font(.system(size: 14, weight: .medium))
+                            .foregroundStyle(.secondary)
+                        
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Bundle ID")
+                                .font(.system(size: 12, weight: .medium))
+                                .foregroundStyle(.secondary)
+                            Text(bundleId)
+                                .font(.system(size: 14, weight: .medium, design: .monospaced))
+                                .foregroundStyle(.primary)
+                                .lineLimit(1)
+                        }
+                        
+                        Spacer()
+                        
+                        Text("Tap to copy")
+                            .font(.system(size: 11, weight: .medium))
+                            .foregroundStyle(.tertiary)
+                    }
+                    .padding(14)
+                    .background(
+                        RoundedRectangle(cornerRadius: 12, style: .continuous)
+                            .fill(Color(UIColor.secondarySystemGroupedBackground))
+                    )
                 }
-            } else {
-                Text(value)
-                    .font(.system(size: 15))
-                    .foregroundStyle(.secondary)
-                    .lineLimit(1)
+                .buttonStyle(.plain)
             }
         }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 12)
     }
     
     // MARK: - Permissions Section
@@ -616,6 +639,44 @@ struct SourceAppsDetailView: View {
                 }
             }
         }
+    }
+}
+
+// MARK: - Modern Info Card
+struct ModernInfoCard: View {
+    let icon: String
+    let label: String
+    let value: String
+    let color: Color
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            // Icon
+            ZStack {
+                Circle()
+                    .fill(color.opacity(0.12))
+                    .frame(width: 36, height: 36)
+                Image(systemName: icon)
+                    .font(.system(size: 15, weight: .semibold))
+                    .foregroundStyle(color)
+            }
+            
+            VStack(alignment: .leading, spacing: 3) {
+                Text(label)
+                    .font(.system(size: 11, weight: .medium))
+                    .foregroundStyle(.secondary)
+                Text(value)
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundStyle(.primary)
+                    .lineLimit(1)
+            }
+        }
+        .frame(width: 110, alignment: .leading)
+        .padding(14)
+        .background(
+            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                .fill(Color(UIColor.secondarySystemGroupedBackground))
+        )
     }
 }
 
