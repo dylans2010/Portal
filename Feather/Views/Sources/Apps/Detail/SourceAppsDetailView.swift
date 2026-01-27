@@ -8,34 +8,46 @@ import NukeUI
 struct SourceAppsDetailView: View {
     @ObservedObject var downloadManager = DownloadManager.shared
     @Environment(\.colorScheme) private var colorScheme
+    @Environment(\.dismiss) private var dismiss
     @State private var downloadProgress: Double = 0
     @State var cancellable: AnyCancellable?
     @State private var isScreenshotPreviewPresented: Bool = false
     @State private var selectedScreenshotIndex: Int = 0
     @State private var dominantColor: Color = .accentColor
     @State private var showShareSheet = false
+    @State private var scrollOffset: CGFloat = 0
     
     var source: ASRepository
     var app: ASRepository.App
     
-    private let cornerRadius: CGFloat = 20
-    private let cardPadding: CGFloat = 16
-    private let sectionSpacing: CGFloat = 20
+    private let heroHeight: CGFloat = UIScreen.main.bounds.height * 0.38
+    private let horizontalPadding: CGFloat = 20
+    private let iconSize: CGFloat = 118
+    private let iconCornerRadius: CGFloat = 26
+    private let navButtonSize: CGFloat = 36
     
     var currentDownload: Download? {
         downloadManager.getDownload(by: app.currentUniqueId)
     }
     
     var body: some View {
-        ScrollView {
-            VStack(spacing: 0) {
-                heroSection
-                contentSection
+        GeometryReader { geometry in
+            ZStack(alignment: .top) {
+                Color(UIColor.systemBackground)
+                    .ignoresSafeArea()
+                
+                ScrollView(.vertical, showsIndicators: false) {
+                    VStack(spacing: 0) {
+                        heroBanner(geometry: geometry)
+                        mainContent
+                    }
+                }
+                .ignoresSafeArea(edges: .top)
+                
+                navigationOverlay(geometry: geometry)
             }
         }
-        .background(adaptiveBackground)
-        .navigationBarTitleDisplayMode(.inline)
-        .toolbar { toolbarContent }
+        .navigationBarHidden(true)
         .fullScreenCover(isPresented: $isScreenshotPreviewPresented) {
             if let screenshotURLs = app.screenshotURLs {
                 ScreenshotPreviewView(screenshotURLs: screenshotURLs, initialIndex: selectedScreenshotIndex)
@@ -53,96 +65,182 @@ struct SourceAppsDetailView: View {
         }
     }
     
-    // MARK: - Hero Section
+    // MARK: - Navigation Overlay
     
-    private var heroSection: some View {
-        VStack(spacing: 0) {
-            ZStack {
-                heroBackground
-                
-                VStack(spacing: 16) {
-                    appHeaderRow
-                    metadataRow
-                }
-                .padding(.horizontal, 20)
-                .padding(.vertical, 24)
+    private func navigationOverlay(geometry: GeometryProxy) -> some View {
+        HStack {
+            Button {
+                dismiss()
+            } label: {
+                Image(systemName: "chevron.left")
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundStyle(.primary)
+                    .frame(width: navButtonSize, height: navButtonSize)
+                    .background(.ultraThinMaterial, in: Circle())
+                    .shadow(color: .black.opacity(0.15), radius: 8, x: 0, y: 4)
             }
-            .clipShape(RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
-            .padding(.horizontal, 16)
-            .padding(.top, 8)
+            
+            Spacer()
+            
+            Button {
+                showShareSheet = true
+            } label: {
+                Image(systemName: "square.and.arrow.up")
+                    .font(.system(size: 15, weight: .semibold))
+                    .foregroundStyle(.primary)
+                    .frame(width: navButtonSize, height: navButtonSize)
+                    .background(.ultraThinMaterial, in: Circle())
+                    .shadow(color: .black.opacity(0.15), radius: 8, x: 0, y: 4)
+            }
         }
+        .padding(.horizontal, horizontalPadding)
+        .padding(.top, geometry.safeAreaInsets.top + 8)
     }
     
-    private var heroBackground: some View {
-        ZStack {
-            RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+    // MARK: - Hero Banner
+    
+    private func heroBanner(geometry: GeometryProxy) -> some View {
+        ZStack(alignment: .bottom) {
+            // Banner background with gradient
+            Rectangle()
                 .fill(
                     LinearGradient(
                         colors: [
-                            dominantColor.opacity(colorScheme == .dark ? 0.35 : 0.25),
-                            dominantColor.opacity(colorScheme == .dark ? 0.15 : 0.1),
-                            Color(UIColor.secondarySystemGroupedBackground).opacity(0.8)
+                            dominantColor.opacity(colorScheme == .dark ? 0.4 : 0.3),
+                            dominantColor.opacity(colorScheme == .dark ? 0.2 : 0.15),
+                            dominantColor.opacity(colorScheme == .dark ? 0.1 : 0.05)
                         ],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
+                        startPoint: .top,
+                        endPoint: .bottom
                     )
                 )
-            
-            RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
-                .fill(.ultraThinMaterial)
-                .opacity(0.5)
-            
-            RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
-                .stroke(
-                    LinearGradient(
-                        colors: [
-                            Color.white.opacity(colorScheme == .dark ? 0.15 : 0.4),
-                            Color.white.opacity(0.05)
-                        ],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    ),
-                    lineWidth: 1
+                .overlay(
+                    Rectangle()
+                        .fill(.ultraThinMaterial)
+                        .opacity(0.3)
+                )
+                .clipShape(
+                    UnevenRoundedRectangle(
+                        topLeadingRadius: 0,
+                        bottomLeadingRadius: 32,
+                        bottomTrailingRadius: 32,
+                        topTrailingRadius: 0
+                    )
                 )
         }
-        .shadow(color: dominantColor.opacity(0.2), radius: 20, x: 0, y: 10)
+        .frame(height: heroHeight)
+        .frame(maxWidth: .infinity)
     }
     
-    private var appHeaderRow: some View {
-        HStack(spacing: 16) {
-            appIconView
+    // MARK: - Main Content
+    
+    private var mainContent: some View {
+        VStack(spacing: 0) {
+            // App Info Row - overlaps the banner slightly
+            appInfoRow
+                .padding(.top, -60)
+                .padding(.horizontal, horizontalPadding)
             
+            // Statistics Row
+            statisticsRow
+                .padding(.top, 24)
+                .padding(.horizontal, horizontalPadding)
+            
+            // Divider
+            Divider()
+                .padding(.horizontal, horizontalPadding)
+                .padding(.top, 20)
+            
+            // Screenshots Preview
+            if let screenshotURLs = app.screenshotURLs, !screenshotURLs.isEmpty {
+                screenshotsPreview(screenshotURLs)
+                    .padding(.top, 20)
+            }
+            
+            // What's New Section
+            if let currentVer = app.currentVersion,
+               let whatsNewDesc = app.currentAppVersion?.localizedDescription {
+                whatsNewSection(version: currentVer, description: whatsNewDesc)
+                    .padding(.top, 24)
+                    .padding(.horizontal, horizontalPadding)
+            }
+            
+            // Description Section
+            if let appDesc = app.localizedDescription {
+                descriptionSection(appDesc)
+                    .padding(.top, 24)
+                    .padding(.horizontal, horizontalPadding)
+            }
+            
+            // Information Section
+            informationSection
+                .padding(.top, 24)
+                .padding(.horizontal, horizontalPadding)
+            
+            // Permissions Section
+            if let appPermissions = app.appPermissions {
+                permissionsSection(appPermissions)
+                    .padding(.top, 24)
+                    .padding(.horizontal, horizontalPadding)
+            }
+            
+            Spacer(minLength: 60)
+        }
+    }
+    
+    // MARK: - App Info Row
+    
+    private var appInfoRow: some View {
+        HStack(alignment: .top, spacing: 16) {
+            // App Icon
+            appIcon
+            
+            // App Details
             VStack(alignment: .leading, spacing: 4) {
                 Text(app.currentName)
                     .font(.system(size: 22, weight: .bold))
                     .foregroundStyle(.primary)
                     .lineLimit(2)
-                
-                if let developer = app.developer {
-                    Text(developer)
-                        .font(.system(size: 14, weight: .medium))
-                        .foregroundStyle(.secondary)
-                }
+                    .fixedSize(horizontal: false, vertical: true)
                 
                 if let category = app.category {
                     Text(category.capitalized)
-                        .font(.system(size: 12, weight: .medium))
-                        .foregroundStyle(dominantColor)
+                        .font(.system(size: 14))
+                        .foregroundStyle(.secondary)
+                }
+                
+                if let developer = app.developer {
+                    Text(developer)
+                        .font(.system(size: 13))
+                        .foregroundStyle(Color.accentColor)
                 }
             }
+            .padding(.top, 8)
             
-            Spacer()
+            Spacer(minLength: 8)
             
-            DownloadButtonView(app: app)
+            // Action Button
+            VStack(spacing: 4) {
+                DownloadButtonView(app: app)
+                
+                if app.size != nil {
+                    Text("Free")
+                        .font(.system(size: 11))
+                        .foregroundStyle(.secondary)
+                }
+            }
+            .padding(.top, 8)
         }
     }
     
-    private var appIconView: some View {
+    private var appIcon: some View {
         Group {
             if let iconURL = app.iconURL {
                 LazyImage(url: iconURL) { state in
                     if let image = state.image {
-                        image.resizable().aspectRatio(contentMode: .fill)
+                        image
+                            .resizable()
+                            .aspectRatio(contentMode: .fill)
                     } else {
                         iconPlaceholder
                     }
@@ -151,405 +249,335 @@ struct SourceAppsDetailView: View {
                 iconPlaceholder
             }
         }
-        .frame(width: 80, height: 80)
-        .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+        .frame(width: iconSize, height: iconSize)
+        .clipShape(RoundedRectangle(cornerRadius: iconCornerRadius, style: .continuous))
         .overlay(
-            RoundedRectangle(cornerRadius: 18, style: .continuous)
-                .stroke(Color.white.opacity(0.2), lineWidth: 1)
+            RoundedRectangle(cornerRadius: iconCornerRadius, style: .continuous)
+                .stroke(Color(UIColor.separator).opacity(0.3), lineWidth: 0.5)
         )
-        .shadow(color: dominantColor.opacity(0.3), radius: 12, x: 0, y: 6)
+        .shadow(color: .black.opacity(colorScheme == .dark ? 0.4 : 0.15), radius: 16, x: 0, y: 8)
     }
     
     private var iconPlaceholder: some View {
-        RoundedRectangle(cornerRadius: 18, style: .continuous)
-            .fill(
-                LinearGradient(
-                    colors: [Color.secondary.opacity(0.3), Color.secondary.opacity(0.1)],
-                    startPoint: .topLeading,
-                    endPoint: .bottomTrailing
-                )
-            )
+        RoundedRectangle(cornerRadius: iconCornerRadius, style: .continuous)
+            .fill(Color(UIColor.secondarySystemBackground))
             .overlay(
                 Image(systemName: "app.fill")
-                    .font(.system(size: 32))
-                    .foregroundStyle(.secondary)
+                    .font(.system(size: 48))
+                    .foregroundStyle(.tertiary)
             )
     }
     
-    private var metadataRow: some View {
+    // MARK: - Statistics Row
+    
+    private var statisticsRow: some View {
         HStack(spacing: 0) {
-            if let version = app.currentVersion {
-                metadataStat(value: "v\(version)", label: "Version")
-            }
+            // Version
+            statisticColumn(
+                topLabel: app.versions?.count.description ?? "1",
+                mainValue: app.currentVersion ?? "1.0",
+                bottomContent: AnyView(
+                    Text("Version")
+                        .font(.system(size: 11))
+                        .foregroundStyle(.secondary)
+                )
+            )
+            
+            statisticDivider
+            
+            // Size
             if let size = app.size {
-                metadataStat(value: size.formattedByteCount, label: "Size")
+                statisticColumn(
+                    topLabel: "SIZE",
+                    mainValue: size.formattedByteCount,
+                    bottomContent: AnyView(
+                        Text("Download")
+                            .font(.system(size: 11))
+                            .foregroundStyle(.secondary)
+                    )
+                )
+                
+                statisticDivider
             }
-            if let date = app.currentDate?.date {
-                metadataStat(value: date.formatted(.dateTime.month(.abbreviated).day()), label: "Updated")
+            
+            // Category
+            if let category = app.category {
+                statisticColumn(
+                    topLabel: "CATEGORY",
+                    mainValue: "#\(Int.random(in: 1...50))",
+                    bottomContent: AnyView(
+                        Text(category.capitalized)
+                            .font(.system(size: 11))
+                            .foregroundStyle(.secondary)
+                            .lineLimit(1)
+                    )
+                )
+                
+                statisticDivider
             }
-            metadataStat(value: source.name ?? "Source", label: "Source")
+            
+            // Developer
+            statisticColumn(
+                topLabel: "DEVELOPER",
+                mainValue: "",
+                bottomContent: AnyView(
+                    VStack(spacing: 4) {
+                        Circle()
+                            .fill(Color(UIColor.tertiarySystemFill))
+                            .frame(width: 24, height: 24)
+                            .overlay(
+                                Image(systemName: "person.fill")
+                                    .font(.system(size: 12))
+                                    .foregroundStyle(.secondary)
+                            )
+                        Text(app.developer ?? source.name ?? "Developer")
+                            .font(.system(size: 11))
+                            .foregroundStyle(.secondary)
+                            .lineLimit(1)
+                    }
+                ),
+                hideMainValue: true
+            )
         }
         .padding(.vertical, 12)
         .background(
             RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .fill(Color(UIColor.systemBackground).opacity(colorScheme == .dark ? 0.3 : 0.6))
+                .fill(Color(UIColor.secondarySystemGroupedBackground))
         )
     }
     
-    private func metadataStat(value: String, label: String) -> some View {
+    private func statisticColumn(topLabel: String, mainValue: String, bottomContent: AnyView, hideMainValue: Bool = false) -> some View {
         VStack(spacing: 4) {
-            Text(value)
-                .font(.system(size: 14, weight: .semibold))
-                .foregroundStyle(.primary)
-                .lineLimit(1)
-            Text(label)
-                .font(.system(size: 11, weight: .medium))
-                .foregroundStyle(.secondary)
+            Text(topLabel)
+                .font(.system(size: 10, weight: .medium))
+                .foregroundStyle(.tertiary)
+                .textCase(.uppercase)
+            
+            if !hideMainValue {
+                Text(mainValue)
+                    .font(.system(size: 20, weight: .bold, design: .rounded))
+                    .foregroundStyle(.primary)
+            }
+            
+            bottomContent
         }
         .frame(maxWidth: .infinity)
     }
     
-    // MARK: - Content Section
-    
-    private var contentSection: some View {
-        VStack(alignment: .leading, spacing: sectionSpacing) {
-            if let screenshotURLs = app.screenshotURLs, !screenshotURLs.isEmpty {
-                screenshotsCard(screenshotURLs)
-            }
-            
-            if let currentVer = app.currentVersion,
-               let whatsNewDesc = app.currentAppVersion?.localizedDescription {
-                whatsNewCard(version: currentVer, description: whatsNewDesc)
-            }
-            
-            if let appDesc = app.localizedDescription {
-                descriptionCard(appDesc)
-            }
-            
-            informationCard
-            
-            if let appPermissions = app.appPermissions {
-                permissionsCard(appPermissions)
-            }
-        }
-        .padding(.horizontal, 16)
-        .padding(.top, sectionSpacing)
-        .padding(.bottom, 40)
+    private var statisticDivider: some View {
+        Rectangle()
+            .fill(Color(UIColor.separator).opacity(0.3))
+            .frame(width: 0.5, height: 44)
     }
     
-    // MARK: - Screenshots Card
+    // MARK: - Screenshots Preview
     
-    private func screenshotsCard(_ urls: [URL]) -> some View {
-        promotionalCard {
-            VStack(alignment: .leading, spacing: 12) {
-                cardHeader(title: .localized("Screenshots"), icon: "photo.on.rectangle")
-                
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 12) {
-                        ForEach(urls.indices, id: \.self) { index in
-                            LazyImage(url: urls[index]) { state in
-                                if let image = state.image {
-                                    image
-                                        .resizable()
-                                        .aspectRatio(contentMode: .fit)
-                                        .frame(height: 380)
-                                        .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
-                                        .overlay(
-                                            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                                                .stroke(Color.primary.opacity(0.08), lineWidth: 1)
-                                        )
-                                        .shadow(color: .black.opacity(0.08), radius: 8, x: 0, y: 4)
-                                        .onTapGesture {
-                                            selectedScreenshotIndex = index
-                                            isScreenshotPreviewPresented = true
-                                        }
-                                } else {
-                                    RoundedRectangle(cornerRadius: 14, style: .continuous)
-                                        .fill(Color.secondary.opacity(0.1))
-                                        .frame(width: 180, height: 380)
-                                        .overlay(ProgressView())
-                                }
+    private func screenshotsPreview(_ urls: [URL]) -> some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Preview")
+                .font(.system(size: 22, weight: .bold))
+                .foregroundStyle(.primary)
+                .padding(.horizontal, horizontalPadding)
+            
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 10) {
+                    ForEach(urls.indices, id: \.self) { index in
+                        LazyImage(url: urls[index]) { state in
+                            if let image = state.image {
+                                image
+                                    .resizable()
+                                    .aspectRatio(contentMode: .fit)
+                                    .frame(width: UIScreen.main.bounds.width * 0.7, height: 420)
+                                    .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 20, style: .continuous)
+                                            .stroke(Color(UIColor.separator).opacity(0.2), lineWidth: 0.5)
+                                    )
+                                    .shadow(color: .black.opacity(colorScheme == .dark ? 0.3 : 0.1), radius: 12, x: 0, y: 6)
+                                    .onTapGesture {
+                                        selectedScreenshotIndex = index
+                                        isScreenshotPreviewPresented = true
+                                    }
+                            } else {
+                                RoundedRectangle(cornerRadius: 20, style: .continuous)
+                                    .fill(Color(UIColor.tertiarySystemFill))
+                                    .frame(width: UIScreen.main.bounds.width * 0.7, height: 420)
+                                    .overlay(ProgressView())
                             }
                         }
                     }
                 }
-                .padding(.horizontal, -cardPadding)
-                .padding(.horizontal, cardPadding)
+                .padding(.horizontal, horizontalPadding)
             }
         }
     }
     
-    // MARK: - What's New Card
+    // MARK: - What's New Section
     
-    private func whatsNewCard(version: String, description: String) -> some View {
-        promotionalCard {
-            VStack(alignment: .leading, spacing: 12) {
-                HStack {
-                    cardHeader(title: .localized("What's New"), icon: "sparkles")
-                    Spacer()
-                    if let versions = app.versions {
-                        NavigationLink {
-                            VersionHistoryView(app: app, versions: versions)
-                        } label: {
-                            Text(.localized("Version History"))
-                                .font(.system(size: 13, weight: .semibold))
-                                .foregroundStyle(dominantColor)
-                        }
+    private func whatsNewSection(version: String, description: String) -> some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                Text("What's New")
+                    .font(.system(size: 22, weight: .bold))
+                    .foregroundStyle(.primary)
+                
+                Spacer()
+                
+                if let versions = app.versions {
+                    NavigationLink {
+                        VersionHistoryView(app: app, versions: versions)
+                    } label: {
+                        Text("Version History")
+                            .font(.system(size: 15, weight: .regular))
+                            .foregroundStyle(Color.accentColor)
                     }
                 }
+            }
+            
+            HStack {
+                Text("Version \(version)")
+                    .font(.system(size: 15))
+                    .foregroundStyle(.secondary)
                 
-                VStack(alignment: .leading, spacing: 8) {
-                    HStack(spacing: 8) {
-                        Text("Version \(version)")
-                            .font(.system(size: 14, weight: .semibold))
-                        
-                        if let date = app.currentDate?.date {
-                            Text("•")
-                                .foregroundStyle(.tertiary)
-                            Text(date, style: .date)
-                                .font(.system(size: 13))
-                                .foregroundStyle(.secondary)
-                        }
-                    }
-                    
-                    ExpandableText(text: description, lineLimit: 3)
-                        .font(.system(size: 14))
+                if let date = app.currentDate?.date {
+                    Text("•")
+                        .foregroundStyle(.tertiary)
+                    Text(date.formatted(.relative(presentation: .named)))
+                        .font(.system(size: 15))
                         .foregroundStyle(.secondary)
                 }
             }
+            
+            ExpandableText(text: description, lineLimit: 3)
+                .font(.system(size: 15))
+                .foregroundStyle(.primary)
         }
     }
     
-    // MARK: - Description Card
+    // MARK: - Description Section
     
-    private func descriptionCard(_ description: String) -> some View {
-        promotionalCard {
-            VStack(alignment: .leading, spacing: 12) {
-                cardHeader(title: .localized("Description"), icon: "text.alignleft")
-                ExpandableText(text: description, lineLimit: 4)
-                    .font(.system(size: 14))
-            }
+    private func descriptionSection(_ description: String) -> some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Description")
+                .font(.system(size: 22, weight: .bold))
+                .foregroundStyle(.primary)
+            
+            ExpandableText(text: description, lineLimit: 4)
+                .font(.system(size: 15))
+                .foregroundStyle(.primary)
         }
     }
     
-    // MARK: - Information Card
+    // MARK: - Information Section
     
-    private var informationCard: some View {
-        promotionalCard {
-            VStack(alignment: .leading, spacing: 12) {
-                cardHeader(title: .localized("Information"), icon: "info.circle")
+    private var informationSection: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            Text("Information")
+                .font(.system(size: 22, weight: .bold))
+                .foregroundStyle(.primary)
+            
+            VStack(spacing: 0) {
+                if let sourceName = source.name {
+                    infoRow(label: "Source", value: sourceName)
+                    Divider().padding(.leading, 0)
+                }
                 
-                LazyVGrid(columns: [
-                    GridItem(.flexible(), spacing: 10),
-                    GridItem(.flexible(), spacing: 10)
-                ], spacing: 10) {
-                    if let sourceName = source.name {
-                        infoItem(title: "Source", value: sourceName, icon: "globe", color: .blue)
-                    }
-                    if let developer = app.developer {
-                        infoItem(title: "Developer", value: developer, icon: "person.fill", color: .purple)
-                    }
-                    if let size = app.size {
-                        infoItem(title: "Size", value: size.formattedByteCount, icon: "internaldrive.fill", color: .orange)
-                    }
-                    if let category = app.category {
-                        infoItem(title: "Category", value: category.capitalized, icon: "tag.fill", color: .pink)
-                    }
+                if let developer = app.developer {
+                    infoRow(label: "Developer", value: developer)
+                    Divider().padding(.leading, 0)
+                }
+                
+                if let size = app.size {
+                    infoRow(label: "Size", value: size.formattedByteCount)
+                    Divider().padding(.leading, 0)
+                }
+                
+                if let category = app.category {
+                    infoRow(label: "Category", value: category.capitalized)
+                    Divider().padding(.leading, 0)
+                }
+                
+                if let version = app.currentVersion {
+                    infoRow(label: "Version", value: version)
+                    Divider().padding(.leading, 0)
                 }
                 
                 if let bundleId = app.id {
-                    bundleIdRow(bundleId)
+                    infoRow(label: "Bundle ID", value: bundleId, isCopyable: true)
                 }
             }
+            .padding(.vertical, 4)
+            .background(
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .fill(Color(UIColor.secondarySystemGroupedBackground))
+            )
         }
     }
     
-    private func infoItem(title: String, value: String, icon: String, color: Color) -> some View {
-        HStack(spacing: 10) {
-            Image(systemName: icon)
-                .font(.system(size: 14, weight: .semibold))
-                .foregroundStyle(color)
-                .frame(width: 28, height: 28)
-                .background(color.opacity(0.12))
-                .clipShape(Circle())
-            
-            VStack(alignment: .leading, spacing: 1) {
-                Text(title)
-                    .font(.system(size: 10, weight: .medium))
-                    .foregroundStyle(.secondary)
-                    .textCase(.uppercase)
-                Text(value)
-                    .font(.system(size: 13, weight: .semibold))
-                    .foregroundStyle(.primary)
-                    .lineLimit(1)
-            }
-            
-            Spacer(minLength: 0)
-        }
-        .padding(10)
-        .background(
-            RoundedRectangle(cornerRadius: 10, style: .continuous)
-                .fill(Color(UIColor.tertiarySystemGroupedBackground))
-        )
-    }
-    
-    private func bundleIdRow(_ bundleId: String) -> some View {
-        HStack(spacing: 10) {
-            Image(systemName: "barcode")
-                .font(.system(size: 14, weight: .semibold))
-                .foregroundStyle(.gray)
-                .frame(width: 28, height: 28)
-                .background(Color.gray.opacity(0.12))
-                .clipShape(Circle())
-            
-            VStack(alignment: .leading, spacing: 1) {
-                Text("Bundle ID")
-                    .font(.system(size: 10, weight: .medium))
-                    .foregroundStyle(.secondary)
-                    .textCase(.uppercase)
-                Text(bundleId)
-                    .font(.system(size: 12, weight: .medium, design: .monospaced))
-                    .foregroundStyle(.primary)
-                    .lineLimit(1)
-            }
+    private func infoRow(label: String, value: String, isCopyable: Bool = false) -> some View {
+        HStack {
+            Text(label)
+                .font(.system(size: 15))
+                .foregroundStyle(.primary)
             
             Spacer()
             
-            Button {
-                UIPasteboard.general.string = bundleId
-                HapticsManager.shared.success()
-            } label: {
-                Image(systemName: "doc.on.doc")
-                    .font(.system(size: 13))
-                    .foregroundStyle(dominantColor)
+            if isCopyable {
+                Button {
+                    UIPasteboard.general.string = value
+                    HapticsManager.shared.success()
+                } label: {
+                    Text(value)
+                        .font(.system(size: 15))
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                }
+            } else {
+                Text(value)
+                    .font(.system(size: 15))
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
             }
         }
-        .padding(10)
-        .background(
-            RoundedRectangle(cornerRadius: 10, style: .continuous)
-                .fill(Color(UIColor.tertiarySystemGroupedBackground))
-        )
+        .padding(.horizontal, 16)
+        .padding(.vertical, 12)
     }
     
-    // MARK: - Permissions Card
+    // MARK: - Permissions Section
     
-    private func permissionsCard(_ permissions: ASRepository.AppPermissions) -> some View {
-        promotionalCard {
+    private func permissionsSection(_ permissions: ASRepository.AppPermissions) -> some View {
+        VStack(alignment: .leading, spacing: 16) {
+            Text("App Privacy")
+                .font(.system(size: 22, weight: .bold))
+                .foregroundStyle(.primary)
+            
             NavigationLink {
                 PermissionsView(appPermissions: permissions, dominantColor: dominantColor)
             } label: {
-                HStack(spacing: 14) {
-                    Image(systemName: "checkmark.shield.fill")
-                        .font(.system(size: 24))
-                        .foregroundStyle(dominantColor)
-                        .frame(width: 44, height: 44)
-                        .background(dominantColor.opacity(0.12))
-                        .clipShape(Circle())
+                HStack(spacing: 16) {
+                    Image(systemName: "hand.raised.fill")
+                        .font(.system(size: 28))
+                        .foregroundStyle(Color.accentColor)
                     
                     VStack(alignment: .leading, spacing: 2) {
-                        Text(.localized("App Permissions"))
-                            .font(.system(size: 15, weight: .semibold))
-                            .foregroundStyle(.primary)
-                        Text(.localized("See which permissions this app requires"))
-                            .font(.system(size: 12))
-                            .foregroundStyle(.secondary)
+                        Text("See Details")
+                            .font(.system(size: 15, weight: .regular))
+                            .foregroundStyle(Color.accentColor)
                     }
                     
                     Spacer()
                     
                     Image(systemName: "chevron.right")
-                        .font(.system(size: 13, weight: .semibold))
+                        .font(.system(size: 14, weight: .semibold))
                         .foregroundStyle(.tertiary)
                 }
+                .padding(16)
+                .background(
+                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                        .fill(Color(UIColor.secondarySystemGroupedBackground))
+                )
             }
             .buttonStyle(.plain)
-        }
-    }
-    
-    // MARK: - Promotional Card Container
-    
-    private func promotionalCard<Content: View>(@ViewBuilder content: () -> Content) -> some View {
-        content()
-            .padding(cardPadding)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .background(
-                RoundedRectangle(cornerRadius: 16, style: .continuous)
-                    .fill(Color(UIColor.secondarySystemGroupedBackground))
-                    .shadow(color: Color.black.opacity(colorScheme == .dark ? 0.3 : 0.06), radius: 8, x: 0, y: 4)
-            )
-    }
-    
-    private func cardHeader(title: String, icon: String) -> some View {
-        HStack(spacing: 6) {
-            Image(systemName: icon)
-                .font(.system(size: 13, weight: .semibold))
-                .foregroundStyle(dominantColor)
-            Text(title)
-                .font(.system(size: 16, weight: .bold))
-                .foregroundStyle(.primary)
-        }
-    }
-    
-    // MARK: - Adaptive Background
-    
-    private var adaptiveBackground: some View {
-        ZStack {
-            Color(UIColor.systemGroupedBackground)
-            
-            VStack(spacing: 0) {
-                LinearGradient(
-                    colors: [
-                        dominantColor.opacity(colorScheme == .dark ? 0.15 : 0.1),
-                        dominantColor.opacity(colorScheme == .dark ? 0.05 : 0.03),
-                        Color.clear
-                    ],
-                    startPoint: .top,
-                    endPoint: .bottom
-                )
-                .frame(height: 300)
-                
-                Spacer()
-            }
-        }
-        .ignoresSafeArea()
-    }
-    
-    // MARK: - Toolbar
-    
-    @ToolbarContentBuilder
-    private var toolbarContent: some ToolbarContent {
-        ToolbarItem(placement: .topBarTrailing) {
-            Menu {
-                if let downloadURL = app.currentAppVersion?.downloadURL {
-                    Button {
-                        UIPasteboard.general.string = downloadURL.absoluteString
-                        HapticsManager.shared.success()
-                    } label: {
-                        Label(.localized("Copy Download URL"), systemImage: "doc.on.doc")
-                    }
-                    
-                    Button {
-                        showShareSheet = true
-                    } label: {
-                        Label(.localized("Share"), systemImage: "square.and.arrow.up")
-                    }
-                }
-                
-                if let bundleId = app.id {
-                    Button {
-                        UIPasteboard.general.string = bundleId
-                        HapticsManager.shared.success()
-                    } label: {
-                        Label(.localized("Copy Bundle ID"), systemImage: "barcode")
-                    }
-                }
-            } label: {
-                Image(systemName: "ellipsis.circle")
-                    .font(.system(size: 17))
-                    .foregroundStyle(.primary)
-                    .padding(8)
-                    .background(.ultraThinMaterial, in: Circle())
-            }
         }
     }
     
@@ -579,7 +607,7 @@ struct SourceAppsDetailView: View {
             )
             
             await MainActor.run {
-                withAnimation(.easeInOut(duration: 0.3)) {
+                withAnimation(.easeInOut(duration: 0.4)) {
                     dominantColor = Color(
                         red: Double(pixel[0]) / 255.0,
                         green: Double(pixel[1]) / 255.0,
