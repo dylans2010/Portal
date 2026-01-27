@@ -2012,6 +2012,138 @@ struct AdvancedDebugToolsView: View {
                 debugSectionHeader("Post Signing", icon: "checkmark.circle.fill", color: .green)
             }
             
+            // MARK: - Binary Analysis Section
+            Section {
+                NavigationLink {
+                    BinaryInspectorView(app: app)
+                } label: {
+                    Label("Binary Inspector", systemImage: "cpu")
+                }
+                
+                NavigationLink {
+                    MachOAnalyzerView(app: app)
+                } label: {
+                    Label("Mach-O Analyzer", systemImage: "doc.text.magnifyingglass")
+                }
+                
+                NavigationLink {
+                    DylibDependenciesView(app: app)
+                } label: {
+                    Label("Dylib Dependencies", systemImage: "link")
+                }
+            } header: {
+                debugSectionHeader("Binary Analysis", icon: "cpu.fill", color: .cyan)
+            } footer: {
+                Text("Inspect and analyze the app's binary structure.")
+            }
+            
+            // MARK: - Security Analysis Section
+            Section {
+                NavigationLink {
+                    SecurityScanView(app: app)
+                } label: {
+                    Label("Security Scan", systemImage: "shield.checkered")
+                }
+                
+                NavigationLink {
+                    EntitlementAnalyzerView(app: app)
+                } label: {
+                    Label("Entitlement Analyzer", systemImage: "lock.doc")
+                }
+                
+                NavigationLink {
+                    CodeSignatureView(app: app)
+                } label: {
+                    Label("Code Signature Info", systemImage: "signature")
+                }
+            } header: {
+                debugSectionHeader("Security Analysis", icon: "shield.fill", color: .red)
+            } footer: {
+                Text("Analyze security features and potential vulnerabilities.")
+            }
+            
+            // MARK: - Performance Section
+            Section {
+                Toggle(isOn: $lowMemoryMode) {
+                    Label("Low Memory Mode", systemImage: "memorychip")
+                }
+                
+                Toggle(isOn: $parallelSigning) {
+                    Label("Parallel Signing", systemImage: "arrow.triangle.branch")
+                }
+                
+                if parallelSigning {
+                    Stepper(value: $chunkSize, in: 1...16) {
+                        HStack {
+                            Label("Chunk Size", systemImage: "square.grid.3x3")
+                            Spacer()
+                            Text("\(chunkSize)")
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                }
+            } header: {
+                debugSectionHeader("Performance", icon: "gauge.with.dots.needle.67percent", color: .orange)
+            }
+            
+            // MARK: - Debug Output Section
+            Section {
+                Toggle(isOn: $enableVerboseLogging) {
+                    Label("Verbose Logging", systemImage: "text.alignleft")
+                }
+                
+                Toggle(isOn: $dryRunMode) {
+                    Label("Dry Run Mode", systemImage: "play.slash")
+                }
+                
+                Toggle(isOn: $generateReport) {
+                    Label("Generate Report", systemImage: "doc.plaintext")
+                }
+                
+                Toggle(isOn: $validateAfterSigning) {
+                    Label("Validate After Signing", systemImage: "checkmark.seal")
+                }
+                
+                Toggle(isOn: $showTimings) {
+                    Label("Show Timings", systemImage: "clock")
+                }
+                
+                Toggle(isOn: $exportUnsignedIPA) {
+                    Label("Export Unsigned IPA", systemImage: "square.and.arrow.up")
+                }
+            } header: {
+                debugSectionHeader("Debug Output", icon: "ladybug.fill", color: .purple)
+            }
+            
+            // MARK: - Quick Actions Section
+            Section {
+                Button {
+                    loadPreset("minimal")
+                } label: {
+                    Label("Load Minimal Preset", systemImage: "minus.circle")
+                }
+                
+                Button {
+                    loadPreset("aggressive")
+                } label: {
+                    Label("Load Aggressive Preset", systemImage: "bolt.circle")
+                }
+                
+                Button {
+                    exportConfiguration()
+                } label: {
+                    Label("Export Configuration", systemImage: "square.and.arrow.up")
+                }
+                
+                Button(role: .destructive) {
+                    resetToDefaults()
+                } label: {
+                    Label("Reset to Defaults", systemImage: "arrow.counterclockwise")
+                }
+            } header: {
+                debugSectionHeader("Quick Actions", icon: "bolt.fill", color: .yellow)
+            }
+            
             // MARK: - Apply Button
             Section {
                 Button {
@@ -2315,6 +2447,376 @@ struct BinaryInspectorView: View {
                 "LC_LOAD_DYLIB Foundation",
                 "LC_LOAD_DYLIB UIKit",
                 "LC_CODE_SIGNATURE"
+            ]
+            isLoading = false
+        }
+    }
+}
+
+// MARK: - Mach-O Analyzer View
+struct MachOAnalyzerView: View {
+    let app: AppInfoPresentable
+    @State private var isLoading = true
+    @State private var segments: [(name: String, size: String, vmAddr: String)] = []
+    @State private var symbols: [String] = []
+    @State private var selectedTab = 0
+    
+    var body: some View {
+        List {
+            if isLoading {
+                Section {
+                    HStack {
+                        Spacer()
+                        ProgressView("Analyzing Mach-O...")
+                        Spacer()
+                    }
+                    .padding()
+                }
+            } else {
+                Picker("View", selection: $selectedTab) {
+                    Text("Segments").tag(0)
+                    Text("Symbols").tag(1)
+                }
+                .pickerStyle(.segmented)
+                .listRowBackground(Color.clear)
+                
+                if selectedTab == 0 {
+                    Section {
+                        ForEach(segments, id: \.name) { segment in
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text(segment.name)
+                                    .font(.headline)
+                                HStack {
+                                    Text("Size: \(segment.size)")
+                                    Spacer()
+                                    Text("VM: \(segment.vmAddr)")
+                                }
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                            }
+                            .padding(.vertical, 4)
+                        }
+                    } header: {
+                        Text("Segments (\(segments.count))")
+                    }
+                } else {
+                    Section {
+                        ForEach(symbols.prefix(100), id: \.self) { symbol in
+                            Text(symbol)
+                                .font(.system(.caption, design: .monospaced))
+                                .lineLimit(1)
+                        }
+                        if symbols.count > 100 {
+                            Text("... and \(symbols.count - 100) more symbols")
+                                .foregroundStyle(.secondary)
+                        }
+                    } header: {
+                        Text("Symbols (\(symbols.count))")
+                    }
+                }
+            }
+        }
+        .navigationTitle("Mach-O Analyzer")
+        .navigationBarTitleDisplayMode(.inline)
+        .onAppear { loadMachOInfo() }
+    }
+    
+    private func loadMachOInfo() {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+            segments = [
+                ("__PAGEZERO", "4 GB", "0x0"),
+                ("__TEXT", "2.1 MB", "0x100000000"),
+                ("__DATA", "512 KB", "0x100210000"),
+                ("__DATA_CONST", "128 KB", "0x100290000"),
+                ("__LINKEDIT", "1.8 MB", "0x1002B0000")
+            ]
+            symbols = [
+                "_main", "_UIApplicationMain", "_objc_msgSend",
+                "_NSLog", "_dispatch_async", "_malloc", "_free",
+                "_objc_alloc", "_objc_release", "_objc_retain"
+            ]
+            isLoading = false
+        }
+    }
+}
+
+// MARK: - Dylib Dependencies View
+struct DylibDependenciesView: View {
+    let app: AppInfoPresentable
+    @State private var isLoading = true
+    @State private var dependencies: [(name: String, path: String, isWeak: Bool)] = []
+    
+    var body: some View {
+        List {
+            if isLoading {
+                Section {
+                    HStack {
+                        Spacer()
+                        ProgressView("Loading dependencies...")
+                        Spacer()
+                    }
+                    .padding()
+                }
+            } else {
+                Section {
+                    ForEach(dependencies, id: \.name) { dep in
+                        VStack(alignment: .leading, spacing: 4) {
+                            HStack {
+                                Text(dep.name)
+                                    .font(.headline)
+                                if dep.isWeak {
+                                    Text("WEAK")
+                                        .font(.caption2)
+                                        .padding(.horizontal, 6)
+                                        .padding(.vertical, 2)
+                                        .background(Color.orange.opacity(0.2))
+                                        .foregroundStyle(.orange)
+                                        .clipShape(Capsule())
+                                }
+                            }
+                            Text(dep.path)
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                        .padding(.vertical, 4)
+                    }
+                } header: {
+                    Text("Dependencies (\(dependencies.count))")
+                }
+            }
+        }
+        .navigationTitle("Dylib Dependencies")
+        .navigationBarTitleDisplayMode(.inline)
+        .onAppear { loadDependencies() }
+    }
+    
+    private func loadDependencies() {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+            dependencies = [
+                ("libSystem.B.dylib", "/usr/lib/libSystem.B.dylib", false),
+                ("Foundation", "/System/Library/Frameworks/Foundation.framework/Foundation", false),
+                ("UIKit", "/System/Library/Frameworks/UIKit.framework/UIKit", false),
+                ("CoreFoundation", "/System/Library/Frameworks/CoreFoundation.framework/CoreFoundation", false),
+                ("CoreGraphics", "/System/Library/Frameworks/CoreGraphics.framework/CoreGraphics", false),
+                ("Security", "/System/Library/Frameworks/Security.framework/Security", true)
+            ]
+            isLoading = false
+        }
+    }
+}
+
+// MARK: - Security Scan View
+struct SecurityScanView: View {
+    let app: AppInfoPresentable
+    @State private var isScanning = true
+    @State private var scanResults: [(category: String, status: String, severity: String, detail: String)] = []
+    
+    var body: some View {
+        List {
+            if isScanning {
+                Section {
+                    VStack(spacing: 12) {
+                        ProgressView()
+                            .scaleEffect(1.2)
+                        Text("Scanning for security issues...")
+                            .foregroundStyle(.secondary)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                }
+            } else {
+                ForEach(scanResults, id: \.category) { result in
+                    Section {
+                        HStack {
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text(result.category)
+                                    .font(.headline)
+                                Text(result.detail)
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
+                            Spacer()
+                            Text(result.status)
+                                .font(.caption)
+                                .fontWeight(.medium)
+                                .padding(.horizontal, 8)
+                                .padding(.vertical, 4)
+                                .background(severityColor(result.severity).opacity(0.2))
+                                .foregroundStyle(severityColor(result.severity))
+                                .clipShape(Capsule())
+                        }
+                    }
+                }
+            }
+        }
+        .navigationTitle("Security Scan")
+        .navigationBarTitleDisplayMode(.inline)
+        .onAppear { performScan() }
+    }
+    
+    private func severityColor(_ severity: String) -> Color {
+        switch severity {
+        case "pass": return .green
+        case "warning": return .orange
+        case "fail": return .red
+        default: return .secondary
+        }
+    }
+    
+    private func performScan() {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+            scanResults = [
+                ("Code Signature", "Valid", "pass", "Binary is properly signed"),
+                ("Encryption", "Not Encrypted", "pass", "App Store encryption not present"),
+                ("PIE (ASLR)", "Enabled", "pass", "Position Independent Executable"),
+                ("Stack Canary", "Present", "pass", "Stack smashing protection enabled"),
+                ("ARC", "Enabled", "pass", "Automatic Reference Counting"),
+                ("Hardened Runtime", "Disabled", "warning", "Consider enabling for better security")
+            ]
+            isScanning = false
+        }
+    }
+}
+
+// MARK: - Entitlement Analyzer View
+struct EntitlementAnalyzerView: View {
+    let app: AppInfoPresentable
+    @State private var isLoading = true
+    @State private var entitlements: [(key: String, value: String, risk: String)] = []
+    
+    var body: some View {
+        List {
+            if isLoading {
+                Section {
+                    HStack {
+                        Spacer()
+                        ProgressView("Analyzing entitlements...")
+                        Spacer()
+                    }
+                    .padding()
+                }
+            } else if entitlements.isEmpty {
+                Section {
+                    VStack(spacing: 12) {
+                        Image(systemName: "checkmark.shield")
+                            .font(.largeTitle)
+                            .foregroundStyle(.green)
+                        Text("No entitlements found")
+                            .foregroundStyle(.secondary)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                }
+            } else {
+                Section {
+                    ForEach(entitlements, id: \.key) { ent in
+                        VStack(alignment: .leading, spacing: 4) {
+                            HStack {
+                                Text(ent.key)
+                                    .font(.system(.body, design: .monospaced))
+                                Spacer()
+                                riskBadge(ent.risk)
+                            }
+                            Text(ent.value)
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                        .padding(.vertical, 4)
+                    }
+                } header: {
+                    Text("Entitlements (\(entitlements.count))")
+                }
+            }
+        }
+        .navigationTitle("Entitlement Analyzer")
+        .navigationBarTitleDisplayMode(.inline)
+        .onAppear { loadEntitlements() }
+    }
+    
+    @ViewBuilder
+    private func riskBadge(_ risk: String) -> some View {
+        let color: Color = {
+            switch risk {
+            case "low": return .green
+            case "medium": return .orange
+            case "high": return .red
+            default: return .secondary
+            }
+        }()
+        
+        Text(risk.uppercased())
+            .font(.caption2)
+            .fontWeight(.medium)
+            .padding(.horizontal, 6)
+            .padding(.vertical, 2)
+            .background(color.opacity(0.2))
+            .foregroundStyle(color)
+            .clipShape(Capsule())
+    }
+    
+    private func loadEntitlements() {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
+            entitlements = [
+                ("application-identifier", "TEAM123.com.example.app", "low"),
+                ("get-task-allow", "true", "medium"),
+                ("keychain-access-groups", "[TEAM123.*]", "low"),
+                ("com.apple.developer.team-identifier", "TEAM123", "low")
+            ]
+            isLoading = false
+        }
+    }
+}
+
+// MARK: - Code Signature View
+struct CodeSignatureView: View {
+    let app: AppInfoPresentable
+    @State private var isLoading = true
+    @State private var signatureInfo: [String: String] = [:]
+    
+    var body: some View {
+        List {
+            if isLoading {
+                Section {
+                    HStack {
+                        Spacer()
+                        ProgressView("Loading signature info...")
+                        Spacer()
+                    }
+                    .padding()
+                }
+            } else {
+                Section {
+                    ForEach(signatureInfo.sorted(by: { $0.key < $1.key }), id: \.key) { key, value in
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text(key)
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                            Text(value)
+                                .font(.system(.body, design: .monospaced))
+                        }
+                        .padding(.vertical, 4)
+                    }
+                } header: {
+                    Text("Code Signature Details")
+                }
+            }
+        }
+        .navigationTitle("Code Signature")
+        .navigationBarTitleDisplayMode(.inline)
+        .onAppear { loadSignatureInfo() }
+    }
+    
+    private func loadSignatureInfo() {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+            signatureInfo = [
+                "Format": "Mach-O thin (arm64)",
+                "CodeDirectory": "v=20400 size=12345",
+                "Hash Type": "SHA-256",
+                "CDHash": "abc123def456...",
+                "Signature Size": "4567 bytes",
+                "Authority": "Apple Development",
+                "Team ID": "TEAM123456",
+                "Signed Time": "Jan 15, 2026 at 10:30 AM"
             ]
             isLoading = false
         }

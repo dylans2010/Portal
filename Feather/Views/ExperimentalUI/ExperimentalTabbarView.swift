@@ -8,12 +8,13 @@
 import SwiftUI
 
 struct ExperimentalTabbarView: View {
-    @State private var selectedTab: TabEnum = .dashboard
+    @State private var selectedTab: TabEnum?
     @AppStorage("Feather.tabBar.dashboard") private var showDashboard = true
     @AppStorage("Feather.tabBar.sources") private var showSources = true
     @AppStorage("Feather.tabBar.library") private var showLibrary = true
     @AppStorage("Feather.tabBar.files") private var showFiles = true
     @AppStorage("Feather.tabBar.guides") private var showGuides = true
+    @AppStorage("Feather.tabBar.defaultTab") private var defaultTab: String = "dashboard"
     @AppStorage("Feather.certificateExperience") private var certificateExperience: String = "Developer"
     @AppStorage("forceShowGuides") private var forceShowGuides = false
     @Namespace private var animation
@@ -28,9 +29,6 @@ struct ExperimentalTabbarView: View {
         if showLibrary { tabs.append(.library) }
         if showFiles { tabs.append(.files) }
         
-        // Only show Guides if:
-        // 1. forceShowGuides is enabled (set by Enterprise certificate)
-        // 2. OR certificate experience is Enterprise
         if showGuides && (forceShowGuides || certificateExperience == "Enterprise") {
             tabs.append(.guides)
         }
@@ -39,10 +37,28 @@ struct ExperimentalTabbarView: View {
         return tabs
     }
     
+    private func getInitialTab() -> TabEnum {
+        switch defaultTab {
+        case "dashboard": return visibleTabs.contains(.dashboard) ? .dashboard : visibleTabs.first ?? .settings
+        case "sources": return visibleTabs.contains(.sources) ? .sources : visibleTabs.first ?? .settings
+        case "library": return visibleTabs.contains(.library) ? .library : visibleTabs.first ?? .settings
+        case "files": return visibleTabs.contains(.files) ? .files : visibleTabs.first ?? .settings
+        case "guides": return visibleTabs.contains(.guides) ? .guides : visibleTabs.first ?? .settings
+        case "settings": return .settings
+        default: return visibleTabs.first ?? .settings
+        }
+    }
+    
+    private var currentTab: TabEnum {
+        selectedTab ?? getInitialTab()
+    }
+    
     var body: some View {
         ZStack(alignment: .bottom) {
-            // Main content with gradient background
-            TabView(selection: $selectedTab) {
+            TabView(selection: Binding(
+                get: { currentTab },
+                set: { selectedTab = $0 }
+            )) {
                 ForEach(visibleTabs, id: \.hashValue) { tab in
                     ExperimentalTabContent(for: tab)
                         .tag(tab)
@@ -50,9 +66,11 @@ struct ExperimentalTabbarView: View {
             }
             .tabViewStyle(.page(indexDisplayMode: .never))
             
-            // Custom floating tab bar
             ExperimentalCustomTabBar(
-                selectedTab: $selectedTab,
+                selectedTab: Binding(
+                    get: { currentTab },
+                    set: { selectedTab = $0 }
+                ),
                 tabs: visibleTabs,
                 namespace: animation
             )
@@ -60,18 +78,19 @@ struct ExperimentalTabbarView: View {
             .padding(.bottom, ExperimentalUITheme.Spacing.sm)
         }
         .experimentalGradientBackground()
+        .onAppear {
+            if selectedTab == nil {
+                selectedTab = getInitialTab()
+            }
+        }
         .sheet(isPresented: $showInstallModifySheet) {
             if let app = appToInstall {
                 InstallModifyDialogView(app: app)
             }
         }
         .onReceive(NotificationCenter.default.publisher(for: Notification.Name("Feather.showInstallModifyPopup"))) { notification in
-            // Get the downloaded app from the Library
             if let url = notification.object as? URL {
-                // Find the app in library by checking the file name
                 let fileName = url.deletingPathExtension().lastPathComponent
-                
-                // Check both Signed and Imported apps
                 let signedRequest = Signed.fetchRequest()
                 let importedRequest = Imported.fetchRequest()
                 

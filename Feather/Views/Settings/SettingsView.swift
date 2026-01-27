@@ -9,12 +9,10 @@ enum CertificateExperience: String, CaseIterable {
     case developer = "Developer"
     case enterprise = "Enterprise"
     
-    var displayName: String {
-        return self.rawValue
-    }
+    var displayName: String { rawValue }
 }
 
-// MARK: - View
+// MARK: - Settings View
 struct SettingsView: View {
     @State private var developerTapCount = 0
     @State private var lastTapTime: Date?
@@ -25,92 +23,20 @@ struct SettingsView: View {
     @AppStorage("forceShowGuides") private var forceShowGuides = false
     @Environment(\.navigateToUpdates) private var navigateToUpdates
     
+    private var isEnterprise: Bool { certificateExperience == CertificateExperience.enterprise.rawValue }
+    
     var body: some View {
         NBNavigationView(.localized("Settings")) {
-            Form {
-                // Header
-                Section {
-                    CoreSignHeaderView(hideAboutButton: true)
-                        .listRowInsets(EdgeInsets())
-                        .listRowBackground(Color.clear)
-                        .onTapGesture { handleDeveloperModeTap() }
-                }
-                
-                // Preferences
-                Section {
-                    NavigationLink(destination: HomeSettingsView()) {
-                        modernSettingsRow(icon: "house.fill", title: "Customize Home", color: .blue)
-                    }
-                    NavigationLink(destination: AppearanceView()) {
-                        modernSettingsRow(icon: "paintbrush.fill", title: "Appearance & Haptics", color: .pink)
-                    }
-                } header: {
-                    sectionHeader("Preferences", icon: "slider.horizontal.3")
-                }
-                
-                // Signing & Security
-                Section {
-                    NavigationLink(destination: CertificatesView()) {
-                        modernSettingsRow(icon: "checkmark.seal.fill", title: "Certificates", color: .green)
-                    }
-                    NavigationLink(destination: ConfigurationView()) {
-                        modernSettingsRow(icon: "signature", title: "Signing Options", color: .orange)
-                    }
-                } header: {
-                    sectionHeader("Signing", icon: "lock.shield.fill")
-                }
-                
-                // Data & Storage
-                Section {
-                    NavigationLink(destination: FilesSettingsView()) {
-                        modernSettingsRow(icon: "folder.fill", title: "Files", color: .blue)
-                    }
-                    if certificateExperience != CertificateExperience.enterprise.rawValue {
-                        NavigationLink(destination: ManageStorageView()) {
-                            modernSettingsRow(icon: "internaldrive.fill", title: "Storage", color: .gray)
-                        }
-                    }
-                } header: {
-                    sectionHeader("Data & Storage", icon: "externaldrive.fill")
-                }
-                
-                // Resources
-                Section {
-                    NavigationLink(destination: GuidesSettingsView()) {
-                        modernSettingsRow(icon: "book.fill", title: "Guides & AI", color: .orange)
-                    }
-                    NavigationLink(destination: FeedbackView()) {
-                        modernSettingsRow(icon: "bubble.left.and.bubble.right.fill", title: "Feedback", color: .purple)
-                    }
-                } header: {
-                    sectionHeader("Resources", icon: "books.vertical.fill")
-                }
-                
-                // App
-                if certificateExperience != CertificateExperience.enterprise.rawValue {
-                    Section {
-                        NavigationLink(destination: AppIconView()) {
-                            modernSettingsRow(icon: "app.badge.fill", title: "App Icons", color: .pink)
-                        }
-                        NavigationLink(destination: CheckForUpdatesView(), isActive: $navigateToCheckForUpdates) {
-                            modernSettingsRow(icon: "arrow.triangle.2.circlepath", title: "Updates", color: .green)
-                        }
-                    } header: {
-                        sectionHeader("App", icon: "app.fill")
-                    }
-                }
-                
-                // Developer
-                if isDeveloperModeEnabled {
-                    Section {
-                        NavigationLink(destination: DeveloperView()) {
-                            modernSettingsRow(icon: "hammer.fill", title: "Developer Tools", color: .yellow)
-                        }
-                    } header: {
-                        sectionHeader("Developer", icon: "wrench.and.screwdriver.fill")
-                    }
-                }
+            List {
+                headerSection
+                preferencesSection
+                signingSection
+                dataSection
+                resourcesSection
+                if !isEnterprise { appSection }
+                if isDeveloperModeEnabled { developerSection }
             }
+            .listStyle(.insetGrouped)
         }
         .alert("Enable Developer Mode", isPresented: $showDeveloperConfirmation) {
             Button("Cancel", role: .cancel) { developerTapCount = 0 }
@@ -132,34 +58,75 @@ struct SettingsView: View {
         }
     }
     
-    // MARK: - Modern Settings Row (No colored background)
-    @ViewBuilder
-    private func modernSettingsRow(icon: String, title: String, color: Color) -> some View {
-        HStack(spacing: 14) {
-            Image(systemName: icon)
-                .font(.system(size: 18, weight: .medium))
-                .foregroundStyle(color)
-                .frame(width: 26)
-            
-            Text(title)
-                .font(.system(size: 16, weight: .regular))
-                .foregroundStyle(.primary)
+    // MARK: - Sections
+    
+    private var headerSection: some View {
+        Section {
+            CoreSignHeaderView(hideAboutButton: true)
+                .listRowInsets(EdgeInsets())
+                .listRowBackground(Color.clear)
+                .onTapGesture { handleDeveloperModeTap() }
         }
-        .padding(.vertical, 2)
     }
     
-    // MARK: - Section Header
-    @ViewBuilder
-    private func sectionHeader(_ title: String, icon: String) -> some View {
-        HStack(spacing: 6) {
-            Image(systemName: icon)
-                .font(.system(size: 11, weight: .semibold))
-                .foregroundStyle(.secondary)
-            Text(title.uppercased())
-                .font(.system(size: 12, weight: .semibold, design: .rounded))
-                .foregroundStyle(.secondary)
+    private var preferencesSection: some View {
+        Section {
+            SettingsRow(icon: "house.fill", title: "Customize Home", color: .blue, destination: HomeSettingsView())
+            SettingsRow(icon: "paintbrush.fill", title: "Appearance", color: .pink, destination: AppearanceView())
+        } header: {
+            SettingsSectionHeader(title: "Preferences", icon: "slider.horizontal.3")
         }
     }
+    
+    private var signingSection: some View {
+        Section {
+            SettingsRow(icon: "checkmark.seal.fill", title: "Certificates", color: .green, destination: CertificatesView())
+            SettingsRow(icon: "signature", title: "Signing Options", color: .orange, destination: ConfigurationView())
+        } header: {
+            SettingsSectionHeader(title: "Signing", icon: "lock.shield.fill")
+        }
+    }
+    
+    private var dataSection: some View {
+        Section {
+            SettingsRow(icon: "folder.fill", title: "Files", color: .blue, destination: FilesSettingsView())
+            if !isEnterprise {
+                SettingsRow(icon: "internaldrive.fill", title: "Storage", color: .gray, destination: ManageStorageView())
+            }
+        } header: {
+            SettingsSectionHeader(title: "Data & Storage", icon: "externaldrive.fill")
+        }
+    }
+    
+    private var resourcesSection: some View {
+        Section {
+            SettingsRow(icon: "book.fill", title: "Guides & AI", color: .orange, destination: GuidesSettingsView())
+            SettingsRow(icon: "bubble.left.and.bubble.right.fill", title: "Feedback", color: .purple, destination: FeedbackView())
+        } header: {
+            SettingsSectionHeader(title: "Resources", icon: "books.vertical.fill")
+        }
+    }
+    
+    private var appSection: some View {
+        Section {
+            SettingsRow(icon: "app.badge.fill", title: "App Icons", color: .pink, destination: AppIconView())
+            NavigationLink(destination: CheckForUpdatesView(), isActive: $navigateToCheckForUpdates) {
+                SettingsRowContent(icon: "arrow.triangle.2.circlepath", title: "Updates", color: .green)
+            }
+        } header: {
+            SettingsSectionHeader(title: "App", icon: "app.fill")
+        }
+    }
+    
+    private var developerSection: some View {
+        Section {
+            SettingsRow(icon: "hammer.fill", title: "Developer Tools", color: .yellow, destination: DeveloperView())
+        } header: {
+            SettingsSectionHeader(title: "Developer", icon: "wrench.and.screwdriver.fill")
+        }
+    }
+    
+    // MARK: - Developer Mode
     
     private func handleDeveloperModeTap() {
         let now = Date()
@@ -177,6 +144,51 @@ struct SettingsView: View {
     }
 }
 
-// MARK: - Extension: View
-extension SettingsView {
+// MARK: - Settings Row Components
+
+private struct SettingsRow<Destination: View>: View {
+    let icon: String
+    let title: String
+    let color: Color
+    let destination: Destination
+    
+    var body: some View {
+        NavigationLink(destination: destination) {
+            SettingsRowContent(icon: icon, title: title, color: color)
+        }
+    }
+}
+
+private struct SettingsRowContent: View {
+    let icon: String
+    let title: String
+    let color: Color
+    
+    var body: some View {
+        HStack(spacing: 12) {
+            Image(systemName: icon)
+                .font(.system(size: 17, weight: .medium))
+                .foregroundStyle(color)
+                .frame(width: 28, height: 28)
+            
+            Text(title)
+                .font(.body)
+        }
+        .padding(.vertical, 2)
+    }
+}
+
+private struct SettingsSectionHeader: View {
+    let title: String
+    let icon: String
+    
+    var body: some View {
+        HStack(spacing: 5) {
+            Image(systemName: icon)
+                .font(.system(size: 10, weight: .semibold))
+            Text(title.uppercased())
+                .font(.system(size: 11, weight: .semibold, design: .rounded))
+        }
+        .foregroundStyle(.secondary)
+    }
 }

@@ -8,10 +8,11 @@ struct CustomTabBarUI: View {
     @AppStorage("Feather.tabBar.files") private var showFiles = false
     @AppStorage("Feather.tabBar.guides") private var showGuides = true
     @AppStorage("Feather.tabBar.order") private var tabOrder: String = "dashboard,sources,guides,library,files,settings"
+    @AppStorage("Feather.tabBar.defaultTab") private var defaultTab: String = "dashboard"
     @AppStorage("Feather.certificateExperience") private var certificateExperience: String = "Developer"
     @AppStorage("forceShowGuides") private var forceShowGuides = false
     
-    @State private var selectedTab: TabEnum = .dashboard
+    @State private var selectedTab: TabEnum?
     @State private var showInstallModifySheet = false
     @State private var appToInstall: (any AppInfoPresentable)?
     @State private var hoverScale: CGFloat = 1.0
@@ -21,7 +22,6 @@ struct CustomTabBarUI: View {
         tabOrder.split(separator: ",").map(String.init)
     }
     
-    // Maximum tabs to show (5 to avoid iOS "More" section)
     private let maxVisibleTabs = 5
     
     var visibleTabs: [TabEnum] {
@@ -52,8 +52,6 @@ struct CustomTabBarUI: View {
             }
         }
         
-        // Limit to maxVisibleTabs to avoid "More" section
-        // Ensure settings is always included
         if sortedTabs.count > maxVisibleTabs {
             var limitedTabs = Array(sortedTabs.prefix(maxVisibleTabs - 1))
             if !limitedTabs.contains(.settings) {
@@ -65,14 +63,35 @@ struct CustomTabBarUI: View {
         return sortedTabs
     }
     
+    private func getInitialTab() -> TabEnum {
+        switch defaultTab {
+        case "dashboard": return visibleTabs.contains(.dashboard) ? .dashboard : visibleTabs.first ?? .settings
+        case "sources": return visibleTabs.contains(.sources) ? .sources : visibleTabs.first ?? .settings
+        case "library": return visibleTabs.contains(.library) ? .library : visibleTabs.first ?? .settings
+        case "files": return visibleTabs.contains(.files) ? .files : visibleTabs.first ?? .settings
+        case "guides": return visibleTabs.contains(.guides) ? .guides : visibleTabs.first ?? .settings
+        case "settings": return .settings
+        default: return visibleTabs.first ?? .settings
+        }
+    }
+    
+    private var currentTab: TabEnum {
+        selectedTab ?? getInitialTab()
+    }
+    
     var body: some View {
         ZStack(alignment: .bottom) {
-            TabEnum.view(for: selectedTab)
+            TabEnum.view(for: currentTab)
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             
             liquidGlassTabBar
         }
         .ignoresSafeArea(.keyboard)
+        .onAppear {
+            if selectedTab == nil {
+                selectedTab = getInitialTab()
+            }
+        }
         .sheet(isPresented: $showInstallModifySheet) {
             if let app = appToInstall {
                 InstallModifyDialogView(app: app)
@@ -153,7 +172,7 @@ struct CustomTabBarUI: View {
     // MARK: - Liquid Glass Tab Button
     @ViewBuilder
     private func liquidGlassTabButton(for tab: TabEnum) -> some View {
-        let isSelected = selectedTab == tab
+        let isSelected = currentTab == tab
         
         Button {
             withAnimation(.spring(response: 0.35, dampingFraction: 0.7)) {
