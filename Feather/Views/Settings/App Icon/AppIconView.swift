@@ -180,7 +180,7 @@ struct AppIconView: View {
 	
 	private func setAppIcon(_ option: AppIconOption) {
 		guard UIApplication.shared.supportsAlternateIcons else {
-			errorMessage = .localized("This device doesn't support alternate icons")
+			errorMessage = .localized("Rare alert but this device doesn't support alternate icons")
 			showingError = true
 			return
 		}

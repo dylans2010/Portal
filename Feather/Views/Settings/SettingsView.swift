@@ -47,7 +47,7 @@ struct SettingsView: View {
                 HapticsManager.shared.success()
             }
         } message: {
-            Text("Developer mode provides advanced tools for developers. This can make the app crash and is NOT intended for regular users.")
+            Text("Developer mode provides advanced tools for developers. This can make the app crash and is NOT intended for regular users. Auth checks may be needed.")
         }
         .onChange(of: navigateToUpdates.wrappedValue) { shouldNavigate in
             if shouldNavigate {
@@ -73,7 +73,7 @@ struct SettingsView: View {
     private var preferencesSection: some View {
         Section {
             SettingsRow(icon: "house.fill", title: "Customize Home", color: .blue, destination: HomeSettingsView())
-            SettingsRow(icon: "paintbrush.fill", title: "Appearance", color: .pink, destination: AppearanceView())
+            SettingsRow(icon: "paintbrush.fill", title: "app Appearance", color: .pink, destination: AppearanceView())
         } header: {
             SettingsSectionHeader(title: "Preferences", icon: "slider.horizontal.3")
         }
@@ -99,7 +99,7 @@ struct SettingsView: View {
             if !isEnterprise {
                 SettingsRow(icon: "internaldrive.fill", title: "Storage", color: .gray, destination: ManageStorageView())
             }
-            SettingsRow(icon: "arrow.counterclockwise.circle.fill", title: "Backup & Restore", color: .green, destination: BackupRestoreView())
+            SettingsRow(icon: "arrow.counterclockwise.circle.fill", title: "Backup & Restore (Beta)", color: .green, destination: BackupRestoreView())
 
             SettingsActionRow(icon: "arrow.clockwise.circle.fill", title: "Fetch Full Data", color: .cyan, isLoading: _isFetchingFullData) {
                 Task {
@@ -116,7 +116,7 @@ struct SettingsView: View {
     
     private var resourcesSection: some View {
         Section {
-            SettingsRow(icon: "book.fill", title: "Guides & AI", color: .orange, destination: GuidesSettingsView())
+            SettingsRow(icon: "apple.intelligence", title: "Guides With AI", color: .orange, destination: GuidesSettingsView())
             SettingsRow(icon: "bubble.left.and.bubble.right.fill", title: "Feedback", color: .purple, destination: FeedbackView())
         } header: {
             SettingsSectionHeader(title: "Resources", icon: "books.vertical.fill")
@@ -127,7 +127,7 @@ struct SettingsView: View {
         Section {
             SettingsRow(icon: "app.badge.fill", title: "App Icons", color: .pink, destination: AppIconView())
             NavigationLink(destination: CheckForUpdatesView(), isActive: $navigateToCheckForUpdates) {
-                SettingsRowContent(icon: "arrow.triangle.2.circlepath", title: "Updates", color: .green)
+                SettingsRowContent(icon: "arrow.triangle.2.circlepath", title: "Check For Updates", color: .green)
             }
         } header: {
             SettingsSectionHeader(title: "App", icon: "app.fill")
@@ -136,7 +136,7 @@ struct SettingsView: View {
     
     private var developerSection: some View {
         Section {
-            SettingsRow(icon: "hammer.fill", title: "Developer Tools", color: .yellow, destination: DeveloperView())
+            SettingsRow(icon: "hammer.fill", title: "Developer Tools & Debug", color: .yellow, destination: DeveloperView())
         } header: {
             SettingsSectionHeader(title: "Developer", icon: "wrench.and.screwdriver.fill")
         }

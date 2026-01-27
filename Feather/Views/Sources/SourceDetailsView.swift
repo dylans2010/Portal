@@ -459,7 +459,7 @@ struct SourceDetailsView: View {
                     .font(.system(size: 18, weight: .bold, design: .rounded))
                     .foregroundStyle(.primary)
                 
-                Text(_searchText.isEmpty ? "This source doesn't have any apps yet" : "Try adjusting your search terms")
+                Text(_searchText.isEmpty ? "This source doesn't have any apps yet." : "Try adjusting your search terms.")
                     .font(.system(size: 14, weight: .medium))
                     .foregroundStyle(.secondary)
                     .multilineTextAlignment(.center)
@@ -635,7 +635,7 @@ struct SourceAppsListView: View {
                                     Text("No Results")
                                         .font(.system(size: 18, weight: .semibold))
                                         .foregroundStyle(.primary)
-                                    Text("Try a different search term")
+                                    Text("There is nothing here. Try a different search term.")
                                         .font(.system(size: 14))
                                         .foregroundStyle(.secondary)
                                 }

@@ -377,7 +377,7 @@ struct SourcesAddView: View {
 				VStack(spacing: 12) {
 					ProgressView()
 						.scaleEffect(1.2)
-					Text(.localized("Processing \(_currentImportProgress) of \(_totalImportCount)..."))
+					Text(.localized("Processing \(_currentImportProgress) Of \(_totalImportCount)..."))
 						.font(.subheadline)
 						.foregroundStyle(.secondary)
 				}
@@ -1339,7 +1339,7 @@ struct PortalExportView: View {
 			}
 		}
 		
-		Logger.misc.info("[Portal Import] Import complete. Added \(addedCount) new sources")
+		Logger.misc.info("[Portal Import] Import complete. Added \(addedCount) new sources.")
 		
 		withAnimation {
 			importResult = .success(count: addedCount)

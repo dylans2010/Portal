@@ -141,7 +141,7 @@ struct AllAppsView: View {
                             // Results count when searching
                             if !_searchText.isEmpty {
                                 HStack {
-                                    Text("\(_filteredApps.count) result\(_filteredApps.count == 1 ? "" : "s")")
+                                    Text("\(_filteredApps.count) Result\(_filteredApps.count == 1 ? "" : "s")")
                                         .font(.system(size: 13, weight: .medium))
                                         .foregroundStyle(.secondary)
                                     Spacer()
@@ -162,7 +162,7 @@ struct AllAppsView: View {
                                             .foregroundStyle(.tertiary)
                                     }
                                     VStack(spacing: 6) {
-                                        Text("No Results")
+                                        Text("No Results Found")
                                             .font(.system(size: 18, weight: .semibold))
                                             .foregroundStyle(.primary)
                                         Text("Try a different search term")
@@ -208,7 +208,7 @@ struct AllAppsView: View {
                         Text("No Sources")
                             .font(.system(size: 20, weight: .bold))
                             .foregroundStyle(.primary)
-                        Text("Add sources to discover apps")
+                        Text("Add sources to view all your apps here")
                             .font(.system(size: 15))
                             .foregroundStyle(.secondary)
                             .multilineTextAlignment(.center)
@@ -216,7 +216,7 @@ struct AllAppsView: View {
                     }
                 }
                 
-                // iOS 26 Style Bottom Search Bar
+                // iOS 26 Style Bottom Search Bar (Custom, not default search bar)
                 if !_isLoading {
                     VStack(spacing: 0) {
                         Rectangle()

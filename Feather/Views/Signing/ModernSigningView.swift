@@ -1691,7 +1691,7 @@ struct AdvancedDebugToolsView: View {
                 if isLoading {
                     HStack {
                         Spacer()
-                        ProgressView("Loading app info...")
+                        ProgressView("Loading App Info...")
                         Spacer()
                     }
                     .padding()
@@ -1915,7 +1915,7 @@ struct AdvancedDebugToolsView: View {
                         }
                     }
                 } else if !isLoading {
-                    Text("No removable files found")
+                    Text("No Removable Files Found")
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
@@ -2024,7 +2024,7 @@ struct AdvancedDebugToolsView: View {
             } header: {
                 debugSectionHeader("Experiments", icon: "flask.fill", color: .yellow)
             } footer: {
-                Text("⚠️ Experimental features may cause issues. Use at your own risk.")
+                Text("⚠️ Experimental features may cause app issues. Use at your own risk.")
             }
             
             // MARK: - Post Signing Section
@@ -2429,7 +2429,7 @@ struct BinaryInspectorView: View {
                                 .font(.system(.caption, design: .monospaced))
                         }
                         if loadCommands.count > 20 {
-                            Text("... and \(loadCommands.count - 20) more")
+                            Text("... and \(loadCommands.count - 20) More")
                                 .foregroundStyle(.secondary)
                         }
                     } header: {
@@ -2646,7 +2646,7 @@ struct SecurityScanView: View {
                     VStack(spacing: 12) {
                         ProgressView()
                             .scaleEffect(1.2)
-                        Text("Scanning for security issues...")
+                        Text("Scanning Security Issues...")
                             .foregroundStyle(.secondary)
                     }
                     .frame(maxWidth: .infinity)
@@ -2718,7 +2718,7 @@ struct EntitlementAnalyzerView: View {
                 Section {
                     HStack {
                         Spacer()
-                        ProgressView("Analyzing entitlements...")
+                        ProgressView("Analyzing Entitlements...")
                         Spacer()
                     }
                     .padding()
@@ -2807,7 +2807,7 @@ struct CodeSignatureView: View {
                 Section {
                     HStack {
                         Spacer()
-                        ProgressView("Loading signature info...")
+                        ProgressView("Loading Signature Info...")
                         Spacer()
                     }
                     .padding()
@@ -3008,7 +3008,7 @@ struct InfoPlistEditorDebugView: View {
                     Button(role: .destructive) {
                         resetToOriginal()
                     } label: {
-                        Label("Reset to Original", systemImage: "arrow.counterclockwise")
+                        Label("Reset To Original", systemImage: "arrow.counterclockwise")
                     }
                 } label: {
                     Image(systemName: "ellipsis.circle")
@@ -3254,7 +3254,7 @@ struct InfoPlistEditorDebugView: View {
                 
                 Spacer()
                 
-                Text("\(rawPlistContent.count) characters")
+                Text("\(rawPlistContent.count) Characters")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
@@ -3671,7 +3671,7 @@ struct InfoPlistEditorDebugView: View {
         let requiredKeys = ["CFBundleIdentifier", "CFBundleName", "CFBundleVersion", "CFBundleShortVersionString"]
         for key in requiredKeys {
             if !plistEntries.contains(where: { $0.key == key }) {
-                validationErrors.append("⚠️ Missing required key: \(key)")
+                validationErrors.append("⚠️ Missing Required Key: \(key)")
             }
         }
         
@@ -3679,7 +3679,7 @@ struct InfoPlistEditorDebugView: View {
         var seenKeys: Set<String> = []
         for entry in plistEntries {
             if seenKeys.contains(entry.key) {
-                validationErrors.append("❌ Duplicate key: \(entry.key)")
+                validationErrors.append("❌ Duplicate Key: \(entry.key)")
             }
             seenKeys.insert(entry.key)
         }
@@ -4893,7 +4893,7 @@ struct ResourceStatisticsView: View {
                             Spacer()
                             
                             VStack(alignment: .trailing) {
-                                Text("\(count) files")
+                                Text("\(count) Files")
                                     .font(.subheadline)
                                 Text(formatBytes(size))
                                     .font(.caption)

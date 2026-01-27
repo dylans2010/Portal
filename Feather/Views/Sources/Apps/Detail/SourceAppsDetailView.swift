@@ -769,7 +769,7 @@ struct SourceAppsDetailView: View {
                         
                         Spacer()
                         
-                        Text("Tap to copy")
+                        Text("Tap To Copy")
                             .font(.system(size: 11, weight: .medium))
                             .foregroundStyle(.tertiary)
                     }
@@ -801,7 +801,7 @@ struct SourceAppsDetailView: View {
                         .foregroundStyle(Color.accentColor)
                     
                     VStack(alignment: .leading, spacing: 2) {
-                        Text("See Details")
+                        Text("See Privacy Details")
                             .font(.system(size: 15, weight: .regular))
                             .foregroundStyle(Color.accentColor)
                     }

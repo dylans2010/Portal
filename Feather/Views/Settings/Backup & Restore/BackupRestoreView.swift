@@ -1,4 +1,4 @@
-// (TODO) Fix full functionality then add to SettingsView
+// (TODO) Fix full functionality then add to SettingsView. Update lready added but beta
 
 import SwiftUI
 import NimbleViews
@@ -142,7 +142,7 @@ struct BackupRestoreView: View {
 			.listRowBackground(Color.clear)
 			
 			// Information sections with modern cards
-			NBSection(.localized("About Backups")) {
+			NBSection(.localized("About Backups (Beta)")) {
 				infoCard(
 					icon: "checkmark.shield.fill",
 					iconColor: .blue,
@@ -198,7 +198,7 @@ struct BackupRestoreView: View {
 		.alert(.localized("Invalid Backup File"), isPresented: $showInvalidBackupError) {
 			Button(.localized("OK"), role: .cancel) { }
 		} message: {
-			Text(.localized("Not a valid Backup file. Please upload an actual .zip file of a backup."))
+			Text(.localized("Not a valid Backup file because Portal couldn't find the checker inside the file. Please upload an actual .zip file of a backup."))
 		}
 		.overlay {
 			if isRestoring {
@@ -391,15 +391,15 @@ struct BackupRestoreView: View {
 			
 			// 6. Create zip file with validation marker
 			let documentsPath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
-			let backupFileName = "Portal_Backup_\(Date().formatted(date: .numeric, time: .omitted).replacingOccurrences(of: "/", with: "-")).zip"
+			let backupFileName = "PortalBackup_\(Date().formatted(date: .numeric, time: .omitted).replacingOccurrences(of: "/", with: "-")).zip"
 			let finalZipURL = documentsPath.appendingPathComponent(backupFileName)
 			
 			// Remove existing file if present
 			try? FileManager.default.removeItem(at: finalZipURL)
 			
 			// Add a backup marker file to validate later
-			let markerFile = tempDir.appendingPathComponent("FEATHER_BACKUP_MARKER.txt")
-			let markerContent = "FEATHER_BACKUP_v1.0_\(Date().timeIntervalSince1970)"
+			let markerFile = tempDir.appendingPathComponent("PORTAL_BACKUP_CHECKER.txt")
+			let markerContent = "PORTAL_BACKUP_v1.0_\(Date().timeIntervalSince1970)"
 			try markerContent.write(to: markerFile, atomically: true, encoding: .utf8)
 			
 			try FileManager.default.zipItem(at: tempDir, to: finalZipURL, shouldKeepParent: false)
@@ -715,7 +715,7 @@ struct BackupOptionsView: View {
 								)
 						}
 						
-						Text(.localized("What would you like in this Backup?"))
+						Text(.localized("What would you like in this Portal Backup?"))
 							.font(.title2.bold())
 							.multilineTextAlignment(.center)
 							.padding(.horizontal)

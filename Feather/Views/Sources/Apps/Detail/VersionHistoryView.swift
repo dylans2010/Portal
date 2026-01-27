@@ -150,7 +150,7 @@ struct VersionHistoryView: View {
                     // Version Info
                     VStack(alignment: .leading, spacing: 4) {
                         HStack(spacing: 8) {
-                            Text("v\(version.version)")
+                            Text("Version \(version.version)")
                                 .font(.system(size: 16, weight: .semibold))
                                 .foregroundStyle(.primary)
                             

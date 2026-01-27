@@ -186,34 +186,45 @@ struct CoreSignHeaderView: View {
     }
 }
 
-// MARK: - Header Subtitles
-/// Easy-to-edit subtitle configuration
-/// To add a new subtitle, simply add a string to the `allSubtitles` array
+// MARK: - easy to add header subtitles because i cbf to find the localizedstrings lmao
 enum HeaderSubtitle {
     /// Default subtitle shown if array is empty
-    static let defaultSubtitle = "The Modern Signer"
-    
-    /// All available subtitles - ADD NEW SUBTITLES HERE
-    /// Just add a new string to this array!
+    static let defaultSubtitle = "the modern signer"
+
     static var allSubtitles: [String] = [
         "the modern signer",
         "no competition",
+        "Are you using the latest Portal version?",
         "Built with Swift",
         "Kravashit are a scam",
         "Just Works™",
-        "Made with some crashouts",
+        "Portal in full Spanish?? maybe...",
+        "should i put my instagram here??"
+        "Portal made by dylan lol",
+        "5-7, 7-3, elite ball knowledge needed to understand",
+        "why do I encounter stupid people ffs",
+        "easter eggs hidden",
+        "Porque la vida es asi -Peso Pluma",
+        "made with some crashouts",
+        "this Portal is WAY better",
         "vibe coded project lol",
-        "The Greatest Signer",
-        "Use Portal",
-        "Random Project",
-        "WSF Top",
+        "playing hard to get is NOT cool S...",
+        "greatest signer",
+        "Use Portal gng",
+        "Random project",
+        "if you want something custom here, ping dylan in the WSF server",
+        "my grades are so fucked",
+        "need me some Chrome Hearts",
+        "coding ts on a mfucking chromebook",
+        "WSF On Top",
+        "feature rich signer",
         "Kravashit",
         "Just When You Thought",
-        "Love Ragebaiting",
-        "Drizzy > Kendrick",
+        "love ragebaiting",
+        "drizzy > kendrick",
         "love my future gf S ❤️",
         "Kravasigner Who?",
-        "Forgotten Signers",
+        "other forgotten signers",
     ]
     
     /// Add a new subtitle at runtime
