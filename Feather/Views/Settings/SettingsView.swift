@@ -73,7 +73,7 @@ struct SettingsView: View {
     private var preferencesSection: some View {
         Section {
             SettingsRow(icon: "house.fill", title: "Customize Home", color: .blue, destination: HomeSettingsView())
-            SettingsRow(icon: "paintbrush.fill", title: "app Appearance", color: .pink, destination: AppearanceView())
+            SettingsRow(icon: "paintbrush.fill", title: "App Appearance", color: .pink, destination: AppearanceView())
         } header: {
             SettingsSectionHeader(title: "Preferences", icon: "slider.horizontal.3")
         }
