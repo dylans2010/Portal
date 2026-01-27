@@ -35,10 +35,31 @@ struct DidYouKnowFacts {
 // MARK: - All Apps View (iOS 26 Style with Bottom Search)
 struct AllAppsView: View {
     @AppStorage("Feather.useGradients") private var _useGradients: Bool = true
+    @AppStorage("Feather.allApps.showSorting") private var _showSorting: Bool = true
     
     @State private var _searchText = ""
     @State private var _selectedRoute: SourceAppRoute?
     @FocusState private var _searchFieldFocused: Bool
+    @State private var _showSearchSheet = false
+
+    @AppStorage("Feather.allApps.sortOption") private var _sortOption: AppSortOption = .name
+    @AppStorage("Feather.allApps.sortAscending") private var _sortAscending: Bool = true
+
+    enum AppSortOption: String, CaseIterable, Identifiable {
+        case name = "Name"
+        case date = "Date"
+        case size = "Size"
+
+        var id: String { self.rawValue }
+
+        var icon: String {
+            switch self {
+            case .name: return "textformat"
+            case .date: return "calendar"
+            case .size: return "internaldrive"
+            }
+        }
+    }
     
     var object: [AltSource]
     @ObservedObject var viewModel: SourcesViewModel
@@ -82,6 +103,36 @@ struct AllAppsView: View {
                                         .foregroundStyle(.secondary)
                                 }
                                 Spacer()
+
+                                if _showSorting {
+                                    Menu {
+                                        ForEach(AppSortOption.allCases) { option in
+                                            Button {
+                                                if _sortOption == option {
+                                                    _sortAscending.toggle()
+                                                } else {
+                                                    _sortOption = option
+                                                    _sortAscending = true
+                                                }
+                                                _filterApps()
+                                            } label: {
+                                                HStack {
+                                                    Label(option.rawValue, systemImage: option.icon)
+                                                    if _sortOption == option {
+                                                        Image(systemName: _sortAscending ? "chevron.up" : "chevron.down")
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    } label: {
+                                        Image(systemName: "line.3.horizontal.decrease.circle.fill")
+                                            .font(.system(size: 22))
+                                            .foregroundStyle(Color.accentColor)
+                                            .padding(8)
+                                            .background(Color.accentColor.opacity(0.1))
+                                            .clipShape(Circle())
+                                    }
+                                }
                             }
                             .padding(.horizontal, 20)
                             .padding(.top, 16)
@@ -173,49 +224,44 @@ struct AllAppsView: View {
                             .frame(height: 1)
                         
                         HStack(spacing: 12) {
-                            HStack(spacing: 10) {
-                                Image(systemName: "magnifyingglass")
-                                    .font(.system(size: 16, weight: .medium))
-                                    .foregroundStyle(.secondary)
-                                
-                                TextField("Search \(_totalAppCount) Apps", text: $_searchText)
-                                    .font(.system(size: 16))
-                                    .focused($_searchFieldFocused)
-                                
-                                if !_searchText.isEmpty {
-                                    Button {
-                                        withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                            Button {
+                                _showSearchSheet = true
+                            } label: {
+                                HStack(spacing: 10) {
+                                    Image(systemName: "magnifyingglass")
+                                        .font(.system(size: 16, weight: .medium))
+                                        .foregroundStyle(.secondary)
+
+                                    Text(_searchText.isEmpty ? "Search \(_totalAppCount) Apps" : _searchText)
+                                        .font(.system(size: 16))
+                                        .foregroundStyle(_searchText.isEmpty ? .secondary : .primary)
+                                        .lineLimit(1)
+
+                                    Spacer()
+
+                                    if !_searchText.isEmpty {
+                                        Button {
                                             _searchText = ""
+                                            _filterApps()
+                                        } label: {
+                                            Image(systemName: "xmark.circle.fill")
+                                                .font(.system(size: 18))
+                                                .foregroundStyle(.tertiary)
                                         }
-                                    } label: {
-                                        Image(systemName: "xmark.circle.fill")
-                                            .font(.system(size: 18))
-                                            .foregroundStyle(.tertiary)
                                     }
                                 }
+                                .padding(.horizontal, 14)
+                                .padding(.vertical, 12)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 14, style: .continuous)
+                                        .fill(.ultraThinMaterial)
+                                        .overlay(
+                                            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                                                .stroke(Color.primary.opacity(0.1), lineWidth: 0.5)
+                                        )
+                                )
                             }
-                            .padding(.horizontal, 14)
-                            .padding(.vertical, 12)
-                            .background(
-                                RoundedRectangle(cornerRadius: 14, style: .continuous)
-                                    .fill(.ultraThinMaterial)
-                                    .overlay(
-                                        RoundedRectangle(cornerRadius: 14, style: .continuous)
-                                            .stroke(Color.primary.opacity(0.1), lineWidth: 0.5)
-                                    )
-                            )
-                            
-                            if _searchFieldFocused {
-                                Button("Cancel") {
-                                    withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-                                        _searchText = ""
-                                        _searchFieldFocused = false
-                                    }
-                                }
-                                .font(.system(size: 16, weight: .medium))
-                                .foregroundStyle(Color.accentColor)
-                                .transition(.move(edge: .trailing).combined(with: .opacity))
-                            }
+                            .buttonStyle(.plain)
                         }
                         .padding(.horizontal, 16)
                         .padding(.vertical, 12)
@@ -223,9 +269,12 @@ struct AllAppsView: View {
                         .background(.ultraThinMaterial)
                         .shadow(color: .black.opacity(0.05), radius: 10, y: -5)
                     }
-                    .animation(.spring(response: 0.3, dampingFraction: 0.8), value: _searchFieldFocused)
                 }
             }
+        }
+        .sheet(isPresented: $_showSearchSheet) {
+            SearchSheetView(searchText: $_searchText)
+                .presentationDetents([.medium, .large])
         }
         .navigationBarHidden(true)
         .onAppear {
@@ -321,17 +370,37 @@ struct AllAppsView: View {
 	}
 
 	private func _filterApps() {
+		let apps: [(source: ASRepository, app: ASRepository.App)]
+
 		if _searchText.isEmpty {
-			_filteredApps = _allApps
-			return
+			apps = _allApps
+		} else {
+			let query = _searchText.lowercased()
+			apps = _allApps.filter { entry in
+				(entry.app.name?.lowercased().contains(query) ?? false) ||
+				(entry.app.description?.lowercased().contains(query) ?? false) ||
+				(entry.app.subtitle?.lowercased().contains(query) ?? false) ||
+				(entry.app.localizedDescription?.lowercased().contains(query) ?? false)
+			}
 		}
 
-		let query = _searchText.lowercased()
-		_filteredApps = _allApps.filter { entry in
-			(entry.app.name?.lowercased().contains(query) ?? false) ||
-			(entry.app.description?.lowercased().contains(query) ?? false) ||
-			(entry.app.subtitle?.lowercased().contains(query) ?? false) ||
-			(entry.app.localizedDescription?.lowercased().contains(query) ?? false)
+		_filteredApps = apps.sorted { entry1, entry2 in
+			let result: Bool
+			switch _sortOption {
+			case .name:
+				let name1 = entry1.app.name ?? ""
+				let name2 = entry2.app.name ?? ""
+				result = name1.localizedCaseInsensitiveCompare(name2) == .orderedAscending
+			case .date:
+				let date1 = entry1.app.currentDate?.date ?? .distantPast
+				let date2 = entry2.app.currentDate?.date ?? .distantPast
+				result = date1 < date2
+			case .size:
+				let size1 = entry1.app.size ?? 0
+				let size2 = entry2.app.size ?? 0
+				result = size1 < size2
+			}
+			return _sortAscending ? result : !result
 		}
 	}
 
@@ -414,6 +483,10 @@ struct AllAppsRowView: View {
 	let app: ASRepository.App
 	let onTap: () -> Void
 	
+	@AppStorage("Feather.allApps.showVersion") private var showVersion: Bool = true
+	@AppStorage("Feather.allApps.showSize") private var showSize: Bool = true
+	@AppStorage("Feather.allApps.iconPadding") private var iconPadding: Double = 0
+
 	@ObservedObject private var downloadManager = DownloadManager.shared
 	@State private var downloadProgress: Double = 0
 	@State private var cancellable: AnyCancellable?
@@ -450,6 +523,7 @@ struct AllAppsRowView: View {
 					// App Icon
 					appIcon
 						.frame(width: 50, height: 50)
+						.padding(.leading, iconPadding)
 					
 					// Center column with app info
 					VStack(alignment: .leading, spacing: 4) {
@@ -469,16 +543,18 @@ struct AllAppsRowView: View {
 						
 						// Version and file size
 						HStack(spacing: 6) {
-							if let version = app.currentVersion {
+							if showVersion, let version = app.currentVersion {
 								Text("v\(version)")
 									.font(.system(size: 12))
 									.foregroundStyle(.secondary)
 							}
 							
-							if !fileSize.isEmpty {
-								Text("•")
-									.font(.system(size: 12))
-									.foregroundStyle(.secondary)
+							if showSize, !fileSize.isEmpty {
+								if showVersion && app.currentVersion != nil {
+									Text("•")
+										.font(.system(size: 12))
+										.foregroundStyle(.secondary)
+								}
 								
 								Text(fileSize)
 									.font(.system(size: 12))

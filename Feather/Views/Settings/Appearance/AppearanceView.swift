@@ -130,6 +130,7 @@ struct AppearanceView: View {
     
     private var customizationSection: some View {
         Section {
+            AppearanceNavRow(icon: "rectangle.stack.fill", title: "All Apps", color: .blue, destination: AllAppsCustomizationView())
             AppearanceNavRow(icon: "rectangle.topthird.inset.filled", title: "Status Bar", color: .cyan, destination: StatusBarCustomizationView())
             AppearanceNavRow(icon: "dock.rectangle", title: "Tab Bar", color: .indigo, destination: TabBarCustomizationView())
         } header: {
@@ -155,7 +156,7 @@ struct AppearanceView: View {
 
 // MARK: - Appearance Components
 
-private struct AppearanceSectionHeader: View {
+struct AppearanceSectionHeader: View {
     let title: String
     let icon: String
     
@@ -170,7 +171,7 @@ private struct AppearanceSectionHeader: View {
     }
 }
 
-private struct AppearanceRowLabel: View {
+struct AppearanceRowLabel: View {
     let icon: String
     let title: String
     let color: Color
@@ -186,7 +187,7 @@ private struct AppearanceRowLabel: View {
     }
 }
 
-private struct AppearanceToggle: View {
+struct AppearanceToggle: View {
     let icon: String
     let title: String
     @Binding var isOn: Bool
@@ -199,7 +200,7 @@ private struct AppearanceToggle: View {
     }
 }
 
-private struct AppearanceNavRow<Destination: View>: View {
+struct AppearanceNavRow<Destination: View>: View {
     let icon: String
     let title: String
     let color: Color
