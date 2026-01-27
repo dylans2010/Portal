@@ -1549,68 +1549,89 @@ struct FeedbackView: View {
     // MARK: - Recent Feedback View
     private var recentFeedbackView: some View {
         ScrollView {
-            LazyVStack(spacing: 12) {
+            LazyVStack(spacing: 16) {
                 if isLoadingRecentFeedback {
-                    VStack(spacing: 16) {
-                        ProgressView()
-                            .scaleEffect(1.2)
+                    VStack(spacing: 20) {
+                        ZStack {
+                            Circle()
+                                .fill(Color.accentColor.opacity(0.1))
+                                .frame(width: 80, height: 80)
+                            ProgressView()
+                                .scaleEffect(1.3)
+                                .tint(.accentColor)
+                        }
                         Text("Loading Feedback...")
-                            .font(.system(size: 14))
+                            .font(.system(size: 15, weight: .medium))
                             .foregroundStyle(.secondary)
                     }
                     .frame(maxWidth: .infinity)
-                    .padding(.vertical, 60)
+                    .padding(.vertical, 80)
                 } else if let error = recentFeedbackError {
-                    VStack(spacing: 16) {
-                        Image(systemName: "exclamationmark.triangle.fill")
-                            .font(.system(size: 40))
-                            .foregroundStyle(.orange)
-                        Text("Failed to load feedback")
-                            .font(.system(size: 16, weight: .semibold))
-                        Text(error)
-                            .font(.system(size: 13))
-                            .foregroundStyle(.secondary)
-                            .multilineTextAlignment(.center)
+                    VStack(spacing: 20) {
+                        ZStack {
+                            Circle()
+                                .fill(Color.orange.opacity(0.1))
+                                .frame(width: 80, height: 80)
+                            Image(systemName: "exclamationmark.triangle.fill")
+                                .font(.system(size: 32))
+                                .foregroundStyle(.orange)
+                        }
+                        VStack(spacing: 6) {
+                            Text("Unable to Load")
+                                .font(.system(size: 18, weight: .semibold))
+                            Text(error)
+                                .font(.system(size: 14))
+                                .foregroundStyle(.secondary)
+                                .multilineTextAlignment(.center)
+                        }
                         Button {
                             loadRecentFeedback()
                         } label: {
-                            HStack(spacing: 6) {
+                            HStack(spacing: 8) {
                                 Image(systemName: "arrow.clockwise")
-                                Text("Retry")
+                                    .font(.system(size: 14, weight: .semibold))
+                                Text("Try Again")
+                                    .font(.system(size: 15, weight: .semibold))
                             }
-                            .font(.system(size: 14, weight: .semibold))
                             .foregroundStyle(.white)
-                            .padding(.horizontal, 20)
-                            .padding(.vertical, 10)
+                            .padding(.horizontal, 24)
+                            .padding(.vertical, 12)
                             .background(Color.accentColor)
                             .clipShape(Capsule())
                         }
                     }
                     .frame(maxWidth: .infinity)
-                    .padding(.vertical, 40)
+                    .padding(.vertical, 60)
                 } else if recentFeedbacks.isEmpty {
-                    VStack(spacing: 16) {
-                        Image(systemName: "bubble.left.and.bubble.right")
-                            .font(.system(size: 50))
-                            .foregroundStyle(.secondary)
-                        Text("No Feedback Yet")
-                            .font(.system(size: 16, weight: .semibold))
-                        Text("Be the first to submit feedback!")
-                            .font(.system(size: 13))
-                            .foregroundStyle(.secondary)
+                    VStack(spacing: 20) {
+                        ZStack {
+                            Circle()
+                                .fill(Color.secondary.opacity(0.1))
+                                .frame(width: 80, height: 80)
+                            Image(systemName: "bubble.left.and.bubble.right.fill")
+                                .font(.system(size: 32))
+                                .foregroundStyle(.secondary)
+                        }
+                        VStack(spacing: 6) {
+                            Text("No Feedback Yet")
+                                .font(.system(size: 18, weight: .semibold))
+                            Text("Be the first to share your thoughts!")
+                                .font(.system(size: 14))
+                                .foregroundStyle(.secondary)
+                        }
                     }
                     .frame(maxWidth: .infinity)
-                    .padding(.vertical, 60)
+                    .padding(.vertical, 80)
                 } else {
                     ForEach(recentFeedbacks) { issue in
-                        RecentFeedbackCard(issue: issue) {
+                        ModernRecentFeedbackCard(issue: issue) {
                             selectedIssue = issue
                         }
                     }
                 }
             }
             .padding(.horizontal, 16)
-            .padding(.vertical, 12)
+            .padding(.vertical, 16)
         }
         .refreshable {
             await refreshRecentFeedback()
@@ -1707,33 +1728,250 @@ struct FeedbackView: View {
     
     private var mainScrollView: some View {
         ScrollView {
-            VStack(spacing: 20) {
-                headerSection
+            VStack(spacing: 24) {
+                // Simplified header
+                cleanHeaderSection
                     .opacity(appearAnimation ? 1 : 0)
-                    .offset(y: appearAnimation ? 0 : 20)
+                    .offset(y: appearAnimation ? 0 : 15)
                 
-                categorySelector
+                // Combined form section
+                cleanFormSection
                     .opacity(appearAnimation ? 1 : 0)
-                    .offset(y: appearAnimation ? 0 : 20)
+                    .offset(y: appearAnimation ? 0 : 15)
                     .animation(.spring(response: 0.5, dampingFraction: 0.8).delay(0.05), value: appearAnimation)
                 
-                formSection
+                // Compact attachments
+                cleanAttachmentsSection
                     .opacity(appearAnimation ? 1 : 0)
-                    .offset(y: appearAnimation ? 0 : 20)
+                    .offset(y: appearAnimation ? 0 : 15)
                     .animation(.spring(response: 0.5, dampingFraction: 0.8).delay(0.1), value: appearAnimation)
                 
-                attachmentsSection
+                // Submit button
+                cleanSubmitSection
                     .opacity(appearAnimation ? 1 : 0)
-                    .offset(y: appearAnimation ? 0 : 20)
+                    .offset(y: appearAnimation ? 0 : 15)
                     .animation(.spring(response: 0.5, dampingFraction: 0.8).delay(0.15), value: appearAnimation)
-                
-                submitSection
-                    .opacity(appearAnimation ? 1 : 0)
-                    .offset(y: appearAnimation ? 0 : 20)
-                    .animation(.spring(response: 0.5, dampingFraction: 0.8).delay(0.2), value: appearAnimation)
             }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 12)
+            .padding(.horizontal, 20)
+            .padding(.vertical, 16)
+        }
+    }
+    
+    // MARK: - Clean Header Section
+    private var cleanHeaderSection: some View {
+        HStack(spacing: 14) {
+            ZStack {
+                Circle()
+                    .fill(feedbackCategory.color.opacity(0.12))
+                    .frame(width: 52, height: 52)
+                Image(systemName: feedbackCategory.icon)
+                    .font(.system(size: 22, weight: .semibold))
+                    .foregroundStyle(feedbackCategory.color)
+            }
+            
+            VStack(alignment: .leading, spacing: 4) {
+                Text("Submit Feedback")
+                    .font(.system(size: 20, weight: .bold))
+                Text("Creates a GitHub Issue")
+                    .font(.system(size: 14))
+                    .foregroundStyle(.secondary)
+            }
+            
+            Spacer()
+        }
+        .animation(.spring(response: 0.3, dampingFraction: 0.7), value: feedbackCategory)
+    }
+    
+    // MARK: - Clean Form Section
+    private var cleanFormSection: some View {
+        VStack(spacing: 20) {
+            // Category selector (horizontal scroll)
+            VStack(alignment: .leading, spacing: 10) {
+                HStack {
+                    Text("Category")
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundStyle(.secondary)
+                    
+                    Spacer()
+                    
+                    Button {
+                        showCategoryInfo = true
+                        HapticsManager.shared.softImpact()
+                    } label: {
+                        Image(systemName: "info.circle")
+                            .font(.system(size: 16))
+                            .foregroundStyle(.secondary)
+                    }
+                }
+                
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 8) {
+                        ForEach(FeedbackCategory.allCases, id: \.self) { category in
+                            CleanCategoryChip(
+                                category: category,
+                                isSelected: feedbackCategory == category
+                            ) {
+                                withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                                    feedbackCategory = category
+                                }
+                                HapticsManager.shared.softImpact()
+                            }
+                        }
+                    }
+                }
+            }
+            
+            // Title field
+            VStack(alignment: .leading, spacing: 8) {
+                Text("Title")
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundStyle(.secondary)
+                
+                TextField("Brief summary", text: $feedbackTitle)
+                    .font(.system(size: 16))
+                    .focused($focusedField, equals: .title)
+                    .submitLabel(.next)
+                    .onSubmit { focusedField = .message }
+                    .padding(14)
+                    .background(Color(.tertiarySystemGroupedBackground))
+                    .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+            }
+            
+            // Description field
+            VStack(alignment: .leading, spacing: 8) {
+                HStack {
+                    Text("Description")
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundStyle(.secondary)
+                    
+                    Spacer()
+                    
+                    Text("\(feedbackMessage.count)")
+                        .font(.system(size: 12, weight: .medium, design: .rounded))
+                        .foregroundStyle(.tertiary)
+                }
+                
+                ZStack(alignment: .topLeading) {
+                    TextEditor(text: $feedbackMessage)
+                        .font(.system(size: 16))
+                        .frame(minHeight: 120)
+                        .padding(10)
+                        .scrollContentBackground(.hidden)
+                        .background(Color(.tertiarySystemGroupedBackground))
+                        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                        .focused($focusedField, equals: .message)
+                    
+                    if feedbackMessage.isEmpty {
+                        Text("Describe your feedback...")
+                            .font(.system(size: 16))
+                            .foregroundStyle(.quaternary)
+                            .padding(.horizontal, 14)
+                            .padding(.vertical, 18)
+                            .allowsHitTesting(false)
+                    }
+                }
+            }
+        }
+        .padding(18)
+        .background(
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .fill(Color(.secondarySystemGroupedBackground))
+        )
+    }
+    
+    // MARK: - Clean Attachments Section
+    private var cleanAttachmentsSection: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            Text("Include")
+                .font(.system(size: 14, weight: .semibold))
+                .foregroundStyle(.secondary)
+            
+            HStack(spacing: 10) {
+                CleanAttachmentToggle(
+                    icon: "iphone",
+                    title: "Device",
+                    isOn: $includeDeviceInfo,
+                    color: .blue
+                )
+                
+                CleanAttachmentToggle(
+                    icon: "doc.text",
+                    title: "Logs",
+                    isOn: $includeLogs,
+                    color: .orange
+                )
+                
+                CleanAttachmentToggle(
+                    icon: "curlybraces",
+                    title: "Code",
+                    isOn: $includeCode,
+                    color: .purple,
+                    action: { showCodeEditor = true }
+                )
+            }
+            
+            // Code preview if included
+            if includeCode && !codeSnippet.isEmpty {
+                HStack {
+                    Text(codeSnippet.prefix(50) + (codeSnippet.count > 50 ? "..." : ""))
+                        .font(.system(size: 12, design: .monospaced))
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                    
+                    Spacer()
+                    
+                    Button {
+                        showCodeEditor = true
+                    } label: {
+                        Image(systemName: "pencil")
+                            .font(.system(size: 12, weight: .medium))
+                            .foregroundStyle(.purple)
+                    }
+                }
+                .padding(12)
+                .background(Color(.tertiarySystemGroupedBackground))
+                .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+            }
+        }
+        .padding(18)
+        .background(
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .fill(Color(.secondarySystemGroupedBackground))
+        )
+    }
+    
+    // MARK: - Clean Submit Section
+    private var cleanSubmitSection: some View {
+        VStack(spacing: 12) {
+            Button {
+                focusedField = nil
+                showPreview = true
+                HapticsManager.shared.softImpact()
+            } label: {
+                HStack(spacing: 10) {
+                    if isSubmitting {
+                        ProgressView()
+                            .tint(.white)
+                    } else {
+                        Image(systemName: "paperplane.fill")
+                            .font(.system(size: 15, weight: .semibold))
+                    }
+                    Text(isSubmitting ? submissionStep : "Preview & Submit")
+                        .font(.system(size: 16, weight: .semibold))
+                }
+                .foregroundStyle(.white)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 16)
+                .background(
+                    isFormValid ? feedbackCategory.color : Color.gray.opacity(0.5)
+                )
+                .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+            }
+            .disabled(!isFormValid || isSubmitting)
+            
+            Text("Your feedback will be submitted as a GitHub Issue")
+                .font(.system(size: 12))
+                .foregroundStyle(.tertiary)
         }
     }
     
@@ -2495,6 +2733,70 @@ struct ModernCategoryChip: View {
     }
 }
 
+// MARK: - Clean Category Chip
+struct CleanCategoryChip: View {
+    let category: FeedbackView.FeedbackCategory
+    let isSelected: Bool
+    let action: () -> Void
+    
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: 6) {
+                Image(systemName: category.icon)
+                    .font(.system(size: 12, weight: .semibold))
+                Text(category.rawValue)
+                    .font(.system(size: 13, weight: .medium))
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 8)
+            .background(
+                Capsule()
+                    .fill(isSelected ? category.color : Color(.tertiarySystemGroupedBackground))
+            )
+            .foregroundStyle(isSelected ? .white : .primary)
+        }
+        .buttonStyle(.plain)
+    }
+}
+
+// MARK: - Clean Attachment Toggle
+struct CleanAttachmentToggle: View {
+    let icon: String
+    let title: String
+    @Binding var isOn: Bool
+    let color: Color
+    var action: (() -> Void)? = nil
+    
+    var body: some View {
+        Button {
+            if let action = action {
+                action()
+            }
+            withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                isOn.toggle()
+            }
+            HapticsManager.shared.softImpact()
+        } label: {
+            VStack(spacing: 8) {
+                Image(systemName: icon)
+                    .font(.system(size: 18, weight: .medium))
+                    .foregroundStyle(isOn ? .white : color)
+                
+                Text(title)
+                    .font(.system(size: 12, weight: .medium))
+                    .foregroundStyle(isOn ? .white : .primary)
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 14)
+            .background(
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .fill(isOn ? color : Color(.tertiarySystemGroupedBackground))
+            )
+        }
+        .buttonStyle(.plain)
+    }
+}
+
 // MARK: - Code Editor Sheet
 struct CodeEditorSheet: View {
     @Environment(\.dismiss) private var dismiss
@@ -3055,8 +3357,8 @@ extension UIDevice {
     }
 }
 
-// MARK: - Recent Feedback Card
-struct RecentFeedbackCard: View {
+// MARK: - Modern Recent Feedback Card
+struct ModernRecentFeedbackCard: View {
     let issue: GitHubFeedbackService.GitHubIssueDetail
     let onTap: () -> Void
     
@@ -3067,97 +3369,94 @@ struct RecentFeedbackCard: View {
         return formatter.localizedString(for: date, relativeTo: Date())
     }
     
+    private var cleanTitle: String {
+        issue.title.replacingOccurrences(of: "\\[.*?\\]\\s*", with: "", options: .regularExpression)
+    }
+    
+    private var cleanBody: String {
+        guard let body = issue.body else { return "" }
+        return body
+            .replacingOccurrences(of: "## Description\n", with: "")
+            .replacingOccurrences(of: "## Device Information\n[\\s\\S]*", with: "", options: .regularExpression)
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+    
     var body: some View {
         Button(action: onTap) {
-            VStack(alignment: .leading, spacing: 12) {
-                // Header
-                HStack(spacing: 10) {
-                    // Category icon
-                    ZStack {
-                        Circle()
-                            .fill(issue.categoryFromLabels.color.opacity(0.15))
-                            .frame(width: 36, height: 36)
-                        Image(systemName: issue.categoryFromLabels.icon)
-                            .font(.system(size: 14, weight: .semibold))
-                            .foregroundStyle(issue.categoryFromLabels.color)
+            HStack(alignment: .top, spacing: 14) {
+                // Category Icon
+                ZStack {
+                    Circle()
+                        .fill(issue.categoryFromLabels.color.opacity(0.12))
+                        .frame(width: 44, height: 44)
+                    Image(systemName: issue.categoryFromLabels.icon)
+                        .font(.system(size: 18, weight: .semibold))
+                        .foregroundStyle(issue.categoryFromLabels.color)
+                }
+                
+                VStack(alignment: .leading, spacing: 8) {
+                    // Title and Status
+                    HStack(alignment: .top) {
+                        Text(cleanTitle)
+                            .font(.system(size: 16, weight: .semibold))
+                            .foregroundStyle(.primary)
+                            .lineLimit(2)
+                            .multilineTextAlignment(.leading)
+                        
+                        Spacer(minLength: 8)
+                        
+                        // Status indicator
+                        Image(systemName: issue.state == "open" ? "circle.fill" : "checkmark.circle.fill")
+                            .font(.system(size: 10))
+                            .foregroundStyle(issue.state == "open" ? .green : .purple)
                     }
                     
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("#\(issue.number)")
-                            .font(.system(size: 12, weight: .medium))
+                    // Body preview
+                    if !cleanBody.isEmpty {
+                        Text(String(cleanBody.prefix(100)) + (cleanBody.count > 100 ? "..." : ""))
+                            .font(.system(size: 14))
                             .foregroundStyle(.secondary)
-                        Text(relativeDate)
-                            .font(.system(size: 11))
-                            .foregroundStyle(.tertiary)
+                            .lineLimit(2)
+                            .multilineTextAlignment(.leading)
                     }
                     
-                    Spacer()
-                    
-                    // Status badge
-                    HStack(spacing: 4) {
-                        Circle()
-                            .fill(issue.state == "open" ? Color.green : Color.purple)
-                            .frame(width: 6, height: 6)
-                        Text(issue.state.capitalized)
-                            .font(.system(size: 11, weight: .medium))
-                    }
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 4)
-                    .background(
-                        Capsule()
-                            .fill((issue.state == "open" ? Color.green : Color.purple).opacity(0.12))
-                    )
-                    .foregroundStyle(issue.state == "open" ? .green : .purple)
-                }
-                
-                // Title
-                Text(issue.title.replacingOccurrences(of: "\\[.*?\\]\\s*", with: "", options: .regularExpression))
-                    .font(.system(size: 15, weight: .semibold))
-                    .foregroundStyle(.primary)
-                    .lineLimit(2)
-                    .multilineTextAlignment(.leading)
-                
-                // Body preview
-                if let body = issue.body, !body.isEmpty {
-                    Text(body.replacingOccurrences(of: "## Description\n", with: "").prefix(120) + (body.count > 120 ? "..." : ""))
-                        .font(.system(size: 13))
-                        .foregroundStyle(.secondary)
-                        .lineLimit(2)
-                        .multilineTextAlignment(.leading)
-                }
-                
-                // Footer
-                HStack(spacing: 12) {
-                    if issue.comments > 0 {
+                    // Meta info row
+                    HStack(spacing: 12) {
+                        // Issue number
                         HStack(spacing: 4) {
-                            Image(systemName: "bubble.left.fill")
-                                .font(.system(size: 10))
-                            Text("\(issue.comments)")
-                                .font(.system(size: 11, weight: .medium))
-                        }
-                        .foregroundStyle(.secondary)
-                    }
-                    
-                    // Labels
-                    HStack(spacing: 4) {
-                        ForEach(issue.labels.prefix(3), id: \.id) { label in
-                            Text(label.name)
+                            Image(systemName: "number")
                                 .font(.system(size: 10, weight: .medium))
-                                .padding(.horizontal, 6)
-                                .padding(.vertical, 2)
-                                .background(
-                                    Capsule()
-                                        .fill(Color(hex: label.color).opacity(0.2))
-                                )
-                                .foregroundStyle(Color(hex: label.color))
+                            Text("\(issue.number)")
+                                .font(.system(size: 12, weight: .medium))
                         }
-                    }
-                    
-                    Spacer()
-                    
-                    Image(systemName: "chevron.right")
-                        .font(.system(size: 12, weight: .semibold))
                         .foregroundStyle(.tertiary)
+                        
+                        // Time
+                        HStack(spacing: 4) {
+                            Image(systemName: "clock")
+                                .font(.system(size: 10, weight: .medium))
+                            Text(relativeDate)
+                                .font(.system(size: 12))
+                        }
+                        .foregroundStyle(.tertiary)
+                        
+                        // Comments
+                        if issue.comments > 0 {
+                            HStack(spacing: 4) {
+                                Image(systemName: "bubble.left")
+                                    .font(.system(size: 10, weight: .medium))
+                                Text("\(issue.comments)")
+                                    .font(.system(size: 12, weight: .medium))
+                            }
+                            .foregroundStyle(.tertiary)
+                        }
+                        
+                        Spacer()
+                        
+                        Image(systemName: "chevron.right")
+                            .font(.system(size: 12, weight: .medium))
+                            .foregroundStyle(.quaternary)
+                    }
                 }
             }
             .padding(16)
@@ -3167,6 +3466,16 @@ struct RecentFeedbackCard: View {
             )
         }
         .buttonStyle(.plain)
+    }
+}
+
+// MARK: - Legacy Recent Feedback Card (kept for compatibility)
+struct RecentFeedbackCard: View {
+    let issue: GitHubFeedbackService.GitHubIssueDetail
+    let onTap: () -> Void
+    
+    var body: some View {
+        ModernRecentFeedbackCard(issue: issue, onTap: onTap)
     }
 }
 
@@ -3243,6 +3552,7 @@ struct MyFeedbackCard: View {
 struct FeedbackDetailSheet: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.openURL) private var openURL
+    @Environment(\.colorScheme) private var colorScheme
     let issue: GitHubFeedbackService.GitHubIssueDetail
     
     private var relativeDate: String {
@@ -3252,65 +3562,88 @@ struct FeedbackDetailSheet: View {
         return formatter.localizedString(for: date, relativeTo: Date())
     }
     
+    private var cleanTitle: String {
+        issue.title.replacingOccurrences(of: "\\[.*?\\]\\s*", with: "", options: .regularExpression)
+    }
+    
     var body: some View {
         NavigationStack {
             ScrollView {
-                VStack(alignment: .leading, spacing: 20) {
-                    // Header
-                    VStack(alignment: .leading, spacing: 12) {
-                        HStack(spacing: 10) {
-                            ZStack {
-                                Circle()
-                                    .fill(issue.categoryFromLabels.color.opacity(0.15))
-                                    .frame(width: 44, height: 44)
-                                Image(systemName: issue.categoryFromLabels.icon)
-                                    .font(.system(size: 18, weight: .semibold))
-                                    .foregroundStyle(issue.categoryFromLabels.color)
+                VStack(alignment: .leading, spacing: 0) {
+                    // Modern Header
+                    VStack(spacing: 16) {
+                        // Status and meta row
+                        HStack {
+                            HStack(spacing: 6) {
+                                Image(systemName: "number")
+                                    .font(.system(size: 12, weight: .medium))
+                                Text("\(issue.number)")
+                                    .font(.system(size: 14, weight: .semibold))
                             }
+                            .foregroundStyle(.secondary)
                             
-                            VStack(alignment: .leading, spacing: 2) {
-                                Text("Issue #\(issue.number)")
-                                    .font(.system(size: 14, weight: .medium))
-                                    .foregroundStyle(.secondary)
-                                Text(relativeDate)
-                                    .font(.system(size: 12))
-                                    .foregroundStyle(.tertiary)
-                            }
+                            Text("•")
+                                .foregroundStyle(.quaternary)
+                            
+                            Text(relativeDate)
+                                .font(.system(size: 13))
+                                .foregroundStyle(.secondary)
                             
                             Spacer()
                             
-                            HStack(spacing: 4) {
-                                Circle()
-                                    .fill(issue.state == "open" ? Color.green : Color.purple)
-                                    .frame(width: 8, height: 8)
+                            // Status pill
+                            HStack(spacing: 5) {
+                                Image(systemName: issue.state == "open" ? "circle.fill" : "checkmark.circle.fill")
+                                    .font(.system(size: 8))
                                 Text(issue.state.capitalized)
-                                    .font(.system(size: 13, weight: .semibold))
+                                    .font(.system(size: 12, weight: .semibold))
                             }
-                            .padding(.horizontal, 12)
-                            .padding(.vertical, 6)
+                            .foregroundStyle(issue.state == "open" ? .green : .purple)
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 5)
                             .background(
                                 Capsule()
                                     .fill((issue.state == "open" ? Color.green : Color.purple).opacity(0.12))
                             )
-                            .foregroundStyle(issue.state == "open" ? .green : .purple)
                         }
                         
-                        Text(issue.title.replacingOccurrences(of: "\\[.*?\\]\\s*", with: "", options: .regularExpression))
-                            .font(.system(size: 20, weight: .bold))
+                        // Title
+                        Text(cleanTitle)
+                            .font(.system(size: 22, weight: .bold))
                             .foregroundStyle(.primary)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                        
+                        // Category badge
+                        HStack(spacing: 8) {
+                            Image(systemName: issue.categoryFromLabels.icon)
+                                .font(.system(size: 12, weight: .semibold))
+                            Text(issue.categoryFromLabels.rawValue)
+                                .font(.system(size: 13, weight: .medium))
+                        }
+                        .foregroundStyle(issue.categoryFromLabels.color)
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 6)
+                        .background(
+                            Capsule()
+                                .fill(issue.categoryFromLabels.color.opacity(0.12))
+                        )
+                        .frame(maxWidth: .infinity, alignment: .leading)
                     }
-                    .padding(16)
-                    .background(
-                        RoundedRectangle(cornerRadius: 16, style: .continuous)
-                            .fill(Color(.secondarySystemGroupedBackground))
-                    )
+                    .padding(20)
+                    
+                    Divider()
+                        .padding(.horizontal, 20)
                     
                     // Labels
                     if !issue.labels.isEmpty {
-                        VStack(alignment: .leading, spacing: 10) {
-                            Text("Labels")
-                                .font(.system(size: 14, weight: .semibold))
-                                .foregroundStyle(.secondary)
+                        VStack(alignment: .leading, spacing: 12) {
+                            HStack(spacing: 6) {
+                                Image(systemName: "tag.fill")
+                                    .font(.system(size: 12))
+                                Text("Labels")
+                                    .font(.system(size: 14, weight: .semibold))
+                            }
+                            .foregroundStyle(.secondary)
                             
                             FlowLayout(spacing: 8) {
                                 ForEach(issue.labels, id: \.id) { label in
@@ -3320,34 +3653,32 @@ struct FeedbackDetailSheet: View {
                                         .padding(.vertical, 5)
                                         .background(
                                             Capsule()
-                                                .fill(Color(hex: label.color).opacity(0.2))
+                                                .fill(Color(hex: label.color).opacity(0.15))
                                         )
                                         .foregroundStyle(Color(hex: label.color))
                                 }
                             }
                         }
-                        .padding(16)
-                        .background(
-                            RoundedRectangle(cornerRadius: 16, style: .continuous)
-                                .fill(Color(.secondarySystemGroupedBackground))
-                        )
+                        .padding(20)
+                        
+                        Divider()
+                            .padding(.horizontal, 20)
                     }
                     
-                    // Body with Markdown
+                    // Body with Full Markdown Support
                     if let body = issue.body, !body.isEmpty {
-                        VStack(alignment: .leading, spacing: 10) {
-                            Text("Description")
-                                .font(.system(size: 14, weight: .semibold))
-                                .foregroundStyle(.secondary)
+                        VStack(alignment: .leading, spacing: 12) {
+                            HStack(spacing: 6) {
+                                Image(systemName: "doc.text.fill")
+                                    .font(.system(size: 12))
+                                Text("Description")
+                                    .font(.system(size: 14, weight: .semibold))
+                            }
+                            .foregroundStyle(.secondary)
                             
-                            FullMarkdownView(text: body)
+                            GitHubMarkdownView(markdown: body)
                         }
-                        .padding(16)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .background(
-                            RoundedRectangle(cornerRadius: 16, style: .continuous)
-                                .fill(Color(.secondarySystemGroupedBackground))
-                        )
+                        .padding(20)
                     }
                     
                     // Open in GitHub button
@@ -3358,25 +3689,20 @@ struct FeedbackDetailSheet: View {
                     } label: {
                         HStack(spacing: 8) {
                             Image(systemName: "arrow.up.right.square.fill")
-                            Text("View n GitHub")
+                            Text("View on GitHub")
                         }
                         .font(.system(size: 16, weight: .semibold))
                         .foregroundStyle(.white)
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 16)
-                        .background(
-                            LinearGradient(
-                                colors: [.accentColor, .accentColor.opacity(0.8)],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            )
-                        )
-                        .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+                        .background(Color.accentColor)
+                        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
                     }
+                    .padding(.horizontal, 20)
+                    .padding(.vertical, 16)
                 }
-                .padding(16)
             }
-            .background(Color(.systemGroupedBackground))
+            .background(Color(.systemBackground))
             .navigationTitle("Feedback Details")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -3384,22 +3710,289 @@ struct FeedbackDetailSheet: View {
                     Button("Done") {
                         dismiss()
                     }
+                    .font(.system(size: 16, weight: .medium))
                 }
             }
         }
     }
 }
 
-// MARK: - Full Markdown View
+// MARK: - GitHub Markdown View (Full Support)
+struct GitHubMarkdownView: View {
+    let markdown: String
+    @Environment(\.colorScheme) private var colorScheme
+    @State private var contentHeight: CGFloat = 100
+    
+    var body: some View {
+        GitHubMarkdownWebView(markdown: markdown, colorScheme: colorScheme, contentHeight: $contentHeight)
+            .frame(height: contentHeight)
+    }
+}
+
+// MARK: - GitHub Markdown WebView
+struct GitHubMarkdownWebView: UIViewRepresentable {
+    let markdown: String
+    let colorScheme: ColorScheme
+    @Binding var contentHeight: CGFloat
+    
+    func makeUIView(context: Context) -> WKWebView {
+        let webView = WKWebView()
+        webView.navigationDelegate = context.coordinator
+        webView.scrollView.isScrollEnabled = false
+        webView.isOpaque = false
+        webView.backgroundColor = .clear
+        webView.scrollView.backgroundColor = .clear
+        return webView
+    }
+    
+    func updateUIView(_ webView: WKWebView, context: Context) {
+        let html = generateHTML()
+        webView.loadHTMLString(html, baseURL: nil)
+    }
+    
+    func makeCoordinator() -> Coordinator {
+        Coordinator(self)
+    }
+    
+    private func generateHTML() -> String {
+        let isDark = colorScheme == .dark
+        let textColor = isDark ? "#FFFFFF" : "#000000"
+        let secondaryColor = isDark ? "#8E8E93" : "#6C6C70"
+        let bgColor = isDark ? "#1C1C1E" : "#FFFFFF"
+        let codeBgColor = isDark ? "#2C2C2E" : "#F2F2F7"
+        let borderColor = isDark ? "#38383A" : "#E5E5EA"
+        let linkColor = "#007AFF"
+        
+        return """
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+            <style>
+                * { box-sizing: border-box; margin: 0; padding: 0; }
+                body {
+                    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif;
+                    font-size: 15px;
+                    line-height: 1.6;
+                    color: \(textColor);
+                    background-color: transparent;
+                    padding: 0;
+                    word-wrap: break-word;
+                    -webkit-text-size-adjust: 100%;
+                }
+                h1, h2, h3, h4, h5, h6 {
+                    font-weight: 600;
+                    margin-top: 20px;
+                    margin-bottom: 10px;
+                    line-height: 1.3;
+                }
+                h1 { font-size: 24px; }
+                h2 { font-size: 20px; }
+                h3 { font-size: 18px; }
+                h4 { font-size: 16px; }
+                p { margin-bottom: 12px; }
+                a { color: \(linkColor); text-decoration: none; }
+                strong { font-weight: 600; }
+                em { font-style: italic; }
+                del { text-decoration: line-through; color: \(secondaryColor); }
+                code {
+                    font-family: 'SF Mono', Menlo, monospace;
+                    font-size: 13px;
+                    background-color: \(codeBgColor);
+                    padding: 2px 6px;
+                    border-radius: 4px;
+                }
+                pre {
+                    background-color: \(codeBgColor);
+                    padding: 12px;
+                    border-radius: 8px;
+                    overflow-x: auto;
+                    margin: 12px 0;
+                }
+                pre code {
+                    background: none;
+                    padding: 0;
+                    font-size: 13px;
+                    line-height: 1.5;
+                }
+                blockquote {
+                    border-left: 3px solid \(linkColor);
+                    padding-left: 12px;
+                    margin: 12px 0;
+                    color: \(secondaryColor);
+                }
+                ul, ol {
+                    padding-left: 24px;
+                    margin: 12px 0;
+                }
+                li { margin-bottom: 6px; }
+                li input[type="checkbox"] {
+                    margin-right: 8px;
+                    transform: scale(1.1);
+                }
+                table {
+                    width: 100%;
+                    border-collapse: collapse;
+                    margin: 12px 0;
+                    font-size: 14px;
+                }
+                th, td {
+                    border: 1px solid \(borderColor);
+                    padding: 8px 12px;
+                    text-align: left;
+                }
+                th {
+                    background-color: \(codeBgColor);
+                    font-weight: 600;
+                }
+                hr {
+                    border: none;
+                    border-top: 1px solid \(borderColor);
+                    margin: 16px 0;
+                }
+                details {
+                    background-color: \(codeBgColor);
+                    border-radius: 8px;
+                    padding: 12px;
+                    margin: 12px 0;
+                }
+                summary {
+                    font-weight: 600;
+                    cursor: pointer;
+                    padding: 4px 0;
+                }
+                details[open] summary {
+                    margin-bottom: 8px;
+                }
+                img {
+                    max-width: 100%;
+                    height: auto;
+                    border-radius: 8px;
+                    margin: 8px 0;
+                }
+                .task-list-item {
+                    list-style-type: none;
+                    margin-left: -20px;
+                }
+            </style>
+        </head>
+        <body>
+            \(convertMarkdownToHTML(markdown))
+            <script>
+                document.addEventListener('DOMContentLoaded', function() {
+                    setTimeout(function() {
+                        window.webkit.messageHandlers.heightHandler.postMessage(document.body.scrollHeight);
+                    }, 100);
+                });
+            </script>
+        </body>
+        </html>
+        """
+    }
+    
+    private func convertMarkdownToHTML(_ markdown: String) -> String {
+        var html = markdown
+        
+        // Escape HTML entities first (but preserve markdown syntax)
+        html = html.replacingOccurrences(of: "&", with: "&amp;")
+        html = html.replacingOccurrences(of: "<(?!details|summary|/details|/summary)", with: "&lt;", options: .regularExpression)
+        html = html.replacingOccurrences(of: "(?<!details|summary|/details|/summary)>", with: "&gt;", options: .regularExpression)
+        
+        // Headers
+        html = html.replacingOccurrences(of: "(?m)^###### (.+)$", with: "<h6>$1</h6>", options: .regularExpression)
+        html = html.replacingOccurrences(of: "(?m)^##### (.+)$", with: "<h5>$1</h5>", options: .regularExpression)
+        html = html.replacingOccurrences(of: "(?m)^#### (.+)$", with: "<h4>$1</h4>", options: .regularExpression)
+        html = html.replacingOccurrences(of: "(?m)^### (.+)$", with: "<h3>$1</h3>", options: .regularExpression)
+        html = html.replacingOccurrences(of: "(?m)^## (.+)$", with: "<h2>$1</h2>", options: .regularExpression)
+        html = html.replacingOccurrences(of: "(?m)^# (.+)$", with: "<h1>$1</h1>", options: .regularExpression)
+        
+        // Code blocks (must be before inline code)
+        html = html.replacingOccurrences(of: "```([\\s\\S]*?)```", with: "<pre><code>$1</code></pre>", options: .regularExpression)
+        
+        // Inline code
+        html = html.replacingOccurrences(of: "`([^`]+)`", with: "<code>$1</code>", options: .regularExpression)
+        
+        // Bold and italic
+        html = html.replacingOccurrences(of: "\\*\\*\\*(.+?)\\*\\*\\*", with: "<strong><em>$1</em></strong>", options: .regularExpression)
+        html = html.replacingOccurrences(of: "\\*\\*(.+?)\\*\\*", with: "<strong>$1</strong>", options: .regularExpression)
+        html = html.replacingOccurrences(of: "\\*(.+?)\\*", with: "<em>$1</em>", options: .regularExpression)
+        html = html.replacingOccurrences(of: "__(.+?)__", with: "<strong>$1</strong>", options: .regularExpression)
+        html = html.replacingOccurrences(of: "_(.+?)_", with: "<em>$1</em>", options: .regularExpression)
+        
+        // Strikethrough
+        html = html.replacingOccurrences(of: "~~(.+?)~~", with: "<del>$1</del>", options: .regularExpression)
+        
+        // Links
+        html = html.replacingOccurrences(of: "\\[([^\\]]+)\\]\\(([^)]+)\\)", with: "<a href=\"$2\">$1</a>", options: .regularExpression)
+        
+        // Images
+        html = html.replacingOccurrences(of: "!\\[([^\\]]*?)\\]\\(([^)]+)\\)", with: "<img src=\"$2\" alt=\"$1\">", options: .regularExpression)
+        
+        // Blockquotes
+        html = html.replacingOccurrences(of: "(?m)^> (.+)$", with: "<blockquote>$1</blockquote>", options: .regularExpression)
+        
+        // Horizontal rules
+        html = html.replacingOccurrences(of: "(?m)^---+$", with: "<hr>", options: .regularExpression)
+        html = html.replacingOccurrences(of: "(?m)^\\*\\*\\*+$", with: "<hr>", options: .regularExpression)
+        
+        // Task lists
+        html = html.replacingOccurrences(of: "(?m)^- \\[x\\] (.+)$", with: "<li class=\"task-list-item\"><input type=\"checkbox\" checked disabled> $1</li>", options: .regularExpression)
+        html = html.replacingOccurrences(of: "(?m)^- \\[ \\] (.+)$", with: "<li class=\"task-list-item\"><input type=\"checkbox\" disabled> $1</li>", options: .regularExpression)
+        
+        // Unordered lists
+        html = html.replacingOccurrences(of: "(?m)^[*-] (.+)$", with: "<li>$1</li>", options: .regularExpression)
+        
+        // Ordered lists
+        html = html.replacingOccurrences(of: "(?m)^\\d+\\. (.+)$", with: "<li>$1</li>", options: .regularExpression)
+        
+        // Wrap consecutive list items
+        html = html.replacingOccurrences(of: "(<li[^>]*>.*?</li>\\n?)+", with: "<ul>$0</ul>", options: .regularExpression)
+        
+        // Paragraphs (lines not already wrapped)
+        let lines = html.components(separatedBy: "\n")
+        var result: [String] = []
+        for line in lines {
+            let trimmed = line.trimmingCharacters(in: .whitespaces)
+            if trimmed.isEmpty {
+                result.append("")
+            } else if trimmed.hasPrefix("<") {
+                result.append(line)
+            } else {
+                result.append("<p>\(line)</p>")
+            }
+        }
+        html = result.joined(separator: "\n")
+        
+        return html
+    }
+    
+    class Coordinator: NSObject, WKNavigationDelegate {
+        var parent: GitHubMarkdownWebView
+        
+        init(_ parent: GitHubMarkdownWebView) {
+            self.parent = parent
+        }
+        
+        func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
+            webView.evaluateJavaScript("document.body.scrollHeight") { [weak self] result, error in
+                if let height = result as? CGFloat {
+                    DispatchQueue.main.async {
+                        self?.parent.contentHeight = max(height + 20, 100)
+                    }
+                }
+            }
+        }
+    }
+}
+
+import WebKit
+
+// MARK: - Full Markdown View (Legacy - kept for compatibility)
 struct FullMarkdownView: View {
     let text: String
     
     var body: some View {
-        if let attributedString = try? AttributedString(markdown: text, options: AttributedString.MarkdownParsingOptions(interpretedSyntax: .inlineOnlyPreservingWhitespace)) {
-            Text(attributedString)
-                .font(.system(size: 15))
-                .foregroundStyle(.primary)
-                .textSelection(.enabled)
+        GitHubMarkdownView(markdown: text)
         } else {
             Text(text)
                 .font(.system(size: 15))

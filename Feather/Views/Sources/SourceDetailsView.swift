@@ -104,20 +104,14 @@ struct SourceDetailsView: View {
             } label: {
                 ZStack {
                     Circle()
-                        .fill(dominantColor.opacity(0.15))
+                        .fill(.ultraThinMaterial)
                         .frame(width: 40, height: 40)
                     
                     Image(systemName: "chevron.left")
                         .font(.system(size: 16, weight: .semibold))
-                        .foregroundStyle(dominantColor)
+                        .foregroundStyle(.primary)
                 }
             }
-            
-            Spacer()
-            
-            Text("Source Details")
-                .font(.system(size: 18, weight: .bold, design: .rounded))
-                .foregroundStyle(.primary)
             
             Spacer()
             
@@ -128,109 +122,99 @@ struct SourceDetailsView: View {
         }
         .padding(.horizontal, 20)
         .padding(.top, 16)
-        .padding(.bottom, 20)
+        .padding(.bottom, 8)
     }
     
-    // MARK: - Source Header Card
+    // MARK: - Source Header Card (Modern - Icon at top, info below)
     private var sourceHeaderCard: some View {
-        VStack(spacing: 16) {
-            HStack(spacing: 16) {
-                // Leading icon container with depth and glow
-                ZStack {
-                    RoundedRectangle(cornerRadius: 20, style: .continuous)
-                        .fill(dominantColor.opacity(0.12))
-                        .frame(width: 80, height: 80)
-                    
-                    if let iconURL = source.iconURL {
-                        LazyImage(url: iconURL) { state in
-                            if let image = state.image {
-                                image
-                                    .resizable()
-                                    .aspectRatio(contentMode: .fill)
-                                    .frame(width: 64, height: 64)
-                                    .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
-                            } else {
-                                Image(systemName: "globe")
-                                    .font(.system(size: 30, weight: .semibold))
-                                    .foregroundStyle(.white)
-                            }
-                        }
-                    } else {
-                        Image(systemName: "globe")
-                            .font(.system(size: 30, weight: .semibold))
-                            .foregroundStyle(.white)
-                    }
-                }
+        VStack(spacing: 20) {
+            // Large centered icon
+            ZStack {
+                Circle()
+                    .fill(dominantColor.opacity(0.1))
+                    .frame(width: 120, height: 120)
                 
-                VStack(alignment: .leading, spacing: 8) {
-                    Text(source.name ?? String.localized("Unknown"))
-                        .font(.system(size: 22, weight: .bold, design: .rounded))
-                        .foregroundStyle(.primary)
-                        .lineLimit(2)
-                    
-                    if let url = source.sourceURL?.host {
-                        Text(url)
-                            .font(.system(size: 13, weight: .medium))
-                            .foregroundStyle(.white.opacity(0.6))
-                            .lineLimit(1)
+                if let iconURL = source.iconURL {
+                    LazyImage(url: iconURL) { state in
+                        if let image = state.image {
+                            image
+                                .resizable()
+                                .aspectRatio(contentMode: .fill)
+                                .frame(width: 88, height: 88)
+                                .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
+                                .shadow(color: dominantColor.opacity(0.3), radius: 16, x: 0, y: 8)
+                        } else {
+                            RoundedRectangle(cornerRadius: 22, style: .continuous)
+                                .fill(dominantColor.opacity(0.2))
+                                .frame(width: 88, height: 88)
+                                .overlay(
+                                    Image(systemName: "globe")
+                                        .font(.system(size: 36, weight: .semibold))
+                                        .foregroundStyle(dominantColor)
+                                )
+                        }
                     }
-                    
-                    if let repo = repository {
-                        HStack(spacing: 16) {
-                            HStack(spacing: 6) {
-                                Image(systemName: "app.badge")
-                                    .font(.system(size: 12))
-                                Text("\(repo.apps.count)")
-                                    .font(.system(size: 14, weight: .semibold))
-                            }
-                            .foregroundStyle(dominantColor)
-                            
-                            if let news = repo.news, !news.isEmpty {
-                                HStack(spacing: 6) {
-                                    Image(systemName: "newspaper")
-                                        .font(.system(size: 12))
-                                    Text("\(news.count)")
-                                        .font(.system(size: 14, weight: .semibold))
-                                }
+                } else {
+                    RoundedRectangle(cornerRadius: 22, style: .continuous)
+                        .fill(dominantColor.opacity(0.2))
+                        .frame(width: 88, height: 88)
+                        .overlay(
+                            Image(systemName: "globe")
+                                .font(.system(size: 36, weight: .semibold))
                                 .foregroundStyle(dominantColor)
-                            }
+                        )
+                }
+            }
+            
+            // Source info below icon
+            VStack(spacing: 8) {
+                Text(source.name ?? String.localized("Unknown"))
+                    .font(.system(size: 24, weight: .bold, design: .rounded))
+                    .foregroundStyle(.primary)
+                    .multilineTextAlignment(.center)
+                
+                if let url = source.sourceURL?.host {
+                    Text(url)
+                        .font(.system(size: 14, weight: .medium))
+                        .foregroundStyle(.secondary)
+                }
+            }
+            
+            // Stats row
+            if let repo = repository {
+                HStack(spacing: 24) {
+                    // Apps count
+                    VStack(spacing: 4) {
+                        Text("\(repo.apps.count)")
+                            .font(.system(size: 22, weight: .bold, design: .rounded))
+                            .foregroundStyle(.primary)
+                        Text("Apps")
+                            .font(.system(size: 12, weight: .medium))
+                            .foregroundStyle(.secondary)
+                    }
+                    
+                    // Divider
+                    Rectangle()
+                        .fill(Color.primary.opacity(0.1))
+                        .frame(width: 1, height: 36)
+                    
+                    // News count
+                    if let news = repo.news, !news.isEmpty {
+                        VStack(spacing: 4) {
+                            Text("\(news.count)")
+                                .font(.system(size: 22, weight: .bold, design: .rounded))
+                                .foregroundStyle(.primary)
+                            Text("News")
+                                .font(.system(size: 12, weight: .medium))
+                                .foregroundStyle(.secondary)
                         }
                     }
                 }
-                
-                Spacer()
+                .padding(.top, 8)
             }
         }
-        .padding(24)
-        .background(
-            ZStack {
-                RoundedRectangle(cornerRadius: 28, style: .continuous)
-                    .fill(
-                        LinearGradient(
-                            colors: [
-                                dominantColor.opacity(0.12),
-                                dominantColor.opacity(0.06)
-                            ],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        )
-                    )
-                
-                RoundedRectangle(cornerRadius: 28, style: .continuous)
-                    .stroke(
-                        LinearGradient(
-                            colors: [
-                                dominantColor.opacity(0.3),
-                                dominantColor.opacity(0.1)
-                            ],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        ),
-                        lineWidth: 1.5
-                    )
-            }
-        )
-        .shadow(color: dominantColor.opacity(0.15), radius: 12, x: 0, y: 6)
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 24)
     }
     
     // MARK: - Featured News Section (Horizontal Cards)
@@ -581,66 +565,176 @@ struct SourceNewsListView: View {
 	}
 }
 
-// MARK: - Apps List View
+// MARK: - Apps List View (Modern with Search)
 struct SourceAppsListView: View {
-	let repository: ASRepository
-	let dominantColor: Color
-	@State private var _selectedRoute: SourceAppRoute?
-	
-	var body: some View {
-		NBList("Apps") {
-			ForEach(repository.apps, id: \.id) { app in
-				Button {
-					_selectedRoute = SourceAppRoute(source: repository, app: app)
-				} label: {
-					HStack(spacing: 12) {
-						if let iconURL = app.iconURL {
-							LazyImage(url: iconURL) { state in
-								if let image = state.image {
-									image
-										.resizable()
-										.aspectRatio(contentMode: .fill)
-								} else {
-									RoundedRectangle(cornerRadius: 12, style: .continuous)
-										.fill(Color.gray.opacity(0.2))
-								}
-							}
-							.frame(width: 52, height: 52)
-							.clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-						}
-						
-						VStack(alignment: .leading, spacing: 4) {
-							Text(app.name ?? "Unknown")
-								.font(.body)
-								.fontWeight(.medium)
-								.foregroundStyle(.primary)
-							
-							if let subtitle = app.subtitle {
-								Text(subtitle)
-									.font(.caption)
-									.foregroundStyle(.secondary)
-									.lineLimit(1)
-							}
-						}
-						
-						Spacer()
-						
-						Image(systemName: "chevron.right")
-							.font(.caption)
-							.foregroundStyle(.tertiary)
-					}
-				}
-				.buttonStyle(.plain)
-			}
-		}
-		.navigationDestinationIfAvailable(item: $_selectedRoute) { route in
-			SourceAppsDetailView(source: route.source, app: route.app)
-		}
-	}
-	
-	struct SourceAppRoute: Identifiable, Hashable {
-		let source: ASRepository
-		let app: ASRepository.App
-		let id: String = UUID().uuidString
-	}
+    let repository: ASRepository
+    let dominantColor: Color
+    @State private var _selectedRoute: SourceAppRoute?
+    @State private var searchText: String = ""
+    
+    private var filteredApps: [ASRepository.App] {
+        if searchText.isEmpty {
+            return repository.apps
+        }
+        return repository.apps.filter { app in
+            (app.name?.localizedCaseInsensitiveContains(searchText) ?? false) ||
+            (app.subtitle?.localizedCaseInsensitiveContains(searchText) ?? false) ||
+            (app.developer?.localizedCaseInsensitiveContains(searchText) ?? false)
+        }
+    }
+    
+    var body: some View {
+        ScrollView {
+            LazyVStack(spacing: 0) {
+                // Search bar
+                HStack(spacing: 10) {
+                    Image(systemName: "magnifyingglass")
+                        .font(.system(size: 15, weight: .medium))
+                        .foregroundStyle(.secondary)
+                    
+                    TextField("Search \(repository.apps.count) Apps", text: $searchText)
+                        .font(.system(size: 16))
+                    
+                    if !searchText.isEmpty {
+                        Button {
+                            searchText = ""
+                        } label: {
+                            Image(systemName: "xmark.circle.fill")
+                                .font(.system(size: 16))
+                                .foregroundStyle(.tertiary)
+                        }
+                    }
+                }
+                .padding(12)
+                .background(Color(.secondarySystemGroupedBackground))
+                .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                .padding(.horizontal, 16)
+                .padding(.vertical, 12)
+                
+                // Results count
+                if !searchText.isEmpty {
+                    HStack {
+                        Text("\(filteredApps.count) result\(filteredApps.count == 1 ? "" : "s")")
+                            .font(.system(size: 13, weight: .medium))
+                            .foregroundStyle(.secondary)
+                        Spacer()
+                    }
+                    .padding(.horizontal, 20)
+                    .padding(.bottom, 8)
+                }
+                
+                // Apps list
+                if filteredApps.isEmpty {
+                    VStack(spacing: 16) {
+                        Image(systemName: "magnifyingglass")
+                            .font(.system(size: 40))
+                            .foregroundStyle(.tertiary)
+                        Text("No apps found")
+                            .font(.system(size: 16, weight: .medium))
+                            .foregroundStyle(.secondary)
+                        Text("Try a different search term")
+                            .font(.system(size: 14))
+                            .foregroundStyle(.tertiary)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 60)
+                } else {
+                    ForEach(filteredApps, id: \.id) { app in
+                        Button {
+                            _selectedRoute = SourceAppRoute(source: repository, app: app)
+                        } label: {
+                            ModernAppListRow(app: app, dominantColor: dominantColor)
+                        }
+                        .buttonStyle(.plain)
+                        
+                        if app.id != filteredApps.last?.id {
+                            Divider()
+                                .padding(.leading, 76)
+                        }
+                    }
+                }
+            }
+        }
+        .background(Color(.systemGroupedBackground))
+        .navigationTitle("All Apps")
+        .navigationBarTitleDisplayMode(.inline)
+        .navigationDestinationIfAvailable(item: $_selectedRoute) { route in
+            SourceAppsDetailView(source: route.source, app: route.app)
+        }
+    }
+    
+    struct SourceAppRoute: Identifiable, Hashable {
+        let source: ASRepository
+        let app: ASRepository.App
+        let id: String = UUID().uuidString
+    }
+}
+
+// MARK: - Modern App List Row
+struct ModernAppListRow: View {
+    let app: ASRepository.App
+    let dominantColor: Color
+    
+    var body: some View {
+        HStack(spacing: 14) {
+            // App icon
+            if let iconURL = app.iconURL {
+                LazyImage(url: iconURL) { state in
+                    if let image = state.image {
+                        image
+                            .resizable()
+                            .aspectRatio(contentMode: .fill)
+                    } else {
+                        RoundedRectangle(cornerRadius: 12, style: .continuous)
+                            .fill(dominantColor.opacity(0.1))
+                            .overlay(
+                                Image(systemName: "app.fill")
+                                    .font(.system(size: 20))
+                                    .foregroundStyle(dominantColor.opacity(0.5))
+                            )
+                    }
+                }
+                .frame(width: 52, height: 52)
+                .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+            } else {
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .fill(dominantColor.opacity(0.1))
+                    .frame(width: 52, height: 52)
+                    .overlay(
+                        Image(systemName: "app.fill")
+                            .font(.system(size: 20))
+                            .foregroundStyle(dominantColor.opacity(0.5))
+                    )
+            }
+            
+            VStack(alignment: .leading, spacing: 4) {
+                Text(app.name ?? "Unknown")
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundStyle(.primary)
+                    .lineLimit(1)
+                
+                if let subtitle = app.subtitle {
+                    Text(subtitle)
+                        .font(.system(size: 13))
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                }
+                
+                if let version = app.currentVersion {
+                    Text("v\(version)")
+                        .font(.system(size: 11, weight: .medium))
+                        .foregroundStyle(.tertiary)
+                }
+            }
+            
+            Spacer()
+            
+            Image(systemName: "chevron.right")
+                .font(.system(size: 13, weight: .medium))
+                .foregroundStyle(.quaternary)
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 12)
+        .contentShape(Rectangle())
+    }
 }
