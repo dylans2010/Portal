@@ -18,6 +18,10 @@ struct SourceAppsDetailView: View {
     var source: ASRepository
     var app: ASRepository.App
     
+    private let cornerRadius: CGFloat = 20
+    private let cardPadding: CGFloat = 16
+    private let sectionSpacing: CGFloat = 20
+    
     var currentDownload: Download? {
         downloadManager.getDownload(by: app.currentUniqueId)
     }
@@ -25,48 +29,16 @@ struct SourceAppsDetailView: View {
     var body: some View {
         ScrollView {
             VStack(spacing: 0) {
-                // Hero Header
-                heroHeader
-                
-                // Content
-                VStack(alignment: .leading, spacing: 24) {
-                    // Screenshots
-                    if let screenshotURLs = app.screenshotURLs, !screenshotURLs.isEmpty {
-                        screenshotsSection(screenshotURLs)
-                    }
-                    
-                    // What's New
-                    if let currentVer = app.currentVersion,
-                       let whatsNewDesc = app.currentAppVersion?.localizedDescription {
-                        whatsNewSection(version: currentVer, description: whatsNewDesc)
-                    }
-                    
-                    // Description
-                    if let appDesc = app.localizedDescription {
-                        descriptionSection(appDesc)
-                    }
-                    
-                    // Information Grid
-                    informationSection
-                    
-                    // Permissions
-                    if let appPermissions = app.appPermissions {
-                        permissionsSection(appPermissions)
-                    }
-                }
-                .padding(.horizontal, 20)
-                .padding(.bottom, 40)
+                heroSection
+                contentSection
             }
         }
-        .background(backgroundView)
+        .background(adaptiveBackground)
         .navigationBarTitleDisplayMode(.inline)
         .toolbar { toolbarContent }
         .fullScreenCover(isPresented: $isScreenshotPreviewPresented) {
             if let screenshotURLs = app.screenshotURLs {
-                ScreenshotPreviewView(
-                    screenshotURLs: screenshotURLs,
-                    initialIndex: selectedScreenshotIndex
-                )
+                ScreenshotPreviewView(screenshotURLs: screenshotURLs, initialIndex: selectedScreenshotIndex)
             }
         }
         .sheet(isPresented: $showShareSheet) {
@@ -81,124 +53,115 @@ struct SourceAppsDetailView: View {
         }
     }
     
-    // MARK: - Hero Header (Enhanced)
-    @ViewBuilder
-    private var heroHeader: some View {
-        VStack(spacing: 20) {
-            // App Icon with enhanced glow
+    // MARK: - Hero Section
+    
+    private var heroSection: some View {
+        VStack(spacing: 0) {
             ZStack {
-                // Glow effect
-                RoundedRectangle(cornerRadius: 28, style: .continuous)
-                    .fill(dominantColor.opacity(0.3))
-                    .frame(width: 130, height: 130)
-                    .blur(radius: 25)
+                heroBackground
                 
-                Group {
-                    if let iconURL = app.iconURL {
-                        LazyImage(url: iconURL) { state in
-                            if let image = state.image {
-                                image
-                                    .resizable()
-                                    .aspectRatio(contentMode: .fill)
-                            } else {
-                                iconPlaceholder
-                            }
-                        }
+                VStack(spacing: 16) {
+                    appHeaderRow
+                    metadataRow
+                }
+                .padding(.horizontal, 20)
+                .padding(.vertical, 24)
+            }
+            .clipShape(RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
+            .padding(.horizontal, 16)
+            .padding(.top, 8)
+        }
+    }
+    
+    private var heroBackground: some View {
+        ZStack {
+            RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+                .fill(
+                    LinearGradient(
+                        colors: [
+                            dominantColor.opacity(colorScheme == .dark ? 0.35 : 0.25),
+                            dominantColor.opacity(colorScheme == .dark ? 0.15 : 0.1),
+                            Color(UIColor.secondarySystemGroupedBackground).opacity(0.8)
+                        ],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                )
+            
+            RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+                .fill(.ultraThinMaterial)
+                .opacity(0.5)
+            
+            RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+                .stroke(
+                    LinearGradient(
+                        colors: [
+                            Color.white.opacity(colorScheme == .dark ? 0.15 : 0.4),
+                            Color.white.opacity(0.05)
+                        ],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    ),
+                    lineWidth: 1
+                )
+        }
+        .shadow(color: dominantColor.opacity(0.2), radius: 20, x: 0, y: 10)
+    }
+    
+    private var appHeaderRow: some View {
+        HStack(spacing: 16) {
+            appIconView
+            
+            VStack(alignment: .leading, spacing: 4) {
+                Text(app.currentName)
+                    .font(.system(size: 22, weight: .bold))
+                    .foregroundStyle(.primary)
+                    .lineLimit(2)
+                
+                if let developer = app.developer {
+                    Text(developer)
+                        .font(.system(size: 14, weight: .medium))
+                        .foregroundStyle(.secondary)
+                }
+                
+                if let category = app.category {
+                    Text(category.capitalized)
+                        .font(.system(size: 12, weight: .medium))
+                        .foregroundStyle(dominantColor)
+                }
+            }
+            
+            Spacer()
+            
+            DownloadButtonView(app: app)
+        }
+    }
+    
+    private var appIconView: some View {
+        Group {
+            if let iconURL = app.iconURL {
+                LazyImage(url: iconURL) { state in
+                    if let image = state.image {
+                        image.resizable().aspectRatio(contentMode: .fill)
                     } else {
                         iconPlaceholder
                     }
                 }
-                .frame(width: 120, height: 120)
-                .clipShape(RoundedRectangle(cornerRadius: 26, style: .continuous))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 26, style: .continuous)
-                        .stroke(
-                            LinearGradient(
-                                colors: [Color.white.opacity(0.4), Color.white.opacity(0.1)],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            ),
-                            lineWidth: 1
-                        )
-                )
-                .shadow(color: dominantColor.opacity(0.35), radius: 20, x: 0, y: 12)
+            } else {
+                iconPlaceholder
             }
-            
-            // App Name & Developer
-            VStack(spacing: 6) {
-                Text(app.currentName)
-                    .font(.system(size: 24, weight: .bold))
-                    .foregroundStyle(.primary)
-                    .multilineTextAlignment(.center)
-                
-                if let developer = app.developer {
-                    Text(developer)
-                        .font(.system(size: 15))
-                        .foregroundStyle(.secondary)
-                }
-                
-                // Quick Info Pills with glass effect
-                HStack(spacing: 10) {
-                    if let version = app.currentVersion {
-                        modernInfoPill(icon: "tag.fill", text: "v\(version)")
-                    }
-                    if let size = app.size {
-                        modernInfoPill(icon: "internaldrive.fill", text: size.formattedByteCount)
-                    }
-                    if let category = app.category {
-                        modernInfoPill(icon: "square.grid.2x2.fill", text: category.capitalized)
-                    }
-                }
-                .padding(.top, 10)
-            }
-            
-            // Download Button
-            DownloadButtonView(app: app)
-                .padding(.top, 10)
         }
-        .padding(.vertical, 32)
-        .padding(.horizontal, 20)
-        .frame(maxWidth: .infinity)
-    }
-    
-    private func modernInfoPill(icon: String, text: String) -> some View {
-        HStack(spacing: 5) {
-            Image(systemName: icon)
-                .font(.system(size: 10, weight: .semibold))
-            Text(text)
-                .font(.system(size: 12, weight: .medium))
-        }
-        .foregroundStyle(.secondary)
-        .padding(.horizontal, 12)
-        .padding(.vertical, 7)
-        .background(
-            Capsule()
-                .fill(.ultraThinMaterial)
-                .overlay(
-                    Capsule()
-                        .stroke(Color.primary.opacity(0.06), lineWidth: 0.5)
-                )
+        .frame(width: 80, height: 80)
+        .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: 18, style: .continuous)
+                .stroke(Color.white.opacity(0.2), lineWidth: 1)
         )
-    }
-    
-    private func infoPill(icon: String, text: String) -> some View {
-        HStack(spacing: 4) {
-            Image(systemName: icon)
-                .font(.system(size: 10))
-            Text(text)
-                .font(.system(size: 12, weight: .medium))
-        }
-        .foregroundStyle(.secondary)
-        .padding(.horizontal, 10)
-        .padding(.vertical, 6)
-        .background(
-            Capsule()
-                .fill(Color(UIColor.tertiarySystemBackground))
-        )
+        .shadow(color: dominantColor.opacity(0.3), radius: 12, x: 0, y: 6)
     }
     
     private var iconPlaceholder: some View {
-        RoundedRectangle(cornerRadius: 26, style: .continuous)
+        RoundedRectangle(cornerRadius: 18, style: .continuous)
             .fill(
                 LinearGradient(
                     colors: [Color.secondary.opacity(0.3), Color.secondary.opacity(0.1)],
@@ -208,306 +171,342 @@ struct SourceAppsDetailView: View {
             )
             .overlay(
                 Image(systemName: "app.fill")
-                    .font(.system(size: 48))
+                    .font(.system(size: 32))
                     .foregroundStyle(.secondary)
             )
     }
     
-    // MARK: - Screenshots Section
-    @ViewBuilder
-    private func screenshotsSection(_ urls: [URL]) -> some View {
-        VStack(alignment: .leading, spacing: 12) {
-            sectionHeader(title: .localized("Screenshots"), icon: "photo.on.rectangle")
+    private var metadataRow: some View {
+        HStack(spacing: 0) {
+            if let version = app.currentVersion {
+                metadataStat(value: "v\(version)", label: "Version")
+            }
+            if let size = app.size {
+                metadataStat(value: size.formattedByteCount, label: "Size")
+            }
+            if let date = app.currentDate?.date {
+                metadataStat(value: date.formatted(.dateTime.month(.abbreviated).day()), label: "Updated")
+            }
+            metadataStat(value: source.name ?? "Source", label: "Source")
+        }
+        .padding(.vertical, 12)
+        .background(
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                .fill(Color(UIColor.systemBackground).opacity(colorScheme == .dark ? 0.3 : 0.6))
+        )
+    }
+    
+    private func metadataStat(value: String, label: String) -> some View {
+        VStack(spacing: 4) {
+            Text(value)
+                .font(.system(size: 14, weight: .semibold))
+                .foregroundStyle(.primary)
+                .lineLimit(1)
+            Text(label)
+                .font(.system(size: 11, weight: .medium))
+                .foregroundStyle(.secondary)
+        }
+        .frame(maxWidth: .infinity)
+    }
+    
+    // MARK: - Content Section
+    
+    private var contentSection: some View {
+        VStack(alignment: .leading, spacing: sectionSpacing) {
+            if let screenshotURLs = app.screenshotURLs, !screenshotURLs.isEmpty {
+                screenshotsCard(screenshotURLs)
+            }
             
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 12) {
-                    ForEach(urls.indices, id: \.self) { index in
-                        LazyImage(url: urls[index]) { state in
-                            if let image = state.image {
-                                image
-                                    .resizable()
-                                    .aspectRatio(contentMode: .fit)
-                                    .frame(height: 400)
-                                    .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
-                                    .overlay(
-                                        RoundedRectangle(cornerRadius: 16, style: .continuous)
-                                            .stroke(Color.primary.opacity(0.1), lineWidth: 1)
-                                    )
-                                    .shadow(color: .black.opacity(0.1), radius: 8, x: 0, y: 4)
-                                    .onTapGesture {
-                                        selectedScreenshotIndex = index
-                                        isScreenshotPreviewPresented = true
-                                    }
-                            } else {
-                                RoundedRectangle(cornerRadius: 16, style: .continuous)
-                                    .fill(Color.secondary.opacity(0.1))
-                                    .frame(width: 200, height: 400)
-                                    .overlay(ProgressView())
+            if let currentVer = app.currentVersion,
+               let whatsNewDesc = app.currentAppVersion?.localizedDescription {
+                whatsNewCard(version: currentVer, description: whatsNewDesc)
+            }
+            
+            if let appDesc = app.localizedDescription {
+                descriptionCard(appDesc)
+            }
+            
+            informationCard
+            
+            if let appPermissions = app.appPermissions {
+                permissionsCard(appPermissions)
+            }
+        }
+        .padding(.horizontal, 16)
+        .padding(.top, sectionSpacing)
+        .padding(.bottom, 40)
+    }
+    
+    // MARK: - Screenshots Card
+    
+    private func screenshotsCard(_ urls: [URL]) -> some View {
+        promotionalCard {
+            VStack(alignment: .leading, spacing: 12) {
+                cardHeader(title: .localized("Screenshots"), icon: "photo.on.rectangle")
+                
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 12) {
+                        ForEach(urls.indices, id: \.self) { index in
+                            LazyImage(url: urls[index]) { state in
+                                if let image = state.image {
+                                    image
+                                        .resizable()
+                                        .aspectRatio(contentMode: .fit)
+                                        .frame(height: 380)
+                                        .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+                                        .overlay(
+                                            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                                                .stroke(Color.primary.opacity(0.08), lineWidth: 1)
+                                        )
+                                        .shadow(color: .black.opacity(0.08), radius: 8, x: 0, y: 4)
+                                        .onTapGesture {
+                                            selectedScreenshotIndex = index
+                                            isScreenshotPreviewPresented = true
+                                        }
+                                } else {
+                                    RoundedRectangle(cornerRadius: 14, style: .continuous)
+                                        .fill(Color.secondary.opacity(0.1))
+                                        .frame(width: 180, height: 380)
+                                        .overlay(ProgressView())
+                                }
                             }
                         }
                     }
                 }
-                .padding(.horizontal, 4)
+                .padding(.horizontal, -cardPadding)
+                .padding(.horizontal, cardPadding)
             }
-            .padding(.horizontal, -4)
         }
     }
     
-    // MARK: - What's New Section
-    @ViewBuilder
-    private func whatsNewSection(version: String, description: String) -> some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack {
-                sectionHeader(title: .localized("What's New"), icon: "sparkles")
-                Spacer()
-                if let versions = app.versions {
-                    NavigationLink {
-                        VersionHistoryView(app: app, versions: versions)
-                    } label: {
-                        Text(.localized("Version History"))
-                            .font(.system(size: 14, weight: .medium))
-                            .foregroundStyle(dominantColor)
-                    }
-                }
-            }
-            
-            VStack(alignment: .leading, spacing: 10) {
+    // MARK: - What's New Card
+    
+    private func whatsNewCard(version: String, description: String) -> some View {
+        promotionalCard {
+            VStack(alignment: .leading, spacing: 12) {
                 HStack {
-                    Text("Version \(version)")
-                        .font(.system(size: 15, weight: .semibold))
-                    
-                    if let date = app.currentDate?.date {
-                        Text("•")
-                            .foregroundStyle(.tertiary)
-                        Text(date, style: .date)
-                            .font(.system(size: 14))
-                            .foregroundStyle(.secondary)
+                    cardHeader(title: .localized("What's New"), icon: "sparkles")
+                    Spacer()
+                    if let versions = app.versions {
+                        NavigationLink {
+                            VersionHistoryView(app: app, versions: versions)
+                        } label: {
+                            Text(.localized("Version History"))
+                                .font(.system(size: 13, weight: .semibold))
+                                .foregroundStyle(dominantColor)
+                        }
                     }
                 }
                 
-                Text(description)
-                    .font(.system(size: 15))
-                    .foregroundStyle(.secondary)
-                    .lineLimit(4)
-            }
-            .padding(16)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .background(
-                RoundedRectangle(cornerRadius: 14, style: .continuous)
-                    .fill(Color(UIColor.secondarySystemGroupedBackground))
-            )
-        }
-    }
-    
-    // MARK: - Description Section
-    @ViewBuilder
-    private func descriptionSection(_ description: String) -> some View {
-        VStack(alignment: .leading, spacing: 12) {
-            sectionHeader(title: .localized("Description"), icon: "text.alignleft")
-            
-            ExpandableText(text: description, lineLimit: 4)
-                .padding(16)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .background(
-                    RoundedRectangle(cornerRadius: 14, style: .continuous)
-                        .fill(Color(UIColor.secondarySystemGroupedBackground))
-                )
-        }
-    }
-    
-    // MARK: - Information Section
-    @ViewBuilder
-    private var informationSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            sectionHeader(title: .localized("Information"), icon: "info.circle")
-            
-            LazyVGrid(columns: [
-                GridItem(.flexible(), spacing: 12),
-                GridItem(.flexible(), spacing: 12)
-            ], spacing: 12) {
-                if let sourceName = source.name {
-                    infoCard(title: .localized("Source"), value: sourceName, icon: "globe", color: .blue)
-                }
-                if let developer = app.developer {
-                    infoCard(title: .localized("Developer"), value: developer, icon: "person.fill", color: .purple)
-                }
-                if let size = app.size {
-                    infoCard(title: .localized("Size"), value: size.formattedByteCount, icon: "internaldrive.fill", color: .orange)
-                }
-                if let category = app.category {
-                    infoCard(title: .localized("Category"), value: category.capitalized, icon: "tag.fill", color: .pink)
-                }
-                if let version = app.currentVersion {
-                    infoCard(title: .localized("Version"), value: version, icon: "number.circle.fill", color: .green)
-                }
-                if let date = app.currentDate?.date {
-                    infoCard(title: .localized("Updated"), value: DateFormatter.localizedString(from: date, dateStyle: .short, timeStyle: .none), icon: "calendar", color: .cyan)
-                }
-            }
-            
-            // Bundle ID (full width)
-            if let bundleId = app.id {
-                HStack(spacing: 12) {
-                    ZStack {
-                        Circle()
-                            .fill(Color.gray.opacity(0.15))
-                            .frame(width: 36, height: 36)
-                        Image(systemName: "barcode")
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack(spacing: 8) {
+                        Text("Version \(version)")
                             .font(.system(size: 14, weight: .semibold))
-                            .foregroundStyle(.gray)
+                        
+                        if let date = app.currentDate?.date {
+                            Text("•")
+                                .foregroundStyle(.tertiary)
+                            Text(date, style: .date)
+                                .font(.system(size: 13))
+                                .foregroundStyle(.secondary)
+                        }
                     }
                     
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text(.localized("Bundle ID"))
-                            .font(.system(size: 11, weight: .medium))
-                            .foregroundStyle(.secondary)
-                            .textCase(.uppercase)
-                        Text(bundleId)
-                            .font(.system(size: 13, weight: .medium, design: .monospaced))
-                            .foregroundStyle(.primary)
-                            .lineLimit(1)
-                    }
-                    
-                    Spacer()
-                    
-                    Button {
-                        UIPasteboard.general.string = bundleId
-                        HapticsManager.shared.success()
-                    } label: {
-                        Image(systemName: "doc.on.doc")
-                            .font(.system(size: 14))
-                            .foregroundStyle(dominantColor)
-                    }
+                    ExpandableText(text: description, lineLimit: 3)
+                        .font(.system(size: 14))
+                        .foregroundStyle(.secondary)
                 }
-                .padding(14)
-                .background(
-                    RoundedRectangle(cornerRadius: 14, style: .continuous)
-                        .fill(Color(UIColor.secondarySystemGroupedBackground))
-                )
             }
         }
     }
     
-    private func infoCard(title: String, value: String, icon: String, color: Color) -> some View {
-        VStack(alignment: .leading, spacing: 10) {
-            ZStack {
-                Circle()
-                    .fill(color.opacity(0.15))
-                    .frame(width: 36, height: 36)
-                Image(systemName: icon)
-                    .font(.system(size: 14, weight: .semibold))
-                    .foregroundStyle(color)
+    // MARK: - Description Card
+    
+    private func descriptionCard(_ description: String) -> some View {
+        promotionalCard {
+            VStack(alignment: .leading, spacing: 12) {
+                cardHeader(title: .localized("Description"), icon: "text.alignleft")
+                ExpandableText(text: description, lineLimit: 4)
+                    .font(.system(size: 14))
             }
+        }
+    }
+    
+    // MARK: - Information Card
+    
+    private var informationCard: some View {
+        promotionalCard {
+            VStack(alignment: .leading, spacing: 12) {
+                cardHeader(title: .localized("Information"), icon: "info.circle")
+                
+                LazyVGrid(columns: [
+                    GridItem(.flexible(), spacing: 10),
+                    GridItem(.flexible(), spacing: 10)
+                ], spacing: 10) {
+                    if let sourceName = source.name {
+                        infoItem(title: "Source", value: sourceName, icon: "globe", color: .blue)
+                    }
+                    if let developer = app.developer {
+                        infoItem(title: "Developer", value: developer, icon: "person.fill", color: .purple)
+                    }
+                    if let size = app.size {
+                        infoItem(title: "Size", value: size.formattedByteCount, icon: "internaldrive.fill", color: .orange)
+                    }
+                    if let category = app.category {
+                        infoItem(title: "Category", value: category.capitalized, icon: "tag.fill", color: .pink)
+                    }
+                }
+                
+                if let bundleId = app.id {
+                    bundleIdRow(bundleId)
+                }
+            }
+        }
+    }
+    
+    private func infoItem(title: String, value: String, icon: String, color: Color) -> some View {
+        HStack(spacing: 10) {
+            Image(systemName: icon)
+                .font(.system(size: 14, weight: .semibold))
+                .foregroundStyle(color)
+                .frame(width: 28, height: 28)
+                .background(color.opacity(0.12))
+                .clipShape(Circle())
             
-            VStack(alignment: .leading, spacing: 2) {
+            VStack(alignment: .leading, spacing: 1) {
                 Text(title)
-                    .font(.system(size: 11, weight: .medium))
+                    .font(.system(size: 10, weight: .medium))
                     .foregroundStyle(.secondary)
                     .textCase(.uppercase)
                 Text(value)
-                    .font(.system(size: 14, weight: .semibold))
+                    .font(.system(size: 13, weight: .semibold))
                     .foregroundStyle(.primary)
                     .lineLimit(1)
             }
+            
+            Spacer(minLength: 0)
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(14)
+        .padding(10)
         .background(
-            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .fill(Color(UIColor.secondarySystemGroupedBackground))
+            RoundedRectangle(cornerRadius: 10, style: .continuous)
+                .fill(Color(UIColor.tertiarySystemGroupedBackground))
         )
     }
     
-    // MARK: - Permissions Section
-    @ViewBuilder
-    private func permissionsSection(_ permissions: ASRepository.AppPermissions) -> some View {
-        VStack(alignment: .leading, spacing: 12) {
-            sectionHeader(title: .localized("Permissions"), icon: "lock.shield")
+    private func bundleIdRow(_ bundleId: String) -> some View {
+        HStack(spacing: 10) {
+            Image(systemName: "barcode")
+                .font(.system(size: 14, weight: .semibold))
+                .foregroundStyle(.gray)
+                .frame(width: 28, height: 28)
+                .background(Color.gray.opacity(0.12))
+                .clipShape(Circle())
             
+            VStack(alignment: .leading, spacing: 1) {
+                Text("Bundle ID")
+                    .font(.system(size: 10, weight: .medium))
+                    .foregroundStyle(.secondary)
+                    .textCase(.uppercase)
+                Text(bundleId)
+                    .font(.system(size: 12, weight: .medium, design: .monospaced))
+                    .foregroundStyle(.primary)
+                    .lineLimit(1)
+            }
+            
+            Spacer()
+            
+            Button {
+                UIPasteboard.general.string = bundleId
+                HapticsManager.shared.success()
+            } label: {
+                Image(systemName: "doc.on.doc")
+                    .font(.system(size: 13))
+                    .foregroundStyle(dominantColor)
+            }
+        }
+        .padding(10)
+        .background(
+            RoundedRectangle(cornerRadius: 10, style: .continuous)
+                .fill(Color(UIColor.tertiarySystemGroupedBackground))
+        )
+    }
+    
+    // MARK: - Permissions Card
+    
+    private func permissionsCard(_ permissions: ASRepository.AppPermissions) -> some View {
+        promotionalCard {
             NavigationLink {
                 PermissionsView(appPermissions: permissions, dominantColor: dominantColor)
             } label: {
-                HStack {
-                    ZStack {
-                        Circle()
-                            .fill(dominantColor.opacity(0.15))
-                            .frame(width: 44, height: 44)
-                        Image(systemName: "checkmark.shield.fill")
-                            .font(.system(size: 20))
-                            .foregroundStyle(dominantColor)
-                    }
+                HStack(spacing: 14) {
+                    Image(systemName: "checkmark.shield.fill")
+                        .font(.system(size: 24))
+                        .foregroundStyle(dominantColor)
+                        .frame(width: 44, height: 44)
+                        .background(dominantColor.opacity(0.12))
+                        .clipShape(Circle())
                     
                     VStack(alignment: .leading, spacing: 2) {
                         Text(.localized("App Permissions"))
                             .font(.system(size: 15, weight: .semibold))
                             .foregroundStyle(.primary)
                         Text(.localized("See which permissions this app requires"))
-                            .font(.system(size: 13))
+                            .font(.system(size: 12))
                             .foregroundStyle(.secondary)
                     }
                     
                     Spacer()
                     
                     Image(systemName: "chevron.right")
-                        .font(.system(size: 14, weight: .semibold))
+                        .font(.system(size: 13, weight: .semibold))
                         .foregroundStyle(.tertiary)
                 }
-                .padding(16)
-                .background(
-                    RoundedRectangle(cornerRadius: 14, style: .continuous)
-                        .fill(Color(UIColor.secondarySystemGroupedBackground))
-                )
             }
             .buttonStyle(.plain)
         }
     }
     
-    // MARK: - Section Header
-    private func sectionHeader(title: String, icon: String) -> some View {
-        HStack(spacing: 8) {
+    // MARK: - Promotional Card Container
+    
+    private func promotionalCard<Content: View>(@ViewBuilder content: () -> Content) -> some View {
+        content()
+            .padding(cardPadding)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(
+                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .fill(Color(UIColor.secondarySystemGroupedBackground))
+                    .shadow(color: Color.black.opacity(colorScheme == .dark ? 0.3 : 0.06), radius: 8, x: 0, y: 4)
+            )
+    }
+    
+    private func cardHeader(title: String, icon: String) -> some View {
+        HStack(spacing: 6) {
             Image(systemName: icon)
-                .font(.system(size: 14, weight: .semibold))
+                .font(.system(size: 13, weight: .semibold))
                 .foregroundStyle(dominantColor)
             Text(title)
-                .font(.system(size: 18, weight: .bold))
+                .font(.system(size: 16, weight: .bold))
                 .foregroundStyle(.primary)
         }
     }
     
-    // MARK: - Background (Enhanced)
-    @ViewBuilder
-    private var backgroundView: some View {
+    // MARK: - Adaptive Background
+    
+    private var adaptiveBackground: some View {
         ZStack {
-            Color(UIColor.systemBackground)
+            Color(UIColor.systemGroupedBackground)
             
             VStack(spacing: 0) {
-                ZStack {
-                    // Primary gradient
-                    LinearGradient(
-                        colors: [
-                            dominantColor.opacity(0.25),
-                            dominantColor.opacity(0.15),
-                            dominantColor.opacity(0.08),
-                            dominantColor.opacity(0.03),
-                            Color.clear
-                        ],
-                        startPoint: .top,
-                        endPoint: .bottom
-                    )
-                    
-                    // Subtle radial glow
-                    RadialGradient(
-                        colors: [
-                            dominantColor.opacity(0.2),
-                            dominantColor.opacity(0.05),
-                            Color.clear
-                        ],
-                        center: .top,
-                        startRadius: 0,
-                        endRadius: 300
-                    )
-                }
-                .frame(height: 380)
+                LinearGradient(
+                    colors: [
+                        dominantColor.opacity(colorScheme == .dark ? 0.15 : 0.1),
+                        dominantColor.opacity(colorScheme == .dark ? 0.05 : 0.03),
+                        Color.clear
+                    ],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+                .frame(height: 300)
                 
                 Spacer()
             }
@@ -516,6 +515,7 @@ struct SourceAppsDetailView: View {
     }
     
     // MARK: - Toolbar
+    
     @ToolbarContentBuilder
     private var toolbarContent: some ToolbarContent {
         ToolbarItem(placement: .topBarTrailing) {
@@ -546,11 +546,15 @@ struct SourceAppsDetailView: View {
             } label: {
                 Image(systemName: "ellipsis.circle")
                     .font(.system(size: 17))
+                    .foregroundStyle(.primary)
+                    .padding(8)
+                    .background(.ultraThinMaterial, in: Circle())
             }
         }
     }
     
     // MARK: - Color Extraction
+    
     private func extractDominantColor(from url: URL) {
         Task {
             guard let data = try? Data(contentsOf: url),
@@ -576,7 +580,11 @@ struct SourceAppsDetailView: View {
             
             await MainActor.run {
                 withAnimation(.easeInOut(duration: 0.3)) {
-                    dominantColor = Color(red: Double(pixel[0]) / 255.0, green: Double(pixel[1]) / 255.0, blue: Double(pixel[2]) / 255.0)
+                    dominantColor = Color(
+                        red: Double(pixel[0]) / 255.0,
+                        green: Double(pixel[1]) / 255.0,
+                        blue: Double(pixel[2]) / 255.0
+                    )
                 }
             }
         }
