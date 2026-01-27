@@ -124,7 +124,7 @@ final class SourcesViewModel: ObservableObject {
     }
 
     // MARK: - Optimized Fetch with Cancellation Support
-    func fetchSources(_ sources: FetchedResults<AltSource>, refresh: Bool = false, batchSize: Int = 4) async {
+    func fetchSources(_ sources: FetchedResults<AltSource>, refresh: Bool = false, batchSize: Int = 10) async {
         // Cancel any existing fetch task
         _fetchTask?.cancel()
         
@@ -184,11 +184,19 @@ final class SourcesViewModel: ObservableObject {
             }
         }
         
-        let sourcesArray = Array(sources)
+        let sourcesArray = refresh ? Array(sources) : Array(sources).filter { self.sources[$0] == nil }
         let totalSources = sourcesArray.count
         
-        // Use adaptive batch size based on source count
-        let adaptiveBatchSize = min(batchSize, max(2, totalSources / 4))
+        if totalSources == 0 {
+            await MainActor.run {
+                fetchState = .loaded
+                fetchProgress = 1.0
+            }
+            return
+        }
+
+        // Use adaptive batch size based on source count - made more aggressive for speed
+        let adaptiveBatchSize = max(batchSize, totalSources / 2)
         
         var currentProcessedCount = 0
         
@@ -344,7 +352,7 @@ final class RepositoryCacheManager {
 	
 	private let cacheDirectory: URL
 	private let fileManager = FileManager.default
-	private let cacheExpirationInterval: TimeInterval = 3600 // 1 hour
+	private let cacheExpirationInterval: TimeInterval = 86400 // 24 hours
 	
 	private init() {
 		let cachesDirectory = fileManager.urls(for: .cachesDirectory, in: .userDomainMask).first!
