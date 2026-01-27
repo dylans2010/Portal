@@ -2218,26 +2218,6 @@ struct AdvancedDebugToolsView: View {
     }
 }
 
-// MARK: - FileManager Extension for Directory Size
-extension FileManager {
-    func allocatedSizeOfDirectory(at url: URL) throws -> UInt64 {
-        var size: UInt64 = 0
-        let resourceKeys: Set<URLResourceKey> = [.isRegularFileKey, .fileAllocatedSizeKey, .totalFileAllocatedSizeKey]
-        
-        guard let enumerator = self.enumerator(at: url, includingPropertiesForKeys: Array(resourceKeys), options: [], errorHandler: nil) else {
-            return 0
-        }
-        
-        for case let fileURL as URL in enumerator {
-            let resourceValues = try fileURL.resourceValues(forKeys: resourceKeys)
-            guard resourceValues.isRegularFile == true else { continue }
-            size += UInt64(resourceValues.totalFileAllocatedSize ?? resourceValues.fileAllocatedSize ?? 0)
-        }
-        
-        return size
-    }
-}
-
 // MARK: - Binary Inspector View
 struct BinaryInspectorView: View {
     let app: AppInfoPresentable
