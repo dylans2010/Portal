@@ -3993,12 +3993,6 @@ struct FullMarkdownView: View {
     
     var body: some View {
         GitHubMarkdownView(markdown: text)
-        } else {
-            Text(text)
-                .font(.system(size: 15))
-                .foregroundStyle(.primary)
-                .textSelection(.enabled)
-        }
     }
 }
 
