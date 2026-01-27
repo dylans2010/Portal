@@ -6,7 +6,7 @@ class GitHubGuidesService {
     
     private let baseURL = "https://api.github.com/repos/WSF-Team/WSF/contents/Portal/guides"
     private let rawBaseURL = "https://raw.githubusercontent.com/WSF-Team/WSF/main/Portal/guides"
-    private let plistURL = "https://raw.githubusercontent.com/WSF-Team/WSF/main/Portal/Guides/Markdown_filenames.plist"
+    private let plistURL = "https://raw.githubusercontent.com/WSF-Team/WSF/main/Portal/guides/Markdown_filenames.plist"
     
     private init() {}
     
