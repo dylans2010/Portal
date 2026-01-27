@@ -132,6 +132,7 @@ struct AppearanceView: View {
         Section {
             AppearanceNavRow(icon: "rectangle.topthird.inset.filled", title: "Status Bar", color: .cyan, destination: StatusBarCustomizationView())
             AppearanceNavRow(icon: "dock.rectangle", title: "Tab Bar", color: .indigo, destination: TabBarCustomizationView())
+            AppearanceNavRow(icon: "square.grid.2x2.fill", title: "All Apps", color: .purple, destination: AllAppsCustomizationView())
         } header: {
             AppearanceSectionHeader(title: "Customization", icon: "slider.horizontal.3")
         }
