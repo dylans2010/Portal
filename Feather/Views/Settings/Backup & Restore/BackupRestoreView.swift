@@ -33,19 +33,52 @@ struct BackupRestoreView: View {
 	// MARK: Body
 	var body: some View {
 		NBList(.localized("Backup & Restore")) {
-			// Modernized Header Card
+			// Modernized Header Section
 			Section {
-				VStack(spacing: 0) {
-					HStack(spacing: 12) {
+				VStack(spacing: 28) {
+					VStack(spacing: 12) {
+						ZStack {
+							Circle()
+								.fill(
+									LinearGradient(
+										colors: [.blue.opacity(0.2), .purple.opacity(0.2)],
+										startPoint: .topLeading,
+										endPoint: .bottomTrailing
+									)
+								)
+								.frame(width: 80, height: 80)
+
+							Image(systemName: "arrow.clockwise.icloud.fill")
+								.font(.system(size: 36, weight: .bold))
+								.foregroundStyle(
+									LinearGradient(
+										colors: [.blue, .purple],
+										startPoint: .topLeading,
+										endPoint: .bottomTrailing
+									)
+								)
+						}
+
+						VStack(spacing: 4) {
+							Text(.localized("Data Management"))
+								.font(.title3.bold())
+							Text(.localized("Keep your Portal data safe and portable"))
+								.font(.subheadline)
+								.foregroundStyle(.secondary)
+						}
+					}
+					.padding(.top, 20)
+
+					HStack(spacing: 16) {
 						// Backup Card
 						VStack(spacing: 16) {
 							ZStack {
 								Circle()
 									.fill(Color.blue.opacity(0.1))
-									.frame(width: 64, height: 64)
+									.frame(width: 56, height: 56)
 								
 								Image(systemName: "arrow.up.doc.fill")
-									.font(.system(size: 28, weight: .bold))
+									.font(.system(size: 24, weight: .bold))
 									.foregroundStyle(
 										LinearGradient(
 											colors: [.blue, .cyan],
@@ -78,16 +111,17 @@ struct BackupRestoreView: View {
 											endPoint: .trailing
 										)
 									)
-									.clipShape(RoundedRectangle(cornerRadius: 12))
+									.clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
 									.shadow(color: .blue.opacity(0.3), radius: 5, x: 0, y: 3)
 							}
 						}
-						.padding(20)
+						.padding(16)
+						.frame(maxWidth: .infinity)
 						.background(
-							RoundedRectangle(cornerRadius: 24)
+							RoundedRectangle(cornerRadius: 24, style: .continuous)
 								.fill(.ultraThinMaterial)
 								.overlay(
-									RoundedRectangle(cornerRadius: 24)
+									RoundedRectangle(cornerRadius: 24, style: .continuous)
 										.stroke(Color.blue.opacity(0.1), lineWidth: 1)
 								)
 						)
@@ -97,10 +131,10 @@ struct BackupRestoreView: View {
 							ZStack {
 								Circle()
 									.fill(Color.green.opacity(0.1))
-									.frame(width: 64, height: 64)
+									.frame(width: 56, height: 56)
 								
 								Image(systemName: "arrow.down.doc.fill")
-									.font(.system(size: 28, weight: .bold))
+									.font(.system(size: 24, weight: .bold))
 									.foregroundStyle(
 										LinearGradient(
 											colors: [.green, .mint],
@@ -113,7 +147,7 @@ struct BackupRestoreView: View {
 							VStack(spacing: 4) {
 								Text(.localized("Restore"))
 									.font(.headline)
-								Text(.localized("Load a backup"))
+								Text(.localized("Load data"))
 									.font(.caption)
 									.foregroundStyle(.secondary)
 							}
@@ -133,24 +167,26 @@ struct BackupRestoreView: View {
 											endPoint: .trailing
 										)
 									)
-									.clipShape(RoundedRectangle(cornerRadius: 12))
+									.clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
 									.shadow(color: .green.opacity(0.3), radius: 5, x: 0, y: 3)
 							}
 						}
-						.padding(20)
+						.padding(16)
+						.frame(maxWidth: .infinity)
 						.background(
-							RoundedRectangle(cornerRadius: 24)
+							RoundedRectangle(cornerRadius: 24, style: .continuous)
 								.fill(.ultraThinMaterial)
 								.overlay(
-									RoundedRectangle(cornerRadius: 24)
+									RoundedRectangle(cornerRadius: 24, style: .continuous)
 										.stroke(Color.green.opacity(0.1), lineWidth: 1)
 								)
 						)
 					}
 				}
-				.listRowInsets(EdgeInsets(top: 12, leading: 16, bottom: 12, trailing: 16))
+				.padding(.bottom, 20)
 			}
 			.listRowBackground(Color.clear)
+			.listRowInsets(EdgeInsets(top: 0, leading: 16, bottom: 0, trailing: 16))
 			
 			// Advanced Tools Section
 			if advancedBackupTools {
@@ -219,25 +255,26 @@ struct BackupRestoreView: View {
 			}
 			backupDocument = nil
 		}
-		.fileImporter(
-			isPresented: $isImporting,
-			allowedContentTypes: [.zip],
-			allowsMultipleSelection: false
-		) { result in
-			switch result {
-			case .success(let urls):
-				guard let url = urls.first else { return }
-				if isVerifying {
-					verifyBackup(at: url)
-					isVerifying = false
-				} else {
-					pendingRestoreURL = url
-					showRestoreDialog = true
+		.sheet(isPresented: $isImporting) {
+			FileImporterRepresentableView(
+				allowedContentTypes: [.zip],
+				onDocumentsPicked: { urls in
+					isImporting = false
+					guard let url = urls.first else {
+						isVerifying = false
+						return
+					}
+
+					if isVerifying {
+						verifyBackup(at: url)
+						isVerifying = false
+					} else {
+						pendingRestoreURL = url
+						showRestoreDialog = true
+					}
 				}
-			case .failure(let error):
-				AppLogManager.shared.error("Failed to import: \(error.localizedDescription)", category: "Backup & Restore")
-				isVerifying = false
-			}
+			)
+			.ignoresSafeArea()
 		}
 		.alert(.localized("Restart Required"), isPresented: $showRestoreDialog) {
 			Button(.localized("No"), role: .cancel) {
@@ -270,24 +307,39 @@ struct BackupRestoreView: View {
 	// MARK: - Info Card View
 	@ViewBuilder
 	private func infoCard(icon: String, iconColor: Color, title: LocalizedStringKey, description: LocalizedStringKey) -> some View {
-		HStack(alignment: .top, spacing: 12) {
-			Image(systemName: icon)
-				.font(.system(size: 22, weight: .semibold))
-				.foregroundStyle(iconColor)
-				.frame(width: 36)
+		HStack(alignment: .top, spacing: 16) {
+			ZStack {
+				Circle()
+					.fill(iconColor.opacity(0.1))
+					.frame(width: 40, height: 40)
+
+				Image(systemName: icon)
+					.font(.system(size: 18, weight: .bold))
+					.foregroundStyle(iconColor)
+			}
 			
 			VStack(alignment: .leading, spacing: 4) {
 				Text(title)
-					.font(.headline)
+					.font(.system(.headline, design: .rounded))
 					.foregroundStyle(.primary)
 				
 				Text(description)
-					.font(.subheadline)
+					.font(.system(.subheadline, design: .rounded))
 					.foregroundStyle(.secondary)
 					.fixedSize(horizontal: false, vertical: true)
 			}
 		}
-		.padding(.vertical, 4)
+		.padding(16)
+		.background(
+			RoundedRectangle(cornerRadius: 16, style: .continuous)
+				.fill(.ultraThinMaterial)
+				.overlay(
+					RoundedRectangle(cornerRadius: 16, style: .continuous)
+						.stroke(iconColor.opacity(0.1), lineWidth: 1)
+				)
+		)
+		.listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
+		.listRowBackground(Color.clear)
 	}
 	
 	// MARK: - Advanced Tools Functions
