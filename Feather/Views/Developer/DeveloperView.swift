@@ -3453,6 +3453,7 @@ struct FeatureFlagsView: View {
     @AppStorage("feature_advancedSigning") var advancedSigning = false
     @AppStorage("feature_usePortalCert") var usePortalCert = false
     @AppStorage("feature_advancedFilesFeatures") var advancedFilesFeatures = false
+    @AppStorage("feature_advancedBackupTools") var advancedBackupTools = false
     
     var body: some View {
         List {
@@ -3486,6 +3487,8 @@ struct FeatureFlagsView: View {
                         Label("Open Advanced File Tools", systemImage: "wrench.and.screwdriver.fill")
                     }
                 }
+
+                Toggle("Show Advanced Backup Tools", isOn: $advancedBackupTools)
             } header: {
                 Text("Files")
             } footer: {
