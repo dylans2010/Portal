@@ -165,6 +165,7 @@ struct BackupRestoreView: View {
 							}
 							
 							Button {
+								showBackupOptions = false
 								isImporting = true
 							} label: {
 								HStack(spacing: 8) {
@@ -212,6 +213,7 @@ struct BackupRestoreView: View {
 					}
 
 					Button {
+						showBackupOptions = false
 						isVerifying = true
 						isImporting = true
 					} label: {
@@ -349,12 +351,8 @@ struct BackupRestoreView: View {
 		let tempDir = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
 
 		do {
-			guard url.startAccessingSecurityScopedResource() else {
-				UIAlertController.showAlertWithOk(title: .localized("Error"), message: .localized("Permission denied for the selected file."))
-				return
-			}
-			defer { url.stopAccessingSecurityScopedResource() }
-
+			// FileImporterRepresentableView uses asCopy: true, so the file is already copied
+			// and we don't need security-scoped resource access. Calling it would return false.
 			try FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
 			try FileManager.default.unzipItem(at: url, to: tempDir)
 
@@ -612,13 +610,8 @@ struct BackupRestoreView: View {
 		restoreProgress = 0.0
 		
 		do {
-			guard url.startAccessingSecurityScopedResource() else {
-				isRestoring = false
-				UIAlertController.showAlertWithOk(title: .localized("Error"), message: .localized("Permission denied for the selected file."))
-				return
-			}
-			defer { url.stopAccessingSecurityScopedResource() }
-			
+			// FileImporterRepresentableView uses asCopy: true, so the file is already copied
+			// and we don't need security-scoped resource access. Calling it would return false.
 			try FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
 			
 			// Unzip backup
