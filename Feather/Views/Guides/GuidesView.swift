@@ -46,7 +46,7 @@ struct GuidesView: View {
                 .fontWeight(.semibold)
                 .foregroundStyle(.primary)
             
-            Text(.localized("Are you lost, or why are yiu here? You shouldn't even be here on this view lol."))
+            Text(.localized("Are you lost, or why are you here? You shouldn't even be here on this view lol."))
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
