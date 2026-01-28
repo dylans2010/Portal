@@ -11,6 +11,9 @@ enum AppIconOption: String, CaseIterable, Identifiable {
 	case clearLight = "AppIcon-ClearLight"
 	case tintedDark = "AppIcon-TintedDark"
 	case tintedLight = "AppIcon-TintedLight"
+	case macOS = "AppIcon-macOS"
+	case macOSDark = "AppIcon-macOS-Dark"
+	case macOSTinted = "AppIcon-macOS-Tinted"
 	
 	var id: String { rawValue }
 	
@@ -30,6 +33,12 @@ enum AppIconOption: String, CaseIterable, Identifiable {
 			return .localized("Tinted Dark")
 		case .tintedLight:
 			return .localized("Tinted Light")
+		case .macOS:
+			return .localized("macOS Style")
+		case .macOSDark:
+			return .localized("macOS Dark")
+		case .macOSTinted:
+			return .localized("macOS Tinted")
 		}
 	}
 	
@@ -49,6 +58,12 @@ enum AppIconOption: String, CaseIterable, Identifiable {
 			return .localized("Tinted icon with dark appearance")
 		case .tintedLight:
 			return .localized("Tinted icon with light appearance")
+		case .macOS:
+			return .localized("Classic macOS style icon")
+		case .macOSDark:
+			return .localized("macOS style icon with dark appearance")
+		case .macOSTinted:
+			return .localized("macOS style icon with tinted appearance")
 		}
 	}
 	
@@ -68,6 +83,12 @@ enum AppIconOption: String, CaseIterable, Identifiable {
 			return "AppIcon-TintedDark"
 		case .tintedLight:
 			return "AppIcon-TintedLight"
+		case .macOS:
+			return "AppIcon-macOS"
+		case .macOSDark:
+			return "AppIcon-macOS-Dark"
+		case .macOSTinted:
+			return "AppIcon-macOS-Tinted"
 		}
 	}
 	
@@ -87,6 +108,12 @@ enum AppIconOption: String, CaseIterable, Identifiable {
 			return "AppIconPreview-TintedDark"
 		case .tintedLight:
 			return "AppIconPreview-TintedLight"
+		case .macOS:
+			return "AppIconPreview-macOS"
+		case .macOSDark:
+			return "AppIconPreview-macOS-Dark"
+		case .macOSTinted:
+			return "AppIconPreview-macOS-Tinted"
 		}
 	}
 }

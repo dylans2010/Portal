@@ -12,15 +12,17 @@ struct BackupOptions {
 	var includeSignedApps: Bool = true
 	var includeImportedApps: Bool = true
 	var includeSources: Bool = true
+	var includeDefaultFrameworks: Bool = true
 }
 
 // MARK: - View
 struct BackupRestoreView: View {
 	@Environment(\.dismiss) var dismiss
-	@State private var isImporting = false
+	@State private var isRestoreFilePickerPresented = false
+	@State private var isVerifyFilePickerPresented = false
 	@State private var showRestoreDialog = false
 	@State private var pendingRestoreURL: URL?
-	@State private var showBackupOptions = false
+	@State private var isBackupOptionsPresented = false
 	@State private var backupOptions = BackupOptions()
 	@State private var isRestoring = false
 	@State private var restoreProgress: Double = 0.0
@@ -106,7 +108,7 @@ struct BackupRestoreView: View {
 							}
 							
 							Button {
-								showBackupOptions = true
+								isBackupOptionsPresented = true
 							} label: {
 								HStack(spacing: 8) {
 									Image(systemName: "plus.circle.fill")
@@ -165,8 +167,7 @@ struct BackupRestoreView: View {
 							}
 							
 							Button {
-								showBackupOptions = false
-								isImporting = true
+								isRestoreFilePickerPresented = true
 							} label: {
 								HStack(spacing: 8) {
 									Image(systemName: "arrow.down.circle.fill")
@@ -213,9 +214,7 @@ struct BackupRestoreView: View {
 					}
 
 					Button {
-						showBackupOptions = false
-						isVerifying = true
-						isImporting = true
+						isVerifyFilePickerPresented = true
 					} label: {
 						Label(.localized("Verify Backup Integrity"), systemImage: "shield.checkerboard")
 					}
@@ -243,11 +242,11 @@ struct BackupRestoreView: View {
 				AppearanceSectionHeader(title: String.localized("About Backups (Beta)"), icon: "info.circle.fill")
 			}
 		}
-		.sheet(isPresented: $showBackupOptions) {
+		.sheet(isPresented: $isBackupOptionsPresented) {
 			BackupOptionsView(
 				options: $backupOptions,
 				onConfirm: {
-					showBackupOptions = false
+					isBackupOptionsPresented = false
 					if let url = prepareBackup(with: backupOptions) {
 						backupDocument = BackupDocument(url: url)
 						showExporter = true
@@ -255,22 +254,27 @@ struct BackupRestoreView: View {
 				}
 			)
 		}
-		.sheet(isPresented: $isImporting) {
+		.sheet(isPresented: $isRestoreFilePickerPresented) {
 			FileImporterRepresentableView(
 				allowedContentTypes: [.zip],
 				allowsMultipleSelection: false,
 				onDocumentsPicked: { urls in
-					isImporting = false
-
+					isRestoreFilePickerPresented = false
 					guard let url = urls.first else { return }
-
-					if isVerifying {
-						verifyBackup(at: url)
-						isVerifying = false
-					} else {
-						pendingRestoreURL = url
-						showRestoreDialog = true
-					}
+					pendingRestoreURL = url
+					showRestoreDialog = true
+				}
+			)
+			.ignoresSafeArea()
+		}
+		.sheet(isPresented: $isVerifyFilePickerPresented) {
+			FileImporterRepresentableView(
+				allowedContentTypes: [.zip],
+				allowsMultipleSelection: false,
+				onDocumentsPicked: { urls in
+					isVerifyFilePickerPresented = false
+					guard let url = urls.first else { return }
+					verifyBackup(at: url)
 				}
 			)
 			.ignoresSafeArea()
@@ -320,6 +324,21 @@ struct BackupRestoreView: View {
 			if isRestoring {
 				RestoreLoadingOverlay(progress: restoreProgress)
 			}
+
+			if isVerifying {
+				ZStack {
+					Color.black.opacity(0.4).ignoresSafeArea()
+					VStack(spacing: 12) {
+						ProgressView()
+							.tint(.white)
+						Text("Verifying...")
+							.foregroundStyle(.white)
+					}
+					.padding(24)
+					.background(.ultraThinMaterial)
+					.cornerRadius(16)
+				}
+			}
 		}
 	}
 	
@@ -348,6 +367,7 @@ struct BackupRestoreView: View {
 	
 	// MARK: - Advanced Tools Functions
 	private func verifyBackup(at url: URL) {
+		isVerifying = true
 		let tempDir = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
 
 		do {
@@ -364,6 +384,7 @@ struct BackupRestoreView: View {
 			let hasSettings = FileManager.default.fileExists(atPath: tempDir.appendingPathComponent("settings.plist").path)
 
 			try? FileManager.default.removeItem(at: tempDir)
+			isVerifying = false
 
 			if hasMarker && hasSettings {
 				UIAlertController.showAlertWithOk(title: .localized("Verification Successful"), message: .localized("This backup file is valid and can be restored."))
@@ -371,6 +392,7 @@ struct BackupRestoreView: View {
 				showInvalidBackupError = true
 			}
 		} catch {
+			isVerifying = false
 			UIAlertController.showAlertWithOk(title: .localized("Error"), message: .localized("Failed to verify backup: \(error.localizedDescription)"))
 		}
 	}
@@ -553,20 +575,74 @@ struct BackupRestoreView: View {
 				}
 			}
 			
+			// 4.5 Backup default frameworks (if selected)
+			if options.includeDefaultFrameworks {
+				let defaultFrameworksDir = tempDir.appendingPathComponent("default_frameworks")
+				try? FileManager.default.createDirectory(at: defaultFrameworksDir, withIntermediateDirectories: true)
+
+				let sourceDFDir = Storage.shared.documentsURL.appendingPathComponent("Feather/DefaultFrameworks")
+				if FileManager.default.fileExists(atPath: sourceDFDir.path) {
+					let contents = try? FileManager.default.contentsOfDirectory(at: sourceDFDir, includingPropertiesForKeys: nil)
+					for fileURL in contents ?? [] {
+						try? FileManager.default.copyItem(at: fileURL, to: defaultFrameworksDir.appendingPathComponent(fileURL.lastPathComponent))
+					}
+				}
+			}
+
+			// 4.6 Backup archives (if selected)
+			if options.includeSignedApps {
+				let archivesDir = tempDir.appendingPathComponent("archives")
+				try? FileManager.default.createDirectory(at: archivesDir, withIntermediateDirectories: true)
+
+				let sourceArchivesDir = FileManager.default.archives
+				if FileManager.default.fileExists(atPath: sourceArchivesDir.path) {
+					let contents = try? FileManager.default.contentsOfDirectory(at: sourceArchivesDir, includingPropertiesForKeys: nil)
+					for fileURL in contents ?? [] {
+						try? FileManager.default.copyItem(at: fileURL, to: archivesDir.appendingPathComponent(fileURL.lastPathComponent))
+					}
+				}
+			}
+
+			// 4.7 Backup pairing and SSL files (always included as part of state)
+			let filesToBackup = ["pairingFile.plist", "server.pem", "server.crt", "commonName.txt"]
+			let extraFilesDir = tempDir.appendingPathComponent("extra_files")
+			try? FileManager.default.createDirectory(at: extraFilesDir, withIntermediateDirectories: true)
+
+			for fileName in filesToBackup {
+				let fileURL = Storage.shared.documentsURL.appendingPathComponent(fileName)
+				if FileManager.default.fileExists(atPath: fileURL.path) {
+					try? FileManager.default.copyItem(at: fileURL, to: extraFilesDir.appendingPathComponent(fileName))
+				}
+			}
+
+			// 4.8 Backup Core Data database
+			let databaseDir = tempDir.appendingPathComponent("database")
+			try? FileManager.default.createDirectory(at: databaseDir, withIntermediateDirectories: true)
+
+			if let storeURL = Storage.shared.container.persistentStoreDescriptions.first?.url {
+				let baseName = storeURL.lastPathComponent
+				let directory = storeURL.deletingLastPathComponent()
+				let dbFiles = [baseName, "\(baseName)-shm", "\(baseName)-wal"]
+
+				for dbFile in dbFiles {
+					let fileURL = directory.appendingPathComponent(dbFile)
+					if FileManager.default.fileExists(atPath: fileURL.path) {
+						try? FileManager.default.copyItem(at: fileURL, to: databaseDir.appendingPathComponent(dbFile))
+					}
+				}
+			}
+
 			// 5. Backup ALL settings - always included
 			let settingsFile = tempDir.appendingPathComponent("settings.plist")
 			let defaults = UserDefaults.standard.dictionaryRepresentation()
 			// Include all Feather and app-specific settings
 			let filtered = defaults.filter { key, _ in
-				key.hasPrefix("Feather.") ||
-				key.hasPrefix("com.apple.") ||
-				(Bundle.main.bundleIdentifier.map { key.hasPrefix($0) } ?? false) ||
-				// Include other common setting prefixes
-				key.contains("filesTabEnabled") ||
-				key.contains("showNews") ||
-				key.contains("serverMethod") ||
-				key.contains("customSigningAPI") ||
-				key.contains("selectedCert")
+				!key.hasPrefix("NS") &&
+				!key.hasPrefix("AK") &&
+				!key.hasPrefix("Apple") &&
+				!key.hasPrefix("WebKit") &&
+				!key.hasPrefix("CPU") &&
+				!key.hasPrefix("metal")
 			}
 			let settingsData = try PropertyListSerialization.data(fromPropertyList: filtered, format: .xml, options: 0)
 			try settingsData.write(to: settingsFile)
@@ -809,6 +885,75 @@ struct BackupRestoreView: View {
 				}
 			}
 			
+			// 4.5 Restore default frameworks
+			let defaultFrameworksDir = tempDir.appendingPathComponent("default_frameworks")
+			if FileManager.default.fileExists(atPath: defaultFrameworksDir.path) {
+				let destDFDir = Storage.shared.documentsURL.appendingPathComponent("Feather/DefaultFrameworks")
+				try? FileManager.default.createDirectory(at: destDFDir, withIntermediateDirectories: true)
+
+				let contents = try? FileManager.default.contentsOfDirectory(at: defaultFrameworksDir, includingPropertiesForKeys: nil)
+				for fileURL in contents ?? [] {
+					let destURL = destDFDir.appendingPathComponent(fileURL.lastPathComponent)
+					if FileManager.default.fileExists(atPath: destURL.path) {
+						try? FileManager.default.removeItem(at: destURL)
+					}
+					try? FileManager.default.copyItem(at: fileURL, to: destURL)
+				}
+				AppLogManager.shared.info("Restored default frameworks", category: "Backup & Restore")
+			}
+
+			// 4.6 Restore archives
+			let archivesDir = tempDir.appendingPathComponent("archives")
+			if FileManager.default.fileExists(atPath: archivesDir.path) {
+				let destArchivesDir = FileManager.default.archives
+				try? FileManager.default.createDirectory(at: destArchivesDir, withIntermediateDirectories: true)
+
+				let contents = try? FileManager.default.contentsOfDirectory(at: archivesDir, includingPropertiesForKeys: nil)
+				for fileURL in contents ?? [] {
+					let destURL = destArchivesDir.appendingPathComponent(fileURL.lastPathComponent)
+					if FileManager.default.fileExists(atPath: destURL.path) {
+						try? FileManager.default.removeItem(at: destURL)
+					}
+					try? FileManager.default.copyItem(at: fileURL, to: destURL)
+				}
+				AppLogManager.shared.info("Restored archives", category: "Backup & Restore")
+			}
+
+			// 4.7 Restore pairing and SSL files
+			let extraFilesDir = tempDir.appendingPathComponent("extra_files")
+			if FileManager.default.fileExists(atPath: extraFilesDir.path) {
+				let contents = try? FileManager.default.contentsOfDirectory(at: extraFilesDir, includingPropertiesForKeys: nil)
+				for fileURL in contents ?? [] {
+					let destURL = Storage.shared.documentsURL.appendingPathComponent(fileURL.lastPathComponent)
+					if FileManager.default.fileExists(atPath: destURL.path) {
+						try? FileManager.default.removeItem(at: destURL)
+					}
+					try? FileManager.default.copyItem(at: fileURL, to: destURL)
+				}
+				AppLogManager.shared.info("Restored extra state files", category: "Backup & Restore")
+			}
+
+			// 4.8 Restore database
+			let databaseDirInBackup = tempDir.appendingPathComponent("database")
+			if FileManager.default.fileExists(atPath: databaseDirInBackup.path),
+			   let storeURL = Storage.shared.container.persistentStoreDescriptions.first?.url {
+				let baseName = storeURL.lastPathComponent
+				let directory = storeURL.deletingLastPathComponent()
+				let dbFiles = [baseName, "\(baseName)-shm", "\(baseName)-wal"]
+
+				for dbFile in dbFiles {
+					let srcURL = databaseDirInBackup.appendingPathComponent(dbFile)
+					let destURL = directory.appendingPathComponent(dbFile)
+					if FileManager.default.fileExists(atPath: srcURL.path) {
+						if FileManager.default.fileExists(atPath: destURL.path) {
+							try? FileManager.default.removeItem(at: destURL)
+						}
+						try? FileManager.default.copyItem(at: srcURL, to: destURL)
+					}
+				}
+				AppLogManager.shared.info("Restored database files", category: "Backup & Restore")
+			}
+
 			withAnimation {
 				restoreProgress = 0.9
 			}
@@ -965,6 +1110,14 @@ struct BackupOptionsView: View {
 							title: .localized("Sources"),
 							description: .localized("Your configured app sources and repositories"),
 							isOn: $options.includeSources
+						)
+
+						backupOptionToggle(
+							icon: "puzzlepiece.extension.fill",
+							iconColor: .cyan,
+							title: .localized("Default Frameworks"),
+							description: .localized("Your automatically injected frameworks (.dylib, .deb)"),
+							isOn: $options.includeDefaultFrameworks
 						)
 					}
 					.padding(.horizontal, 20)
