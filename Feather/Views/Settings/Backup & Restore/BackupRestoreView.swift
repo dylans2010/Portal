@@ -262,8 +262,8 @@ struct BackupRestoreView: View {
             allowsMultipleSelection: false
         ) { result in
             switch result {
-            case .success(let url):
-                pendingRestoreURL = url
+            case .success(let urls):
+                pendingRestoreURL = urls.first
                 showRestoreDialog = true
             case .failure(let error):
                 AppLogManager.shared.error("Failed to pick backup file: \(error.localizedDescription)", category: "Backup & Restore")
@@ -275,8 +275,10 @@ struct BackupRestoreView: View {
             allowsMultipleSelection: false
         ) { result in
             switch result {
-            case .success(let url):
-                handleVerifyBackup(at: url)
+            case .success(let urls):
+                if let url = urls.first {
+                    handleVerifyBackup(at: url)
+                }
             case .failure(let error):
                 AppLogManager.shared.error("Failed to pick backup file for verification: \(error.localizedDescription)", category: "Backup & Restore")
             }
