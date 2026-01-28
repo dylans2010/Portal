@@ -25,122 +25,151 @@ struct BackupRestoreView: View {
 	@State private var isRestoring = false
 	@State private var restoreProgress: Double = 0.0
 	@State private var showInvalidBackupError = false
+	@State private var backupDocument: BackupDocument?
+	@State private var showExporter = false
+	@State private var isVerifying = false
+	@AppStorage("feature_advancedBackupTools") var advancedBackupTools = false
 	
 	// MARK: Body
 	var body: some View {
 		NBList(.localized("Backup & Restore")) {
-			// Modern header card
+			// Modernized Header Card
 			Section {
-				VStack(spacing: 16) {
-					HStack(spacing: 0) {
-						// Left side - Backup
-						VStack(spacing: 12) {
+				VStack(spacing: 0) {
+					HStack(spacing: 12) {
+						// Backup Card
+						VStack(spacing: 16) {
 							ZStack {
 								Circle()
-									.fill(
-										LinearGradient(
-											colors: [Color.blue.opacity(0.15), Color.blue.opacity(0.05)],
-											startPoint: .topLeading,
-											endPoint: .bottomTrailing
-										)
-									)
-									.frame(width: 60, height: 60)
+									.fill(Color.blue.opacity(0.1))
+									.frame(width: 64, height: 64)
 								
-								Image(systemName: "square.and.arrow.up.fill")
-									.font(.system(size: 24, weight: .semibold))
+								Image(systemName: "arrow.up.doc.fill")
+									.font(.system(size: 28, weight: .bold))
 									.foregroundStyle(
 										LinearGradient(
-											colors: [Color.blue, Color.blue.opacity(0.7)],
+											colors: [.blue, .cyan],
 											startPoint: .topLeading,
 											endPoint: .bottomTrailing
 										)
 									)
 							}
 							
-							Text(.localized("Backup"))
-								.font(.headline)
-								.foregroundStyle(.primary)
+							VStack(spacing: 4) {
+								Text(.localized("Backup"))
+									.font(.headline)
+								Text(.localized("Save your data"))
+									.font(.caption)
+									.foregroundStyle(.secondary)
+							}
 							
 							Button {
 								showBackupOptions = true
 							} label: {
 								Text(.localized("Create"))
-									.font(.subheadline.weight(.semibold))
+									.font(.subheadline.bold())
 									.foregroundStyle(.white)
-									.padding(.horizontal, 20)
-									.padding(.vertical, 8)
+									.frame(maxWidth: .infinity)
+									.padding(.vertical, 10)
 									.background(
 										LinearGradient(
-											colors: [Color.blue, Color.blue.opacity(0.8)],
+											colors: [.blue, .cyan],
 											startPoint: .leading,
 											endPoint: .trailing
 										)
 									)
-									.cornerRadius(8)
+									.clipShape(RoundedRectangle(cornerRadius: 12))
+									.shadow(color: .blue.opacity(0.3), radius: 5, x: 0, y: 3)
 							}
 						}
-						.frame(maxWidth: .infinity)
+						.padding(20)
+						.background(
+							RoundedRectangle(cornerRadius: 24)
+								.fill(.ultraThinMaterial)
+								.overlay(
+									RoundedRectangle(cornerRadius: 24)
+										.stroke(Color.blue.opacity(0.1), lineWidth: 1)
+								)
+						)
 						
-						// Divider
-						Rectangle()
-							.fill(Color.gray.opacity(0.3))
-							.frame(width: 1)
-							.padding(.vertical, 20)
-						
-						// Right side - Restore
-						VStack(spacing: 12) {
+						// Restore Card
+						VStack(spacing: 16) {
 							ZStack {
 								Circle()
-									.fill(
-										LinearGradient(
-											colors: [Color.green.opacity(0.15), Color.green.opacity(0.05)],
-											startPoint: .topLeading,
-											endPoint: .bottomTrailing
-										)
-									)
-									.frame(width: 60, height: 60)
+									.fill(Color.green.opacity(0.1))
+									.frame(width: 64, height: 64)
 								
-								Image(systemName: "square.and.arrow.down.fill")
-									.font(.system(size: 24, weight: .semibold))
+								Image(systemName: "arrow.down.doc.fill")
+									.font(.system(size: 28, weight: .bold))
 									.foregroundStyle(
 										LinearGradient(
-											colors: [Color.green, Color.green.opacity(0.7)],
+											colors: [.green, .mint],
 											startPoint: .topLeading,
 											endPoint: .bottomTrailing
 										)
 									)
 							}
 							
-							Text(.localized("Restore"))
-								.font(.headline)
-								.foregroundStyle(.primary)
+							VStack(spacing: 4) {
+								Text(.localized("Restore"))
+									.font(.headline)
+								Text(.localized("Load a backup"))
+									.font(.caption)
+									.foregroundStyle(.secondary)
+							}
 							
 							Button {
 								isImporting = true
 							} label: {
 								Text(.localized("Import"))
-									.font(.subheadline.weight(.semibold))
+									.font(.subheadline.bold())
 									.foregroundStyle(.white)
-									.padding(.horizontal, 20)
-									.padding(.vertical, 8)
+									.frame(maxWidth: .infinity)
+									.padding(.vertical, 10)
 									.background(
 										LinearGradient(
-											colors: [Color.green, Color.green.opacity(0.8)],
+											colors: [.green, .mint],
 											startPoint: .leading,
 											endPoint: .trailing
 										)
 									)
-									.cornerRadius(8)
+									.clipShape(RoundedRectangle(cornerRadius: 12))
+									.shadow(color: .green.opacity(0.3), radius: 5, x: 0, y: 3)
 							}
 						}
-						.frame(maxWidth: .infinity)
+						.padding(20)
+						.background(
+							RoundedRectangle(cornerRadius: 24)
+								.fill(.ultraThinMaterial)
+								.overlay(
+									RoundedRectangle(cornerRadius: 24)
+										.stroke(Color.green.opacity(0.1), lineWidth: 1)
+								)
+						)
 					}
-					.padding(.vertical, 8)
 				}
-				.listRowInsets(EdgeInsets(top: 20, leading: 16, bottom: 20, trailing: 16))
+				.listRowInsets(EdgeInsets(top: 12, leading: 16, bottom: 12, trailing: 16))
 			}
 			.listRowBackground(Color.clear)
 			
+			// Advanced Tools Section
+			if advancedBackupTools {
+				NBSection(.localized("Advanced Tools")) {
+					Button {
+						exportFullDatabase()
+					} label: {
+						Label(.localized("Export Full Database"), systemImage: "cylinder.split.1x2.fill")
+					}
+
+					Button {
+						isVerifying = true
+						isImporting = true
+					} label: {
+						Label(.localized("Verify Backup Integrity"), systemImage: "shield.checkerboard")
+					}
+				}
+			}
+
 			// Information sections with modern cards
 			NBSection(.localized("About Backups (Beta)")) {
 				infoCard(
@@ -163,21 +192,51 @@ struct BackupRestoreView: View {
 				options: $backupOptions,
 				onConfirm: {
 					showBackupOptions = false
-					createBackup(with: backupOptions)
+					if let url = prepareBackup(with: backupOptions) {
+						backupDocument = BackupDocument(url: url)
+						showExporter = true
+					}
 				}
 			)
 		}
-		.sheet(isPresented: $isImporting) {
-			FileImporterRepresentableView(
-				allowedContentTypes: [.zip],
-				allowsMultipleSelection: false,
-				onDocumentsPicked: { urls in
-					guard let url = urls.first else { return }
+		.fileExporter(
+			isPresented: $showExporter,
+			document: backupDocument,
+			contentType: .zip,
+			defaultFilename: "PortalBackup_\(Date().formatted(date: .numeric, time: .omitted).replacingOccurrences(of: "/", with: "-"))"
+		) { result in
+			switch result {
+			case .success(let url):
+				AppLogManager.shared.success("Backup exported successfully to: \(url.path)", category: "Backup & Restore")
+				HapticsManager.shared.success()
+			case .failure(let error):
+				AppLogManager.shared.error("Failed to export backup: \(error.localizedDescription)", category: "Backup & Restore")
+				HapticsManager.shared.error()
+			}
+			// Clean up the temporary zip file after export attempt
+			if let tempURL = backupDocument?.url {
+				try? FileManager.default.removeItem(at: tempURL)
+			}
+			backupDocument = nil
+		}
+		.fileImporter(
+			isPresented: $isImporting,
+			allowedContentTypes: [.zip],
+			allowsMultipleSelection: false
+		) { result in
+			switch result {
+			case .success(let url):
+				if isVerifying {
+					verifyBackup(at: url)
+					isVerifying = false
+				} else {
 					pendingRestoreURL = url
 					showRestoreDialog = true
 				}
-			)
-			.ignoresSafeArea()
+			case .failure(let error):
+				AppLogManager.shared.error("Failed to import: \(error.localizedDescription)", category: "Backup & Restore")
+				isVerifying = false
+			}
 		}
 		.alert(.localized("Restart Required"), isPresented: $showRestoreDialog) {
 			Button(.localized("No"), role: .cancel) {
@@ -230,8 +289,76 @@ struct BackupRestoreView: View {
 		.padding(.vertical, 4)
 	}
 	
+	// MARK: - Advanced Tools Functions
+	private func verifyBackup(at url: URL) {
+		let tempDir = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+
+		do {
+			guard url.startAccessingSecurityScopedResource() else {
+				UIAlertController.showAlertWithOk(title: .localized("Error"), message: .localized("Permission denied for the selected file."))
+				return
+			}
+			defer { url.stopAccessingSecurityScopedResource() }
+
+			try FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
+			try FileManager.default.unzipItem(at: url, to: tempDir)
+
+			let markers = ["PORTAL_BACKUP_MARKER.txt", "FEATHER_BACKUP_MARKER.txt", "PORTAL_BACKUP_CHECKER.txt"]
+			let hasMarker = markers.contains { marker in
+				FileManager.default.fileExists(atPath: tempDir.appendingPathComponent(marker).path)
+			}
+
+			let hasSettings = FileManager.default.fileExists(atPath: tempDir.appendingPathComponent("settings.plist").path)
+
+			try? FileManager.default.removeItem(at: tempDir)
+
+			if hasMarker && hasSettings {
+				UIAlertController.showAlertWithOk(title: .localized("Verification Successful"), message: .localized("This backup file is valid and can be restored."))
+			} else {
+				showInvalidBackupError = true
+			}
+		} catch {
+			UIAlertController.showAlertWithOk(title: .localized("Error"), message: .localized("Failed to verify backup: \(error.localizedDescription)"))
+		}
+	}
+
+	private func exportFullDatabase() {
+		guard let storeURL = Storage.shared.container.persistentStoreDescriptions.first?.url else {
+			UIAlertController.showAlertWithOk(title: "Error", message: "Could not find database location")
+			return
+		}
+
+		let tempDir = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+		let zipURL = FileManager.default.temporaryDirectory.appendingPathComponent("PortalDatabaseBackup_\(Date().timeIntervalSince1970).zip")
+
+		do {
+			try FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
+
+			// Copy SQLite files (including SHM and WAL)
+			let baseName = storeURL.lastPathComponent
+			let directory = storeURL.deletingLastPathComponent()
+
+			let filesToCopy = [baseName, "\(baseName)-shm", "\(baseName)-wal"]
+			for fileName in filesToCopy {
+				let fileURL = directory.appendingPathComponent(fileName)
+				if FileManager.default.fileExists(atPath: fileURL.path) {
+					try FileManager.default.copyItem(at: fileURL, to: tempDir.appendingPathComponent(fileName))
+				}
+			}
+
+			try FileManager.default.zipItem(at: tempDir, to: zipURL, shouldKeepParent: false)
+			try? FileManager.default.removeItem(at: tempDir)
+
+			backupDocument = BackupDocument(url: zipURL)
+			showExporter = true
+
+		} catch {
+			UIAlertController.showAlertWithOk(title: "Error", message: "Failed to export database: \(error.localizedDescription)")
+		}
+	}
+
 	// MARK: - Backup Functions
-	private func createBackup(with options: BackupOptions) {
+	private func prepareBackup(with options: BackupOptions) -> URL? {
 		// Create temporary directory for backup
 		let tempDir = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
 		
@@ -275,6 +402,7 @@ struct BackupRestoreView: View {
 						}
 						if let date = cert.date { metadata["date"] = date.timeIntervalSince1970 }
 						metadata["ppQCheck"] = cert.ppQCheck
+						if let password = cert.password { metadata["password"] = password }
 						
 						certMetadata.append(metadata)
 					}
@@ -387,18 +515,21 @@ struct BackupRestoreView: View {
 				key.contains("customSigningAPI") ||
 				key.contains("selectedCert")
 			}
-			try (filtered as NSDictionary).write(to: settingsFile)
+			let settingsData = try PropertyListSerialization.data(fromPropertyList: filtered, format: .xml, options: 0)
+			try settingsData.write(to: settingsFile)
 			
 			// 6. Create zip file with validation marker
-			let documentsPath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
-			let backupFileName = "PortalBackup_\(Date().formatted(date: .numeric, time: .omitted).replacingOccurrences(of: "/", with: "-")).zip"
-			let finalZipURL = documentsPath.appendingPathComponent(backupFileName)
+			let tempBackupDir = FileManager.default.temporaryDirectory.appendingPathComponent("Backups")
+			try? FileManager.default.createDirectory(at: tempBackupDir, withIntermediateDirectories: true)
+
+			let backupFileName = "PortalBackup_\(UUID().uuidString).zip"
+			let finalZipURL = tempBackupDir.appendingPathComponent(backupFileName)
 			
 			// Remove existing file if present
 			try? FileManager.default.removeItem(at: finalZipURL)
 			
 			// Add a backup marker file to validate later
-			let markerFile = tempDir.appendingPathComponent("PORTAL_BACKUP_CHECKER.txt")
+			let markerFile = tempDir.appendingPathComponent("PORTAL_BACKUP_MARKER.txt")
 			let markerContent = "PORTAL_BACKUP_v1.0_\(Date().timeIntervalSince1970)"
 			try markerContent.write(to: markerFile, atomically: true, encoding: .utf8)
 			
@@ -407,24 +538,14 @@ struct BackupRestoreView: View {
 			// Clean up temp directory
 			try? FileManager.default.removeItem(at: tempDir)
 			
-			// Show success message with file location
-			HapticsManager.shared.success()
-			UIAlertController.showAlert(
-				title: .localized("Backup Created"),
-				message: .localized("Backup saved to Documents folder as \(backupFileName)"),
-				actions: [
-					.init(title: .localized("OK"), style: .default),
-					.init(title: .localized("Share"), style: .default) { _ in
-						UIActivityViewController.show(activityItems: [finalZipURL])
-					}
-				]
-			)
+			return finalZipURL
 			
 		} catch {
 			UIAlertController.showAlertWithOk(
 				title: .localized("Error"),
-				message: .localized("Failed to create backup: \(error.localizedDescription)")
+				message: .localized("Failed to prepare backup: \(error.localizedDescription)")
 			)
+			return nil
 		}
 	}
 	
@@ -436,7 +557,11 @@ struct BackupRestoreView: View {
 		restoreProgress = 0.0
 		
 		do {
-			_ = url.startAccessingSecurityScopedResource()
+			guard url.startAccessingSecurityScopedResource() else {
+				isRestoring = false
+				UIAlertController.showAlertWithOk(title: .localized("Error"), message: .localized("Permission denied for the selected file."))
+				return
+			}
 			defer { url.stopAccessingSecurityScopedResource() }
 			
 			try FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
@@ -451,11 +576,20 @@ struct BackupRestoreView: View {
 				restoreProgress = 0.2
 			}
 			
-			// VALIDATE BACKUP: Check for marker file
-			let markerFile = tempDir.appendingPathComponent("FEATHER_BACKUP_MARKER.txt")
-			guard FileManager.default.fileExists(atPath: markerFile.path),
-				  let markerContent = try? String(contentsOf: markerFile, encoding: .utf8),
-				  markerContent.contains("FEATHER_BACKUP") else {
+			// VALIDATE BACKUP: Check for marker file (including legacy ones)
+			let markers = ["PORTAL_BACKUP_MARKER.txt", "FEATHER_BACKUP_MARKER.txt", "PORTAL_BACKUP_CHECKER.txt"]
+			let hasMarker = markers.contains { marker in
+				let path = tempDir.appendingPathComponent(marker).path
+				if FileManager.default.fileExists(atPath: path) {
+					if let content = try? String(contentsOfFile: path, encoding: .utf8),
+					   (content.contains("PORTAL_BACKUP") || content.contains("FEATHER_BACKUP")) {
+						return true
+					}
+				}
+				return false
+			}
+
+			guard hasMarker else {
 				// Clean up
 				try? FileManager.default.removeItem(at: tempDir)
 				isRestoring = false
@@ -511,6 +645,14 @@ struct BackupRestoreView: View {
 						try? FileManager.default.copyItem(at: provisionURL, to: provisionStorageURL)
 						
 						let name = certInfo["name"] as? String ?? "Restored Certificate"
+						Storage.shared.addCertificate(
+							uuid: uuid,
+							password: certInfo["password"] as? String,
+							nickname: name,
+							ppq: certInfo["ppQCheck"] as? Bool ?? false,
+							expiration: Date(timeIntervalSince1970: certInfo["date"] as? Double ?? Date().timeIntervalSince1970),
+							completion: { _ in }
+						)
 						AppLogManager.shared.info("Restored certificate: \(name)", category: "Backup & Restore")
 					}
 				}
@@ -566,6 +708,13 @@ struct BackupRestoreView: View {
 							try? FileManager.default.copyItem(at: ipaSourceURL, to: ipaDestURL)
 							
 							if let name = appInfo["name"] {
+								Storage.shared.addSigned(
+									uuid: uuid,
+									appName: name,
+									appIdentifier: appInfo["identifier"],
+									appVersion: appInfo["version"],
+									completion: { _ in }
+								)
 								AppLogManager.shared.info("Restored signed app: \(name)", category: "Backup & Restore")
 							}
 						}
@@ -598,6 +747,13 @@ struct BackupRestoreView: View {
 							try? FileManager.default.copyItem(at: ipaSourceURL, to: ipaDestURL)
 							
 							if let name = appInfo["name"] {
+								Storage.shared.addImported(
+									uuid: uuid,
+									appName: name,
+									appIdentifier: appInfo["identifier"],
+									appVersion: appInfo["version"],
+									completion: { _ in }
+								)
 								AppLogManager.shared.info("Restored imported app: \(name)", category: "Backup & Restore")
 							}
 						}
@@ -611,7 +767,8 @@ struct BackupRestoreView: View {
 			
 			// 5. Restore ALL settings
 			if FileManager.default.fileExists(atPath: settingsFile.path) {
-				if let settings = NSDictionary(contentsOf: settingsFile) as? [String: Any] {
+				let settingsData = try Data(contentsOf: settingsFile)
+				if let settings = try PropertyListSerialization.propertyList(from: settingsData, options: [], format: nil) as? [String: Any] {
 					for (key, value) in settings {
 						// Restore all settings except system-specific ones
 						if !key.hasPrefix("NS") && !key.hasPrefix("AK") && !key.hasPrefix("Apple") {
