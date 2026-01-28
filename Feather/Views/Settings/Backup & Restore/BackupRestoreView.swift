@@ -225,7 +225,8 @@ struct BackupRestoreView: View {
 			allowsMultipleSelection: false
 		) { result in
 			switch result {
-			case .success(let url):
+			case .success(let urls):
+				guard let url = urls.first else { return }
 				if isVerifying {
 					verifyBackup(at: url)
 					isVerifying = false
