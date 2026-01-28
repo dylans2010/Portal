@@ -21,6 +21,10 @@ struct FeatherApp: App {
     @State private var latestReleaseURL: String = ""
     @State private var navigateToUpdates = false
 
+    // URL Scheme Handling
+    @State private var _pendingSourceURL: String? = nil
+    @State private var _showSourceConfirmation = false
+
 	var body: some Scene {
 		WindowGroup(content: {
 			Group {
@@ -74,6 +78,23 @@ struct FeatherApp: App {
 							.environment(\.navigateToUpdates, $navigateToUpdates)
 							.onOpenURL(perform: _handleURL)
 							.transition(.move(edge: .top).combined(with: .opacity))
+							.confirmationDialog(
+								.localized("Add Source"),
+								isPresented: $_showSourceConfirmation,
+								titleVisibility: .visible,
+								presenting: _pendingSourceURL
+							) { sourceURL in
+								Button(.localized("Add")) {
+									// Triggers the same internal logic as SourcesAddView
+									FR.handleSource(sourceURL) { }
+									_pendingSourceURL = nil
+								}
+								Button(.localized("Cancel"), role: .cancel) {
+									_pendingSourceURL = nil
+								}
+							} message: { sourceURL in
+								Text(.localized("Add \"\(sourceURL)\" source to Portal?"))
+							}
 					}
 					.animation(animationForPlatform(), value: downloadManager.manualDownloads.description)
 					.animation(animationForPlatform(), value: showUpdateBanner)
@@ -205,6 +226,16 @@ struct FeatherApp: App {
     }
 	
 	private func _handleURL(_ url: URL) {
+		// Handle new-portal:// scheme actions
+		if let action = URLActionHandler.parse(url) {
+			switch action {
+			case .addSource(let sourceURL):
+				_pendingSourceURL = sourceURL
+				_showSourceConfirmation = true
+			}
+			return
+		}
+
 		if url.scheme == "feather" {
 			/// feather://import-certificate?p12=<base64>&mobileprovision=<base64>&password=<base64>
 			if url.host == "import-certificate" {

@@ -183,7 +183,14 @@ enum FR {
 		_ urlString: String,
 		competion: @escaping () -> Void
 	) {
-		guard let url = URL(string: urlString) else { return }
+		var normalizedString = urlString.trimmingCharacters(in: .whitespacesAndNewlines)
+
+		// Auto-add https:// if no scheme is provided. Matches the logic used elsewhere in the app.
+		if !normalizedString.lowercased().hasPrefix("http://") && !normalizedString.lowercased().hasPrefix("https://") {
+			normalizedString = "https://" + normalizedString
+		}
+
+		guard let url = URL(string: normalizedString) else { return }
 		
 		NBFetchService().fetch(from: url) { (result: Result<ASRepository, Error>) in
 			switch result {
