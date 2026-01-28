@@ -33,19 +33,61 @@ struct BackupRestoreView: View {
 	// MARK: Body
 	var body: some View {
 		NBList(.localized("Backup & Restore")) {
+			// Main View Header
+			Section {
+				VStack(spacing: 20) {
+					ZStack {
+						Circle()
+							.fill(
+								LinearGradient(
+									colors: [.blue.opacity(0.2), .green.opacity(0.2)],
+									startPoint: .topLeading,
+									endPoint: .bottomTrailing
+								)
+							)
+							.frame(width: 100, height: 100)
+							.shadow(color: .blue.opacity(0.1), radius: 10, x: 0, y: 5)
+
+						Image(systemName: "arrow.up.doc.fill")
+							.font(.system(size: 44, weight: .bold))
+							.foregroundStyle(
+								LinearGradient(
+									colors: [.blue, .green],
+									startPoint: .topLeading,
+									endPoint: .bottomTrailing
+								)
+							)
+					}
+
+					VStack(spacing: 8) {
+						Text(.localized("Backup & Restore"))
+							.font(.title2.bold())
+						Text(.localized("Keep your data safe by creating backups or restoring from a previous one."))
+							.font(.subheadline)
+							.foregroundStyle(.secondary)
+							.multilineTextAlignment(.center)
+							.padding(.horizontal, 32)
+					}
+				}
+				.frame(maxWidth: .infinity)
+				.padding(.vertical, 24)
+			}
+			.listRowBackground(Color.clear)
+			.listRowInsets(EdgeInsets())
+
 			// Modernized Header Card
 			Section {
 				VStack(spacing: 0) {
 					HStack(spacing: 12) {
 						// Backup Card
-						VStack(spacing: 16) {
+						VStack(spacing: 20) {
 							ZStack {
 								Circle()
-									.fill(Color.blue.opacity(0.1))
-									.frame(width: 64, height: 64)
+									.fill(Color.blue.opacity(0.12))
+									.frame(width: 72, height: 72)
 								
 								Image(systemName: "arrow.up.doc.fill")
-									.font(.system(size: 28, weight: .bold))
+									.font(.system(size: 32, weight: .bold))
 									.foregroundStyle(
 										LinearGradient(
 											colors: [.blue, .cyan],
@@ -55,52 +97,56 @@ struct BackupRestoreView: View {
 									)
 							}
 							
-							VStack(spacing: 4) {
+							VStack(spacing: 6) {
 								Text(.localized("Backup"))
-									.font(.headline)
+									.font(.system(.headline, design: .rounded, weight: .bold))
 								Text(.localized("Save your data"))
-									.font(.caption)
+									.font(.system(.caption, design: .rounded))
 									.foregroundStyle(.secondary)
 							}
 							
 							Button {
 								showBackupOptions = true
 							} label: {
-								Text(.localized("Create"))
-									.font(.subheadline.bold())
-									.foregroundStyle(.white)
-									.frame(maxWidth: .infinity)
-									.padding(.vertical, 10)
-									.background(
-										LinearGradient(
-											colors: [.blue, .cyan],
-											startPoint: .leading,
-											endPoint: .trailing
-										)
+								HStack(spacing: 8) {
+									Image(systemName: "plus.circle.fill")
+										.font(.system(size: 14, weight: .bold))
+									Text(.localized("Create"))
+										.font(.system(.subheadline, design: .rounded, weight: .bold))
+								}
+								.foregroundStyle(.white)
+								.frame(maxWidth: .infinity)
+								.padding(.vertical, 12)
+								.background(
+									LinearGradient(
+										colors: [.blue, .cyan],
+										startPoint: .leading,
+										endPoint: .trailing
 									)
-									.clipShape(RoundedRectangle(cornerRadius: 12))
-									.shadow(color: .blue.opacity(0.3), radius: 5, x: 0, y: 3)
+								)
+								.clipShape(RoundedRectangle(cornerRadius: 16))
+								.shadow(color: .blue.opacity(0.3), radius: 8, x: 0, y: 4)
 							}
 						}
-						.padding(20)
+						.padding(24)
 						.background(
-							RoundedRectangle(cornerRadius: 24)
+							RoundedRectangle(cornerRadius: 28, style: .continuous)
 								.fill(.ultraThinMaterial)
 								.overlay(
-									RoundedRectangle(cornerRadius: 24)
-										.stroke(Color.blue.opacity(0.1), lineWidth: 1)
+									RoundedRectangle(cornerRadius: 28, style: .continuous)
+										.stroke(Color.blue.opacity(0.15), lineWidth: 1)
 								)
 						)
 						
 						// Restore Card
-						VStack(spacing: 16) {
+						VStack(spacing: 20) {
 							ZStack {
 								Circle()
-									.fill(Color.green.opacity(0.1))
-									.frame(width: 64, height: 64)
+									.fill(Color.green.opacity(0.12))
+									.frame(width: 72, height: 72)
 								
 								Image(systemName: "arrow.down.doc.fill")
-									.font(.system(size: 28, weight: .bold))
+									.font(.system(size: 32, weight: .bold))
 									.foregroundStyle(
 										LinearGradient(
 											colors: [.green, .mint],
@@ -110,40 +156,44 @@ struct BackupRestoreView: View {
 									)
 							}
 							
-							VStack(spacing: 4) {
+							VStack(spacing: 6) {
 								Text(.localized("Restore"))
-									.font(.headline)
+									.font(.system(.headline, design: .rounded, weight: .bold))
 								Text(.localized("Load a backup"))
-									.font(.caption)
+									.font(.system(.caption, design: .rounded))
 									.foregroundStyle(.secondary)
 							}
 							
 							Button {
 								isImporting = true
 							} label: {
-								Text(.localized("Import"))
-									.font(.subheadline.bold())
-									.foregroundStyle(.white)
-									.frame(maxWidth: .infinity)
-									.padding(.vertical, 10)
-									.background(
-										LinearGradient(
-											colors: [.green, .mint],
-											startPoint: .leading,
-											endPoint: .trailing
-										)
+								HStack(spacing: 8) {
+									Image(systemName: "arrow.down.circle.fill")
+										.font(.system(size: 14, weight: .bold))
+									Text(.localized("Import"))
+										.font(.system(.subheadline, design: .rounded, weight: .bold))
+								}
+								.foregroundStyle(.white)
+								.frame(maxWidth: .infinity)
+								.padding(.vertical, 12)
+								.background(
+									LinearGradient(
+										colors: [.green, .mint],
+										startPoint: .leading,
+										endPoint: .trailing
 									)
-									.clipShape(RoundedRectangle(cornerRadius: 12))
-									.shadow(color: .green.opacity(0.3), radius: 5, x: 0, y: 3)
+								)
+								.clipShape(RoundedRectangle(cornerRadius: 16))
+								.shadow(color: .green.opacity(0.3), radius: 8, x: 0, y: 4)
 							}
 						}
-						.padding(20)
+						.padding(24)
 						.background(
-							RoundedRectangle(cornerRadius: 24)
+							RoundedRectangle(cornerRadius: 28, style: .continuous)
 								.fill(.ultraThinMaterial)
 								.overlay(
-									RoundedRectangle(cornerRadius: 24)
-										.stroke(Color.green.opacity(0.1), lineWidth: 1)
+									RoundedRectangle(cornerRadius: 28, style: .continuous)
+										.stroke(Color.green.opacity(0.15), lineWidth: 1)
 								)
 						)
 					}
@@ -154,7 +204,7 @@ struct BackupRestoreView: View {
 			
 			// Advanced Tools Section
 			if advancedBackupTools {
-				NBSection(.localized("Advanced Tools")) {
+				Section {
 					Button {
 						exportFullDatabase()
 					} label: {
@@ -167,11 +217,13 @@ struct BackupRestoreView: View {
 					} label: {
 						Label(.localized("Verify Backup Integrity"), systemImage: "shield.checkerboard")
 					}
+				} header: {
+					AppearanceSectionHeader(title: String.localized("Advanced Tools"), icon: "wrench.and.screwdriver.fill")
 				}
 			}
 
 			// Information sections with modern cards
-			NBSection(.localized("About Backups (Beta)")) {
+			Section {
 				infoCard(
 					icon: "checkmark.shield.fill",
 					iconColor: .blue,
@@ -185,6 +237,8 @@ struct BackupRestoreView: View {
 					title: .localized("Important"),
 					description: .localized("Restoring requires the app to restart. Certificate restoration preserves files for manual re-import if needed.")
 				)
+			} header: {
+				AppearanceSectionHeader(title: String.localized("About Backups (Beta)"), icon: "info.circle.fill")
 			}
 		}
 		.sheet(isPresented: $showBackupOptions) {
@@ -198,6 +252,26 @@ struct BackupRestoreView: View {
 					}
 				}
 			)
+		}
+		.sheet(isPresented: $isImporting) {
+			FileImporterRepresentableView(
+				allowedContentTypes: [.zip],
+				allowsMultipleSelection: false,
+				onDocumentsPicked: { urls in
+					isImporting = false
+
+					guard let url = urls.first else { return }
+
+					if isVerifying {
+						verifyBackup(at: url)
+						isVerifying = false
+					} else {
+						pendingRestoreURL = url
+						showRestoreDialog = true
+					}
+				}
+			)
+			.ignoresSafeArea()
 		}
 		.fileExporter(
 			isPresented: $showExporter,
@@ -218,26 +292,6 @@ struct BackupRestoreView: View {
 				try? FileManager.default.removeItem(at: tempURL)
 			}
 			backupDocument = nil
-		}
-		.fileImporter(
-			isPresented: $isImporting,
-			allowedContentTypes: [.zip],
-			allowsMultipleSelection: false
-		) { result in
-			switch result {
-			case .success(let urls):
-				guard let url = urls.first else { return }
-				if isVerifying {
-					verifyBackup(at: url)
-					isVerifying = false
-				} else {
-					pendingRestoreURL = url
-					showRestoreDialog = true
-				}
-			case .failure(let error):
-				AppLogManager.shared.error("Failed to import: \(error.localizedDescription)", category: "Backup & Restore")
-				isVerifying = false
-			}
 		}
 		.alert(.localized("Restart Required"), isPresented: $showRestoreDialog) {
 			Button(.localized("No"), role: .cancel) {
