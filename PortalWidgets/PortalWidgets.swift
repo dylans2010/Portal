@@ -151,7 +151,6 @@ struct PortalLegacyTimelineProvider: TimelineProvider {
 #if compiler(>=5.9)
 @main
 struct PortalWidgetsBundle: WidgetBundle {
-    @WidgetBundleBuilder
     var body: some Widget {
         if #available(iOS 17.0, *) {
             QuickActionsWidget()
@@ -167,7 +166,6 @@ struct PortalWidgetsBundle: WidgetBundle {
 #else
 @main
 struct PortalWidgetsBundleLegacy: WidgetBundle {
-    @WidgetBundleBuilder
     var body: some Widget {
         QuickActionsWidgetLegacy()
         CertificateStatusWidgetLegacy()
