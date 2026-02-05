@@ -18,9 +18,11 @@ jobs:
         with:
           submodules: 'true'
       
+      - name: Ensure Xcode Command Line Tools installed
+        run: sudo xcode-select --switch /Applications/Xcode_16.2.app/Contents/Developer
+
       - name: Select Latest Xcode
         run: |
-          sudo xcode-select -s /Applications/Xcode_16.2.app/Contents/Developer
           xcodebuild -version
           xcodebuild -showsdks
           echo "Available iOS SDKs:"
@@ -28,6 +30,7 @@ jobs:
 
       - name: Install Dependencies
         run: |
+          brew install llvm
           brew install libplist
           brew install pkg-config
 
