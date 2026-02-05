@@ -7,14 +7,24 @@ struct LiveActivitySettingsView: View {
     @AppStorage("liveActivityShowTimeRemaining") private var showTimeRemaining: Bool = true
     @AppStorage("liveActivityShowIcon") private var showIcon: Bool = true
     @AppStorage("liveActivityEnabled") private var liveActivityEnabled: Bool = true
+    @AppStorage("liveActivityAccentColor") private var accentColor: String = "#007AFF"
+    @AppStorage("liveActivityBackgroundMaterial") private var backgroundMaterial: String = "regular"
+    @AppStorage("liveActivityFontFamily") private var fontFamily: String = "system"
+    @AppStorage("liveActivityFontWeight") private var fontWeight: String = "medium"
+    @AppStorage("liveActivityProgressBarStyle") private var progressBarStyle: String = "gradient"
+    @AppStorage("liveActivityIconSize") private var iconSize: String = "medium"
+    @AppStorage("liveActivityDetailDensity") private var detailDensity: String = "normal"
+    @AppStorage("liveActivityAnimationStyle") private var animationStyle: String = "smooth"
     
     @State private var showPreview = false
+    @State private var showColorPicker = false
     
     var body: some View {
         NBNavigationView("Live Activity Settings") {
             List {
                 enabledSection
                 styleSection
+                appearanceSection
                 displayOptionsSection
                 previewSection
                 infoSection
@@ -108,6 +118,136 @@ struct LiveActivitySettingsView: View {
             Text("Choose how installation progress appears in Live Activities")
                 .font(.caption)
                 .foregroundColor(.secondary)
+        }
+    }
+    
+    private var appearanceSection: some View {
+        Section {
+            // Accent Color
+            Button {
+                showColorPicker.toggle()
+                HapticsManager.shared.light()
+            } label: {
+                HStack(spacing: 12) {
+                    Circle()
+                        .fill(Color(hex: accentColor) ?? .blue)
+                        .frame(width: 28, height: 28)
+                    
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Accent Color")
+                            .font(.body)
+                            .foregroundColor(.primary)
+                        
+                        Text(accentColor)
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                    
+                    Spacer()
+                    
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundColor(.secondary)
+                }
+                .padding(.vertical, 4)
+            }
+            
+            // Background Material
+            Picker("Background Material", selection: $backgroundMaterial) {
+                Text("Regular").tag("regular")
+                Text("Thin").tag("thin")
+                Text("Thick").tag("thick")
+                Text("Ultra Thin").tag("ultraThin")
+                Text("Ultra Thick").tag("ultraThick")
+            }
+            
+            // Font Family
+            Picker("Font Family", selection: $fontFamily) {
+                Text("System").tag("system")
+                Text("Rounded").tag("rounded")
+                Text("Monospaced").tag("monospaced")
+                Text("Serif").tag("serif")
+            }
+            
+            // Font Weight
+            Picker("Font Weight", selection: $fontWeight) {
+                Text("Regular").tag("regular")
+                Text("Medium").tag("medium")
+                Text("Semibold").tag("semibold")
+                Text("Bold").tag("bold")
+            }
+            
+            // Progress Bar Style
+            Picker("Progress Bar Style", selection: $progressBarStyle) {
+                Text("Linear").tag("linear")
+                Text("Gradient").tag("gradient")
+                Text("Circular").tag("circular")
+            }
+            
+            // Icon Size
+            Picker("Icon Size", selection: $iconSize) {
+                Text("Small").tag("small")
+                Text("Medium").tag("medium")
+                Text("Large").tag("large")
+            }
+            
+            // Detail Density
+            Picker("Detail Density", selection: $detailDensity) {
+                Text("Minimal").tag("minimal")
+                Text("Normal").tag("normal")
+                Text("Detailed").tag("detailed")
+            }
+            
+            // Animation Style
+            Picker("Animation Style", selection: $animationStyle) {
+                Text("Smooth").tag("smooth")
+                Text("Spring").tag("spring")
+                Text("Instant").tag("instant")
+            }
+        } header: {
+            Text("Appearance")
+                .font(.system(size: 11, weight: .semibold))
+        } footer: {
+            Text("Customize the visual appearance of Live Activities")
+                .font(.caption)
+                .foregroundColor(.secondary)
+        }
+        .sheet(isPresented: $showColorPicker) {
+            NavigationStack {
+                VStack(spacing: 20) {
+                    Text("Choose Accent Color")
+                        .font(.title2.bold())
+                        .padding(.top)
+                    
+                    LazyVGrid(columns: [GridItem(.adaptive(minimum: 50))], spacing: 16) {
+                        ForEach(["#007AFF", "#FF3B30", "#34C759", "#FF9500", "#AF52DE", "#FF2D55", "#5856D6", "#FFCC00"], id: \.self) { hex in
+                            Button {
+                                accentColor = hex
+                                showColorPicker = false
+                                HapticsManager.shared.light()
+                            } label: {
+                                Circle()
+                                    .fill(Color(hex: hex) ?? .blue)
+                                    .frame(width: 50, height: 50)
+                                    .overlay(
+                                        Circle()
+                                            .stroke(accentColor == hex ? Color.primary : Color.clear, lineWidth: 3)
+                                    )
+                            }
+                        }
+                    }
+                    .padding()
+                    
+                    Spacer()
+                }
+                .toolbar {
+                    ToolbarItem(placement: .navigationBarTrailing) {
+                        Button("Done") {
+                            showColorPicker = false
+                        }
+                    }
+                }
+            }
         }
     }
     
