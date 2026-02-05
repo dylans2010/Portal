@@ -213,7 +213,41 @@ struct LiveActivitySettingsView: View {
                 .foregroundColor(.secondary)
         }
         .sheet(isPresented: $showColorPicker) {
-            ColorPickerSheetView(selectedColor: $accentColor)
+            NavigationStack {
+                VStack(spacing: 20) {
+                    Text("Choose Accent Color")
+                        .font(.title2.bold())
+                        .padding(.top)
+                    
+                    LazyVGrid(columns: [GridItem(.adaptive(minimum: 50))], spacing: 16) {
+                        ForEach(["#007AFF", "#FF3B30", "#34C759", "#FF9500", "#AF52DE", "#FF2D55", "#5856D6", "#FFCC00"], id: \.self) { hex in
+                            Button {
+                                accentColor = hex
+                                showColorPicker = false
+                                HapticsManager.shared.light()
+                            } label: {
+                                Circle()
+                                    .fill(Color(hex: hex) ?? .blue)
+                                    .frame(width: 50, height: 50)
+                                    .overlay(
+                                        Circle()
+                                            .stroke(accentColor == hex ? Color.primary : Color.clear, lineWidth: 3)
+                                    )
+                            }
+                        }
+                    }
+                    .padding()
+                    
+                    Spacer()
+                }
+                .toolbar {
+                    ToolbarItem(placement: .navigationBarTrailing) {
+                        Button("Done") {
+                            showColorPicker = false
+                        }
+                    }
+                }
+            }
         }
     }
     
