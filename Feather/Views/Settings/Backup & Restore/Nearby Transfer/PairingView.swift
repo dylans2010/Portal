@@ -1004,10 +1004,11 @@ struct RestoreOptionsView: View {
 extension View {
     @ViewBuilder
     func ifAvailableiOS18SymbolPulse() -> some View {
-        if #available(iOS 18.0, *) {
+        if #available(iOS 17.0, *) {
             self.symbolEffect(.pulse, options: .repeating)
         } else {
             self
+        }
         }
     }
 }
