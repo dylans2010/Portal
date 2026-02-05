@@ -33,10 +33,10 @@ jobs:
 
       - name: Resolve Swift Dependencies
         run: |
-          cd IDeviceKitten && swift package resolve || true
-          cd ../AltSourceKit && swift package resolve || true
-          cd ../NimbleKit && swift package resolve || true
-          cd ../Zsign && swift package resolve || true
+          cd "$GITHUB_WORKSPACE/IDeviceKitten" && swift package resolve
+          cd "$GITHUB_WORKSPACE/AltSourceKit" && swift package resolve
+          cd "$GITHUB_WORKSPACE/NimbleKit" && swift package resolve
+          cd "$GITHUB_WORKSPACE/Zsign" && swift package resolve
 
       - name: Clean Build Environment
         run: |
