@@ -26,6 +26,18 @@ jobs:
           echo "Available iOS SDKs:"
           xcodebuild -showsdks | grep iphoneos
 
+      - name: Install Dependencies
+        run: |
+          brew install libplist
+          brew install pkg-config
+
+      - name: Resolve Swift Dependencies
+        run: |
+          cd IDeviceKitten && swift package resolve || true
+          cd ../AltSourceKit && swift package resolve || true
+          cd ../NimbleKit && swift package resolve || true
+          cd ../Zsign && swift package resolve || true
+
       - name: Clean Build Environment
         run: |
           make clean || true
