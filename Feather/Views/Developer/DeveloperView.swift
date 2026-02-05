@@ -7574,14 +7574,7 @@ struct APILogsView: View {
 
 // MARK: - Nearby Transfer Simulation View
 struct NearbyTransferSimulationView: View {
-    @State private var selectedMode: SimulationMode = .sender
-    @State private var simulationStep: Int = 0
     @AppStorage("Feather.simulateNearbyTransfer") private var simulateNearbyTransfer = false
-    
-    enum SimulationMode: String, CaseIterable {
-        case sender = "Sender"
-        case recipient = "Recipient"
-    }
     
     var body: some View {
         NBList(.localized("Nearby Transfer Simulation")) {
@@ -7603,310 +7596,210 @@ struct NearbyTransferSimulationView: View {
                 .padding(.vertical, 8)
             }
             
-            // Mode Selection
+            // All UI Views Section
             Section {
-                Picker("Simulation Mode", selection: $selectedMode) {
-                    ForEach(SimulationMode.allCases, id: \.self) { mode in
-                        Text(mode.rawValue).tag(mode)
-                    }
+                NavigationLink(destination: SimulatedPairingView()) {
+                    viewNavigationRow(
+                        icon: "antenna.radiowaves.left.and.right",
+                        title: "Pairing View",
+                        subtitle: "Sender & Receiver modes",
+                        color: .blue
+                    )
                 }
-                .pickerStyle(.segmented)
-                .onChange(of: selectedMode) { _ in
-                    simulationStep = 0
+                
+                NavigationLink(destination: SimulatedOTPPairingView()) {
+                    viewNavigationRow(
+                        icon: "key.fill",
+                        title: "Remote Pairing (OTP)",
+                        subtitle: "6-digit code pairing",
+                        color: .purple
+                    )
+                }
+                
+                NavigationLink(destination: SimulatedSenderAnimationView()) {
+                    viewNavigationRow(
+                        icon: "arrow.up.circle.fill",
+                        title: "Sender Animation",
+                        subtitle: "Transfer animation for sender",
+                        color: .green
+                    )
+                }
+                
+                NavigationLink(destination: SimulatedReceiverAnimationView()) {
+                    viewNavigationRow(
+                        icon: "arrow.down.circle.fill",
+                        title: "Receiver Animation",
+                        subtitle: "Transfer animation for receiver",
+                        color: .cyan
+                    )
+                }
+                
+                NavigationLink(destination: SimulatedTransferProgressView()) {
+                    viewNavigationRow(
+                        icon: "chart.line.uptrend.xyaxis",
+                        title: "Transfer Progress",
+                        subtitle: "Real-time progress tracking",
+                        color: .orange
+                    )
+                }
+                
+                NavigationLink(destination: SimulatedPreflightCheckView()) {
+                    viewNavigationRow(
+                        icon: "checkmark.circle.fill",
+                        title: "Preflight Check",
+                        subtitle: "Backup validation before transfer",
+                        color: .green
+                    )
+                }
+                
+                NavigationLink(destination: SimulatedPostRestoreHealthCheckView()) {
+                    viewNavigationRow(
+                        icon: "heart.text.square.fill",
+                        title: "Post-Restore Health Check",
+                        subtitle: "Verification after restore",
+                        color: .red
+                    )
+                }
+                
+                NavigationLink(destination: SimulatedConflictResolverView()) {
+                    viewNavigationRow(
+                        icon: "arrow.triangle.merge",
+                        title: "Conflict Resolver",
+                        subtitle: "Handle duplicate items",
+                        color: .yellow
+                    )
                 }
             } header: {
-                AppearanceSectionHeader(title: String.localized("Select Mode"), icon: "person.2.fill")
-            }
-            
-            // Simulation Steps
-            if selectedMode == .sender {
-                senderSimulationSteps
-            } else {
-                recipientSimulationSteps
-            }
-            
-            // Controls
-            Section {
-                HStack {
-                    Button {
-                        if simulationStep > 0 {
-                            simulationStep -= 1
-                        }
-                    } label: {
-                        HStack {
-                            Image(systemName: "arrow.left")
-                            Text("Previous")
-                        }
-                        .frame(maxWidth: .infinity)
-                    }
-                    .disabled(simulationStep == 0)
-                    
-                    Divider()
-                        .frame(height: 30)
-                    
-                    Button {
-                        if simulationStep < 4 {
-                            simulationStep += 1
-                        }
-                    } label: {
-                        HStack {
-                            Text("Next")
-                            Image(systemName: "arrow.right")
-                        }
-                        .frame(maxWidth: .infinity)
-                    }
-                    .disabled(simulationStep == 4)
-                }
-                .buttonStyle(.bordered)
+                AppearanceSectionHeader(title: String.localized("All UI Views"), icon: "eye.fill")
             } footer: {
-                Text("Step \(simulationStep + 1) of 5")
+                Text("Tap any view to see its UI in simulation mode. No actual data transfer will occur.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
-            }
-            
-            // Reset Button
-            Section {
-                Button(role: .destructive) {
-                    simulationStep = 0
-                } label: {
-                    HStack {
-                        Image(systemName: "arrow.counterclockwise")
-                        Text("Reset Simulation")
-                    }
-                    .frame(maxWidth: .infinity)
-                }
             }
         }
         .navigationTitle("Transfer Simulation")
         .navigationBarTitleDisplayMode(.inline)
     }
     
-    // MARK: - Sender Simulation Steps
+    // MARK: - Helper View
     @ViewBuilder
-    private var senderSimulationSteps: some View {
-        Section {
-            VStack(alignment: .leading, spacing: 16) {
-                switch simulationStep {
-                case 0:
-                    stepView(
-                        icon: "person.wave.2.fill",
-                        title: "Starting as Sender",
-                        description: "You are initiating a backup transfer to another device.",
-                        color: .blue
-                    )
-                case 1:
-                    stepView(
-                        icon: "key.fill",
-                        title: "Generating OTP Code",
-                        description: "A 6-digit code is generated for secure pairing.",
-                        color: .green
-                    )
-                    otpCodeDisplay(code: "123456")
-                case 2:
-                    stepView(
-                        icon: "wifi.circle.fill",
-                        title: "Waiting for Recipient",
-                        description: "Share the code with the recipient device to establish connection.",
-                        color: .orange
-                    )
-                    ProgressView()
-                        .frame(maxWidth: .infinity, alignment: .center)
-                        .padding()
-                case 3:
-                    stepView(
-                        icon: "checkmark.circle.fill",
-                        title: "Device Connected",
-                        description: "Recipient device has connected successfully.",
-                        color: .green
-                    )
-                    connectedDeviceCard(deviceName: "iPhone 14 Pro")
-                case 4:
-                    stepView(
-                        icon: "arrow.up.doc.fill",
-                        title: "Transferring Data",
-                        description: "Backup data is being sent to the recipient device.",
-                        color: .purple
-                    )
-                    transferProgressCard(progress: 0.65)
-                default:
-                    EmptyView()
-                }
-            }
-            .padding(.vertical, 8)
-        } header: {
-            AppearanceSectionHeader(title: String.localized("Sender Flow"), icon: "arrow.up.circle.fill")
-        }
-    }
-    
-    // MARK: - Recipient Simulation Steps
-    @ViewBuilder
-    private var recipientSimulationSteps: some View {
-        Section {
-            VStack(alignment: .leading, spacing: 16) {
-                switch simulationStep {
-                case 0:
-                    stepView(
-                        icon: "person.crop.circle.fill",
-                        title: "Starting as Recipient",
-                        description: "You will receive a backup from another device.",
-                        color: .blue
-                    )
-                case 1:
-                    stepView(
-                        icon: "keyboard.fill",
-                        title: "Enter OTP Code",
-                        description: "Enter the 6-digit code shown on the sender device.",
-                        color: .orange
-                    )
-                    otpInputDisplay()
-                case 2:
-                    stepView(
-                        icon: "magnifyingglass.circle.fill",
-                        title: "Validating Code",
-                        description: "Verifying the code and searching for the sender device.",
-                        color: .yellow
-                    )
-                    ProgressView()
-                        .frame(maxWidth: .infinity, alignment: .center)
-                        .padding()
-                case 3:
-                    stepView(
-                        icon: "checkmark.shield.fill",
-                        title: "Sender Found",
-                        description: "Sender device verified. Confirm to begin transfer.",
-                        color: .green
-                    )
-                    connectedDeviceCard(deviceName: "iPad Air")
-                case 4:
-                    stepView(
-                        icon: "arrow.down.doc.fill",
-                        title: "Receiving Data",
-                        description: "Backup data is being received from the sender.",
-                        color: .purple
-                    )
-                    transferProgressCard(progress: 0.45)
-                default:
-                    EmptyView()
-                }
-            }
-            .padding(.vertical, 8)
-        } header: {
-            AppearanceSectionHeader(title: String.localized("Recipient Flow"), icon: "arrow.down.circle.fill")
-        }
-    }
-    
-    // MARK: - Helper Views
-    @ViewBuilder
-    private func stepView(icon: String, title: String, description: String, color: Color) -> some View {
+    private func viewNavigationRow(icon: String, title: String, subtitle: String, color: Color) -> some View {
         HStack(spacing: 16) {
             ZStack {
-                Circle()
+                RoundedRectangle(cornerRadius: 10, style: .continuous)
                     .fill(color.opacity(0.15))
-                    .frame(width: 50, height: 50)
+                    .frame(width: 44, height: 44)
                 
                 Image(systemName: icon)
-                    .font(.title2)
+                    .font(.title3)
                     .foregroundStyle(color)
             }
             
             VStack(alignment: .leading, spacing: 4) {
                 Text(title)
                     .font(.headline)
-                Text(description)
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-            }
-        }
-    }
-    
-    @ViewBuilder
-    private func otpCodeDisplay(code: String) -> some View {
-        HStack(spacing: 8) {
-            ForEach(Array(code.enumerated()), id: \.offset) { index, char in
-                Text(String(char))
-                    .font(.system(size: 32, weight: .bold, design: .rounded))
-                    .frame(width: 45, height: 55)
-                    .background(Color.blue.opacity(0.1))
-                    .clipShape(RoundedRectangle(cornerRadius: 10))
-            }
-        }
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, 8)
-    }
-    
-    @ViewBuilder
-    private func otpInputDisplay() -> some View {
-        HStack(spacing: 8) {
-            ForEach(0..<6, id: \.self) { index in
-                Text(index < 3 ? String(index + 1) : "")
-                    .font(.system(size: 32, weight: .bold, design: .rounded))
-                    .frame(width: 45, height: 55)
-                    .background(Color.secondary.opacity(0.1))
-                    .clipShape(RoundedRectangle(cornerRadius: 10))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 10)
-                            .stroke(index == 3 ? Color.blue : Color.clear, lineWidth: 2)
-                    )
-            }
-        }
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, 8)
-    }
-    
-    @ViewBuilder
-    private func connectedDeviceCard(deviceName: String) -> some View {
-        HStack(spacing: 12) {
-            Image(systemName: "iphone")
-                .font(.largeTitle)
-                .foregroundStyle(.blue)
-            
-            VStack(alignment: .leading, spacing: 4) {
-                Text(deviceName)
-                    .font(.headline)
-                Text("Connected")
+                Text(subtitle)
                     .font(.caption)
-                    .foregroundStyle(.green)
+                    .foregroundStyle(.secondary)
             }
             
             Spacer()
         }
-        .padding()
-        .background(
-            RoundedRectangle(cornerRadius: 12)
-                .fill(Color.blue.opacity(0.1))
-        )
+        .padding(.vertical, 4)
     }
+}
+
+// MARK: - Simulated View Wrappers (using actual views)
+
+struct SimulatedPairingView: View {
+    @StateObject private var service = NearbyTransferService()
+    @AppStorage("Feather.simulateNearbyTransfer") private var simulateNearbyTransfer = true
     
-    @ViewBuilder
-    private func transferProgressCard(progress: Double) -> some View {
-        VStack(spacing: 12) {
-            HStack {
-                Text("Transferring...")
-                    .font(.headline)
-                Spacer()
-                Text("\(Int(progress * 100))%")
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
+    var body: some View {
+        PairingView()
+            .onDisappear {
+                service.stop() // Ensure no actual connections are made
             }
-            
-            ProgressView(value: progress)
-                .progressViewStyle(.linear)
-            
-            HStack {
-                Text("\(Int(progress * 250)) MB / 250 MB")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                Spacer()
-                Text("~\(Int((1 - progress) * 120)) seconds remaining")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
+    }
+}
+
+struct SimulatedOTPPairingView: View {
+    @AppStorage("Feather.simulateNearbyTransfer") private var simulateNearbyTransfer = true
+    
+    var body: some View {
+        PairingThroughOTPView()
+    }
+}
+
+struct SimulatedSenderAnimationView: View {
+    var body: some View {
+        SenderAnimationView(state: .transferring(progress: 0.65, bytesTransferred: 650_000_000, totalBytes: 1_000_000_000, speed: 5_000_000))
+            .navigationTitle("Sender Animation")
+            .navigationBarTitleDisplayMode(.inline)
+    }
+}
+
+struct SimulatedReceiverAnimationView: View {
+    var body: some View {
+        ReceiverAnimationView(state: .transferring(progress: 0.45, bytesTransferred: 450_000_000, totalBytes: 1_000_000_000, speed: 4_500_000))
+            .navigationTitle("Receiver Animation")
+            .navigationBarTitleDisplayMode(.inline)
+    }
+}
+
+struct SimulatedTransferProgressView: View {
+    @StateObject private var service = NearbyTransferService()
+    
+    var body: some View {
+        TransferProgressView(
+            service: service,
+            onCancel: {
+                print("Simulated transfer - Cancel tapped")
+                service.cancelTransfer()
+            },
+            onRetry: {
+                print("Simulated transfer - Retry tapped")
             }
-        }
-        .padding()
-        .background(
-            RoundedRectangle(cornerRadius: 12)
-                .fill(Color.purple.opacity(0.1))
         )
+        .navigationTitle("Transfer Progress")
+        .navigationBarTitleDisplayMode(.inline)
+        .onAppear {
+            // Simulate transfer state
+            service.state = .transferring(progress: 0.65, bytesTransferred: 650_000_000, totalBytes: 1_000_000_000, speed: 5_000_000)
+        }
+    }
+}
+
+struct SimulatedPreflightCheckView: View {
+    var body: some View {
+        PreflightCheckView(
+            onContinue: { print("Simulated preflight check - Continue tapped") }
+        )
+        .navigationTitle("Preflight Check")
+        .navigationBarTitleDisplayMode(.inline)
+    }
+}
+
+struct SimulatedPostRestoreHealthCheckView: View {
+    var body: some View {
+        PostRestoreHealthCheckView(
+            onComplete: { print("Simulated health check - Complete tapped") }
+        )
+        .navigationTitle("Post-Restore Health Check")
+        .navigationBarTitleDisplayMode(.inline)
+    }
+}
+
+struct SimulatedConflictResolverView: View {
+    var body: some View {
+        ConflictResolverView(
+            backupDirectory: FileManager.default.temporaryDirectory,
+            onResolve: { conflicts in
+                print("Simulated conflict resolution for \(conflicts.count) conflicts")
+            }
+        )
+        .navigationTitle("Conflict Resolver")
+        .navigationBarTitleDisplayMode(.inline)
     }
 }
 

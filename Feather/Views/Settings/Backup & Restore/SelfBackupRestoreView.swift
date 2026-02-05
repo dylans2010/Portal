@@ -290,13 +290,15 @@ struct SelfBackupRestoreView: View {
         }
         .sheet(isPresented: $showingDocumentPicker) {
             if let backupType = UTType(filenameExtension: "backup") {
-                DocumentPicker(
+                FileImporterRepresentableView(
                     allowedContentTypes: [backupType],
-                    onPick: { url in
+                    allowsMultipleSelection: false,
+                    onDocumentsPicked: { urls in
+                        showingDocumentPicker = false
+                        guard let url = urls.first else { return }
                         Task {
                             await viewModel.importBackup(from: url)
                         }
-                        showingDocumentPicker = false
                     }
                 )
             } else {
@@ -1153,34 +1155,5 @@ struct LegacyRestoreSelectionView: View {
     }
 }
 
-// MARK: - Document Picker
-struct DocumentPicker: UIViewControllerRepresentable {
-    let allowedContentTypes: [UTType]
-    let onPick: (URL) -> Void
-    
-    func makeUIViewController(context: Context) -> UIDocumentPickerViewController {
-        let picker = UIDocumentPickerViewController(forOpeningContentTypes: allowedContentTypes)
-        picker.delegate = context.coordinator
-        picker.allowsMultipleSelection = false
-        return picker
-    }
-    
-    func updateUIViewController(_ uiViewController: UIDocumentPickerViewController, context: Context) {}
-    
-    func makeCoordinator() -> Coordinator {
-        Coordinator(onPick: onPick)
-    }
-    
-    class Coordinator: NSObject, UIDocumentPickerDelegate {
-        let onPick: (URL) -> Void
-        
-        init(onPick: @escaping (URL) -> Void) {
-            self.onPick = onPick
-        }
-        
-        func documentPicker(_ controller: UIDocumentPickerViewController, didPickDocumentsAt urls: [URL]) {
-            guard let url = urls.first else { return }
-            onPick(url)
-        }
-    }
-}
+// MARK: - Note: Using FileImporterRepresentableView from NimbleViews
+// This ensures consistency with the Library file picker implementation
