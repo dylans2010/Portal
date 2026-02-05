@@ -9,14 +9,16 @@ struct PortalWidgetsBundle: WidgetBundle {
             QuickActionsWidget()
             CertificateStatusWidget()
             AllInOneWidget()
-        } else {
-            QuickActionsWidgetLegacy()
-            CertificateStatusWidgetLegacy()
-            AllInOneWidgetLegacy()
         }
         
         if #available(iOS 16.1, *) {
             InstallationLiveActivityWidget()
+        }
+
+        if #unavailable(iOS 17.0) {
+            QuickActionsWidgetLegacy()
+            CertificateStatusWidgetLegacy()
+            AllInOneWidgetLegacy()
         }
     }
 }
