@@ -1,6 +1,23 @@
 framework module plist {
-  umbrella header "plist.h"
+  header "plist.h"
 
   export *
-  module * { export * }
+  
+  explicit module Cpp {
+    requires cplusplus
+    header "plist++.h"
+    header "Array.h"
+    header "Boolean.h"
+    header "Data.h"
+    header "Date.h"
+    header "Dictionary.h"
+    header "Integer.h"
+    header "Key.h"
+    header "Node.h"
+    header "Real.h"
+    header "String.h"
+    header "Structure.h"
+    header "Uid.h"
+    export *
+  }
 }
