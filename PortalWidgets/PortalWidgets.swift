@@ -99,7 +99,7 @@ struct PortalActionIntent: AppIntent {
 
     func perform() async throws -> some IntentResult {
         // App opens automatically due to openAppWhenRun = true
-        if let actionURL = URL(string: url) {
+        if URL(string: url) != nil {
             // We can also use UserDefaults to pass the specific action if needed,
             // but the URL scheme will be handled by the app if we can trigger it.
             // For now, opening the app is the primary goal.
