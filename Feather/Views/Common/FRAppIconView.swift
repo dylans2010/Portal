@@ -56,7 +56,7 @@ struct FRAppIconView: View {
 	}
 
 	private func loadIcons() async {
-		guard let bundleURL = await Storage.shared.getAppDirectory(for: _app) else { return }
+		guard let bundleURL = Storage.shared.getAppDirectory(for: _app) else { return }
 
 		let iconFilePath = bundleURL.appendingPathComponent(_app.icon ?? "")
 		if let uiImage = UIImage(contentsOfFile: iconFilePath.path) {

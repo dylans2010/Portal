@@ -1,6 +1,7 @@
 import SwiftUI
 
 // MARK: - Receiver Animation View
+@available(iOS 18.0, *)
 struct ReceiverAnimationView: View {
     let state: TransferState
     @State private var isAnimating = false

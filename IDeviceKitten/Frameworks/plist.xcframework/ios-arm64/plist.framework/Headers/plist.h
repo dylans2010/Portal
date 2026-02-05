@@ -88,6 +88,7 @@ extern "C"
 #include <sys/types.h>
 #include <stdarg.h>
 #include <stdio.h>
+#import "String.h"
 
     /**
      * libplist : A library to handle Apple Property Lists
