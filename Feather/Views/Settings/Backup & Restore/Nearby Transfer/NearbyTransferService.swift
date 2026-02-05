@@ -39,68 +39,68 @@ enum TransferMode {
 class NearbyTransferService: NSObject, ObservableObject {
     static let serviceType = "portal-backup"
     private let password = "PortalSecureTransfer2026" // Default password for encryption
-    
+
     @Published var state: TransferState = .idle
     @Published var discoveredPeers: [MCPeerID] = []
     @Published var discoveredPeersWithOTP: [(peer: MCPeerID, otp: String)] = []
     @Published var currentItem: String = ""
     @Published var canRetry: Bool = false
-    
+
     private var peerID: MCPeerID
     private var session: MCSession?
     private var advertiser: MCNearbyServiceAdvertiser?
     private var browser: MCNearbyServiceBrowser?
-    
+
     private var transferProgress: Progress?
     private var startTime: Date?
     private var lastBytesTransferred: Int64 = 0
     private var lastSpeedUpdate: Date?
-    
+
     var mode: TransferMode = .receive
     var currentOTP: String?
-    
+
     override init() {
         let deviceName = UIDevice.current.name
         self.peerID = MCPeerID(displayName: deviceName)
         super.init()
     }
-    
+
     // MARK: - Start/Stop
-    
+
     func startSendMode() {
         mode = .send
         setupSession()
         startBrowsing()
         state = .discovering
     }
-    
+
     func startReceiveMode() {
         mode = .receive
         setupSession()
         startAdvertising()
         state = .discovering
     }
-    
+
     func stop() {
         advertiser?.stopAdvertisingPeer()
         browser?.stopBrowsingForPeers()
         session?.disconnect()
-        
+
         advertiser = nil
         browser = nil
         session = nil
-        
+
         state = .idle
         discoveredPeers = []
     }
-    
+
     // MARK: - Setup
-    
+
     private func setupSession() {
         session = MCSession(peer: peerID, securityIdentity: nil, encryptionPreference: .required)
         session?.delegate = self
     }
-    
+
     private func startAdvertising() {
         // Include OTP in discovery info if available
         var discoveryInfo: [String: String]? = nil
@@ -111,72 +111,77 @@ class NearbyTransferService: NSObject, ObservableObject {
         advertiser?.delegate = self
         advertiser?.startAdvertisingPeer()
     }
-    
+
     func setOTP(_ otp: String) {
         currentOTP = otp
         // Restart advertising with new OTP if already advertising
-        if advertiser != nil {
-            advertiser?.stopAdvertisingPeer()
+        if let advertiser = advertiser {
+            advertiser.stopAdvertisingPeer()
+            // Small delay to ensure clean restart
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [weak self] in
+                self?.startAdvertising()
+            }
+        } else {
             startAdvertising()
         }
     }
-    
+
     private func startBrowsing() {
         browser = MCNearbyServiceBrowser(peer: peerID, serviceType: Self.serviceType)
         browser?.delegate = self
         browser?.startBrowsingForPeers()
     }
-    
+
     // MARK: - Send
-    
+
     func sendBackup(from backupDirectory: URL, to peer: MCPeerID) {
         guard let session = session else { return }
-        
+
         state = .connecting
         currentItem = "Preparing backup..."
-        
+
         Task {
             do {
                 // Create backup payload
                 let payload = try BackupPayload(backupDirectory: backupDirectory)
                 let encryptedData = try payload.encrypted(with: password)
-                
+
                 await MainActor.run {
                     currentItem = "Sending backup..."
                     startTime = Date()
                     lastBytesTransferred = 0
                     lastSpeedUpdate = Date()
                 }
-                
+
                 // Send size first
                 let sizeData = withUnsafeBytes(of: Int64(encryptedData.count)) { Data($0) }
                 try session.send(sizeData, toPeers: [peer], with: .reliable)
-                
+
                 // Send data in chunks
                 let chunkSize = 1024 * 1024 // 1 MB chunks
                 var offset = 0
-                
+
                 while offset < encryptedData.count {
                     let end = min(offset + chunkSize, encryptedData.count)
                     let chunk = encryptedData.subdata(in: offset..<end)
-                    
+
                     try session.send(chunk, toPeers: [peer], with: .reliable)
                     offset = end
-                    
+
                     let currentOffset = offset
                     await MainActor.run {
                         updateProgress(bytesTransferred: Int64(currentOffset), totalBytes: Int64(encryptedData.count))
                     }
-                    
+
                     // Small delay to prevent overwhelming the connection
                     try? await Task.sleep(nanoseconds: 10_000_000) // 10ms
                 }
-                
+
                 await MainActor.run {
                     state = .completed
                     currentItem = "Transfer completed"
                 }
-                
+
             } catch {
                 await MainActor.run {
                     state = .failed(error)
@@ -185,39 +190,47 @@ class NearbyTransferService: NSObject, ObservableObject {
             }
         }
     }
-    
+
     // MARK: - Receive
-    
+
     private var receivedData = Data()
     private var expectedSize: Int64 = 0
     private var isReceivingSize = true
-    
+
     func resetReceive() {
         receivedData = Data()
         expectedSize = 0
         isReceivingSize = true
     }
-    
+
     // MARK: - Connect
-    
+
     func connect(to peer: MCPeerID) {
-        guard let browser = browser else { return }
-        browser.invitePeer(peer, to: session!, withContext: nil, timeout: 30)
+        guard let session = session else {
+            state = .failed(NSError(domain: "NearbyTransferService", code: -1, userInfo: [NSLocalizedDescriptionKey: "Session not initialized"]))
+            return
+        }
+        guard let browser = browser else {
+            state = .failed(NSError(domain: "NearbyTransferService", code: -2, userInfo: [NSLocalizedDescriptionKey: "Browser not available"]))
+            return
+        }
+
+        browser.invitePeer(peer, to: session, withContext: nil, timeout: 30)
         state = .connecting
     }
-    
+
     // MARK: - Cancel
-    
+
     func cancelTransfer() {
         stop()
         canRetry = true
     }
-    
+
     // MARK: - Progress
-    
+
     private func updateProgress(bytesTransferred: Int64, totalBytes: Int64) {
         let progress = Double(bytesTransferred) / Double(totalBytes)
-        
+
         // Calculate speed
         var speed: Double = 0
         if let lastUpdate = lastSpeedUpdate, let _ = startTime {
@@ -234,7 +247,7 @@ class NearbyTransferService: NSObject, ObservableObject {
                 }
             }
         }
-        
+
         state = .transferring(progress: progress, bytesTransferred: bytesTransferred, totalBytes: totalBytes, speed: speed)
     }
 }
@@ -260,7 +273,7 @@ extension NearbyTransferService: MCSessionDelegate {
             }
         }
     }
-    
+
     func session(_ session: MCSession, didReceive data: Data, fromPeer peerID: MCPeerID) {
         DispatchQueue.main.async {
             if self.isReceivingSize {
@@ -282,7 +295,7 @@ extension NearbyTransferService: MCSessionDelegate {
             } else {
                 self.receivedData.append(data)
                 self.updateProgress(bytesTransferred: Int64(self.receivedData.count), totalBytes: self.expectedSize)
-                
+
                 if self.receivedData.count >= self.expectedSize {
                     // Transfer complete, decrypt and extract
                     self.processReceivedBackup()
@@ -290,28 +303,28 @@ extension NearbyTransferService: MCSessionDelegate {
             }
         }
     }
-    
+
     func session(_ session: MCSession, didReceive stream: InputStream, withName streamName: String, fromPeer peerID: MCPeerID) {
         // Not used
     }
-    
+
     func session(_ session: MCSession, didStartReceivingResourceWithName resourceName: String, fromPeer peerID: MCPeerID, with progress: Progress) {
         // Not used
     }
-    
+
     func session(_ session: MCSession, didFinishReceivingResourceWithName resourceName: String, fromPeer peerID: MCPeerID, at localURL: URL?, withError error: Error?) {
         // Not used
     }
-    
+
     private func processReceivedBackup() {
         Task {
             do {
                 let payload = try BackupPayload.decrypted(from: receivedData, password: password)
-                
+
                 // Create temporary directory for extraction
                 let tempDir = FileManager.default.temporaryDirectory.appendingPathComponent("ReceivedBackup_\(UUID().uuidString)")
                 try payload.extract(to: tempDir)
-                
+
                 await MainActor.run {
                     state = .completed
                     currentItem = "Backup received successfully"
@@ -336,7 +349,7 @@ extension NearbyTransferService: MCNearbyServiceAdvertiserDelegate {
             invitationHandler(true, self.session)
         }
     }
-    
+
     func advertiser(_ advertiser: MCNearbyServiceAdvertiser, didNotStartAdvertisingPeer error: Error) {
         DispatchQueue.main.async {
             self.state = .failed(error)
@@ -349,7 +362,7 @@ extension NearbyTransferService: MCNearbyServiceBrowserDelegate {
     func browser(_ browser: MCNearbyServiceBrowser, foundPeer peerID: MCPeerID, withDiscoveryInfo info: [String : String]?) {
         DispatchQueue.main.async {
             // Extract OTP from discovery info if available
-            if let otp = info?["otp"], let timestampString = info?["timestamp"], 
+            if let otp = info?["otp"], let timestampString = info?["timestamp"],
                let timestamp = Double(timestampString) {
                 // Check if OTP is not expired
                 let elapsed = Date().timeIntervalSince1970 - timestamp
@@ -360,27 +373,27 @@ extension NearbyTransferService: MCNearbyServiceBrowserDelegate {
                     }
                 }
             }
-            
+
             // Also maintain the regular peer list for backward compatibility
             if !self.discoveredPeers.contains(peerID) {
                 self.discoveredPeers.append(peerID)
             }
         }
     }
-    
+
     func browser(_ browser: MCNearbyServiceBrowser, lostPeer peerID: MCPeerID) {
         DispatchQueue.main.async {
             self.discoveredPeers.removeAll { $0 == peerID }
             self.discoveredPeersWithOTP.removeAll { $0.peer == peerID }
         }
     }
-    
+
     func browser(_ browser: MCNearbyServiceBrowser, didNotStartBrowsingForPeers error: Error) {
         DispatchQueue.main.async {
             self.state = .failed(error)
         }
     }
-    
+
     // MARK: - OTP Validation
     func findPeerWithOTP(_ otp: String) -> MCPeerID? {
         return discoveredPeersWithOTP.first(where: { $0.otp == otp })?.peer
