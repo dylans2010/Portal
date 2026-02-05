@@ -11,7 +11,7 @@ class BackgroundTaskManager: ObservableObject {
     static let shared = BackgroundTaskManager()
     
     // MARK: - Constants
-    private let taskIdentifier = "com.portal.app.install.background"
+    private let taskIdentifier = "com.portal.app.cleanup.background"
     private let logger = Logger(subsystem: "com.portal.app", category: "BackgroundTaskManager")
     
     // MARK: - Published Properties
@@ -205,35 +205,51 @@ class BackgroundTaskManager: ObservableObject {
     
     @available(iOS 13.0, *)
     private func handleBackgroundTask(task: BGProcessingTask) {
-        logger.info("Background task started")
+        logger.info("Background cleanup task started")
         
         // Schedule next background task
         scheduleBackgroundTask()
         
         task.expirationHandler = { [weak self] in
-            self?.logger.warning("Background task expired")
+            self?.logger.warning("Background cleanup task expired")
             task.setTaskCompleted(success: false)
         }
         
-        // Perform background work
+        // Perform background cleanup work only
         Task {
             do {
-                // Process any pending installations
-                await processInstallations()
+                // Clean up temporary files, old logs, expired data, etc.
+                await performCleanupTasks()
                 task.setTaskCompleted(success: true)
-                logger.info("Background task completed successfully")
+                logger.info("Background cleanup task completed successfully")
             } catch {
-                logger.error("Background task failed: \(error.localizedDescription)")
+                logger.error("Background cleanup task failed: \(error.localizedDescription)")
                 task.setTaskCompleted(success: false)
             }
         }
     }
     
-    private func processInstallations() async {
-        // Process each active installation in downloading phase
-        for installation in activeInstallations where installation.status == .downloading {
-            logger.info("Processing installation: \(installation.appName)")
-            // Implementation would integrate with InstallationProxy here
+    private func performCleanupTasks() async {
+        // Clean up temporary download files
+        let tempDirectory = FileManager.default.temporaryDirectory
+        let customTempDir = tempDirectory.appendingPathComponent("FeatherDownloads", isDirectory: true)
+        
+        do {
+            if FileManager.default.fileExists(atPath: customTempDir.path) {
+                let contents = try FileManager.default.contentsOfDirectory(at: customTempDir, includingPropertiesForKeys: [.creationDateKey])
+                let now = Date()
+                
+                // Remove files older than 24 hours
+                for fileURL in contents {
+                    if let creationDate = try? fileURL.resourceValues(forKeys: [.creationDateKey]).creationDate,
+                       now.timeIntervalSince(creationDate) > 86400 {
+                        try? FileManager.default.removeItem(at: fileURL)
+                        logger.info("Cleaned up old temp file: \(fileURL.lastPathComponent)")
+                    }
+                }
+            }
+        } catch {
+            logger.error("Cleanup error: \(error.localizedDescription)")
         }
     }
 }

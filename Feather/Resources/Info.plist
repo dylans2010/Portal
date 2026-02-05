@@ -293,6 +293,12 @@
 	<array>
 		<string>audio</string>
 	</array>
+	<key>NSSupportsLiveActivities</key>
+	<true/>
+	<key>BGTaskSchedulerPermittedIdentifiers</key>
+	<array>
+		<string>com.portal.app.cleanup.background</string>
+	</array>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>
