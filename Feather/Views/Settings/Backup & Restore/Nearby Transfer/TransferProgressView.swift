@@ -1,6 +1,7 @@
 import SwiftUI
 
 // MARK: - Transfer Progress View
+@available(iOS 18.0, *)
 struct TransferProgressView: View {
     @ObservedObject var service: NearbyTransferService
     let onCancel: () -> Void

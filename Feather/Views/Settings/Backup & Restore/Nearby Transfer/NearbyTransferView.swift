@@ -2,6 +2,7 @@ import SwiftUI
 import NimbleViews
 
 // MARK: - Nearby Transfer View
+@available(iOS 18.0, *)
 struct NearbyTransferView: View {
     @Environment(\.dismiss) var dismiss
     @State private var isAnimating = false

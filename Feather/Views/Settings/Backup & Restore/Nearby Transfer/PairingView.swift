@@ -1009,6 +1009,5 @@ extension View {
         } else {
             self
         }
-        }
     }
 }
