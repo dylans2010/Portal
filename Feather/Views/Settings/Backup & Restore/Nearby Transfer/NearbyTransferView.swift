@@ -4,73 +4,107 @@ import NimbleViews
 // MARK: - Nearby Transfer View
 struct NearbyTransferView: View {
     @Environment(\.dismiss) var dismiss
+    @State private var isAnimating = false
     
     var body: some View {
         NBList(.localized("Nearby Transfer")) {
-            // Header Section
+            // Modern Header Section with Animation
             Section {
                 ZStack {
+                    // Animated gradient background
                     LinearGradient(
-                        colors: [Color.purple.opacity(0.1), Color.blue.opacity(0.1)],
+                        colors: [Color.purple.opacity(0.15), Color.blue.opacity(0.15)],
                         startPoint: .topLeading,
                         endPoint: .bottomTrailing
                     )
-                    .cornerRadius(20)
+                    .cornerRadius(24)
+                    .shadow(color: Color.black.opacity(0.05), radius: 8, x: 0, y: 4)
                     
-                    VStack(spacing: 12) {
-                        Image(systemName: "antenna.radiowaves.left.and.right")
-                            .font(.system(size: 40))
-                            .foregroundStyle(
-                                LinearGradient(
-                                    colors: [.purple, .blue],
-                                    startPoint: .topLeading,
-                                    endPoint: .bottomTrailing
+                    VStack(spacing: 16) {
+                        // Animated icon with pulse effect
+                        ZStack {
+                            Circle()
+                                .fill(Color.white.opacity(0.2))
+                                .frame(width: 80, height: 80)
+                                .scaleEffect(isAnimating ? 1.2 : 1.0)
+                                .opacity(isAnimating ? 0.0 : 0.5)
+                                .animation(.easeInOut(duration: 1.5).repeatForever(autoreverses: false), value: isAnimating)
+                            
+                            Image(systemName: "antenna.radiowaves.left.and.right")
+                                .font(.system(size: 48, weight: .medium))
+                                .foregroundStyle(
+                                    LinearGradient(
+                                        colors: [.purple, .blue],
+                                        startPoint: .topLeading,
+                                        endPoint: .bottomTrailing
+                                    )
                                 )
-                            )
+                                .symbolEffect(.pulse, options: .repeating)
+                        }
                         
                         Text(.localized("Transfer backups wirelessly between devices"))
-                            .font(.system(.subheadline, design: .rounded))
+                            .font(.system(.subheadline, design: .rounded, weight: .medium))
                             .multilineTextAlignment(.center)
-                            .foregroundStyle(.secondary)
-                            .padding(.horizontal)
+                            .foregroundStyle(.primary)
+                            .padding(.horizontal, 24)
                     }
-                    .padding(.vertical, 30)
+                    .padding(.vertical, 40)
                 }
                 .listRowBackground(Color.clear)
                 .listRowInsets(EdgeInsets())
+                .onAppear {
+                    isAnimating = true
+                }
             }
             
-            // Quick Start Section
+            // Modern Quick Start Section
             Section {
                 NavigationLink(destination: PairingView()) {
                     HStack(spacing: 16) {
                         ZStack {
-                            RoundedRectangle(cornerRadius: 12, style: .continuous)
-                                .fill(Color.blue.opacity(0.15))
-                                .frame(width: 50, height: 50)
+                            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                                .fill(
+                                    LinearGradient(
+                                        colors: [Color.blue.opacity(0.2), Color.blue.opacity(0.1)],
+                                        startPoint: .topLeading,
+                                        endPoint: .bottomTrailing
+                                    )
+                                )
+                                .frame(width: 56, height: 56)
                             
                             Image(systemName: "arrow.left.arrow.right.circle.fill")
-                                .font(.title2)
-                                .foregroundStyle(.blue)
+                                .font(.system(size: 28, weight: .medium))
+                                .foregroundStyle(
+                                    LinearGradient(
+                                        colors: [.blue, .cyan],
+                                        startPoint: .top,
+                                        endPoint: .bottom
+                                    )
+                                )
+                                .symbolEffect(.bounce, options: .repeating.speed(0.5))
                         }
                         
                         VStack(alignment: .leading, spacing: 4) {
                             Text(.localized("Start Transfer"))
-                                .font(.headline)
+                                .font(.headline.weight(.semibold))
                             Text(.localized("Send or receive a backup"))
-                                .font(.caption)
+                                .font(.subheadline)
                                 .foregroundStyle(.secondary)
                         }
                         
                         Spacer()
+                        
+                        Image(systemName: "chevron.right")
+                            .font(.subheadline.weight(.semibold))
+                            .foregroundStyle(.tertiary)
                     }
-                    .padding(.vertical, 8)
+                    .padding(.vertical, 12)
                 }
             } header: {
                 AppearanceSectionHeader(title: String.localized("Quick Start"), icon: "bolt.fill")
             }
             
-            // How It Works Section
+            // Modern Features Section
             Section {
                 featureCard(
                     icon: "lock.shield.fill",
@@ -140,24 +174,31 @@ struct NearbyTransferView: View {
         .navigationBarTitleDisplayMode(.inline)
     }
     
-    // MARK: - Helper Views
+    // MARK: - Modern Helper Views
     
     @ViewBuilder
     private func featureCard(icon: String, iconColor: Color, title: LocalizedStringKey, description: LocalizedStringKey) -> some View {
         HStack(alignment: .top, spacing: 16) {
             ZStack {
-                Circle()
-                    .fill(iconColor.opacity(0.15))
-                    .frame(width: 44, height: 44)
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .fill(
+                        LinearGradient(
+                            colors: [iconColor.opacity(0.2), iconColor.opacity(0.1)],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+                    .frame(width: 48, height: 48)
                 
                 Image(systemName: icon)
-                    .font(.system(size: 20, weight: .bold))
+                    .font(.system(size: 22, weight: .semibold))
                     .foregroundStyle(iconColor)
+                    .symbolEffect(.pulse, options: .repeating.speed(0.3))
             }
             
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: 6) {
                 Text(title)
-                    .font(.system(.headline, design: .rounded))
+                    .font(.system(.headline, design: .rounded, weight: .semibold))
                     .foregroundStyle(.primary)
                 
                 Text(description)
@@ -166,36 +207,47 @@ struct NearbyTransferView: View {
                     .fixedSize(horizontal: false, vertical: true)
             }
         }
-        .padding(.vertical, 4)
+        .padding(.vertical, 8)
     }
     
     @ViewBuilder
     private func requirementRow(icon: String, text: String) -> some View {
-        HStack(alignment: .top, spacing: 12) {
-            Image(systemName: icon)
-                .foregroundStyle(.blue)
-                .font(.body)
-                .frame(width: 24)
+        HStack(alignment: .top, spacing: 14) {
+            ZStack {
+                Circle()
+                    .fill(Color.blue.opacity(0.1))
+                    .frame(width: 32, height: 32)
+                
+                Image(systemName: icon)
+                    .foregroundStyle(.blue)
+                    .font(.system(size: 14, weight: .semibold))
+            }
             
             Text(text)
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
         }
-        .padding(.vertical, 4)
+        .padding(.vertical, 6)
     }
     
     @ViewBuilder
     private func transferItemRow(icon: String, text: String, color: Color) -> some View {
-        HStack(spacing: 8) {
-            Image(systemName: icon)
-                .foregroundStyle(color)
-                .font(.caption)
-                .frame(width: 20)
+        HStack(spacing: 12) {
+            ZStack {
+                RoundedRectangle(cornerRadius: 8, style: .continuous)
+                    .fill(color.opacity(0.12))
+                    .frame(width: 28, height: 28)
+                
+                Image(systemName: icon)
+                    .foregroundStyle(color)
+                    .font(.system(size: 12, weight: .semibold))
+            }
             
             Text(text)
-                .font(.caption)
-                .foregroundStyle(.secondary)
+                .font(.subheadline)
+                .foregroundStyle(.primary)
         }
+        .padding(.vertical, 2)
     }
 }

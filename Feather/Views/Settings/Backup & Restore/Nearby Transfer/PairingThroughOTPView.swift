@@ -107,58 +107,102 @@ struct PairingThroughOTPView: View {
         .padding(.vertical, 4)
     }
     
-    // MARK: - Sender Section
+    // MARK: - Modern Sender Section
     @ViewBuilder
     private var senderSection: some View {
         Section {
-            VStack(spacing: 20) {
-                // OTP Display
-                HStack(spacing: 8) {
-                    ForEach(Array(viewModel.otpCode.enumerated()), id: \.offset) { index, char in
-                        Text(String(char))
-                            .font(.system(size: 36, weight: .bold, design: .rounded))
-                            .frame(width: 50, height: 60)
-                            .background(Color.blue.opacity(0.1))
-                            .clipShape(RoundedRectangle(cornerRadius: 12))
+            VStack(spacing: 24) {
+                // Modern OTP Display with gradient
+                VStack(spacing: 16) {
+                    HStack(spacing: 10) {
+                        ForEach(Array(viewModel.otpCode.enumerated()), id: \.offset) { index, char in
+                            ZStack {
+                                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                                    .fill(
+                                        LinearGradient(
+                                            colors: [Color.blue.opacity(0.15), Color.purple.opacity(0.1)],
+                                            startPoint: .topLeading,
+                                            endPoint: .bottomTrailing
+                                        )
+                                    )
+                                    .frame(width: 54, height: 70)
+                                    .shadow(color: Color.blue.opacity(0.1), radius: 4, x: 0, y: 2)
+                                
+                                Text(String(char))
+                                    .font(.system(size: 38, weight: .bold, design: .rounded))
+                                    .foregroundStyle(
+                                        LinearGradient(
+                                            colors: [.blue, .purple],
+                                            startPoint: .top,
+                                            endPoint: .bottom
+                                        )
+                                    )
+                            }
+                        }
+                    }
+                    .padding(.vertical, 8)
+                    
+                    // Modern Expiration Countdown
+                    HStack(spacing: 8) {
+                        ZStack {
+                            Circle()
+                                .fill(viewModel.expirationColor.opacity(0.15))
+                                .frame(width: 28, height: 28)
+                            
+                            Image(systemName: "clock.fill")
+                                .foregroundStyle(viewModel.expirationColor)
+                                .font(.system(size: 13, weight: .semibold))
+                        }
+                        
+                        Text("Expires in \(viewModel.timeRemaining)s")
+                            .font(.headline.weight(.medium))
+                            .foregroundStyle(viewModel.expirationColor)
                     }
                 }
-                .padding(.vertical, 8)
                 
-                // Expiration Countdown
-                HStack {
-                    Image(systemName: "clock.fill")
-                        .foregroundStyle(viewModel.expirationColor)
-                    Text("Expires in \(viewModel.timeRemaining)s")
-                        .font(.headline)
-                        .foregroundStyle(viewModel.expirationColor)
-                }
-                
-                // Status
+                // Connection Status
                 if viewModel.isPeerConnected {
-                    HStack {
-                        Image(systemName: "checkmark.circle.fill")
-                            .foregroundStyle(.green)
+                    HStack(spacing: 10) {
+                        ZStack {
+                            Circle()
+                                .fill(Color.green.opacity(0.15))
+                                .frame(width: 32, height: 32)
+                            
+                            Image(systemName: "checkmark.circle.fill")
+                                .foregroundStyle(.green)
+                                .font(.system(size: 16, weight: .semibold))
+                        }
+                        
                         Text("Recipient connected")
-                            .font(.subheadline)
+                            .font(.subheadline.weight(.medium))
                             .foregroundStyle(.green)
                     }
-                    .padding(.top, 8)
-                }
-                
-                // Waiting State
-                if viewModel.isWaitingForRecipient && !viewModel.isPeerConnected {
-                    HStack {
+                    .padding(.vertical, 8)
+                    .padding(.horizontal, 16)
+                    .background(
+                        RoundedRectangle(cornerRadius: 12, style: .continuous)
+                            .fill(Color.green.opacity(0.08))
+                    )
+                } else if viewModel.isWaitingForRecipient {
+                    // Waiting State with modern styling
+                    HStack(spacing: 10) {
                         ProgressView()
-                            .padding(.trailing, 8)
+                            .tint(.blue)
+                        
                         Text("Waiting for recipient...")
-                            .font(.subheadline)
+                            .font(.subheadline.weight(.medium))
                             .foregroundStyle(.secondary)
                     }
-                    .padding(.top, 8)
+                    .padding(.vertical, 8)
+                    .padding(.horizontal, 16)
+                    .background(
+                        RoundedRectangle(cornerRadius: 12, style: .continuous)
+                            .fill(Color.blue.opacity(0.05))
+                    )
                 }
             }
             .frame(maxWidth: .infinity)
-            .padding(.vertical, 16)
+            .padding(.vertical, 20)
         } header: {
             AppearanceSectionHeader(title: String.localized("Your Code"), icon: "key.fill")
         } footer: {
@@ -167,58 +211,92 @@ struct PairingThroughOTPView: View {
                 .foregroundStyle(.secondary)
         }
         
-        // Copy Button
+        // Modern Action Buttons
         Section {
             Button {
                 UIPasteboard.general.string = viewModel.otpCode
+                // Could add a toast notification here
             } label: {
-                HStack {
+                HStack(spacing: 10) {
                     Image(systemName: "doc.on.doc.fill")
+                        .font(.system(size: 16, weight: .semibold))
                     Text("Copy Code")
+                        .font(.headline.weight(.semibold))
                 }
                 .frame(maxWidth: .infinity)
+                .padding(.vertical, 4)
             }
             .disabled(viewModel.otpCode.isEmpty || viewModel.isPeerConnected)
-        }
-        
-        // Regenerate Button
-        Section {
+            
             Button {
                 viewModel.regenerateOTP()
             } label: {
-                HStack {
+                HStack(spacing: 10) {
                     Image(systemName: "arrow.clockwise")
+                        .font(.system(size: 16, weight: .semibold))
                     Text("Generate New Code")
+                        .font(.headline.weight(.semibold))
                 }
                 .frame(maxWidth: .infinity)
+                .padding(.vertical, 4)
             }
             .disabled(viewModel.isPeerConnected)
         }
     }
     
-    // MARK: - Recipient Section
+    // MARK: - Modern Recipient Section
     @ViewBuilder
     private var recipientSection: some View {
         Section {
-            VStack(spacing: 16) {
-                // OTP Input
-                HStack(spacing: 8) {
+            VStack(spacing: 20) {
+                // Modern OTP Input with gradient
+                HStack(spacing: 10) {
                     ForEach(0..<viewModel.otpLength, id: \.self) { index in
-                        Text(index < otpInput.count ? String(Array(otpInput)[index]) : "")
-                            .font(.system(size: 36, weight: .bold, design: .rounded))
-                            .frame(width: 50, height: 60)
-                            .background(Color.secondary.opacity(0.1))
-                            .clipShape(RoundedRectangle(cornerRadius: 12))
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 12)
-                                    .stroke(index == otpInput.count ? Color.blue : Color.clear, lineWidth: 2)
-                            )
+                        ZStack {
+                            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                                .fill(
+                                    index < otpInput.count
+                                        ? LinearGradient(
+                                            colors: [Color.blue.opacity(0.15), Color.purple.opacity(0.1)],
+                                            startPoint: .topLeading,
+                                            endPoint: .bottomTrailing
+                                        )
+                                        : LinearGradient(
+                                            colors: [Color.secondary.opacity(0.08), Color.secondary.opacity(0.05)],
+                                            startPoint: .topLeading,
+                                            endPoint: .bottomTrailing
+                                        )
+                                )
+                                .frame(width: 54, height: 70)
+                                .shadow(color: index == otpInput.count ? Color.blue.opacity(0.2) : Color.clear, radius: 6, x: 0, y: 2)
+                            
+                            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                                .strokeBorder(index == otpInput.count ? Color.blue : Color.clear, lineWidth: 2.5)
+                                .frame(width: 54, height: 70)
+                            
+                            Text(index < otpInput.count ? String(Array(otpInput)[index]) : "")
+                                .font(.system(size: 38, weight: .bold, design: .rounded))
+                                .foregroundStyle(
+                                    index < otpInput.count
+                                        ? LinearGradient(
+                                            colors: [.blue, .purple],
+                                            startPoint: .top,
+                                            endPoint: .bottom
+                                        )
+                                        : LinearGradient(
+                                            colors: [.secondary.opacity(0.3), .secondary.opacity(0.3)],
+                                            startPoint: .top,
+                                            endPoint: .bottom
+                                        )
+                                )
+                        }
                     }
                 }
                 .onTapGesture {
                     // Focus on the hidden text field when tapping on the code display
                     isOTPFieldFocused = true
                 }
+                .padding(.vertical, 8)
                 
                 // Keypad or TextField
                 TextField("", text: $otpInput)
