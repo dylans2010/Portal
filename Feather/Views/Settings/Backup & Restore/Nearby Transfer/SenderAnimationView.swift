@@ -96,7 +96,7 @@ struct SenderAnimationView: View {
                     .frame(width: 120, height: 120)
                 
                 // Icon
-                if #available(iOS 18.0, *) {
+                if #available(iOS 17.0, *) {
                     Image(systemName: "arrow.up.circle.fill")
                         .font(.system(size: 60))
                         .foregroundStyle(.white)

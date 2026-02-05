@@ -30,16 +30,30 @@ struct NearbyTransferView: View {
                                 .opacity(isAnimating ? 0.0 : 0.5)
                                 .animation(.easeInOut(duration: 1.5).repeatForever(autoreverses: false), value: isAnimating)
                             
-                            Image(systemName: "antenna.radiowaves.left.and.right")
-                                .font(.system(size: 48, weight: .medium))
-                                .foregroundStyle(
-                                    LinearGradient(
-                                        colors: [.purple, .blue],
-                                        startPoint: .topLeading,
-                                        endPoint: .bottomTrailing
+                            if #available(iOS 17.0, *) {
+                                Image(systemName: "antenna.radiowaves.left.and.right")
+                                    .font(.system(size: 48, weight: .medium))
+                                    .foregroundStyle(
+                                        LinearGradient(
+                                            colors: [.purple, .blue],
+                                            startPoint: .topLeading,
+                                            endPoint: .bottomTrailing
+                                        )
                                     )
-                                )
-                                .symbolEffect(.pulse, options: .repeating)
+                                    .symbolEffect(.pulse, options: .repeating)
+                            } else {
+                                Image(systemName: "antenna.radiowaves.left.and.right")
+                                    .font(.system(size: 48, weight: .medium))
+                                    .foregroundStyle(
+                                        LinearGradient(
+                                            colors: [.purple, .blue],
+                                            startPoint: .topLeading,
+                                            endPoint: .bottomTrailing
+                                        )
+                                    )
+                                    .scaleEffect(isAnimating ? 1.1 : 1.0)
+                                    .animation(.easeInOut(duration: 1.0).repeatForever(autoreverses: true), value: isAnimating)
+                            }
                         }
                         
                         Text(.localized("Transfer backups wirelessly between devices"))
@@ -72,16 +86,30 @@ struct NearbyTransferView: View {
                                 )
                                 .frame(width: 56, height: 56)
                             
-                            Image(systemName: "arrow.left.arrow.right.circle.fill")
-                                .font(.system(size: 28, weight: .medium))
-                                .foregroundStyle(
-                                    LinearGradient(
-                                        colors: [.blue, .cyan],
-                                        startPoint: .top,
-                                        endPoint: .bottom
+                            if #available(iOS 17.0, *) {
+                                Image(systemName: "arrow.left.arrow.right.circle.fill")
+                                    .font(.system(size: 28, weight: .medium))
+                                    .foregroundStyle(
+                                        LinearGradient(
+                                            colors: [.blue, .cyan],
+                                            startPoint: .top,
+                                            endPoint: .bottom
+                                        )
                                     )
-                                )
-                                .symbolEffect(.bounce, options: .repeating.speed(0.5))
+                                    .symbolEffect(.bounce, options: .repeating.speed(0.5))
+                            } else {
+                                Image(systemName: "arrow.left.arrow.right.circle.fill")
+                                    .font(.system(size: 28, weight: .medium))
+                                    .foregroundStyle(
+                                        LinearGradient(
+                                            colors: [.blue, .cyan],
+                                            startPoint: .top,
+                                            endPoint: .bottom
+                                        )
+                                    )
+                                    .scaleEffect(isAnimating ? 1.05 : 1.0)
+                                    .animation(.easeInOut(duration: 1.2).repeatForever(autoreverses: true), value: isAnimating)
+                            }
                         }
                         
                         VStack(alignment: .leading, spacing: 4) {
@@ -190,10 +218,18 @@ struct NearbyTransferView: View {
                     )
                     .frame(width: 48, height: 48)
                 
-                Image(systemName: icon)
-                    .font(.system(size: 22, weight: .semibold))
-                    .foregroundStyle(iconColor)
-                    .symbolEffect(.pulse, options: .repeating.speed(0.3))
+                if #available(iOS 17.0, *) {
+                    Image(systemName: icon)
+                        .font(.system(size: 22, weight: .semibold))
+                        .foregroundStyle(iconColor)
+                        .symbolEffect(.pulse, options: .repeating.speed(0.3))
+                } else {
+                    Image(systemName: icon)
+                        .font(.system(size: 22, weight: .semibold))
+                        .foregroundStyle(iconColor)
+                        .opacity(isAnimating ? 0.7 : 1.0)
+                        .animation(.easeInOut(duration: 2.0).repeatForever(autoreverses: true), value: isAnimating)
+                }
             }
             
             VStack(alignment: .leading, spacing: 6) {

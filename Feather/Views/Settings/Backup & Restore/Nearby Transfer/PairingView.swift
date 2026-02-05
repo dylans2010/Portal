@@ -289,8 +289,10 @@ struct PairingView: View {
             NavigationStack {
                 PostRestoreHealthCheckView {
                     showPostRestoreHealthCheck = false
-                    // Show completion screen
-                    showRestartCompletionScreen()
+                    // Delay showing restart dialog to ensure sheet is dismissed first
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
+                        showRestartCompletionScreen()
+                    }
                 }
             }
         }
@@ -1002,10 +1004,11 @@ struct RestoreOptionsView: View {
 extension View {
     @ViewBuilder
     func ifAvailableiOS18SymbolPulse() -> some View {
-        if #available(iOS 18.0, *) {
+        if #available(iOS 17.0, *) {
             self.symbolEffect(.pulse, options: .repeating)
         } else {
             self
+        }
         }
     }
 }
