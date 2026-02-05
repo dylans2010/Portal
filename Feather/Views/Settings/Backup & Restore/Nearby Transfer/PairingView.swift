@@ -289,8 +289,10 @@ struct PairingView: View {
             NavigationStack {
                 PostRestoreHealthCheckView {
                     showPostRestoreHealthCheck = false
-                    // Show completion screen
-                    showRestartCompletionScreen()
+                    // Delay showing restart dialog to ensure sheet is dismissed first
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
+                        showRestartCompletionScreen()
+                    }
                 }
             }
         }

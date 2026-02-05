@@ -5,6 +5,7 @@ struct TransferProgressView: View {
     @ObservedObject var service: NearbyTransferService
     let onCancel: () -> Void
     let onRetry: () -> Void
+    @State private var isAnimating = false
     
     var body: some View {
         VStack(spacing: 24) {
@@ -107,9 +108,21 @@ struct TransferProgressView: View {
             
             case .completed:
                 VStack(spacing: 12) {
-                    Image(systemName: "checkmark.circle.fill")
-                        .font(.system(size: 60))
-                        .foregroundStyle(.green)
+                    if #available(iOS 17.0, *) {
+                        Image(systemName: "checkmark.circle.fill")
+                            .font(.system(size: 60))
+                            .foregroundStyle(.green)
+                            .symbolEffect(.bounce, options: .speed(0.5))
+                    } else {
+                        Image(systemName: "checkmark.circle.fill")
+                            .font(.system(size: 60))
+                            .foregroundStyle(.green)
+                            .scaleEffect(isAnimating ? 1.2 : 1.0)
+                            .animation(.spring(response: 0.5, dampingFraction: 0.6), value: isAnimating)
+                            .onAppear {
+                                isAnimating = true
+                            }
+                    }
                     Text("Transfer Complete")
                         .font(.headline)
                     if !service.currentItem.isEmpty {
@@ -121,9 +134,21 @@ struct TransferProgressView: View {
             
             case .failed(let error):
                 VStack(spacing: 12) {
-                    Image(systemName: "xmark.circle.fill")
-                        .font(.system(size: 60))
-                        .foregroundStyle(.red)
+                    if #available(iOS 17.0, *) {
+                        Image(systemName: "xmark.circle.fill")
+                            .font(.system(size: 60))
+                            .foregroundStyle(.red)
+                            .symbolEffect(.pulse, options: .speed(0.5))
+                    } else {
+                        Image(systemName: "xmark.circle.fill")
+                            .font(.system(size: 60))
+                            .foregroundStyle(.red)
+                            .scaleEffect(isAnimating ? 1.15 : 1.0)
+                            .animation(.easeInOut(duration: 0.8).repeatForever(autoreverses: true), value: isAnimating)
+                            .onAppear {
+                                isAnimating = true
+                            }
+                    }
                     Text("Transfer Failed")
                         .font(.headline)
                     Text(error.localizedDescription)
@@ -180,9 +205,24 @@ struct TransferProgressView: View {
                     .foregroundStyle(.blue)
                     .symbolEffect(.pulse, options: .repeating)
             } else {
-                Image(systemName: "antenna.radiowaves.left.and.right")
-                    .font(.system(size: 50))
-                    .foregroundStyle(.blue)
+                // Fallback animation for iOS < 17
+                ZStack {
+                    Circle()
+                        .fill(Color.blue.opacity(0.1))
+                        .frame(width: 70, height: 70)
+                        .scaleEffect(isAnimating ? 1.3 : 1.0)
+                        .opacity(isAnimating ? 0.0 : 0.5)
+                        .animation(.easeInOut(duration: 1.5).repeatForever(autoreverses: false), value: isAnimating)
+                    
+                    Image(systemName: "antenna.radiowaves.left.and.right")
+                        .font(.system(size: 50))
+                        .foregroundStyle(.blue)
+                        .scaleEffect(isAnimating ? 1.1 : 1.0)
+                        .animation(.easeInOut(duration: 1.0).repeatForever(autoreverses: true), value: isAnimating)
+                }
+                .onAppear {
+                    isAnimating = true
+                }
             }
         case .transferring:
             EmptyView()
