@@ -171,17 +171,6 @@ struct PortalLegacyTimelineProvider: TimelineProvider {
 
 // MARK: - Widget Bundle
 
-@main
-struct PortalWidgetsBundle {
-    static func main() {
-        if #available(iOS 17.0, *) {
-            PortalWidgetsBundleiOS17.main()
-        } else {
-            PortalWidgetsBundleiOS16.main()
-        }
-    }
-}
-
 @available(iOS 17.0, *)
 struct PortalWidgetsBundleiOS17: WidgetBundle {
     @WidgetBundleBuilder

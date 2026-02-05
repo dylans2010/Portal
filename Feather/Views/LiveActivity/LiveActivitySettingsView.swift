@@ -310,9 +310,40 @@ struct LiveActivitySettingsView: View {
                 }
                 .padding(.vertical, 4)
             }
+            
+            if #available(iOS 16.1, *) {
+                Button {
+                    startRealLiveActivity()
+                    HapticsManager.shared.light()
+                } label: {
+                    HStack(spacing: 12) {
+                        Image(systemName: "play.circle.fill")
+                            .font(.system(size: 17, weight: .medium))
+                            .foregroundStyle(.green)
+                            .frame(width: 28, height: 28)
+                        
+                        Text("Force Show Live Activity")
+                            .font(.body)
+                            .foregroundColor(.primary)
+                        
+                        Spacer()
+                    }
+                    .padding(.vertical, 4)
+                }
+            }
         } header: {
             Text("Preview")
                 .font(.system(size: 11, weight: .semibold))
+        } footer: {
+            if #available(iOS 16.1, *) {
+                Text("Force Show Live Activity starts a real Live Activity on your device")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            } else {
+                Text("Live Activities require iOS 16.1 or later")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            }
         }
         .sheet(isPresented: $showPreview) {
             LiveActivityPreviewView(style: style, showTimeRemaining: showTimeRemaining, showIcon: showIcon)
@@ -341,6 +372,85 @@ struct LiveActivitySettingsView: View {
         } header: {
             Text("About Live Activities")
                 .font(.system(size: 11, weight: .semibold))
+        }
+    }
+    
+    // MARK: - Helper Methods
+    
+    @available(iOS 16.1, *)
+    private func startRealLiveActivity() {
+        // Start a real Live Activity using the LiveActivityCoordinator
+        let testAppName = "Portal Demo"
+        let testBundleId = "com.portal.demo"
+        let testIdentifier = "demo-installation-\(UUID().uuidString)"
+        
+        // Launch the activity
+        if let activityId = LiveActivityCoordinator.shared.launchActivityForDownload(
+            testIdentifier,
+            appTitle: testAppName,
+            bundleId: testBundleId,
+            iconData: nil
+        ) {
+            // Simulate progress updates
+            Task {
+                // Initial state
+                try? await Task.sleep(nanoseconds: 500_000_000) // 0.5 seconds
+                
+                // Downloading phase
+                LiveActivityCoordinator.shared.updateActivityState(
+                    activityId,
+                    percentComplete: 0.25,
+                    downloadedBytes: 25_000_000,
+                    totalBytes: 100_000_000,
+                    currentPhase: .downloading
+                )
+                
+                try? await Task.sleep(nanoseconds: 1_000_000_000) // 1 second
+                
+                LiveActivityCoordinator.shared.updateActivityState(
+                    activityId,
+                    percentComplete: 0.50,
+                    downloadedBytes: 50_000_000,
+                    totalBytes: 100_000_000,
+                    currentPhase: .downloading
+                )
+                
+                try? await Task.sleep(nanoseconds: 1_000_000_000) // 1 second
+                
+                LiveActivityCoordinator.shared.updateActivityState(
+                    activityId,
+                    percentComplete: 0.75,
+                    downloadedBytes: 75_000_000,
+                    totalBytes: 100_000_000,
+                    currentPhase: .downloading
+                )
+                
+                try? await Task.sleep(nanoseconds: 1_000_000_000) // 1 second
+                
+                // Installing phase
+                LiveActivityCoordinator.shared.updateActivityState(
+                    activityId,
+                    percentComplete: 0.90,
+                    downloadedBytes: 90_000_000,
+                    totalBytes: 100_000_000,
+                    currentPhase: .installing
+                )
+                
+                try? await Task.sleep(nanoseconds: 1_000_000_000) // 1 second
+                
+                // Completed
+                LiveActivityCoordinator.shared.updateActivityState(
+                    activityId,
+                    percentComplete: 1.0,
+                    downloadedBytes: 100_000_000,
+                    totalBytes: 100_000_000,
+                    currentPhase: .completed
+                )
+                
+                // End the activity after 2 seconds
+                try? await Task.sleep(nanoseconds: 2_000_000_000) // 2 seconds
+                LiveActivityCoordinator.shared.terminateActivity(activityId, finalPhase: .completed)
+            }
         }
     }
 }
