@@ -82,7 +82,7 @@ class AutoSignManager: ObservableObject {
 			// Step 5: Sign the app
 			AppLogManager.shared.info("Starting signing process for \(appInfo.name)", category: "AutoSign")
 			
-			let signedURL = try await signApp(
+			let signedApp = try await signApp(
 				app: importedApp,
 				certificate: certificate,
 				options: options
@@ -98,15 +98,21 @@ class AutoSignManager: ObservableObject {
 			// Step 7: Install the app if installation method is iDevice
 			let installationMethod = UserDefaults.standard.integer(forKey: "Feather.installationMethod")
 			if installationMethod == 1 {
+				// Get the IPA file URL from the signed app
+				guard let ipaURL = signedApp.archiveURL else {
+					throw AutoSignError.signedAppNotFound
+				}
+				
 				AppLogManager.shared.info("Installing \(appInfo.name) via iDevice", category: "AutoSign")
-				try await installApp(at: signedURL, bundleId: appInfo.bundleId)
+				try await installApp(at: ipaURL, bundleId: appInfo.bundleId)
 				AppLogManager.shared.success("Successfully installed \(appInfo.name)", category: "AutoSign")
 			} else {
 				AppLogManager.shared.info("Installation method is server-based, skipping automatic installation", category: "AutoSign")
 			}
 			
-			// Step 8: Delete from library
+			// Step 8: Delete from library (both imported and signed apps)
 			await deleteFromLibrary(app: importedApp)
+			await deleteFromLibrary(app: signedApp)
 			AppLogManager.shared.info("Deleted \(appInfo.name) from library", category: "AutoSign")
 			
 			// Step 9: Complete Live Activity
@@ -193,17 +199,19 @@ class AutoSignManager: ObservableObject {
 		app: AppInfoPresentable,
 		certificate: CertificatePair,
 		options: Options
-	) async throws -> URL {
+	) async throws -> Signed {
 		return try await withCheckedThrowingContinuation { continuation in
 			FR.signPackageFile(app, using: options, icon: nil, certificate: certificate) { error in
 				if let error = error {
 					continuation.resume(throwing: error)
 				} else {
-					// Get the signed app URL
-					if let signedURL = app.archiveURL {
-						continuation.resume(returning: signedURL)
-					} else {
-						continuation.resume(throwing: AutoSignError.signedAppNotFound)
+					// Get the signed app from the database (it's the latest one added)
+					DispatchQueue.main.async {
+						if let signedApp = Storage.shared.getSignedApps().first {
+							continuation.resume(returning: signedApp)
+						} else {
+							continuation.resume(throwing: AutoSignError.signedAppNotFound)
+						}
 					}
 				}
 			}
