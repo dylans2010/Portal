@@ -1,11 +1,15 @@
 import Foundation
 import UIKit
 import ActivityKit
+import Combine
 
 /// Manager for handling automatic signing after download
 /// This manager coordinates downloading, signing, and installation of apps
 class AutoSignManager: ObservableObject {
 	static let shared = AutoSignManager()
+	
+	// Constant for auto-sign setting key
+	private static let autoSignSettingKey = "Feather.autoSignAfterDownload"
 	
 	// Track ongoing auto-sign operations
 	@Published var activeOperations: [String: AutoSignOperation] = [:]
@@ -14,7 +18,7 @@ class AutoSignManager: ObservableObject {
 	
 	/// Check if auto-sign is enabled
 	var isAutoSignEnabled: Bool {
-		UserDefaults.standard.bool(forKey: "Feather.autoSignAfterDownload")
+		UserDefaults.standard.bool(forKey: Self.autoSignSettingKey)
 	}
 	
 	/// Start an auto-sign operation for a downloaded app
@@ -131,9 +135,14 @@ class AutoSignManager: ObservableObject {
 				}
 			}
 			
-			// Clean up operation
+			// Clean up operation and remove download
 			await MainActor.run {
 				activeOperations.removeValue(forKey: operation.downloadId)
+				
+				// Remove download from DownloadManager
+				if let index = DownloadManager.shared.getDownloadIndex(by: operation.downloadId) {
+					DownloadManager.shared.downloads.remove(at: index)
+				}
 			}
 			
 		} catch {
@@ -152,8 +161,13 @@ class AutoSignManager: ObservableObject {
 					message: error.localizedDescription
 				)
 				
-				// Clean up operation
+				// Clean up operation and remove download
 				activeOperations.removeValue(forKey: operation.downloadId)
+				
+				// Remove download from DownloadManager
+				if let index = DownloadManager.shared.getDownloadIndex(by: operation.downloadId) {
+					DownloadManager.shared.downloads.remove(at: index)
+				}
 			}
 		}
 	}
@@ -207,7 +221,7 @@ class AutoSignManager: ObservableObject {
 				} else {
 					// Get the signed app from the database (it's the latest one added)
 					DispatchQueue.main.async {
-						if let signedApp = Storage.shared.getSignedApps().first {
+						if let signedApp = Storage.shared.getLatestSignedApp() {
 							continuation.resume(returning: signedApp)
 						} else {
 							continuation.resume(throwing: AutoSignError.signedAppNotFound)
@@ -237,26 +251,41 @@ class AutoSignManager: ObservableObject {
 		try await waitForInstallation(viewModel: viewModel)
 	}
 	
-	/// Wait for installation to complete
+	/// Wait for installation to complete by observing view model status
 	private func waitForInstallation(viewModel: InstallerStatusViewModel) async throws {
-		// Poll the view model status until it's completed or failed
-		for _ in 0..<60 { // Wait up to 60 seconds
-			await Task.yield()
-			try await Task.sleep(nanoseconds: 1_000_000_000) // 1 second
+		// Create a continuation to wait for completion
+		try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
+			var cancellable: AnyCancellable?
+			var hasResumed = false
 			
-			let status = await MainActor.run { viewModel.status }
+			// Subscribe to status changes
+			cancellable = viewModel.$status
+				.sink { status in
+					guard !hasResumed else { return }
+					
+					switch status {
+					case .completed:
+						hasResumed = true
+						cancellable?.cancel()
+						continuation.resume()
+					case .failed:
+						hasResumed = true
+						cancellable?.cancel()
+						continuation.resume(throwing: AutoSignError.installationFailed)
+					default:
+						// Still in progress
+						break
+					}
+				}
 			
-			switch status {
-			case .completed:
-				return
-			case .failed:
-				throw AutoSignError.installationFailed
-			default:
-				continue
+			// Timeout after 60 seconds
+			DispatchQueue.main.asyncAfter(deadline: .now() + 60) {
+				guard !hasResumed else { return }
+				hasResumed = true
+				cancellable?.cancel()
+				continuation.resume(throwing: AutoSignError.installationTimeout)
 			}
 		}
-		
-		throw AutoSignError.installationTimeout
 	}
 	
 	/// Delete app from library

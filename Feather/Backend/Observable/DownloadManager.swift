@@ -64,6 +64,9 @@ class Download: Identifiable, @unchecked Sendable {
 class DownloadManager: NSObject, ObservableObject {
 	static let shared = DownloadManager()
 	
+	// Constant for auto-sign setting key
+	private static let autoSignSettingKey = "Feather.autoSignAfterDownload"
+	
     @Published var downloads: [Download] = []
 	
 	var manualDownloads: [Download] {
@@ -120,7 +123,7 @@ class DownloadManager: NSObject, ObservableObject {
 				iconData = nil
 			}
 			
-			let isAutoSigning = UserDefaults.standard.bool(forKey: "Feather.autoSignAfterDownload")
+			let isAutoSigning = UserDefaults.standard.bool(forKey: Self.autoSignSettingKey)
 			LiveActivityManager.shared.startActivity(appName: appName, bundleId: "unknown", iconData: iconData)
 			download.liveActivityStarted = true
 			
@@ -213,7 +216,7 @@ extension DownloadManager: URLSessionDownloadDelegate {
 		
 		// Update Live Activity to installing state
 		if #available(iOS 16.2, *), dl.liveActivityStarted {
-			let isAutoSigning = UserDefaults.standard.bool(forKey: "Feather.autoSignAfterDownload")
+			let isAutoSigning = UserDefaults.standard.bool(forKey: Self.autoSignSettingKey)
 			Task {
 				await LiveActivityManager.shared.updateActivity(
 					progress: dl.progress,
@@ -255,7 +258,7 @@ extension DownloadManager: URLSessionDownloadDelegate {
 				AppLogManager.shared.success("Successfully handled package file: \(url.lastPathComponent)", category: "Download")
 				
 				// Check if auto-sign is enabled and this is from Sources view
-				let isAutoSigning = UserDefaults.standard.bool(forKey: "Feather.autoSignAfterDownload")
+				let isAutoSigning = UserDefaults.standard.bool(forKey: Self.autoSignSettingKey)
 				
 				if isAutoSigning && dl.fromSourcesView {
 					// Auto-sign mode: Don't end Live Activity yet, AutoSignManager will handle it
@@ -315,7 +318,7 @@ extension DownloadManager: URLSessionDownloadDelegate {
 			
 			DispatchQueue.main.async {
 				// Only remove from downloads if not auto-signing (AutoSignManager will handle cleanup)
-				let isAutoSigning = UserDefaults.standard.bool(forKey: "Feather.autoSignAfterDownload")
+				let isAutoSigning = UserDefaults.standard.bool(forKey: Self.autoSignSettingKey)
 				if !isAutoSigning || !dl.fromSourcesView {
 					if let index = DownloadManager.shared.getDownloadIndex(by: dl.id) {
 						DownloadManager.shared.downloads.remove(at: index)
@@ -425,7 +428,7 @@ extension DownloadManager: URLSessionDownloadDelegate {
 					? TimeInterval(Double(totalBytesExpectedToWrite - totalBytesWritten) / speed!)
 					: nil
 				
-				let isAutoSigning = UserDefaults.standard.bool(forKey: "Feather.autoSignAfterDownload")
+				let isAutoSigning = UserDefaults.standard.bool(forKey: Self.autoSignSettingKey)
 				
 				Task {
 					await LiveActivityManager.shared.updateActivity(
