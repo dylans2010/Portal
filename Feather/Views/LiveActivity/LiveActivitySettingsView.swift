@@ -64,8 +64,13 @@ struct LiveActivitySettingsView: View {
                 }
             }
         } header: {
-            Text("Status")
-                .font(.system(size: 11, weight: .semibold))
+            HStack(spacing: 5) {
+                Image(systemName: "power")
+                    .font(.system(size: 10, weight: .semibold))
+                Text("Status")
+                    .font(.system(size: 11, weight: .semibold, design: .rounded))
+            }
+            .foregroundStyle(.secondary)
         } footer: {
             if #available(iOS 16.2, *) {
                 Text("Live Activities require iOS 16.2 or later for Dynamic Island support.")
@@ -86,25 +91,46 @@ struct LiveActivitySettingsView: View {
     private var appearanceSection: some View {
         Section {
             // Background Texture
-            Picker("Background", selection: $settings.backgroundTexture) {
-                ForEach(LiveActivitySettings.BackgroundTexture.allCases, id: \.self) { texture in
-                    Text(texture.rawValue).tag(texture)
+            HStack(spacing: 12) {
+                Image(systemName: "rectangle.fill")
+                    .font(.system(size: 17, weight: .medium))
+                    .foregroundStyle(.indigo)
+                    .frame(width: 28, height: 28)
+                
+                Picker("Background", selection: $settings.backgroundTexture) {
+                    ForEach(LiveActivitySettings.BackgroundTexture.allCases, id: \.self) { texture in
+                        Text(texture.rawValue).tag(texture)
+                    }
                 }
             }
             .onChange(of: settings.backgroundTexture) { _ in saveSettings() }
             
             // Font Family
-            Picker("Font", selection: $settings.fontFamily) {
-                ForEach(LiveActivitySettings.FontFamily.allCases, id: \.self) { family in
-                    Text(family.rawValue).tag(family)
+            HStack(spacing: 12) {
+                Image(systemName: "textformat")
+                    .font(.system(size: 17, weight: .medium))
+                    .foregroundStyle(.orange)
+                    .frame(width: 28, height: 28)
+                
+                Picker("Font", selection: $settings.fontFamily) {
+                    ForEach(LiveActivitySettings.FontFamily.allCases, id: \.self) { family in
+                        Text(family.rawValue).tag(family)
+                    }
                 }
             }
             .onChange(of: settings.fontFamily) { _ in saveSettings() }
             
             // Font Weight
-            Picker("Font Weight", selection: $settings.fontWeight) {
-                ForEach(LiveActivitySettings.FontWeightOption.allCases, id: \.self) { weight in
-                    Text(weight.rawValue).tag(weight)
+            HStack(spacing: 12) {
+                Image(systemName: "bold")
+                    .font(.system(size: 17, weight: .medium))
+                    .foregroundStyle(.pink)
+                    .frame(width: 28, height: 28)
+                
+                Picker("Font Weight", selection: $settings.fontWeight) {
+                    ForEach(LiveActivitySettings.FontWeightOption.allCases, id: \.self) { weight in
+                        Text(weight.rawValue).tag(weight)
+                    }
                 }
             }
             .onChange(of: settings.fontWeight) { _ in saveSettings() }
@@ -114,56 +140,104 @@ struct LiveActivitySettingsView: View {
                 showColorPicker = true
                 HapticsManager.shared.light()
             } label: {
-                HStack {
+                HStack(spacing: 12) {
+                    Image(systemName: "paintpalette.fill")
+                        .font(.system(size: 17, weight: .medium))
+                        .foregroundStyle(settings.accentColor.color)
+                        .frame(width: 28, height: 28)
+                    
                     Text("Accent Color")
                         .foregroundColor(.primary)
+                    
                     Spacer()
-                    Circle()
-                        .fill(settings.accentColor.color)
-                        .frame(width: 24, height: 24)
+                    
+                    HStack(spacing: 8) {
+                        Circle()
+                            .fill(settings.accentColor.color)
+                            .frame(width: 24, height: 24)
+                            .overlay(
+                                Circle()
+                                    .strokeBorder(Color.primary.opacity(0.2), lineWidth: 1)
+                            )
+                        
+                        Image(systemName: "chevron.right")
+                            .font(.system(size: 13, weight: .semibold))
+                            .foregroundColor(.secondary)
+                    }
                 }
             }
         } header: {
-            Text("Appearance")
-                .font(.system(size: 11, weight: .semibold))
+            HStack(spacing: 5) {
+                Image(systemName: "paintbrush.fill")
+                    .font(.system(size: 10, weight: .semibold))
+                Text("Appearance")
+                    .font(.system(size: 11, weight: .semibold, design: .rounded))
+            }
+            .foregroundStyle(.secondary)
         } footer: {
             Text("Customize the visual style of Live Activities")
                 .font(.caption)
                 .foregroundColor(.secondary)
         }
         .sheet(isPresented: $showColorPicker) {
-            ColorPickerView(selectedColor: $settings.accentColor, onDismiss: saveSettings)
+            AccentColorPickerView(selectedColor: $settings.accentColor, onDismiss: saveSettings)
         }
     }
     
     private var progressSection: some View {
         Section {
             // Progress Bar Style
-            Picker("Progress Style", selection: $settings.progressBarStyle) {
-                ForEach(LiveActivitySettings.ProgressBarStyle.allCases, id: \.self) { style in
-                    Text(style.rawValue).tag(style)
+            HStack(spacing: 12) {
+                Image(systemName: "chart.bar.fill")
+                    .font(.system(size: 17, weight: .medium))
+                    .foregroundStyle(.green)
+                    .frame(width: 28, height: 28)
+                
+                Picker("Progress Style", selection: $settings.progressBarStyle) {
+                    ForEach(LiveActivitySettings.ProgressBarStyle.allCases, id: \.self) { style in
+                        Text(style.rawValue).tag(style)
+                    }
                 }
             }
             .onChange(of: settings.progressBarStyle) { _ in saveSettings() }
             
             // Icon Size
-            Picker("Icon Size", selection: $settings.iconSize) {
-                ForEach(LiveActivitySettings.IconSize.allCases, id: \.self) { size in
-                    Text(size.rawValue).tag(size)
+            HStack(spacing: 12) {
+                Image(systemName: "app.badge")
+                    .font(.system(size: 17, weight: .medium))
+                    .foregroundStyle(.cyan)
+                    .frame(width: 28, height: 28)
+                
+                Picker("Icon Size", selection: $settings.iconSize) {
+                    ForEach(LiveActivitySettings.IconSize.allCases, id: \.self) { size in
+                        Text(size.rawValue).tag(size)
+                    }
                 }
             }
             .onChange(of: settings.iconSize) { _ in saveSettings() }
             
             // Animation Style
-            Picker("Animation", selection: $settings.animationStyle) {
-                ForEach(LiveActivitySettings.AnimationStyle.allCases, id: \.self) { animation in
-                    Text(animation.rawValue).tag(animation)
+            HStack(spacing: 12) {
+                Image(systemName: "sparkles")
+                    .font(.system(size: 17, weight: .medium))
+                    .foregroundStyle(.yellow)
+                    .frame(width: 28, height: 28)
+                
+                Picker("Animation", selection: $settings.animationStyle) {
+                    ForEach(LiveActivitySettings.AnimationStyle.allCases, id: \.self) { animation in
+                        Text(animation.rawValue).tag(animation)
+                    }
                 }
             }
             .onChange(of: settings.animationStyle) { _ in saveSettings() }
         } header: {
-            Text("Progress Display")
-                .font(.system(size: 11, weight: .semibold))
+            HStack(spacing: 5) {
+                Image(systemName: "gauge.with.dots.needle.bottom.50percent")
+                    .font(.system(size: 10, weight: .semibold))
+                Text("Progress Display")
+                    .font(.system(size: 11, weight: .semibold, design: .rounded))
+            }
+            .foregroundStyle(.secondary)
         } footer: {
             Text("Configure how progress is displayed")
                 .font(.caption)
@@ -174,15 +248,27 @@ struct LiveActivitySettingsView: View {
     private var detailsSection: some View {
         Section {
             // Detail Density
-            Picker("Detail Level", selection: $settings.detailDensity) {
-                ForEach(LiveActivitySettings.DetailDensity.allCases, id: \.self) { density in
-                    Text(density.rawValue).tag(density)
+            HStack(spacing: 12) {
+                Image(systemName: "list.bullet.rectangle")
+                    .font(.system(size: 17, weight: .medium))
+                    .foregroundStyle(.teal)
+                    .frame(width: 28, height: 28)
+                
+                Picker("Detail Level", selection: $settings.detailDensity) {
+                    ForEach(LiveActivitySettings.DetailDensity.allCases, id: \.self) { density in
+                        Text(density.rawValue).tag(density)
+                    }
                 }
             }
             .onChange(of: settings.detailDensity) { _ in saveSettings() }
         } header: {
-            Text("Details")
-                .font(.system(size: 11, weight: .semibold))
+            HStack(spacing: 5) {
+                Image(systemName: "info.circle.fill")
+                    .font(.system(size: 10, weight: .semibold))
+                Text("Details")
+                    .font(.system(size: 11, weight: .semibold, design: .rounded))
+            }
+            .foregroundStyle(.secondary)
         } footer: {
             Text("Control how much information is shown")
                 .font(.caption)
@@ -230,8 +316,13 @@ struct LiveActivitySettingsView: View {
                     .foregroundColor(.secondary)
             }
         } header: {
-            Text("Testing")
-                .font(.system(size: 11, weight: .semibold))
+            HStack(spacing: 5) {
+                Image(systemName: "flask.fill")
+                    .font(.system(size: 10, weight: .semibold))
+                Text("Testing")
+                    .font(.system(size: 11, weight: .semibold, design: .rounded))
+            }
+            .foregroundStyle(.secondary)
         } footer: {
             Text("Test your Live Activity settings with a mock installation. The activity will automatically complete after a few seconds.")
                 .font(.caption)
@@ -267,20 +358,41 @@ struct LiveActivitySettingsView: View {
                 description: "Live Activities can be updated even when Portal is in the background"
             )
         } header: {
-            Text("About Live Activities")
-                .font(.system(size: 11, weight: .semibold))
+            HStack(spacing: 5) {
+                Image(systemName: "questionmark.circle.fill")
+                    .font(.system(size: 10, weight: .semibold))
+                Text("About Live Activities")
+                    .font(.system(size: 11, weight: .semibold, design: .rounded))
+            }
+            .foregroundStyle(.secondary)
         }
     }
 }
 
-// MARK: - Color Picker View
+// MARK: - Accent Color Picker View
 
-struct ColorPickerView: View {
+struct AccentColorPickerView: View {
     @Binding var selectedColor: CodableColor
     let onDismiss: () -> Void
     @Environment(\.dismiss) private var dismiss
     
     @State private var color: Color
+    
+    // Popular preset colors
+    private let presetColors: [(name: String, color: Color)] = [
+        ("Blue", .blue),
+        ("Purple", .purple),
+        ("Pink", .pink),
+        ("Red", .red),
+        ("Orange", .orange),
+        ("Yellow", .yellow),
+        ("Green", .green),
+        ("Teal", .teal),
+        ("Cyan", .cyan),
+        ("Indigo", .indigo),
+        ("Mint", .mint),
+        ("Brown", .brown)
+    ]
     
     init(selectedColor: Binding<CodableColor>, onDismiss: @escaping () -> Void) {
         self._selectedColor = selectedColor
@@ -290,54 +402,144 @@ struct ColorPickerView: View {
     
     var body: some View {
         NavigationStack {
-            VStack(spacing: 20) {
-                ColorPicker("Select Accent Color", selection: $color, supportsOpacity: false)
-                    .padding()
-                
-                Text("Preview")
-                    .font(.headline)
-                
-                HStack(spacing: 12) {
-                    Circle()
-                        .fill(color)
-                        .frame(width: 50, height: 50)
-                    
-                    VStack(alignment: .leading) {
-                        Text("Sample Text")
-                            .foregroundColor(color)
-                            .font(.headline)
-                        
-                        RoundedRectangle(cornerRadius: 4)
-                            .fill(color)
-                            .frame(height: 6)
+            List {
+                // Color Presets Section
+                Section {
+                    LazyVGrid(columns: [
+                        GridItem(.flexible()),
+                        GridItem(.flexible()),
+                        GridItem(.flexible()),
+                        GridItem(.flexible())
+                    ], spacing: 16) {
+                        ForEach(presetColors, id: \.name) { preset in
+                            VStack(spacing: 8) {
+                                Circle()
+                                    .fill(preset.color)
+                                    .frame(width: 50, height: 50)
+                                    .overlay(
+                                        Circle()
+                                            .strokeBorder(Color.primary.opacity(0.2), lineWidth: 2)
+                                    )
+                                    .overlay(
+                                        Circle()
+                                            .strokeBorder(
+                                                isSimilarColor(preset.color, to: color) ? Color.accentColor : Color.clear,
+                                                lineWidth: 3
+                                            )
+                                    )
+                                    .onTapGesture {
+                                        color = preset.color
+                                        HapticsManager.shared.light()
+                                    }
+                                
+                                Text(preset.name)
+                                    .font(.caption2)
+                                    .foregroundColor(.secondary)
+                            }
+                        }
                     }
+                    .padding(.vertical, 8)
+                } header: {
+                    HStack(spacing: 5) {
+                        Image(systemName: "circle.grid.3x3.fill")
+                            .font(.system(size: 10, weight: .semibold))
+                        Text("Presets")
+                            .font(.system(size: 11, weight: .semibold, design: .rounded))
+                    }
+                    .foregroundStyle(.secondary)
                 }
-                .padding()
-                .background(Color(uiColor: .secondarySystemBackground))
-                .cornerRadius(12)
-                .padding(.horizontal)
                 
-                Spacer()
+                // Custom Color Section
+                Section {
+                    ColorPicker("Custom Color", selection: $color, supportsOpacity: false)
+                } header: {
+                    HStack(spacing: 5) {
+                        Image(systemName: "eyedropper.halffull")
+                            .font(.system(size: 10, weight: .semibold))
+                        Text("Custom")
+                            .font(.system(size: 11, weight: .semibold, design: .rounded))
+                    }
+                    .foregroundStyle(.secondary)
+                }
+                
+                // Preview Section
+                Section {
+                    VStack(spacing: 20) {
+                        Circle()
+                            .fill(color)
+                            .frame(width: 80, height: 80)
+                            .shadow(color: color.opacity(0.4), radius: 15, x: 0, y: 8)
+                        
+                        VStack(spacing: 8) {
+                            Text("Sample Text")
+                                .foregroundColor(color)
+                                .font(.headline)
+                            
+                            RoundedRectangle(cornerRadius: 4)
+                                .fill(color)
+                                .frame(height: 8)
+                                .frame(maxWidth: 200)
+                            
+                            HStack(spacing: 12) {
+                                ForEach(0..<3) { _ in
+                                    Circle()
+                                        .fill(color)
+                                        .frame(width: 12, height: 12)
+                                }
+                            }
+                        }
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 20)
+                } header: {
+                    HStack(spacing: 5) {
+                        Image(systemName: "eye.fill")
+                            .font(.system(size: 10, weight: .semibold))
+                        Text("Preview")
+                            .font(.system(size: 11, weight: .semibold, design: .rounded))
+                    }
+                    .foregroundStyle(.secondary)
+                }
             }
+            .listStyle(.insetGrouped)
             .navigationTitle("Accent Color")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
-                    Button("Cancel") {
+                    Button {
                         dismiss()
+                    } label: {
+                        HStack(spacing: 4) {
+                            Image(systemName: "xmark")
+                                .font(.system(size: 14, weight: .semibold))
+                            Text("Cancel")
+                        }
                     }
                 }
                 
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Done") {
-                        // Convert Color to CodableColor (approximation)
+                    Button {
                         selectedColor = CodableColor(color: color)
                         onDismiss()
+                        HapticsManager.shared.success()
                         dismiss()
+                    } label: {
+                        HStack(spacing: 4) {
+                            Text("Done")
+                            Image(systemName: "checkmark")
+                                .font(.system(size: 14, weight: .semibold))
+                        }
+                        .fontWeight(.semibold)
                     }
                 }
             }
         }
+    }
+    
+    // Helper to check if colors are similar
+    private func isSimilarColor(_ color1: Color, to color2: Color) -> Bool {
+        // Simple comparison - in production you might want UIColor comparison
+        return color1.description == color2.description
     }
 }
 

@@ -126,6 +126,7 @@ struct InstallationActivityAttributes: ActivityAttributes {
         var status: InstallationStatus
         var timeRemaining: TimeInterval?
         var speed: Double? // bytes per second
+        var isAutoSigning: Bool = false // Track if this is an automatic sign operation
         
         var progressPercentage: String {
             String(format: "%.0f%%", progress * 100)
