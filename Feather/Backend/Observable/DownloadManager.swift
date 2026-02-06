@@ -108,8 +108,36 @@ class DownloadManager: NSObject, ObservableObject {
 		// Start Live Activity if enabled
 		if #available(iOS 16.2, *), UserDefaults.standard.bool(forKey: "Feather.liveActivityEnabled") {
 			let appName = url.deletingPathExtension().lastPathComponent
-			LiveActivityManager.shared.startActivity(appName: appName, bundleId: "unknown")
+			
+			// Use a generic app icon placeholder
+			let iconData: Data?
+			if let appIcon = UIImage(systemName: "app.badge.fill") {
+				// Render the system image to a UIImage with appropriate size and color
+				let config = UIImage.SymbolConfiguration(pointSize: 60, weight: .medium)
+				let renderedIcon = appIcon.withConfiguration(config)
+				iconData = renderedIcon.pngData()
+			} else {
+				iconData = nil
+			}
+			
+			let isAutoSigning = UserDefaults.standard.bool(forKey: "Feather.autoSignAfterDownload")
+			LiveActivityManager.shared.startActivity(appName: appName, bundleId: "unknown", iconData: iconData)
 			download.liveActivityStarted = true
+			
+			// Update immediately with auto-sign status
+			if isAutoSigning {
+				Task {
+					await LiveActivityManager.shared.updateActivity(
+						progress: 0.0,
+						bytesDownloaded: 0,
+						totalBytes: 0,
+						status: .preparing,
+						timeRemaining: nil,
+						speed: nil,
+						isAutoSigning: true
+					)
+				}
+			}
 		}
 		
         return download
@@ -185,6 +213,7 @@ extension DownloadManager: URLSessionDownloadDelegate {
 		
 		// Update Live Activity to installing state
 		if #available(iOS 16.2, *), dl.liveActivityStarted {
+			let isAutoSigning = UserDefaults.standard.bool(forKey: "Feather.autoSignAfterDownload")
 			Task {
 				await LiveActivityManager.shared.updateActivity(
 					progress: dl.progress,
@@ -192,7 +221,8 @@ extension DownloadManager: URLSessionDownloadDelegate {
 					totalBytes: dl.totalBytes,
 					status: .installing,
 					timeRemaining: nil,
-					speed: nil
+					speed: nil,
+					isAutoSigning: isAutoSigning
 				)
 			}
 		}
@@ -363,6 +393,8 @@ extension DownloadManager: URLSessionDownloadDelegate {
 					? TimeInterval(Double(totalBytesExpectedToWrite - totalBytesWritten) / speed!)
 					: nil
 				
+				let isAutoSigning = UserDefaults.standard.bool(forKey: "Feather.autoSignAfterDownload")
+				
 				Task {
 					await LiveActivityManager.shared.updateActivity(
 						progress: download.progress,
@@ -370,7 +402,8 @@ extension DownloadManager: URLSessionDownloadDelegate {
 						totalBytes: totalBytesExpectedToWrite,
 						status: .downloading,
 						timeRemaining: timeRemaining,
-						speed: speed
+						speed: speed,
+						isAutoSigning: isAutoSigning
 					)
 				}
 			}

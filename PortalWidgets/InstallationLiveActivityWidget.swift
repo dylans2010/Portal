@@ -115,31 +115,47 @@ struct InstallationLiveActivityLockScreenView: View {
     }
     
     private func detailsView(context: ActivityViewContext<InstallationActivityAttributes>) -> some View {
-        HStack {
-            if context.attributes.settings.detailDensity == .detailed {
-                VStack(alignment: .leading, spacing: 2) {
+        VStack(spacing: 6) {
+            HStack {
+                if context.attributes.settings.detailDensity == .detailed {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("\(context.state.formattedBytesDownloaded) / \(context.state.formattedTotalBytes)")
+                            .font(fontFor(.caption2, settings: context.attributes.settings))
+                            .foregroundColor(.secondary)
+                        
+                        if let speed = context.state.formattedSpeed {
+                            Text(speed)
+                                .font(fontFor(.caption2, settings: context.attributes.settings))
+                                .foregroundColor(.secondary)
+                        }
+                    }
+                } else {
                     Text("\(context.state.formattedBytesDownloaded) / \(context.state.formattedTotalBytes)")
                         .font(fontFor(.caption2, settings: context.attributes.settings))
                         .foregroundColor(.secondary)
-                    
-                    if let speed = context.state.formattedSpeed {
-                        Text(speed)
-                            .font(fontFor(.caption2, settings: context.attributes.settings))
-                            .foregroundColor(.secondary)
-                    }
                 }
-            } else {
-                Text("\(context.state.formattedBytesDownloaded) / \(context.state.formattedTotalBytes)")
-                    .font(fontFor(.caption2, settings: context.attributes.settings))
-                    .foregroundColor(.secondary)
+                
+                Spacer()
+                
+                if let eta = context.state.eta {
+                    Text("ETA: \(eta)")
+                        .font(fontFor(.caption2, settings: context.attributes.settings))
+                        .foregroundColor(.secondary)
+                }
             }
             
-            Spacer()
-            
-            if let eta = context.state.eta {
-                Text("ETA: \(eta)")
-                    .font(fontFor(.caption2, settings: context.attributes.settings))
-                    .foregroundColor(.secondary)
+            // Auto-sign indicator
+            if context.state.isAutoSigning {
+                HStack(spacing: 4) {
+                    Image(systemName: "bolt.fill")
+                        .font(.system(size: 10))
+                        .foregroundColor(.orange)
+                    
+                    Text("Auto-signing enabled")
+                        .font(fontFor(.caption2, settings: context.attributes.settings))
+                        .foregroundColor(.orange)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
             }
         }
     }

@@ -103,13 +103,15 @@ class LiveActivityManager: ObservableObject {
     ///   - status: Current installation status
     ///   - timeRemaining: Estimated time remaining
     ///   - speed: Download/processing speed in bytes per second
+    ///   - isAutoSigning: Whether this is an automatic signing operation
     func updateActivity(
         progress: Double,
         bytesDownloaded: Int64,
         totalBytes: Int64,
         status: InstallationStatus,
         timeRemaining: TimeInterval? = nil,
-        speed: Double? = nil
+        speed: Double? = nil,
+        isAutoSigning: Bool = false
     ) async {
         guard let activity = currentActivity else {
             print("⚠️ No active Live Activity to update")
@@ -122,7 +124,8 @@ class LiveActivityManager: ObservableObject {
             totalBytes: totalBytes,
             status: status,
             timeRemaining: timeRemaining,
-            speed: speed
+            speed: speed,
+            isAutoSigning: isAutoSigning
         )
         
         do {
