@@ -74,7 +74,8 @@ struct SettingsView: View {
         Section {
             SettingsRow(icon: "house.fill", title: String.localized("Customize Home"), color: .blue, destination: HomeSettingsView())
             SettingsRow(icon: "paintbrush.fill", title: String.localized("App Appearance"), color: .blue, destination: AppearanceView())
-            SettingsRow(icon: "globe", title: String.localized("Translation"), color: .blue, destination: LanguageSettingsView())
+            SettingsRow(icon: "globe", title: String.localized("Change Language"), color: .blue, destination: LanguageSettingsView())
+            SettingsRow(icon: "iphone.radiowaves.left.and.right", title: String.localized("Live Activity"), color: .blue, destination: LiveActivitySettingsView())
         } header: {
             SettingsSectionHeader(title: String.localized("Preferences"), icon: "slider.horizontal.3")
         }
@@ -84,6 +85,28 @@ struct SettingsView: View {
         Section {
             SettingsRow(icon: "checkmark.seal.fill", title: String.localized("Certificates"), color: .blue, destination: CertificatesView())
             SettingsRow(icon: "signature", title: String.localized("Signing Options"), color: .blue, destination: ConfigurationView())
+            
+            // Auto-Sign After Download Toggle
+            Toggle(isOn: Binding(
+                get: { UserDefaults.standard.bool(forKey: "Feather.autoSignAfterDownload") },
+                set: { UserDefaults.standard.set($0, forKey: "Feather.autoSignAfterDownload") }
+            )) {
+                HStack(spacing: 12) {
+                    Image(systemName: "arrow.triangle.2.circlepath")
+                        .font(.system(size: 17, weight: .medium))
+                        .foregroundStyle(.blue)
+                        .frame(width: 28, height: 28)
+                    
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(String.localized("Automatically Sign After Download"))
+                            .font(.body)
+                        
+                        Text(String.localized("Apps will automatically download, sign, and install in the background"))
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                }
+            }
         } header: {
             SettingsSectionHeader(title: String.localized("Signing"), icon: "lock.shield.fill")
         }

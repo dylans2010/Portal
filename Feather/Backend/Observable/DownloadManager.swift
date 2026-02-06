@@ -242,12 +242,13 @@ extension DownloadManager: URLSessionDownloadDelegate {
 						userInfo: ["appName": appName, "downloadId": dl.id]
 					)
 					
-					// Only show Install/Modify popup for downloads from Sources (not manual imports)
+					// Auto-sign and install for downloads from Sources/AllApps (not manual imports)
 					// Manual imports have IDs starting with "FeatherManualDownload"
 					if !DownloadManager.shared.isManualDownload(dl.id) {
+						// Automatically trigger signing and installation
 						DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
 							NotificationCenter.default.post(
-								name: Notification.Name("Feather.showInstallModifyPopup"),
+								name: Notification.Name("Feather.startSigningAndInstall"),
 								object: url
 							)
 						}

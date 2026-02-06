@@ -323,12 +323,44 @@ struct LibraryView: View {
                                         _selectedSigningAppPresenting = AnyApp(base: app)
                                 }
                         }
-                        .onReceive(NotificationCenter.default.publisher(for: Notification.Name("Feather.showInstallModifyPopup"))) { notification in
-                                // When app is downloaded from Sources view, show Install/Modify dialog
+                        .onReceive(NotificationCenter.default.publisher(for: Notification.Name("Feather.startSigningAndInstall"))) { notification in
+                                // Auto-sign and install the app (NO Dialog shown)
                                 if let _ = notification.object as? URL {
                                         // Get the latest imported app (just downloaded)
                                         if let latestApp = Storage.shared.getLatestImportedApp() {
-                                                _selectedInstallModifyAppPresenting = AnyApp(base: latestApp)
+                                                // Trigger auto-signing
+                                                let defaultCertIndex = UserDefaults.standard.integer(forKey: "feather.selectedCert")
+                                                let certRequest = CertificatePair.fetchRequest()
+                                                certRequest.sortDescriptors = [NSSortDescriptor(keyPath: \CertificatePair.date, ascending: false)]
+                                                
+                                                if let certificates = try? Storage.shared.context.fetch(certRequest),
+                                                   !certificates.isEmpty {
+                                                        let cert = certificates.indices.contains(defaultCertIndex) ? certificates[defaultCertIndex] : certificates[0]
+                                                        let options = OptionsManager.shared.options
+                                                        FR.signPackageFile(latestApp, using: options, icon: nil, certificate: cert) { error in
+                                                                if let error = error {
+                                                                        print("❌ Auto-sign failed: \(error.localizedDescription)")
+                                                                        DispatchQueue.main.async {
+                                                                                UIAlertController.showAlertWithOk(
+                                                                                        title: .localized("Signing Failed"),
+                                                                                        message: error.localizedDescription
+                                                                                )
+                                                                        }
+                                                                } else {
+                                                                        print("✅ Auto-sign completed successfully")
+                                                                        if UserDefaults.standard.bool(forKey: "Feather.notificationsEnabled") {
+                                                                                NotificationManager.shared.sendAppSignedNotification(appName: latestApp.name ?? "App")
+                                                                        }
+                                                                }
+                                                        }
+                                                } else {
+                                                        DispatchQueue.main.async {
+                                                                UIAlertController.showAlertWithOk(
+                                                                        title: .localized("No Certificate"),
+                                                                        message: .localized("Please go to Settings and import a certificate to enable automatic signing.")
+                                                                )
+                                                        }
+                                                }
                                         }
                                 }
                         }

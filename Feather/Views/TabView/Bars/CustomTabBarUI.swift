@@ -97,22 +97,59 @@ struct CustomTabBarUI: View {
                 InstallModifyDialogView(app: app)
             }
         }
-        .onReceive(NotificationCenter.default.publisher(for: Notification.Name("Feather.showInstallModifyPopup"))) { notification in
+        .onReceive(NotificationCenter.default.publisher(for: Notification.Name("Feather.startSigningAndInstall"))) { notification in
+            // Auto-sign and install the app
             if let url = notification.object as? URL {
                 let fileName = url.deletingPathExtension().lastPathComponent
                 let signedRequest = Signed.fetchRequest()
                 let importedRequest = Imported.fetchRequest()
                 
+                var appToSign: AppInfoPresentable? = nil
+                
                 if let signed = try? Storage.shared.context.fetch(signedRequest).first(where: { 
                     $0.name?.contains(fileName) == true || $0.identifier?.contains(fileName) == true
                 }) {
-                    appToInstall = signed
-                    showInstallModifySheet = true
+                    appToSign = signed
                 } else if let imported = try? Storage.shared.context.fetch(importedRequest).first(where: { 
                     $0.name?.contains(fileName) == true || $0.identifier?.contains(fileName) == true
                 }) {
-                    appToInstall = imported
-                    showInstallModifySheet = true
+                    appToSign = imported
+                }
+                
+                // Trigger auto-signing if app found
+                if let app = appToSign {
+                    let defaultCertIndex = UserDefaults.standard.integer(forKey: "feather.selectedCert")
+                    let certRequest = CertificatePair.fetchRequest()
+                    certRequest.sortDescriptors = [NSSortDescriptor(keyPath: \CertificatePair.date, ascending: false)]
+                    
+                    if let certificates = try? Storage.shared.context.fetch(certRequest),
+                       !certificates.isEmpty {
+                        let cert = certificates.indices.contains(defaultCertIndex) ? certificates[defaultCertIndex] : certificates[0]
+                        let options = OptionsManager.shared.options
+                        FR.signPackageFile(app, using: options, icon: nil, certificate: cert) { error in
+                            if let error = error {
+                                print("❌ Auto-sign failed: \(error.localizedDescription)")
+                                DispatchQueue.main.async {
+                                    UIAlertController.showAlertWithOk(
+                                        title: .localized("Signing Failed"),
+                                        message: error.localizedDescription
+                                    )
+                                }
+                            } else {
+                                print("✅ Auto-sign completed successfully")
+                                if UserDefaults.standard.bool(forKey: "Feather.notificationsEnabled") {
+                                    NotificationManager.shared.sendAppSignedNotification(appName: app.name ?? "App")
+                                }
+                            }
+                        }
+                    } else {
+                        DispatchQueue.main.async {
+                            UIAlertController.showAlertWithOk(
+                                title: .localized("No Certificate"),
+                                message: .localized("Please go to Settings and import a certificate to enable automatic signing.")
+                            )
+                        }
+                    }
                 }
             }
         }
