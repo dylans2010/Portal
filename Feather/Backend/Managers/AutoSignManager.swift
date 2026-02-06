@@ -19,7 +19,7 @@ class AutoSignManager {
     ///   - completion: Completion handler with success/failure
     func autoSignAndInstall(_ appURL: URL, completion: @escaping (Bool, Error?) -> Void) {
         // Get the default certificate
-        guard let defaultCert = getDefaultCertificate() else {
+        guard getDefaultCertificate() != nil else {
             completion(false, AutoSignError.noCertificate)
             return
         }
@@ -51,7 +51,7 @@ class AutoSignManager {
         let defaultIndex = UserDefaults.standard.integer(forKey: "feather.selectedCert")
         
         // Fetch certificates from Core Data
-        let context = PersistenceController.shared.container.viewContext
+        let context = Storage.shared.context
         let fetchRequest = CertificatePair.fetchRequest()
         fetchRequest.sortDescriptors = [NSSortDescriptor(keyPath: \CertificatePair.date, ascending: false)]
         
@@ -87,7 +87,7 @@ class AutoSignManager {
     /// Remove an app from the Library after successful installation
     /// - Parameter appName: The name of the app to remove
     func removeFromLibrary(appName: String) {
-        let context = PersistenceController.shared.container.viewContext
+        let context = Storage.shared.context
         
         // Try to find and remove the signed app
         let signedFetch = Signed.fetchRequest()

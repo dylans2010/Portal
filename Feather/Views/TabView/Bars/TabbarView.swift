@@ -180,3 +180,4 @@ struct TabbarView: View {
 			}
 		}
 	}
+}

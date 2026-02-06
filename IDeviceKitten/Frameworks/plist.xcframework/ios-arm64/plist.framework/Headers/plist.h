@@ -23,6 +23,7 @@
 
 #ifndef LIBPLIST_H
 #define LIBPLIST_H
+#import "String.h"
 
 #ifdef __cplusplus
 extern "C"
