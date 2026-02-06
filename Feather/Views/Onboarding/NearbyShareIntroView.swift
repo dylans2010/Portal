@@ -198,6 +198,10 @@ struct NearbyShareIntroView: View {
                 animateButton = true
             }
         }
+        .onDisappear {
+            // Persist the flag when sheet is dismissed (even via swipe gesture)
+            hasSeenNearbyShareIntro = true
+        }
     }
 }
 
