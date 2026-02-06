@@ -17148,6 +17148,83 @@
           }
         }
       }
+    },
+    "Check Lock Screen For A Live Activity!": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check Lock Screen For A Live Activity!"
+          }
+        }
+      }
+    },
+    "Auto-Sign Failed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Auto-Sign Failed"
+          }
+        }
+      }
+    },
+    "Could not find the downloaded app in library": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Could not find the downloaded app in library"
+          }
+        }
+      }
+    },
+    "No certificate available for signing. Please add a certificate first.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No certificate available for signing. Please add a certificate first."
+          }
+        }
+      }
+    },
+    "Signed app file not found after signing": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Signed app file not found after signing"
+          }
+        }
+      }
+    },
+    "Failed to install the app on device": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Failed to install the app on device"
+          }
+        }
+      }
+    },
+    "Installation timed out after 60 seconds": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Installation timed out after 60 seconds"
+          }
+        }
+      }
     }
   },
   "version": "1.0"
