@@ -9,6 +9,7 @@ struct FeatherApp: App {
 	@UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
 
 	let heartbeat = HeartbeatManager.shared
+	let autoSignManager = AutoSignManager.shared
 
 	@StateObject var downloadManager = DownloadManager.shared
 	@StateObject var networkMonitor = NetworkMonitor.shared

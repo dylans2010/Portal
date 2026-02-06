@@ -75,6 +75,15 @@ struct SettingsView: View {
             SettingsRow(icon: "house.fill", title: String.localized("Customize Home"), color: .blue, destination: HomeSettingsView())
             SettingsRow(icon: "paintbrush.fill", title: String.localized("App Appearance"), color: .blue, destination: AppearanceView())
             SettingsRow(icon: "globe", title: String.localized("Translation"), color: .blue, destination: LanguageSettingsView())
+            SettingsRow(icon: "apps.iphone", title: String.localized("Live Activities"), color: .blue, destination: LiveActivitySettingsView())
+
+            Button {
+                if let url = URL(string: UIApplication.openSettingsURLString) {
+                    UIApplication.shared.open(url)
+                }
+            } label: {
+                SettingsRowContent(icon: "character.bubble.fill", title: String.localized("Change Language"), color: .blue)
+            }
         } header: {
             SettingsSectionHeader(title: String.localized("Preferences"), icon: "slider.horizontal.3")
         }

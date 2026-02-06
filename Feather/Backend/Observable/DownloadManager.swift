@@ -45,18 +45,21 @@ class Download: Identifiable, @unchecked Sendable {
 	let fileName: String
 	let onlyArchiving: Bool
 	let fromSourcesView: Bool  // Track if download is from Sources view
+	var iconData: Data? = nil
 	var liveActivityStarted: Bool = false  // Track if Live Activity was started for this download
     
     init(
 		id: String,
 		url: URL,
 		onlyArchiving: Bool = false,
-		fromSourcesView: Bool = false
+		fromSourcesView: Bool = false,
+		iconData: Data? = nil
 	) {
 		self.id = id
         self.url = url
 		self.onlyArchiving = onlyArchiving
 		self.fromSourcesView = fromSourcesView
+		self.iconData = iconData
         self.fileName = url.lastPathComponent
     }
 }
@@ -89,14 +92,15 @@ class DownloadManager: NSObject, ObservableObject {
     func startDownload(
 		from url: URL,
 		id: String = UUID().uuidString,
-		fromSourcesView: Bool = false
+		fromSourcesView: Bool = false,
+		iconData: Data? = nil
 	) -> Download {
         if let existingDownload = downloads.first(where: { $0.url == url }) {
             resumeDownload(existingDownload)
             return existingDownload
         }
         
-		let download = Download(id: id, url: url, fromSourcesView: fromSourcesView)
+		let download = Download(id: id, url: url, fromSourcesView: fromSourcesView, iconData: iconData)
         
         let task = _session.downloadTask(with: url)
         download.task = task
@@ -108,7 +112,7 @@ class DownloadManager: NSObject, ObservableObject {
 		// Start Live Activity if enabled
 		if #available(iOS 16.2, *), UserDefaults.standard.bool(forKey: "Feather.liveActivityEnabled") {
 			let appName = url.deletingPathExtension().lastPathComponent
-			LiveActivityManager.shared.startActivity(appName: appName, bundleId: "unknown")
+			LiveActivityManager.shared.startActivity(appName: appName, bundleId: "unknown", iconData: iconData)
 			download.liveActivityStarted = true
 		}
 		
@@ -244,7 +248,9 @@ extension DownloadManager: URLSessionDownloadDelegate {
 					
 					// Only show Install/Modify popup for downloads from Sources (not manual imports)
 					// Manual imports have IDs starting with "FeatherManualDownload"
-					if !DownloadManager.shared.isManualDownload(dl.id) {
+					// Skip if auto-sign is enabled
+					let autoSignEnabled = UserDefaults.standard.bool(forKey: "Feather.autoSignAfterDownload")
+					if !DownloadManager.shared.isManualDownload(dl.id) && !autoSignEnabled {
 						DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
 							NotificationCenter.default.post(
 								name: Notification.Name("Feather.showInstallModifyPopup"),

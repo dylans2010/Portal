@@ -43,42 +43,6 @@ struct LanguageSettingsView: View {
                     }
                 }
                 
-                Section {
-                    ForEach(AppLanguage.allCases, id: \.self) { language in
-                        Button {
-                            selectedLanguage = language
-                            showRestartAlert = true
-                        } label: {
-                            HStack {
-                                VStack(alignment: .leading, spacing: 4) {
-                                    Text(language.displayName)
-                                        .font(.body)
-                                        .foregroundColor(.primary)
-                                    
-                                    Text(language.nativeName)
-                                        .font(.caption)
-                                        .foregroundColor(.secondary)
-                                }
-                                
-                                Spacer()
-                                
-                                if appLanguage == language.code {
-                                    Image(systemName: "checkmark")
-                                        .foregroundColor(.blue)
-                                        .font(.system(size: 16, weight: .semibold))
-                                }
-                            }
-                            .padding(.vertical, 4)
-                        }
-                    }
-                } header: {
-                    Text(.localized("Select Language"))
-                        .font(.system(size: 13, weight: .semibold))
-                } footer: {
-                    Text(.localized("Changing the language will restart the app to apply the changes."))
-                        .font(.system(size: 12))
-                        .foregroundColor(.secondary)
-                }
             }
             .listStyle(.insetGrouped)
         }

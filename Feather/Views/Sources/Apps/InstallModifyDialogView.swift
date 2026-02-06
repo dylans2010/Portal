@@ -7,7 +7,6 @@ struct InstallModifyDialogView: View {
     let app: AppInfoPresentable
     
     @State private var isSigning = false
-    @State private var showModifyView = false
     @State private var appearAnimation = false
     
     var body: some View {
@@ -102,7 +101,16 @@ struct InstallModifyDialogView: View {
                     
                     // Modify button
                     Button {
-                        showModifyView = true
+                        // Dismiss this view and open the full signing view
+                        dismiss()
+
+                        // Give it a moment to dismiss before triggering the new view
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                            NotificationCenter.default.post(
+                                name: Notification.Name("Feather.openSigningView"),
+                                object: app
+                            )
+                        }
                     } label: {
                         HStack(spacing: 10) {
                             Image(systemName: "slider.horizontal.3")
@@ -127,9 +135,6 @@ struct InstallModifyDialogView: View {
             withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) {
                 appearAnimation = true
             }
-        }
-        .fullScreenCover(isPresented: $showModifyView) {
-            ModernSigningView(app: app)
         }
     }
     

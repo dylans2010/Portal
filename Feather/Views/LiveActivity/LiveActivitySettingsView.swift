@@ -15,6 +15,7 @@ struct LiveActivitySettingsView: View {
         NBNavigationView("Live Activity Settings") {
             List {
                 enabledSection
+                autoSignSection
                 appearanceSection
                 progressSection
                 detailsSection
@@ -48,23 +49,27 @@ struct LiveActivitySettingsView: View {
         Section {
             Toggle(isOn: $liveActivityEnabled) {
                 HStack(spacing: 12) {
-                    Image(systemName: "app.badge.fill")
-                        .font(.system(size: 17, weight: .medium))
-                        .foregroundStyle(liveActivityEnabled ? .green : .gray)
-                        .frame(width: 28, height: 28)
+                    ZStack {
+                        RoundedRectangle(cornerRadius: 8, style: .continuous)
+                            .fill(liveActivityEnabled ? Color.green.opacity(0.15) : Color.gray.opacity(0.1))
+                            .frame(width: 32, height: 32)
+                        Image(systemName: "app.badge.fill")
+                            .font(.system(size: 16, weight: .semibold))
+                            .foregroundStyle(liveActivityEnabled ? .green : .gray)
+                    }
                     
                     VStack(alignment: .leading, spacing: 2) {
                         Text("Enable Live Activities")
-                            .font(.body)
+                            .font(.system(size: 15, weight: .medium))
                         
-                        Text("Show installation progress in Dynamic Island and Lock Screen")
-                            .font(.caption)
+                        Text("Show progress in Dynamic Island")
+                            .font(.system(size: 12))
                             .foregroundColor(.secondary)
                     }
                 }
             }
         } header: {
-            Text("Status")
+            Text("General")
                 .font(.system(size: 11, weight: .semibold))
         } footer: {
             if #available(iOS 16.2, *) {
@@ -83,28 +88,81 @@ struct LiveActivitySettingsView: View {
         }
     }
     
+    @AppStorage("Feather.autoSignAfterDownload") private var autoSignAfterDownload: Bool = false
+
+    private var autoSignSection: some View {
+        Section {
+            Toggle(isOn: $autoSignAfterDownload) {
+                HStack(spacing: 12) {
+                    ZStack {
+                        RoundedRectangle(cornerRadius: 8, style: .continuous)
+                            .fill(autoSignAfterDownload ? Color.blue.opacity(0.15) : Color.gray.opacity(0.1))
+                            .frame(width: 32, height: 32)
+                        Image(systemName: "signature")
+                            .font(.system(size: 16, weight: .semibold))
+                            .foregroundStyle(autoSignAfterDownload ? .blue : .gray)
+                    }
+
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Auto Sign After Download")
+                            .font(.system(size: 15, weight: .medium))
+
+                        Text("Automatically sign and install apps")
+                            .font(.system(size: 12))
+                            .foregroundColor(.secondary)
+                    }
+                }
+            }
+        } footer: {
+            Text("When enabled, apps will automatically download, sign with default cert, and install in background.")
+                .font(.caption)
+                .foregroundColor(.secondary)
+        }
+    }
+
     private var appearanceSection: some View {
         Section {
             // Background Texture
-            Picker("Background", selection: $settings.backgroundTexture) {
-                ForEach(LiveActivitySettings.BackgroundTexture.allCases, id: \.self) { texture in
-                    Text(texture.rawValue).tag(texture)
+            HStack(spacing: 12) {
+                Image(systemName: "circle.grid.3x3.fill")
+                    .font(.system(size: 16))
+                    .foregroundStyle(.blue)
+                    .frame(width: 24)
+
+                Picker("Background", selection: $settings.backgroundTexture) {
+                    ForEach(LiveActivitySettings.BackgroundTexture.allCases, id: \.self) { texture in
+                        Text(texture.rawValue).tag(texture)
+                    }
                 }
             }
             .onChange(of: settings.backgroundTexture) { _ in saveSettings() }
             
             // Font Family
-            Picker("Font", selection: $settings.fontFamily) {
-                ForEach(LiveActivitySettings.FontFamily.allCases, id: \.self) { family in
-                    Text(family.rawValue).tag(family)
+            HStack(spacing: 12) {
+                Image(systemName: "textformat")
+                    .font(.system(size: 16))
+                    .foregroundStyle(.purple)
+                    .frame(width: 24)
+
+                Picker("Font", selection: $settings.fontFamily) {
+                    ForEach(LiveActivitySettings.FontFamily.allCases, id: \.self) { family in
+                        Text(family.rawValue).tag(family)
+                    }
                 }
             }
             .onChange(of: settings.fontFamily) { _ in saveSettings() }
             
             // Font Weight
-            Picker("Font Weight", selection: $settings.fontWeight) {
-                ForEach(LiveActivitySettings.FontWeightOption.allCases, id: \.self) { weight in
-                    Text(weight.rawValue).tag(weight)
+            HStack(spacing: 12) {
+                Image(systemName: "bold")
+                    .font(.system(size: 16))
+                    .foregroundStyle(.orange)
+                    .frame(width: 24)
+
+                Picker("Font Weight", selection: $settings.fontWeight) {
+                    ForEach(LiveActivitySettings.FontWeightOption.allCases, id: \.self) { weight in
+                        Text(weight.rawValue).tag(weight)
+                    }
                 }
             }
             .onChange(of: settings.fontWeight) { _ in saveSettings() }
@@ -114,13 +172,23 @@ struct LiveActivitySettingsView: View {
                 showColorPicker = true
                 HapticsManager.shared.light()
             } label: {
-                HStack {
+                HStack(spacing: 12) {
+                    Image(systemName: "paintpalette.fill")
+                        .font(.system(size: 16))
+                        .foregroundStyle(.pink)
+                        .frame(width: 24)
+
                     Text("Accent Color")
                         .foregroundColor(.primary)
                     Spacer()
-                    Circle()
-                        .fill(settings.accentColor.color)
-                        .frame(width: 24, height: 24)
+                    ZStack {
+                        Circle()
+                            .strokeBorder(Color.primary.opacity(0.1), lineWidth: 1)
+                            .frame(width: 28, height: 28)
+                        Circle()
+                            .fill(settings.accentColor.color)
+                            .frame(width: 22, height: 22)
+                    }
                 }
             }
         } header: {
@@ -139,25 +207,46 @@ struct LiveActivitySettingsView: View {
     private var progressSection: some View {
         Section {
             // Progress Bar Style
-            Picker("Progress Style", selection: $settings.progressBarStyle) {
-                ForEach(LiveActivitySettings.ProgressBarStyle.allCases, id: \.self) { style in
-                    Text(style.rawValue).tag(style)
+            HStack(spacing: 12) {
+                Image(systemName: "barcode")
+                    .font(.system(size: 16))
+                    .foregroundStyle(.cyan)
+                    .frame(width: 24)
+
+                Picker("Progress Style", selection: $settings.progressBarStyle) {
+                    ForEach(LiveActivitySettings.ProgressBarStyle.allCases, id: \.self) { style in
+                        Text(style.rawValue).tag(style)
+                    }
                 }
             }
             .onChange(of: settings.progressBarStyle) { _ in saveSettings() }
             
             // Icon Size
-            Picker("Icon Size", selection: $settings.iconSize) {
-                ForEach(LiveActivitySettings.IconSize.allCases, id: \.self) { size in
-                    Text(size.rawValue).tag(size)
+            HStack(spacing: 12) {
+                Image(systemName: "app.fill")
+                    .font(.system(size: 16))
+                    .foregroundStyle(.green)
+                    .frame(width: 24)
+
+                Picker("Icon Size", selection: $settings.iconSize) {
+                    ForEach(LiveActivitySettings.IconSize.allCases, id: \.self) { size in
+                        Text(size.rawValue).tag(size)
+                    }
                 }
             }
             .onChange(of: settings.iconSize) { _ in saveSettings() }
             
             // Animation Style
-            Picker("Animation", selection: $settings.animationStyle) {
-                ForEach(LiveActivitySettings.AnimationStyle.allCases, id: \.self) { animation in
-                    Text(animation.rawValue).tag(animation)
+            HStack(spacing: 12) {
+                Image(systemName: "sparkles")
+                    .font(.system(size: 16))
+                    .foregroundStyle(.yellow)
+                    .frame(width: 24)
+
+                Picker("Animation", selection: $settings.animationStyle) {
+                    ForEach(LiveActivitySettings.AnimationStyle.allCases, id: \.self) { animation in
+                        Text(animation.rawValue).tag(animation)
+                    }
                 }
             }
             .onChange(of: settings.animationStyle) { _ in saveSettings() }
@@ -174,9 +263,16 @@ struct LiveActivitySettingsView: View {
     private var detailsSection: some View {
         Section {
             // Detail Density
-            Picker("Detail Level", selection: $settings.detailDensity) {
-                ForEach(LiveActivitySettings.DetailDensity.allCases, id: \.self) { density in
-                    Text(density.rawValue).tag(density)
+            HStack(spacing: 12) {
+                Image(systemName: "list.bullet.indent")
+                    .font(.system(size: 16))
+                    .foregroundStyle(.gray)
+                    .frame(width: 24)
+
+                Picker("Detail Level", selection: $settings.detailDensity) {
+                    ForEach(LiveActivitySettings.DetailDensity.allCases, id: \.self) { density in
+                        Text(density.rawValue).tag(density)
+                    }
                 }
             }
             .onChange(of: settings.detailDensity) { _ in saveSettings() }

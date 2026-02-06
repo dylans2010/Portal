@@ -75,6 +75,50 @@ struct ModernSigningView: View {
 
                 _dialogsAndSheets
             }
+            .sheet(isPresented: $_isAltPickerPresenting) {
+                SigningAlternativeIconView(app: app, appIcon: $appIcon, isModifing: .constant(true))
+            }
+            .sheet(isPresented: $_isFilePickerPresenting) {
+                FileImporterRepresentableView(
+                    allowedContentTypes: [.image],
+                    onDocumentsPicked: { urls in
+                        guard let selectedFileURL = urls.first else { return }
+                        self.appIcon = UIImage.fromFile(selectedFileURL)?.resizeToSquare()
+                    }
+                )
+                .ignoresSafeArea()
+            }
+            .photosPicker(isPresented: $_isImagePickerPresenting, selection: $_selectedPhoto)
+            .onChange(of: _selectedPhoto) { newValue in
+                guard let newValue else { return }
+                Task {
+                    if let data = try? await newValue.loadTransferable(type: Data.self),
+                       let image = UIImage(data: data)?.resizeToSquare() {
+                        appIcon = image
+                    }
+                }
+            }
+            .fullScreenCover(isPresented: $_isSigningProcessPresented) {
+                if #available(iOS 17.0, *) {
+                    SigningProcessView(
+                        appName: _temporaryOptions.appName ?? app.name ?? "App",
+                        appIcon: appIcon
+                    )
+                } else {
+                    VStack(spacing: 20) {
+                        ProgressView()
+                            .scaleEffect(1.5)
+                        Text("Signing \(_temporaryOptions.appName ?? app.name ?? "App")...")
+                            .font(.headline)
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .background(Color(UIColor.systemBackground))
+                }
+            }
+            .sheet(isPresented: $_isAddingCertificatePresenting) {
+                CertificatesAddView()
+                    .presentationDetents([.medium])
+            }
             .navigationBarTitleDisplayMode(.inline)
             .toolbar(content: {
                 _toolbarContent
@@ -193,50 +237,6 @@ struct ModernSigningView: View {
     @ViewBuilder
     private var _dialogsAndSheets: some View {
         EmptyView()
-            .sheet(isPresented: $_isAltPickerPresenting) {
-                SigningAlternativeIconView(app: app, appIcon: $appIcon, isModifing: .constant(true))
-            }
-            .sheet(isPresented: $_isFilePickerPresenting) {
-                FileImporterRepresentableView(
-                    allowedContentTypes: [.image],
-                    onDocumentsPicked: { urls in
-                        guard let selectedFileURL = urls.first else { return }
-                        self.appIcon = UIImage.fromFile(selectedFileURL)?.resizeToSquare()
-                    }
-                )
-                .ignoresSafeArea()
-            }
-            .photosPicker(isPresented: $_isImagePickerPresenting, selection: $_selectedPhoto)
-            .onChange(of: _selectedPhoto) { newValue in
-                guard let newValue else { return }
-                Task {
-                    if let data = try? await newValue.loadTransferable(type: Data.self),
-                       let image = UIImage(data: data)?.resizeToSquare() {
-                        appIcon = image
-                    }
-                }
-            }
-            .fullScreenCover(isPresented: $_isSigningProcessPresented) {
-                if #available(iOS 17.0, *) {
-                    SigningProcessView(
-                        appName: _temporaryOptions.appName ?? app.name ?? "App",
-                        appIcon: appIcon
-                    )
-                } else {
-                    VStack(spacing: 20) {
-                        ProgressView()
-                            .scaleEffect(1.5)
-                        Text("Signing \(_temporaryOptions.appName ?? app.name ?? "App")...")
-                            .font(.headline)
-                    }
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .background(Color(UIColor.systemBackground))
-                }
-            }
-            .sheet(isPresented: $_isAddingCertificatePresenting) {
-                CertificatesAddView()
-                    .presentationDetents([.medium])
-            }
     }
 
     private func _onAppearAction() {
@@ -477,22 +477,7 @@ struct ModernSigningView: View {
             
             // Certificate Section
             VStack(alignment: .leading, spacing: 12) {
-                HStack {
-                    cleanSectionHeader(title: "Certificate", icon: "checkmark.seal.fill")
-                    Spacer()
-                    Button {
-                        _isAddingCertificatePresenting = true
-                    } label: {
-                        HStack(spacing: 4) {
-                            Image(systemName: "plus")
-                                .font(.system(size: 12, weight: .semibold))
-                            Text("Add")
-                                .font(.system(size: 12, weight: .semibold))
-                        }
-                        .foregroundStyle(Color.accentColor)
-                    }
-                }
-                .padding(.trailing, 4)
+                cleanSectionHeader(title: "Certificate", icon: "checkmark.seal.fill")
                 certificateCard
             }
             

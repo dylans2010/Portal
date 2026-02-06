@@ -1008,7 +1008,19 @@ struct AllAppsRowView: View {
 			// Idle state - show download icon
 			Button {
 				if let url = app.currentDownloadUrl {
-					_ = downloadManager.startDownload(from: url, id: app.currentUniqueId, fromSourcesView: true)
+					Task {
+						var iconData: Data? = nil
+						if let iconURL = app.iconURL {
+							iconData = try? await URLSession.shared.data(from: iconURL).0
+						}
+
+						_ = downloadManager.startDownload(
+							from: url,
+							id: app.currentUniqueId,
+							fromSourcesView: true,
+							iconData: iconData
+						)
+					}
 				}
 			} label: {
 				ZStack {

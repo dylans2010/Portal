@@ -313,8 +313,10 @@ struct LibraryView: View {
                                         }
                                 }
                         }
-                        .onReceive(NotificationCenter.default.publisher(for: Notification.Name("Feather.installApp"))) { _ in
-                                if let latest = _signedApps.first {
+                        .onReceive(NotificationCenter.default.publisher(for: Notification.Name("Feather.installApp"))) { notification in
+                                if let app = notification.object as? AppInfoPresentable {
+                                        _selectedInstallAppPresenting = AnyApp(base: app)
+                                } else if let latest = _signedApps.first {
                                         _selectedInstallAppPresenting = AnyApp(base: latest)
                                 }
                         }
