@@ -254,41 +254,73 @@ extension DownloadManager: URLSessionDownloadDelegate {
 				HapticsManager.shared.success()
 				AppLogManager.shared.success("Successfully handled package file: \(url.lastPathComponent)", category: "Download")
 				
-				// End Live Activity with success
-				if #available(iOS 16.2, *), dl.liveActivityStarted {
-					LiveActivityManager.shared.endActivityWithSuccess()
-				}
+				// Check if auto-sign is enabled and this is from Sources view
+				let isAutoSigning = UserDefaults.standard.bool(forKey: "Feather.autoSignAfterDownload")
 				
-				// Success - send notification if enabled
-				if UserDefaults.standard.bool(forKey: "Feather.notificationsEnabled") {
-					NotificationManager.shared.sendAppSignedNotification(appName: appName)
-				}
-				
-				DispatchQueue.main.async {
-					// Post success notification
-					NotificationCenter.default.post(
-						name: DownloadManager.importDidSucceedNotification,
-						object: nil,
-						userInfo: ["appName": appName, "downloadId": dl.id]
-					)
+				if isAutoSigning && dl.fromSourcesView {
+					// Auto-sign mode: Don't end Live Activity yet, AutoSignManager will handle it
+					AppLogManager.shared.info("Auto-sign enabled, triggering automatic signing and installation", category: "Download")
 					
-					// Only show Install/Modify popup for downloads from Sources (not manual imports)
-					// Manual imports have IDs starting with "FeatherManualDownload"
-					if !DownloadManager.shared.isManualDownload(dl.id) {
-						DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-							NotificationCenter.default.post(
-								name: Notification.Name("Feather.showInstallModifyPopup"),
-								object: url
-							)
+					// Get the latest imported app (the one we just imported)
+					DispatchQueue.main.async {
+						if let latestApp = Storage.shared.getLatestImportedApp(),
+						   let name = latestApp.name,
+						   let bundleId = latestApp.identifier {
+							
+							let appInfo = ImportedAppInfo(name: name, bundleId: bundleId)
+							AutoSignManager.shared.handleDownloadCompletion(download: dl, appInfo: appInfo)
+							
+							// Don't show Install/Modify popup in auto-sign mode
+							// Don't end Live Activity - AutoSignManager will handle it
+						} else {
+							AppLogManager.shared.error("Failed to get imported app info for auto-sign", category: "Download")
+							// Fall back to normal behavior
+							if #available(iOS 16.2, *), dl.liveActivityStarted {
+								LiveActivityManager.shared.endActivityWithSuccess()
+							}
+						}
+					}
+				} else {
+					// Normal mode: End Live Activity and show popup
+					if #available(iOS 16.2, *), dl.liveActivityStarted {
+						LiveActivityManager.shared.endActivityWithSuccess()
+					}
+					
+					// Success - send notification if enabled
+					if UserDefaults.standard.bool(forKey: "Feather.notificationsEnabled") {
+						NotificationManager.shared.sendAppSignedNotification(appName: appName)
+					}
+					
+					DispatchQueue.main.async {
+						// Post success notification
+						NotificationCenter.default.post(
+							name: DownloadManager.importDidSucceedNotification,
+							object: nil,
+							userInfo: ["appName": appName, "downloadId": dl.id]
+						)
+						
+						// Only show Install/Modify popup for downloads from Sources (not manual imports)
+						// Manual imports have IDs starting with "FeatherManualDownload"
+						if !DownloadManager.shared.isManualDownload(dl.id) {
+							DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+								NotificationCenter.default.post(
+									name: Notification.Name("Feather.showInstallModifyPopup"),
+									object: url
+								)
+							}
 						}
 					}
 				}
 			}
 			
 			DispatchQueue.main.async {
-				if let index = DownloadManager.shared.getDownloadIndex(by: dl.id) {
-					DownloadManager.shared.downloads.remove(at: index)
-					self._updateBackgroundAudioState()
+				// Only remove from downloads if not auto-signing (AutoSignManager will handle cleanup)
+				let isAutoSigning = UserDefaults.standard.bool(forKey: "Feather.autoSignAfterDownload")
+				if !isAutoSigning || !dl.fromSourcesView {
+					if let index = DownloadManager.shared.getDownloadIndex(by: dl.id) {
+						DownloadManager.shared.downloads.remove(at: index)
+						self._updateBackgroundAudioState()
+					}
 				}
 			}
 		}
