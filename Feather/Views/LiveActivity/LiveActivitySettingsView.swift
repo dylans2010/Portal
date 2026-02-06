@@ -64,8 +64,13 @@ struct LiveActivitySettingsView: View {
                 }
             }
         } header: {
-            Text("Status")
-                .font(.system(size: 11, weight: .semibold))
+            HStack(spacing: 5) {
+                Image(systemName: "power")
+                    .font(.system(size: 10, weight: .semibold))
+                Text("Status")
+                    .font(.system(size: 11, weight: .semibold))
+            }
+            .foregroundStyle(.secondary)
         } footer: {
             if #available(iOS 16.2, *) {
                 Text("Live Activities require iOS 16.2 or later for Dynamic Island support.")
@@ -124,8 +129,13 @@ struct LiveActivitySettingsView: View {
                 }
             }
         } header: {
-            Text("Appearance")
-                .font(.system(size: 11, weight: .semibold))
+            HStack(spacing: 5) {
+                Image(systemName: "paintbrush.fill")
+                    .font(.system(size: 10, weight: .semibold))
+                Text("Appearance")
+                    .font(.system(size: 11, weight: .semibold))
+            }
+            .foregroundStyle(.secondary)
         } footer: {
             Text("Customize the visual style of Live Activities")
                 .font(.caption)
@@ -162,8 +172,13 @@ struct LiveActivitySettingsView: View {
             }
             .onChange(of: settings.animationStyle) { _ in saveSettings() }
         } header: {
-            Text("Progress Display")
-                .font(.system(size: 11, weight: .semibold))
+            HStack(spacing: 5) {
+                Image(systemName: "chart.bar.fill")
+                    .font(.system(size: 10, weight: .semibold))
+                Text("Progress Display")
+                    .font(.system(size: 11, weight: .semibold))
+            }
+            .foregroundStyle(.secondary)
         } footer: {
             Text("Configure how progress is displayed")
                 .font(.caption)
@@ -181,8 +196,13 @@ struct LiveActivitySettingsView: View {
             }
             .onChange(of: settings.detailDensity) { _ in saveSettings() }
         } header: {
-            Text("Details")
-                .font(.system(size: 11, weight: .semibold))
+            HStack(spacing: 5) {
+                Image(systemName: "info.circle.fill")
+                    .font(.system(size: 10, weight: .semibold))
+                Text("Details")
+                    .font(.system(size: 11, weight: .semibold))
+            }
+            .foregroundStyle(.secondary)
         } footer: {
             Text("Control how much information is shown")
                 .font(.caption)
@@ -230,8 +250,13 @@ struct LiveActivitySettingsView: View {
                     .foregroundColor(.secondary)
             }
         } header: {
-            Text("Testing")
-                .font(.system(size: 11, weight: .semibold))
+            HStack(spacing: 5) {
+                Image(systemName: "flask.fill")
+                    .font(.system(size: 10, weight: .semibold))
+                Text("Testing")
+                    .font(.system(size: 11, weight: .semibold))
+            }
+            .foregroundStyle(.secondary)
         } footer: {
             Text("Test your Live Activity settings with a mock installation. The activity will automatically complete after a few seconds.")
                 .font(.caption)
@@ -267,7 +292,13 @@ struct LiveActivitySettingsView: View {
                 description: "Live Activities can be updated even when Portal is in the background"
             )
         } header: {
-            Text("About Live Activities")
+            HStack(spacing: 5) {
+                Image(systemName: "questionmark.circle.fill")
+                    .font(.system(size: 10, weight: .semibold))
+                Text("About Live Activities")
+                    .font(.system(size: 11, weight: .semibold))
+            }
+            .foregroundStyle(.secondary)
                 .font(.system(size: 11, weight: .semibold))
         }
     }
@@ -281,6 +312,23 @@ struct ColorPickerView: View {
     @Environment(\.dismiss) private var dismiss
     
     @State private var color: Color
+    @State private var selectedPreset: PresetColor?
+    
+    // Preset colors for quick selection
+    private let presetColors: [PresetColor] = [
+        PresetColor(name: "Blue", color: .blue),
+        PresetColor(name: "Purple", color: .purple),
+        PresetColor(name: "Pink", color: .pink),
+        PresetColor(name: "Red", color: .red),
+        PresetColor(name: "Orange", color: .orange),
+        PresetColor(name: "Yellow", color: .yellow),
+        PresetColor(name: "Green", color: .green),
+        PresetColor(name: "Teal", color: .teal),
+        PresetColor(name: "Cyan", color: .cyan),
+        PresetColor(name: "Indigo", color: .indigo),
+        PresetColor(name: "Mint", color: .mint),
+        PresetColor(name: "Brown", color: .brown)
+    ]
     
     init(selectedColor: Binding<CodableColor>, onDismiss: @escaping () -> Void) {
         self._selectedColor = selectedColor
@@ -290,35 +338,125 @@ struct ColorPickerView: View {
     
     var body: some View {
         NavigationStack {
-            VStack(spacing: 20) {
-                ColorPicker("Select Accent Color", selection: $color, supportsOpacity: false)
-                    .padding()
-                
-                Text("Preview")
-                    .font(.headline)
-                
-                HStack(spacing: 12) {
-                    Circle()
-                        .fill(color)
-                        .frame(width: 50, height: 50)
-                    
-                    VStack(alignment: .leading) {
-                        Text("Sample Text")
-                            .foregroundColor(color)
-                            .font(.headline)
-                        
-                        RoundedRectangle(cornerRadius: 4)
-                            .fill(color)
-                            .frame(height: 6)
+            List {
+                // Preset Colors Section
+                Section {
+                    LazyVGrid(columns: [
+                        GridItem(.adaptive(minimum: 70), spacing: 12)
+                    ], spacing: 12) {
+                        ForEach(presetColors) { preset in
+                            Button {
+                                color = preset.color
+                                selectedPreset = preset
+                                HapticsManager.shared.softImpact()
+                            } label: {
+                                VStack(spacing: 6) {
+                                    ZStack {
+                                        Circle()
+                                            .fill(preset.color)
+                                            .frame(width: 50, height: 50)
+                                        
+                                        if selectedPreset?.id == preset.id || colorMatches(color, preset.color) {
+                                            Circle()
+                                                .stroke(Color.white, lineWidth: 3)
+                                                .frame(width: 50, height: 50)
+                                            
+                                            Image(systemName: "checkmark.circle.fill")
+                                                .font(.system(size: 20))
+                                                .foregroundColor(.white)
+                                                .shadow(color: .black.opacity(0.3), radius: 2)
+                                        }
+                                    }
+                                    
+                                    Text(preset.name)
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
+                                }
+                            }
+                            .buttonStyle(.plain)
+                        }
                     }
+                    .padding(.vertical, 8)
+                } header: {
+                    HStack(spacing: 5) {
+                        Image(systemName: "swatchpalette.fill")
+                            .font(.system(size: 10, weight: .semibold))
+                        Text("Preset Colors")
+                            .font(.system(size: 11, weight: .semibold))
+                    }
+                    .foregroundStyle(.secondary)
                 }
-                .padding()
-                .background(Color(uiColor: .secondarySystemBackground))
-                .cornerRadius(12)
-                .padding(.horizontal)
                 
-                Spacer()
+                // Custom Color Picker Section
+                Section {
+                    ColorPicker("Custom Color", selection: $color, supportsOpacity: false)
+                        .padding(.vertical, 4)
+                        .onChange(of: color) { newColor in
+                            // Clear preset selection when custom color is picked
+                            selectedPreset = nil
+                        }
+                } header: {
+                    HStack(spacing: 5) {
+                        Image(systemName: "paintpalette.fill")
+                            .font(.system(size: 10, weight: .semibold))
+                        Text("Custom Color")
+                            .font(.system(size: 11, weight: .semibold))
+                    }
+                    .foregroundStyle(.secondary)
+                }
+                
+                // Preview Section
+                Section {
+                    VStack(spacing: 16) {
+                        // Color preview circle
+                        Circle()
+                            .fill(color)
+                            .frame(width: 80, height: 80)
+                            .shadow(color: color.opacity(0.4), radius: 10, x: 0, y: 5)
+                        
+                        // Sample UI elements
+                        VStack(spacing: 8) {
+                            Text("Sample Text")
+                                .font(.headline)
+                                .foregroundColor(color)
+                            
+                            RoundedRectangle(cornerRadius: 8)
+                                .fill(color)
+                                .frame(height: 40)
+                                .overlay(
+                                    Text("Sample Button")
+                                        .font(.subheadline.weight(.semibold))
+                                        .foregroundColor(.white)
+                                )
+                            
+                            HStack(spacing: 8) {
+                                Circle()
+                                    .fill(color)
+                                    .frame(width: 12, height: 12)
+                                Text("Progress Indicator")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                                Spacer()
+                            }
+                        }
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                } header: {
+                    HStack(spacing: 5) {
+                        Image(systemName: "eye.fill")
+                            .font(.system(size: 10, weight: .semibold))
+                        Text("Preview")
+                            .font(.system(size: 11, weight: .semibold))
+                    }
+                    .foregroundStyle(.secondary)
+                } footer: {
+                    Text("This is how your accent color will appear in Live Activities")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
             }
+            .listStyle(.insetGrouped)
             .navigationTitle("Accent Color")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -330,15 +468,38 @@ struct ColorPickerView: View {
                 
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button("Done") {
-                        // Convert Color to CodableColor (approximation)
                         selectedColor = CodableColor(color: color)
                         onDismiss()
+                        HapticsManager.shared.success()
                         dismiss()
                     }
+                    .fontWeight(.semibold)
                 }
             }
         }
     }
+    
+    // Helper to check if colors match (approximate comparison)
+    private func colorMatches(_ color1: Color, _ color2: Color) -> Bool {
+        let uiColor1 = UIColor(color1)
+        let uiColor2 = UIColor(color2)
+        
+        var r1: CGFloat = 0, g1: CGFloat = 0, b1: CGFloat = 0, a1: CGFloat = 0
+        var r2: CGFloat = 0, g2: CGFloat = 0, b2: CGFloat = 0, a2: CGFloat = 0
+        
+        uiColor1.getRed(&r1, green: &g1, blue: &b1, alpha: &a1)
+        uiColor2.getRed(&r2, green: &g2, blue: &b2, alpha: &a2)
+        
+        let threshold: CGFloat = 0.1
+        return abs(r1 - r2) < threshold && abs(g1 - g2) < threshold && abs(b1 - b2) < threshold
+    }
+}
+
+// MARK: - Preset Color
+private struct PresetColor: Identifiable {
+    let id = UUID()
+    let name: String
+    let color: Color
 }
 
 // MARK: - Supporting Views
