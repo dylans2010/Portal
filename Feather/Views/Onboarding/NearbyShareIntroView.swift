@@ -126,9 +126,6 @@ struct NearbyShareIntroView: View {
     // MARK: - Button Section
     private var gotItButton: some View {
         Button {
-            withAnimation(.spring(response: 0.6, dampingFraction: 0.7)) {
-                hasSeenNearbyShareIntro = true
-            }
             HapticsManager.shared.success()
             dismiss()
         } label: {
@@ -418,9 +415,6 @@ struct NearbyShareIntroViewLegacy: View {
     // MARK: - Button Section
     private var gotItButton: some View {
         Button {
-            withAnimation(.spring(response: 0.6, dampingFraction: 0.7)) {
-                hasSeenNearbyShareIntro = true
-            }
             HapticsManager.shared.success()
             dismiss()
         } label: {

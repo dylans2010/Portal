@@ -188,6 +188,24 @@ class DownloadManager: NSObject, ObservableObject {
 		return string.contains("FeatherManualDownload")
 	}
 	
+	/// Determines whether the Install/Modify popup should be shown after download completion
+	/// - Parameters:
+	///   - download: The completed download
+	///   - isAutoSigning: Whether auto-signing is currently enabled
+	/// - Returns: True if the popup should be shown, false otherwise
+	private func shouldShowInstallModifyPopup(for download: Download, isAutoSigning: Bool) -> Bool {
+		// Don't show for manual downloads (imported from Files app, etc.)
+		guard !isManualDownload(download.id) else { return false }
+		
+		// Don't show when auto-signing is enabled and download is from Sources view
+		// (auto-signing will handle the installation flow)
+		if isAutoSigning && download.fromSourcesView {
+			return false
+		}
+		
+		return true
+	}
+	
 	func getDownload(by id: String) -> Download? {
 		return downloads.first(where: { $0.id == id })
 	}
@@ -305,10 +323,8 @@ extension DownloadManager: URLSessionDownloadDelegate {
 						// Check if auto-sign is enabled
 						let isAutoSigning = UserDefaults.standard.bool(forKey: Self.autoSignSettingKey)
 						
-						// Only show Install/Modify popup for downloads from Sources (not manual imports)
-						// And NOT when auto-signing is enabled (auto-signing will handle the flow)
-						// Manual imports have IDs starting with "FeatherManualDownload"
-						if !DownloadManager.shared.isManualDownload(dl.id) && !(isAutoSigning && dl.fromSourcesView) {
+						// Show Install/Modify popup if appropriate
+						if self.shouldShowInstallModifyPopup(for: dl, isAutoSigning: isAutoSigning) {
 							DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
 								NotificationCenter.default.post(
 									name: Notification.Name("Feather.showInstallModifyPopup"),
