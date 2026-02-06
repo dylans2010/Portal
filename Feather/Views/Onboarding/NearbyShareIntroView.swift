@@ -198,6 +198,10 @@ struct NearbyShareIntroView: View {
                 animateButton = true
             }
         }
+        .onDisappear {
+            // Mark as seen whenever the view is dismissed (via button or swipe)
+            hasSeenNearbyShareIntro = true
+        }
     }
 }
 
@@ -486,6 +490,10 @@ struct NearbyShareIntroViewLegacy: View {
             withAnimation(.spring(response: 0.6, dampingFraction: 0.7).delay(0.6)) {
                 animateButton = true
             }
+        }
+        .onDisappear {
+            // Mark as seen whenever the view is dismissed (via button or swipe)
+            hasSeenNearbyShareIntro = true
         }
     }
 }

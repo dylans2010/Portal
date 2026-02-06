@@ -302,9 +302,13 @@ extension DownloadManager: URLSessionDownloadDelegate {
 							userInfo: ["appName": appName, "downloadId": dl.id]
 						)
 						
+						// Check if auto-sign is enabled
+						let isAutoSigning = UserDefaults.standard.bool(forKey: Self.autoSignSettingKey)
+						
 						// Only show Install/Modify popup for downloads from Sources (not manual imports)
+						// And NOT when auto-signing is enabled (auto-signing will handle the flow)
 						// Manual imports have IDs starting with "FeatherManualDownload"
-						if !DownloadManager.shared.isManualDownload(dl.id) {
+						if !DownloadManager.shared.isManualDownload(dl.id) && !(isAutoSigning && dl.fromSourcesView) {
 							DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
 								NotificationCenter.default.post(
 									name: Notification.Name("Feather.showInstallModifyPopup"),

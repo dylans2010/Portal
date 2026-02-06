@@ -72,8 +72,6 @@ struct ModernSigningView: View {
                         .offset(y: _buttonOffset)
                         .opacity(_contentOpacity)
                 }
-
-                _dialogsAndSheets
             }
             .navigationBarTitleDisplayMode(.inline)
             .toolbar(content: {
@@ -147,52 +145,6 @@ struct ModernSigningView: View {
                 .presentationDetents([.height(240)])
                 .presentationDragIndicator(.visible)
             }
-        }
-    }
-
-    @ViewBuilder
-    private var _scrollableContent: some View {
-        ScrollView {
-            VStack(spacing: 16) {
-                headerSection
-                    .scaleEffect(_headerScale)
-                    .opacity(_contentOpacity)
-                
-                unifiedContentSection
-                    .opacity(_contentOpacity)
-            }
-            .padding(.bottom, 100)
-        }
-    }
-
-    @ToolbarContentBuilder
-    private var _toolbarContent: some ToolbarContent {
-        ToolbarItem(placement: .topBarLeading) {
-            Button {
-                dismissWithAnimation()
-            } label: {
-                Image(systemName: "xmark.circle.fill")
-                    .font(.title2)
-                    .foregroundStyle(.secondary)
-            }
-            .opacity(_contentOpacity)
-        }
-
-        ToolbarItem(placement: .topBarTrailing) {
-            Button {
-                _temporaryOptions = OptionsManager.shared.options
-                appIcon = nil
-            } label: {
-                Text("Reset")
-                    .font(.subheadline.weight(.medium))
-            }
-            .opacity(_contentOpacity)
-        }
-    }
-
-    @ViewBuilder
-    private var _dialogsAndSheets: some View {
-        EmptyView()
             .sheet(isPresented: $_isAltPickerPresenting) {
                 SigningAlternativeIconView(app: app, appIcon: $appIcon, isModifing: .constant(true))
             }
@@ -237,6 +189,47 @@ struct ModernSigningView: View {
                 CertificatesAddView()
                     .presentationDetents([.medium])
             }
+        }
+    }
+
+    @ViewBuilder
+    private var _scrollableContent: some View {
+        ScrollView {
+            VStack(spacing: 16) {
+                headerSection
+                    .scaleEffect(_headerScale)
+                    .opacity(_contentOpacity)
+                
+                unifiedContentSection
+                    .opacity(_contentOpacity)
+            }
+            .padding(.bottom, 100)
+        }
+    }
+
+    @ToolbarContentBuilder
+    private var _toolbarContent: some ToolbarContent {
+        ToolbarItem(placement: .topBarLeading) {
+            Button {
+                dismissWithAnimation()
+            } label: {
+                Image(systemName: "xmark.circle.fill")
+                    .font(.title2)
+                    .foregroundStyle(.secondary)
+            }
+            .opacity(_contentOpacity)
+        }
+
+        ToolbarItem(placement: .topBarTrailing) {
+            Button {
+                _temporaryOptions = OptionsManager.shared.options
+                appIcon = nil
+            } label: {
+                Text("Reset")
+                    .font(.subheadline.weight(.medium))
+            }
+            .opacity(_contentOpacity)
+        }
     }
 
     private func _onAppearAction() {
@@ -477,22 +470,8 @@ struct ModernSigningView: View {
             
             // Certificate Section
             VStack(alignment: .leading, spacing: 12) {
-                HStack {
-                    cleanSectionHeader(title: "Certificate", icon: "checkmark.seal.fill")
-                    Spacer()
-                    Button {
-                        _isAddingCertificatePresenting = true
-                    } label: {
-                        HStack(spacing: 4) {
-                            Image(systemName: "plus")
-                                .font(.system(size: 12, weight: .semibold))
-                            Text("Add")
-                                .font(.system(size: 12, weight: .semibold))
-                        }
-                        .foregroundStyle(Color.accentColor)
-                    }
-                }
-                .padding(.trailing, 4)
+                cleanSectionHeader(title: "Certificate", icon: "checkmark.seal.fill")
+                    .padding(.trailing, 4)
                 certificateCard
             }
             
