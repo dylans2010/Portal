@@ -538,8 +538,21 @@ struct AccentColorPickerView: View {
     
     // Helper to check if colors are similar
     private func isSimilarColor(_ color1: Color, to color2: Color) -> Bool {
-        // Simple comparison - in production you might want UIColor comparison
-        return color1.description == color2.description
+        // Convert to UIColor and compare RGB components
+        let uiColor1 = UIColor(color1)
+        let uiColor2 = UIColor(color2)
+        
+        var r1: CGFloat = 0, g1: CGFloat = 0, b1: CGFloat = 0, a1: CGFloat = 0
+        var r2: CGFloat = 0, g2: CGFloat = 0, b2: CGFloat = 0, a2: CGFloat = 0
+        
+        uiColor1.getRed(&r1, green: &g1, blue: &b1, alpha: &a1)
+        uiColor2.getRed(&r2, green: &g2, blue: &b2, alpha: &a2)
+        
+        // Compare with small tolerance for floating point precision
+        let tolerance: CGFloat = 0.01
+        return abs(r1 - r2) < tolerance &&
+               abs(g1 - g2) < tolerance &&
+               abs(b1 - b2) < tolerance
     }
 }
 

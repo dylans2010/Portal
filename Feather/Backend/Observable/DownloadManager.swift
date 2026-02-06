@@ -109,10 +109,13 @@ class DownloadManager: NSObject, ObservableObject {
 		if #available(iOS 16.2, *), UserDefaults.standard.bool(forKey: "Feather.liveActivityEnabled") {
 			let appName = url.deletingPathExtension().lastPathComponent
 			
-			// Try to get Portal's app icon as a placeholder
+			// Use a generic app icon placeholder
 			let iconData: Data?
-			if let appIcon = UIImage(named: "AppIcon") ?? UIImage(systemName: "app.badge.fill") {
-				iconData = appIcon.pngData()
+			if let appIcon = UIImage(systemName: "app.badge.fill") {
+				// Render the system image to a UIImage with appropriate size and color
+				let config = UIImage.SymbolConfiguration(pointSize: 60, weight: .medium)
+				let renderedIcon = appIcon.withConfiguration(config)
+				iconData = renderedIcon.pngData()
 			} else {
 				iconData = nil
 			}

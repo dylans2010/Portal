@@ -9,16 +9,9 @@ struct LanguageSettingsView: View {
                 // Button to open iOS Settings to Language & Region
                 Section {
                     Button {
-                        // Try to open the Language & Region settings directly
-                        if let url = URL(string: "App-prefs:General&path=INTERNATIONAL") {
-                            UIApplication.shared.open(url) { success in
-                                if !success {
-                                    // Fallback to general settings if direct path doesn't work
-                                    if let fallbackUrl = URL(string: UIApplication.openSettingsURLString) {
-                                        UIApplication.shared.open(fallbackUrl)
-                                    }
-                                }
-                            }
+                        // Open iOS Settings app
+                        if let url = URL(string: UIApplication.openSettingsURLString) {
+                            UIApplication.shared.open(url)
                         }
                     } label: {
                         HStack(spacing: 12) {

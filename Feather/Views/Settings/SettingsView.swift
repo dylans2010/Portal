@@ -100,7 +100,7 @@ struct SettingsView: View {
                         .frame(width: 28, height: 28)
                     
                     VStack(alignment: .leading, spacing: 2) {
-                        Text(String.localized("Auto-Sign After Download"))
+                        Text(String.localized("Auto-sign After Download"))
                             .font(.body)
                         
                         Text(String.localized("Automatically sign and install apps after download"))
