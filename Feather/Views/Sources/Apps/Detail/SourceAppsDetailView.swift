@@ -122,7 +122,7 @@ struct SourceAppsDetailView: View {
                 // Content
                 VStack(spacing: 16) {
                     appIcon
-                        .scaleEffect(minY > 0 ? 1 + (minY / 400) : 1)
+                        .scaleEffect(minY > 0 ? 1 + (minY / 400.0) : 1)
                     
                     VStack(spacing: 8) {
                         Text(app.currentName)
@@ -136,11 +136,11 @@ struct SourceAppsDetailView: View {
                                 .foregroundStyle(dominantColor)
                         }
                     }
-                    .opacity(minY < -60 ? max(0, 1 + (minY + 60) / 40) : 1)
+                    .opacity(minY < -60 ? max(0, 1 + (minY + 60) / 40.0) : 1)
                     
                     DownloadButtonView(app: app)
                         .padding(.top, 4)
-                        .opacity(minY < -100 ? max(0, 1 + (minY + 100) / 40) : 1)
+                        .opacity(minY < -100 ? max(0, 1 + (minY + 100) / 40.0) : 1)
                 }
                 .padding(.bottom, 32)
                 .padding(.horizontal, 20)
