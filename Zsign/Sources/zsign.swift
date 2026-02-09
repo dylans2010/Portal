@@ -93,6 +93,21 @@ public enum Zsign {
 		}
 		return true
 	}
+	/// Re-encrypts a PKCS#12 (.p12) file with a new password using OpenSSL
+	/// - Parameters:
+	///   - p12Data: The original .p12 data
+	///   - oldPassword: The current password
+	///   - newPassword: The new password
+	/// - Returns: The re-encrypted .p12 data
+	static public func reencryptP12(p12Data: Data, oldPassword: String, newPassword: String) throws -> Data {
+		var errorMsg: NSString?
+		if let result = p12_reencrypt(p12Data as NSData, oldPassword as NSString, newPassword as NSString, &errorMsg) {
+			return result as Data
+		} else {
+			let errorStr = (errorMsg as String?) ?? "Unknown OpenSSL error"
+			throw NSError(domain: "OpenSSL", code: -1, userInfo: [NSLocalizedDescriptionKey: errorStr])
+		}
+	}
 	/// Check revokage
 	/// - Parameters:
 	///   - provisionPath: Relative path to a provisioning file (i.e. `samara.mobileprovision`)

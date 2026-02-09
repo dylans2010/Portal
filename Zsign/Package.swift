@@ -23,13 +23,16 @@ let package = Package(
 		),
 	],
 	dependencies: [
-		.package(url: "https://github.com/krzyzanowskim/OpenSSL", from: "3.3.3001")
 	],
 	targets: [
+		.binaryTarget(
+			name: "OpenSSL",
+			path: "Frameworks/OpenSSL.xcframework"
+		),
 		.target(
 			name: "Zsign",
 			dependencies: [
-				.product(name: "OpenSSL", package: "OpenSSL")
+				"OpenSSL"
 			],
 			path: "src",
 			exclude: [
