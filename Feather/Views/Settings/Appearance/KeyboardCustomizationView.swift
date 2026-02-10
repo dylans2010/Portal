@@ -46,6 +46,66 @@ struct KeyboardCustomizationView: View {
                     AppearanceSectionHeader(title: "Media", icon: "photo")
                 }
 
+                if #available(iOS 26.0, *) {
+                    Section {
+                        Toggle(isOn: $manager.dynamicGradientEnabled) {
+                            AppearanceRowLabel(icon: "wind", title: "Dynamic Gradient", color: .indigo)
+                        }
+
+                        if manager.dynamicGradientEnabled {
+                            VStack(alignment: .leading, spacing: 8) {
+                                AppearanceRowLabel(icon: "list.bullet.rectangle.fill", title: "Preset: \(manager.dynamicGradientPreset)", color: .indigo)
+                                Picker("Preset", selection: $manager.dynamicGradientPreset) {
+                                    Text("Default").tag(0)
+                                    Text("Vibrant").tag(1)
+                                    Text("Sunset").tag(2)
+                                    Text("Ocean").tag(3)
+                                    Text("Autumn").tag(4)
+                                    Text("Monochrome").tag(5)
+                                }
+                                .pickerStyle(.segmented)
+                            }
+                            .padding(.vertical, 4)
+
+                            VStack(alignment: .leading, spacing: 8) {
+                                AppearanceRowLabel(icon: "wave.3.right", title: "Amount: \(Int(manager.dynamicGradientAmount * 100))%", color: .blue)
+                                Slider(value: $manager.dynamicGradientAmount, in: 0...1)
+                            }
+                            .padding(.vertical, 4)
+
+                            VStack(alignment: .leading, spacing: 8) {
+                                AppearanceRowLabel(icon: "timer", title: "Frequency: \(String(format: "%.1f", manager.dynamicGradientFrequency))", color: .cyan)
+                                Slider(value: $manager.dynamicGradientFrequency, in: 0.1...5)
+                            }
+                            .padding(.vertical, 4)
+
+                            VStack(alignment: .leading, spacing: 8) {
+                                AppearanceRowLabel(icon: "number", title: "Color Count: \(manager.dynamicGradientColorCount)", color: .purple)
+                                Slider(value: Binding(get: { Double(manager.dynamicGradientColorCount) }, set: { manager.dynamicGradientColorCount = Int($0) }), in: 1...9, step: 1)
+                            }
+                            .padding(.vertical, 4)
+
+                            VStack(alignment: .leading, spacing: 8) {
+                                AppearanceRowLabel(icon: "safari", title: "Direction: \(Int(manager.dynamicGradientDirection))°", color: .green)
+                                Slider(value: $manager.dynamicGradientDirection, in: 0...360)
+                            }
+                            .padding(.vertical, 4)
+
+                            VStack(alignment: .leading, spacing: 8) {
+                                AppearanceRowLabel(icon: "heart.fill", title: "Pulse Intensity: \(Int(manager.dynamicGradientPulseIntensity * 100))%", color: .red)
+                                Slider(value: $manager.dynamicGradientPulseIntensity, in: 0...1)
+                            }
+                            .padding(.vertical, 4)
+
+                            Toggle(isOn: $manager.dynamicGradientShuffle) {
+                                AppearanceRowLabel(icon: "shuffle", title: "Shuffle Colors", color: .orange)
+                            }
+                        }
+                    } header: {
+                        AppearanceSectionHeader(title: "Dynamic Gradient", icon: "wind")
+                    }
+                }
+
                 Section {
                     Toggle(isOn: $manager.showAnimatedOrbs) {
                         AppearanceRowLabel(icon: "sparkles", title: "Animated Orbs", color: .blue)

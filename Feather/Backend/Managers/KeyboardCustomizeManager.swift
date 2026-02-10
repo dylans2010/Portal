@@ -38,6 +38,31 @@ class KeyboardCustomizeManager: ObservableObject {
         didSet { UserDefaults.standard.set(backgroundImageData, forKey: "Feather.keyboard.backgroundImageData") }
     }
 
+    @Published var dynamicGradientEnabled: Bool {
+        didSet { UserDefaults.standard.set(dynamicGradientEnabled, forKey: "Feather.keyboard.dynamicGradientEnabled") }
+    }
+    @Published var dynamicGradientAmount: Double {
+        didSet { UserDefaults.standard.set(dynamicGradientAmount, forKey: "Feather.keyboard.dynamicGradientAmount") }
+    }
+    @Published var dynamicGradientFrequency: Double {
+        didSet { UserDefaults.standard.set(dynamicGradientFrequency, forKey: "Feather.keyboard.dynamicGradientFrequency") }
+    }
+    @Published var dynamicGradientColorCount: Int {
+        didSet { UserDefaults.standard.set(dynamicGradientColorCount, forKey: "Feather.keyboard.dynamicGradientColorCount") }
+    }
+    @Published var dynamicGradientShuffle: Bool {
+        didSet { UserDefaults.standard.set(dynamicGradientShuffle, forKey: "Feather.keyboard.dynamicGradientShuffle") }
+    }
+    @Published var dynamicGradientDirection: Double {
+        didSet { UserDefaults.standard.set(dynamicGradientDirection, forKey: "Feather.keyboard.dynamicGradientDirection") }
+    }
+    @Published var dynamicGradientPulseIntensity: Double {
+        didSet { UserDefaults.standard.set(dynamicGradientPulseIntensity, forKey: "Feather.keyboard.dynamicGradientPulseIntensity") }
+    }
+    @Published var dynamicGradientPreset: Int {
+        didSet { UserDefaults.standard.set(dynamicGradientPreset, forKey: "Feather.keyboard.dynamicGradientPreset") }
+    }
+
     @Published var keyboardHeight: CGFloat = 0
     @Published var isKeyboardVisible: Bool = false
 
@@ -56,6 +81,15 @@ class KeyboardCustomizeManager: ObservableObject {
         self.orbSpeed = UserDefaults.standard.object(forKey: "Feather.keyboard.orbSpeed") as? Double ?? 5.0
         self.backgroundColor = UserDefaults.standard.string(forKey: "Feather.keyboard.backgroundColor") ?? "#1A1A1A"
         self.backgroundImageData = UserDefaults.standard.data(forKey: "Feather.keyboard.backgroundImageData")
+
+        self.dynamicGradientEnabled = UserDefaults.standard.object(forKey: "Feather.keyboard.dynamicGradientEnabled") as? Bool ?? false
+        self.dynamicGradientAmount = UserDefaults.standard.object(forKey: "Feather.keyboard.dynamicGradientAmount") as? Double ?? 0.5
+        self.dynamicGradientFrequency = UserDefaults.standard.object(forKey: "Feather.keyboard.dynamicGradientFrequency") as? Double ?? 2.0
+        self.dynamicGradientColorCount = UserDefaults.standard.object(forKey: "Feather.keyboard.dynamicGradientColorCount") as? Int ?? 3
+        self.dynamicGradientShuffle = UserDefaults.standard.object(forKey: "Feather.keyboard.dynamicGradientShuffle") as? Bool ?? false
+        self.dynamicGradientDirection = UserDefaults.standard.object(forKey: "Feather.keyboard.dynamicGradientDirection") as? Double ?? 0.0
+        self.dynamicGradientPulseIntensity = UserDefaults.standard.object(forKey: "Feather.keyboard.dynamicGradientPulseIntensity") as? Double ?? 0.5
+        self.dynamicGradientPreset = UserDefaults.standard.object(forKey: "Feather.keyboard.dynamicGradientPreset") as? Int ?? 0
 
         setupObservers()
     }
@@ -132,8 +166,8 @@ class KeyboardCustomizeManager: ObservableObject {
 
         let screenSize = UIScreen.main.bounds.size
         // Ensure the window is always at the bottom of the screen and slightly larger to prevent edges from showing
-        // Adding 100pt extra height at the bottom just in case
-        let frame = CGRect(x: 0, y: screenSize.height - height, width: screenSize.width, height: height + 100)
+        // Modified to have +40 overscan height and -40 Y offset to accommodate the 30pt corner radius without clipping
+        let frame = CGRect(x: 0, y: screenSize.height - height - 40, width: screenSize.width, height: height + 40)
 
         window.isHidden = false
 
@@ -179,6 +213,79 @@ class KeyboardCustomizeManager: ObservableObject {
 
 // MARK: - Views and Modifiers
 
+struct DynamicGradientView: View {
+    let amount: Double
+    let frequency: Double
+    let colorCount: Int
+    let shuffle: Bool
+    let direction: Double
+    let pulseIntensity: Double
+    let preset: Int
+
+    @State private var start = Date()
+
+    var body: some View {
+        if #available(iOS 18.0, *) {
+            TimelineView(.animation) { timeline in
+                let time = timeline.date.timeIntervalSince(start)
+                let animOffset = time * frequency
+
+                MeshGradient(width: 3, height: 3, points: [
+                    SIMD2<Float>(0.0, 0.0), SIMD2<Float>(0.5, 0.0), SIMD2<Float>(1.0, 0.0),
+                    SIMD2<Float>(0.0, 0.5), SIMD2<Float>(0.5, 0.5), SIMD2<Float>(1.0, 0.5),
+                    SIMD2<Float>(0.0, 1.0), SIMD2<Float>(0.5, 1.0), SIMD2<Float>(1.0, 1.0)
+                ].map { point in
+                    let x = point.x
+                    let y = point.y
+
+                    // Apply dynamic movement based on direction and time
+                    let angle = (Float(direction) * .pi / 180.0)
+                    let dx = cos(angle) * Float(animOffset) * 0.1
+                    let dy = sin(angle) * Float(animOffset) * 0.1
+
+                    let noise = sin(Float(animOffset) + (x + dx + y + dy) * Float(amount) * 5.0) * 0.05 * Float(pulseIntensity)
+                    // Clamp points to [0, 1] range as required by MeshGradient
+                    let finalX = max(0.0, min(1.0, x + noise))
+                    let finalY = max(0.0, min(1.0, y + noise))
+                    return SIMD2<Float>(finalX, finalY)
+                }, colors: getColors())
+            }
+        } else {
+            // Fallback for older iOS if somehow reached (though feature gated for iOS 26+)
+            Rectangle()
+                .fill(LinearGradient(colors: [.blue, .purple], startPoint: .topLeading, endPoint: .bottomTrailing))
+        }
+    }
+
+    private func getColors() -> [Color] {
+        var baseColors: [Color]
+        switch preset {
+        case 1: baseColors = [.purple, .blue, .cyan, .mint, .green, .yellow, .orange, .red, .pink]
+        case 2: baseColors = [.orange, .red, .pink, .purple, .indigo]
+        case 3: baseColors = [.mint, .teal, .cyan, .blue]
+        case 4: baseColors = [.yellow, .orange, .red]
+        case 5: baseColors = [.white, .gray, .black]
+        default: baseColors = [.blue, .cyan, .indigo, .purple]
+        }
+
+        if shuffle {
+            // Deterministic shuffle using a simple shift based on colorCount
+            let shift = (preset + colorCount) % baseColors.count
+            for _ in 0..<shift {
+                let last = baseColors.removeLast()
+                baseColors.insert(last, at: 0)
+            }
+        }
+
+        // Ensure we have exactly 9 colors for a 3x3 MeshGradient
+        var finalColors: [Color] = []
+        for i in 0..<9 {
+            finalColors.append(baseColors[i % min(baseColors.count, colorCount)])
+        }
+        return finalColors
+    }
+}
+
 struct KeyboardBackdropView: View {
     @ObservedObject var manager = KeyboardCustomizeManager.shared
     @State private var floatingAnimation = false
@@ -191,6 +298,25 @@ struct KeyboardBackdropView: View {
                 Image(uiImage: uiImage)
                     .resizable()
                     .aspectRatio(contentMode: .fill)
+            } else if manager.dynamicGradientEnabled {
+                if #available(iOS 26.0, *) {
+                    DynamicGradientView(
+                        amount: manager.dynamicGradientAmount,
+                        frequency: manager.dynamicGradientFrequency,
+                        colorCount: manager.dynamicGradientColorCount,
+                        shuffle: manager.dynamicGradientShuffle,
+                        direction: manager.dynamicGradientDirection,
+                        pulseIntensity: manager.dynamicGradientPulseIntensity,
+                        preset: manager.dynamicGradientPreset
+                    )
+                } else {
+                    // Fallback to static gradient if iOS 26+ not met
+                    LinearGradient(
+                        colors: [Color(hex: manager.gradientStart), Color(hex: manager.gradientEnd)],
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+                }
             } else if manager.useGradient {
                 LinearGradient(
                     colors: [Color(hex: manager.gradientStart), Color(hex: manager.gradientEnd)],
@@ -224,6 +350,8 @@ struct KeyboardBackdropView: View {
         }
         .scaleEffect(1.2) // Scale up to cover blur edges
         .blur(radius: manager.blurRadius)
+        .compositingGroup()
+        .clipShape(RoundedRectangle(cornerRadius: 30, style: .continuous))
         .opacity(manager.opacity)
         .allowsHitTesting(false)
     }
