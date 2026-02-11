@@ -1,26 +1,26 @@
 {
-  "images" : [
+  "images": [
     {
-      "filename" : "WSF-Icon-iOS-TintedLight-1024x1024@2x.png",
-      "idiom" : "universal",
-      "platform" : "ios",
-      "size" : "1024x1024"
+      "filename": "WSF-Icon-iOS-TintedLight-1024x1024@2x.png",
+      "idiom": "universal",
+      "platform": "ios",
+      "size": "1024x1024"
     },
     {
-      "appearances" : [
+      "appearances": [
         {
-          "appearance" : "luminosity",
-          "value" : "dark"
+          "appearance": "luminosity",
+          "value": "dark"
         }
       ],
-      "filename" : "WSF-Icon-iOS-TintedDark-1024x1024@2x.png",
-      "idiom" : "universal",
-      "platform" : "ios",
-      "size" : "1024x1024"
+      "filename": "WSF-Icon-iOS-TintedDark-1024x1024@2x.png",
+      "idiom": "universal",
+      "platform": "ios",
+      "size": "1024x1024"
     }
   ],
-  "info" : {
-    "author" : "xcode",
-    "version" : 1
+  "info": {
+    "author": "xcode",
+    "version": 1
   }
 }

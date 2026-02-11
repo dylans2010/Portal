@@ -195,9 +195,10 @@ struct AppIconView: View {
 						.padding(.vertical, 8)
 					}
 					.buttonStyle(.plain)
+					.disabled(isChangingIcon)
 				}
 			} footer: {
-				Text(.localized("The default icon automatically adapts to light and dark mode. Choose from various tinted and clear icon styles with different appearances. Keep in mind this is still WIP and will be fully done later."))
+				Text(.localized("The default icon automatically adapts to light and dark mode. Choose from various tinted and clear icon styles with different appearances."))
 			}
 		}
 		.alert(.localized("Error"), isPresented: $showingError) {
@@ -212,21 +213,25 @@ struct AppIconView: View {
 		guard !isChangingIcon else { return }
 
 		// 2. Ensure app is active to avoid background invalidation issues
-		guard scenePhase == .active, UIApplication.shared.applicationState == .active else {
+		// Also check scenePhase as a secondary guard for SwiftUI
+		guard UIApplication.shared.applicationState == .active && scenePhase == .active else {
+			print("[AppIcon] Skipping: Application is not active")
 			return
 		}
 
 		// 3. Check support
 		guard UIApplication.shared.supportsAlternateIcons else {
+			print("[AppIcon] Skipping: Device does not support alternate icons")
 			errorMessage = .localized("Rare alert but this device doesn't support alternate icons")
 			showingError = true
 			return
 		}
 		
 		// 4. Redundant call check
-		if option.iconName == UIApplication.shared.alternateIconName {
-			// Even if redundant, we update local state just in case of inconsistency
-			currentIcon = option.iconName
+		let targetIconName = option.iconName // nil for primary
+		if targetIconName == UIApplication.shared.alternateIconName {
+			print("[AppIcon] Skipping: Icon is already set to \(targetIconName ?? "primary")")
+			currentIcon = targetIconName
 			return
 		}
 
@@ -234,21 +239,34 @@ struct AppIconView: View {
 
 		// 5. Execute on main thread
 		DispatchQueue.main.async {
-			UIApplication.shared.setAlternateIconName(option.iconName) { error in
-				// Always reset changing flag with a small debounce delay
-				DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
-					isChangingIcon = false
+			// Double check active state on main thread
+			guard UIApplication.shared.applicationState == .active else {
+				self.isChangingIcon = false
+				return
+			}
+
+			print("[AppIcon] Setting icon to: \(targetIconName ?? "primary")")
+
+			UIApplication.shared.setAlternateIconName(targetIconName) { error in
+				// Always reset changing flag with a debounce delay on main thread
+				DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+					self.isChangingIcon = false
 				}
 
 				if let error = error as NSError? {
 					// 6. Log full error details including _code
-					print("[AppIcon] Failed to set alternate icon: \(error.localizedDescription) (Code: \(error.code))")
+					print("[AppIcon] Failed to set alternate icon: \(error.localizedDescription) (Code: \(error.code), Domain: \(error.domain))")
 
-					errorMessage = "\(error.localizedDescription) (\(error.code))"
-					showingError = true
+					DispatchQueue.main.async {
+						self.errorMessage = "\(error.localizedDescription) (\(error.code))"
+						self.showingError = true
+					}
 				} else {
-					currentIcon = option.iconName
-					HapticsManager.shared.success()
+					print("[AppIcon] Successfully changed icon to: \(targetIconName ?? "primary")")
+					DispatchQueue.main.async {
+						self.currentIcon = targetIconName
+						HapticsManager.shared.success()
+					}
 				}
 			}
 		}

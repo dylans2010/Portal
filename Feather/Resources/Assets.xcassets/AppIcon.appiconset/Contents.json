@@ -1,98 +1,108 @@
 {
-  "images" : [
+  "images": [
     {
-      "filename" : "WSF-Icon-iOS-Default-1024x1024@2x.png",
-      "idiom" : "universal",
-      "platform" : "ios",
-      "size" : "1024x1024"
+      "filename": "WSF-Icon-iOS-Default-1024x1024@2x.png",
+      "idiom": "universal",
+      "platform": "ios",
+      "size": "1024x1024"
     },
     {
-      "appearances" : [
+      "appearances": [
         {
-          "appearance" : "luminosity",
-          "value" : "dark"
+          "appearance": "luminosity",
+          "value": "dark"
         }
       ],
-      "filename" : "WSF-Icon-macOS-Dark-1024x1024@2x.png",
-      "idiom" : "universal",
-      "platform" : "ios",
-      "size" : "1024x1024"
+      "filename": "WSF-Icon-macOS-Dark-1024x1024@2x.png",
+      "idiom": "universal",
+      "platform": "ios",
+      "size": "1024x1024"
     },
     {
-      "appearances" : [
+      "appearances": [
         {
-          "appearance" : "luminosity",
-          "value" : "tinted"
+          "appearance": "luminosity",
+          "value": "tinted"
         }
       ],
-      "filename" : "WSF-Icon-iOS-TintedLight-1024x1024@2x.png",
-      "idiom" : "universal",
-      "platform" : "ios",
-      "size" : "1024x1024"
+      "filename": "WSF-Icon-iOS-TintedLight-1024x1024@2x.png",
+      "idiom": "universal",
+      "platform": "ios",
+      "size": "1024x1024"
     },
     {
-      "filename" : "WSF-Icon-macOS-Default-1024x1024@2x.png",
-      "idiom" : "mac",
-      "scale" : "1x",
-      "size" : "16x16"
+      "filename": "WSF-Icon-macOS-Default-1024x1024@2x.png",
+      "idiom": "mac",
+      "scale": "1x",
+      "size": "16x16",
+      "platform": "ios"
     },
     {
-      "filename" : "WSF-Icon-macOS-Default-1024x1024@2x.png",
-      "idiom" : "mac",
-      "scale" : "2x",
-      "size" : "16x16"
+      "filename": "WSF-Icon-macOS-Default-1024x1024@2x.png",
+      "idiom": "mac",
+      "scale": "2x",
+      "size": "16x16",
+      "platform": "ios"
     },
     {
-      "filename" : "WSF-Icon-macOS-Default-1024x1024@2x.png",
-      "idiom" : "mac",
-      "scale" : "1x",
-      "size" : "32x32"
+      "filename": "WSF-Icon-macOS-Default-1024x1024@2x.png",
+      "idiom": "mac",
+      "scale": "1x",
+      "size": "32x32",
+      "platform": "ios"
     },
     {
-      "filename" : "WSF-Icon-macOS-Default-1024x1024@2x.png",
-      "idiom" : "mac",
-      "scale" : "2x",
-      "size" : "32x32"
+      "filename": "WSF-Icon-macOS-Default-1024x1024@2x.png",
+      "idiom": "mac",
+      "scale": "2x",
+      "size": "32x32",
+      "platform": "ios"
     },
     {
-      "filename" : "WSF-Icon-macOS-Default-1024x1024@2x.png",
-      "idiom" : "mac",
-      "scale" : "1x",
-      "size" : "128x128"
+      "filename": "WSF-Icon-macOS-Default-1024x1024@2x.png",
+      "idiom": "mac",
+      "scale": "1x",
+      "size": "128x128",
+      "platform": "ios"
     },
     {
-      "filename" : "WSF-Icon-macOS-Default-1024x1024@2x.png",
-      "idiom" : "mac",
-      "scale" : "2x",
-      "size" : "128x128"
+      "filename": "WSF-Icon-macOS-Default-1024x1024@2x.png",
+      "idiom": "mac",
+      "scale": "2x",
+      "size": "128x128",
+      "platform": "ios"
     },
     {
-      "filename" : "WSF-Icon-macOS-Default-1024x1024@2x.png",
-      "idiom" : "mac",
-      "scale" : "1x",
-      "size" : "256x256"
+      "filename": "WSF-Icon-macOS-Default-1024x1024@2x.png",
+      "idiom": "mac",
+      "scale": "1x",
+      "size": "256x256",
+      "platform": "ios"
     },
     {
-      "filename" : "WSF-Icon-macOS-Default-1024x1024@2x.png",
-      "idiom" : "mac",
-      "scale" : "2x",
-      "size" : "256x256"
+      "filename": "WSF-Icon-macOS-Default-1024x1024@2x.png",
+      "idiom": "mac",
+      "scale": "2x",
+      "size": "256x256",
+      "platform": "ios"
     },
     {
-      "filename" : "WSF-Icon-macOS-Default-1024x1024@2x.png",
-      "idiom" : "mac",
-      "scale" : "1x",
-      "size" : "512x512"
+      "filename": "WSF-Icon-macOS-Default-1024x1024@2x.png",
+      "idiom": "mac",
+      "scale": "1x",
+      "size": "512x512",
+      "platform": "ios"
     },
     {
-      "filename" : "WSF-Icon-macOS-Default-1024x1024@2x.png",
-      "idiom" : "mac",
-      "scale" : "2x",
-      "size" : "512x512"
+      "filename": "WSF-Icon-macOS-Default-1024x1024@2x.png",
+      "idiom": "mac",
+      "scale": "2x",
+      "size": "512x512",
+      "platform": "ios"
     }
   ],
-  "info" : {
-    "author" : "xcode",
-    "version" : 1
+  "info": {
+    "author": "xcode",
+    "version": 1
   }
 }
