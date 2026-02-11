@@ -1,5 +1,27 @@
 import SwiftUI
 import NimbleViews
+import UniformTypeIdentifiers
+
+// MARK: - Log Document
+struct LogDocument: FileDocument {
+    static var readableContentTypes: [UTType] { [.json, .plainText] }
+    var content: Data
+    var isJSON: Bool
+
+    init(content: Data, isJSON: Bool) {
+        self.content = content
+        self.isJSON = isJSON
+    }
+
+    init(configuration: ReadConfiguration) throws {
+        content = try configuration.file.regularFileContents ?? Data()
+        isJSON = configuration.contentType == .json
+    }
+
+    func fileWrapper(configuration: WriteConfiguration) throws -> FileWrapper {
+        return FileWrapper(regularFileWithContents: content)
+    }
+}
 
 // MARK: - App Logs View
 struct AppLogsView: View {
@@ -11,6 +33,8 @@ struct AppLogsView: View {
     @State private var showShareSheet = false
     @State private var shareText = ""
     @State private var autoScroll = true
+    @State private var showingExporter = false
+    @State private var exportDocument: LogDocument?
     @Environment(\.colorScheme) var colorScheme
 
     var filteredLogs: [LogEntry] {
@@ -25,7 +49,7 @@ struct AppLogsView: View {
 
             VStack(spacing: 0) {
                 // Search and Filter Bar
-                VStack(spacing: 12) {
+                VStack(spacing: 16) {
                     HStack(spacing: 12) {
                         Image(systemName: "magnifyingglass")
                             .foregroundStyle(.secondary)
@@ -90,43 +114,51 @@ struct AppLogsView: View {
 
                 // Logs List
                 if filteredLogs.isEmpty {
-                    VStack(spacing: 20) {
+                    VStack(spacing: 24) {
                         Spacer()
                         ZStack {
                             Circle()
                                 .fill(.ultraThinMaterial)
-                                .frame(width: 100, height: 100)
+                                .frame(width: 110, height: 110)
 
                             Image(systemName: "doc.text.magnifyingglass")
-                                .font(.system(size: 40))
-                                .foregroundStyle(.secondary)
+                                .font(.system(size: 44))
+                                .foregroundStyle(
+                                    LinearGradient(
+                                        colors: [.blue, .purple],
+                                        startPoint: .topLeading,
+                                        endPoint: .bottomTrailing
+                                    )
+                                )
                         }
+                        .shadow(color: .black.opacity(0.1), radius: 10, x: 0, y: 5)
 
-                        VStack(spacing: 8) {
+                        VStack(spacing: 12) {
                             Text(logManager.logs.isEmpty ? "No Logs Yet" : "No Matching Logs")
-                                .font(.headline)
+                                .font(.system(.title3, design: .rounded, weight: .bold))
 
                             if !logManager.logs.isEmpty {
-                                Text("There is currently no logs, try adjusting your search or filters.")
-                                    .font(.subheadline)
+                                Text("We couldn't find any logs matching your search. Try adjusting your filters.")
+                                    .font(.system(.subheadline, design: .rounded))
                                     .foregroundStyle(.secondary)
                                     .multilineTextAlignment(.center)
-                                    .padding(.horizontal, 40)
+                                    .padding(.horizontal, 50)
                             }
                         }
                         Spacer()
                     }
-                    .transition(AnyTransition.opacity)
+                    .transition(AnyTransition.opacity.combined(with: .scale(0.9)))
                 } else {
                     ScrollViewReader { proxy in
                         ScrollView {
-                            LazyVStack(alignment: .leading, spacing: 10) {
+                            LazyVStack(alignment: .leading, spacing: 12) {
                                 ForEach(filteredLogs) { log in
                                     LogEntryRow(entry: log)
                                         .id(log.id)
                                 }
                             }
-                            .padding()
+                            .padding(.horizontal)
+                            .padding(.vertical, 16)
                         }
                         .onChange(of: filteredLogs.count) { _ in
                             if autoScroll, let lastLog = filteredLogs.last {
@@ -179,18 +211,33 @@ struct AppLogsView: View {
         .sheet(isPresented: $showShareSheet) {
             ActivityViewController(activityItems: [shareText])
         }
+        .fileExporter(
+            isPresented: $showingExporter,
+            document: exportDocument,
+            contentType: exportDocument?.isJSON == true ? .json : .plainText,
+            defaultFilename: "PortalLogs"
+        ) { result in
+            switch result {
+            case .success(let url):
+                logManager.success("Logs exported to \(url.lastPathComponent)", category: "AppLogs")
+            case .failure(let error):
+                logManager.error("Export failed: \(error.localizedDescription)", category: "AppLogs")
+            }
+        }
     }
 
     private func shareAsText() {
-        shareText = logManager.exportLogs()
-        showShareSheet = true
+        let text = logManager.exportLogs()
+        if let data = text.data(using: .utf8) {
+            exportDocument = LogDocument(content: data, isJSON: false)
+            showingExporter = true
+        }
     }
 
     private func shareAsJSON() {
-        if let jsonData = logManager.exportLogsAsJSON(),
-           let jsonString = String(data: jsonData, encoding: .utf8) {
-            shareText = jsonString
-            showShareSheet = true
+        if let jsonData = logManager.exportLogsAsJSON() {
+            exportDocument = LogDocument(content: jsonData, isJSON: true)
+            showingExporter = true
         }
     }
 
@@ -264,38 +311,44 @@ struct LogEntryRow: View {
                 }
                 HapticsManager.shared.softImpact()
             } label: {
-                HStack(alignment: .top, spacing: 12) {
+                HStack(alignment: .top, spacing: 14) {
                     // Level Indicator Line
-                    RoundedRectangle(cornerRadius: 2)
+                    RoundedRectangle(cornerRadius: 3)
                         .fill(levelColor(entry.level))
-                        .frame(width: 4)
-                        .padding(.vertical, 4)
+                        .frame(width: 5)
+                        .padding(.vertical, 6)
 
-                    VStack(alignment: .leading, spacing: 6) {
-                        HStack {
-                            Text(entry.level.icon)
-                                .font(.system(size: 12))
+                    VStack(alignment: .leading, spacing: 8) {
+                        HStack(alignment: .center) {
+                            HStack(spacing: 6) {
+                                Text(entry.level.icon)
+                                    .font(.system(size: 12))
+                                Text(entry.level.rawValue)
+                                    .font(.system(size: 10, weight: .black, design: .rounded))
+                                    .foregroundStyle(levelColor(entry.level))
+                            }
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 3)
+                            .background(levelColor(entry.level).opacity(0.12))
+                            .clipShape(Capsule())
 
                             Text(entry.formattedTimestamp)
-                                .font(.system(size: 11, weight: .medium, design: .monospaced))
+                                .font(.system(size: 11, weight: .semibold, design: .monospaced))
                                 .foregroundStyle(.secondary)
 
                             Spacer()
 
-                            Text(entry.category.uppercased())
-                                .font(.system(size: 9, weight: .bold, design: .rounded))
-                                .padding(.horizontal, 6)
-                                .padding(.vertical, 2)
-                                .background(levelColor(entry.level).opacity(0.15))
-                                .foregroundStyle(levelColor(entry.level))
-                                .clipShape(Capsule())
+                            Text(entry.category)
+                                .font(.system(size: 10, weight: .bold, design: .rounded))
+                                .foregroundStyle(.secondary.opacity(0.8))
                         }
 
                         Text(entry.message)
                             .font(.system(size: 13, weight: .medium, design: .monospaced))
-                            .foregroundStyle(.primary)
+                            .foregroundStyle(.primary.opacity(0.9))
                             .lineLimit(isExpanded ? nil : 2)
                             .multilineTextAlignment(.leading)
+                            .fixedSize(horizontal: false, vertical: isExpanded)
                     }
 
                     Spacer()
@@ -304,9 +357,9 @@ struct LogEntryRow: View {
                         .font(.system(size: 12, weight: .bold))
                         .foregroundStyle(.tertiary)
                         .rotationEffect(.degrees(isExpanded ? 90 : 0))
-                        .padding(.top, 4)
+                        .padding(.top, 8)
                 }
-                .padding(12)
+                .padding(14)
             }
             .buttonStyle(.plain)
 

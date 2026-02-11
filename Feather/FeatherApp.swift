@@ -8,6 +8,11 @@ import OSLog
 struct FeatherApp: App {
 	@UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
 
+    init() {
+        // Handle any pending backup restoration before app starts
+        RestorationManager.shared.applyPendingRestore()
+    }
+
 	let heartbeat = HeartbeatManager.shared
 
 	@StateObject var downloadManager = DownloadManager.shared

@@ -322,8 +322,15 @@ struct SelfBackupRestoreView: View {
         } message: { error in
             Text(error)
         }
-        .alert("Success", isPresented: $viewModel.showSuccess, presenting: viewModel.successMessage) { _ in
-            Button("OK", role: .cancel) { }
+        .alert("Success", isPresented: $viewModel.showSuccess, presenting: viewModel.successMessage) { message in
+            if message.contains("restart") {
+                Button("Restart Now") {
+                    UIApplication.shared.suspendAndReopen()
+                }
+                Button("Later", role: .cancel) { }
+            } else {
+                Button("OK", role: .cancel) { }
+            }
         } message: { message in
             Text(message)
         }
@@ -561,26 +568,30 @@ class SelfBackupRestoreViewModel: ObservableObject {
             
             // Create ZIP archive using a more robust manual approach
             let backupZipPath = backupsDirectory.appendingPathComponent("\(backupID.uuidString).zip")
-            guard let archive = Archive(url: backupZipPath, accessMode: .create) else {
-                throw NSError(domain: "SelfBackup", code: -1, userInfo: [NSLocalizedDescriptionKey: "Failed to create archive at \(backupZipPath.path)"])
-            }
 
-            // Add files individually for better error handling and recursion
-            let enumerator = fileManager.enumerator(at: tempBackupDir, includingPropertiesForKeys: [.isRegularFileKey], options: [.skipsHiddenFiles])
-            var filesToZip: [URL] = []
-            while let fileURL = enumerator?.nextObject() as? URL {
-                filesToZip.append(fileURL)
-            }
+            // Wrap in a local scope to ensure Archive is finalized and file handle is closed
+            do {
+                guard let archive = Archive(url: backupZipPath, accessMode: .create) else {
+                    throw NSError(domain: "SelfBackup", code: -1, userInfo: [NSLocalizedDescriptionKey: "Failed to create archive at \(backupZipPath.path)"])
+                }
 
-            for (index, fileURL) in filesToZip.enumerated() {
-                operationProgress = 0.5 + (Double(index) / Double(filesToZip.count)) * 0.3
-                let relativePath = fileURL.path.replacingOccurrences(of: tempBackupDir.path + "/", with: "")
-                currentOperation = "Zipping: \(relativePath)"
+                // Add files individually for better error handling and recursion
+                let enumerator = fileManager.enumerator(at: tempBackupDir, includingPropertiesForKeys: [.isRegularFileKey], options: [.skipsHiddenFiles])
+                var filesToZip: [URL] = []
+                while let fileURL = enumerator?.nextObject() as? URL {
+                    filesToZip.append(fileURL)
+                }
 
-                do {
-                    try archive.addEntry(with: relativePath, relativeTo: tempBackupDir)
-                } catch {
-                    AppLogManager.shared.error("Failed to add \(relativePath) to archive: \(error.localizedDescription)", category: "Self Backup")
+                for (index, fileURL) in filesToZip.enumerated() {
+                    operationProgress = 0.5 + (Double(index) / Double(filesToZip.count)) * 0.3
+                    let relativePath = fileURL.path.replacingOccurrences(of: tempBackupDir.path + "/", with: "")
+                    currentOperation = "Zipping: \(relativePath)"
+
+                    do {
+                        try archive.addEntry(with: relativePath, relativeTo: tempBackupDir)
+                    } catch {
+                        AppLogManager.shared.error("Failed to add \(relativePath) to archive: \(error.localizedDescription)", category: "Self Backup")
+                    }
                 }
             }
             
@@ -706,27 +717,31 @@ class SelfBackupRestoreViewModel: ObservableObject {
             let tempZipFile = tempRestoreDir.appendingPathComponent("backup.zip")
             try decryptedData.write(to: tempZipFile)
             
+            // Create pending restore directory
+            let documentsURL = fileManager.urls(for: .documentDirectory, in: .userDomainMask).first!
+            let pendingRestoreDir = documentsURL.appendingPathComponent("PendingRestore")
+            try? fileManager.removeItem(at: pendingRestoreDir)
+            try fileManager.createDirectory(at: pendingRestoreDir, withIntermediateDirectories: true)
+
             // Extract ZIP
-            let extractedDir = tempRestoreDir.appendingPathComponent("extracted")
+            let extractedDir = pendingRestoreDir.appendingPathComponent("extracted")
             try fileManager.unzipItem(at: tempZipFile, to: extractedDir)
             
-            operationProgress = 0.5
-            currentOperation = "Restoring Data..."
+            operationProgress = 0.8
+            currentOperation = "Staging Restoration..."
             
-            // Restore the data
-            try await restoreBackupData(from: extractedDir)
-            
-            operationProgress = 0.9
-            currentOperation = "Cleaning Up..."
-            
-            // Clean up temp directory
-            try? fileManager.removeItem(at: tempRestoreDir)
+            // Set pending restore flag
+            UserDefaults.standard.set(true, forKey: "Feather.pendingRestore")
+            UserDefaults.standard.synchronize()
             
             operationProgress = 1.0
-            currentOperation = "Restore Completed"
+            currentOperation = "Restoration Staged"
             
-            successMessage = "Backup restored successfully! Please restart Portal to apply changes."
+            successMessage = "Backup restoration staged successfully! Portal needs to restart to apply all changes."
             showSuccess = true
+
+            // Clean up temp directory
+            try? fileManager.removeItem(at: tempRestoreDir)
             
         } catch {
             errorMessage = "Failed to restore backup: \(error.localizedDescription)"
@@ -841,21 +856,34 @@ class SelfBackupRestoreViewModel: ObservableObject {
             // Check if encrypted
             let fileData = try Data(contentsOf: destinationURL)
             let header = "PORTAL_ENC".data(using: .utf8)!
-            let isEncrypted = fileData.starts(with: header)
+            let headerV2 = "PORTAL_V2".data(using: .utf8)!
+            let isEncrypted = fileData.starts(with: header) || fileData.starts(with: headerV2)
 
             var passwordToStore: String? = nil
             if isEncrypted {
-                // Prompt for password
-                let password = await promptForPassword()
-                guard !password.isEmpty else {
+                // Try to find password in keychain if possible
+                // We can try to extract a backup ID if it was in the filename
+                var backupPassword = ""
+                let fileName = url.lastPathComponent
+                if let range = fileName.range(of: "[0-9A-F]{8}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{12}", options: .regularExpression) {
+                    let extractedID = String(fileName[range])
+                    backupPassword = (try? KeychainManager.shared.retrieve(account: "backup_\(extractedID)")) ?? ""
+                }
+
+                if backupPassword.isEmpty {
+                    // Prompt for password
+                    backupPassword = await promptForPassword()
+                }
+
+                guard !backupPassword.isEmpty else {
                     try? fileManager.removeItem(at: destinationURL)
                     return
                 }
 
                 // Verify password
                 do {
-                    _ = try decryptData(fileData, with: password)
-                    passwordToStore = password
+                    _ = try decryptData(fileData, with: backupPassword)
+                    passwordToStore = backupPassword
                 } catch {
                     try? fileManager.removeItem(at: destinationURL)
                     errorMessage = "Incorrect password for backup."
@@ -1013,14 +1041,42 @@ class SelfBackupRestoreViewModel: ObservableObject {
             try? fileManager.copyItem(at: shmURL, to: dbDir.appendingPathComponent(shmURL.lastPathComponent))
         }
         
-        // Settings
+        // Settings (App Group)
         if let userDefaults = UserDefaults(suiteName: Storage.appGroupID) {
             let settingsDict = userDefaults.dictionaryRepresentation()
             let filteredSettings = settingsDict.filter { key, _ in
-                !key.hasPrefix("NS") && !key.hasPrefix("Apple") && !key.hasPrefix("AK")
+                !key.hasPrefix("NS") && !key.hasPrefix("Apple") && !key.hasPrefix("AK") && !key.hasPrefix("WebKit")
             }
             let settingsPlist = try PropertyListSerialization.data(fromPropertyList: filteredSettings, format: .xml, options: 0)
             try settingsPlist.write(to: directory.appendingPathComponent("settings.plist"))
+        }
+
+        // Settings (Standard)
+        let standardDict = UserDefaults.standard.dictionaryRepresentation()
+        let filteredStandard = standardDict.filter { key, _ in
+            !key.hasPrefix("NS") && !key.hasPrefix("Apple") && !key.hasPrefix("AK") && !key.hasPrefix("WebKit")
+        }
+        let standardPlist = try PropertyListSerialization.data(fromPropertyList: filteredStandard, format: .xml, options: 0)
+        try standardPlist.write(to: directory.appendingPathComponent("standard_settings.plist"))
+
+        // Extra Root Files (pairingFile.plist, server.pem, etc.)
+        let extraDir = directory.appendingPathComponent("extra_files")
+        try? fileManager.createDirectory(at: extraDir, withIntermediateDirectories: true)
+        let rootFiles = (try? fileManager.contentsOfDirectory(at: Storage.shared.documentsURL, includingPropertiesForKeys: nil)) ?? []
+        for fileURL in rootFiles {
+            let ext = fileURL.pathExtension.lowercased()
+            let name = fileURL.lastPathComponent
+            let importantExtensions = ["plist", "pem", "crt", "txt", "json", "log"]
+            let importantNames = ["pairingFile.plist", "server.pem", "server.crt", "commonName.txt"]
+
+            if importantExtensions.contains(ext) || importantNames.contains(name) {
+                // Skip database files and directories
+                if ext == "sqlite" || name.contains("-shm") || name.contains("-wal") { continue }
+                var isDir: ObjCBool = false
+                if fileManager.fileExists(atPath: fileURL.path, isDirectory: &isDir), !isDir.boolValue {
+                    try? fileManager.copyItem(at: fileURL, to: extraDir.appendingPathComponent(name))
+                }
+            }
         }
         
         // Marker file
