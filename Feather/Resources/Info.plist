@@ -51,15 +51,6 @@
 	<dict>
 		<key>CFBundleAlternateIcons</key>
 		<dict>
-			<key>AppIcon-Tinted</key>
-			<dict>
-				<key>CFBundleIconFiles</key>
-				<array>
-					<string>AppIcon-Tinted</string>
-				</array>
-				<key>UIPrerenderedIcon</key>
-				<false/>
-			</dict>
 			<key>AppIcon-Clear</key>
 			<dict>
 				<key>CFBundleIconFiles</key>
@@ -83,6 +74,15 @@
 				<key>CFBundleIconFiles</key>
 				<array>
 					<string>AppIcon-ClearLight</string>
+				</array>
+				<key>UIPrerenderedIcon</key>
+				<false/>
+			</dict>
+			<key>AppIcon-Tinted</key>
+			<dict>
+				<key>CFBundleIconFiles</key>
+				<array>
+					<string>AppIcon-Tinted</string>
 				</array>
 				<key>UIPrerenderedIcon</key>
 				<false/>
@@ -147,15 +147,6 @@
 	<dict>
 		<key>CFBundleAlternateIcons</key>
 		<dict>
-			<key>AppIcon-Tinted</key>
-			<dict>
-				<key>CFBundleIconFiles</key>
-				<array>
-					<string>AppIcon-Tinted</string>
-				</array>
-				<key>UIPrerenderedIcon</key>
-				<false/>
-			</dict>
 			<key>AppIcon-Clear</key>
 			<dict>
 				<key>CFBundleIconFiles</key>
@@ -179,6 +170,15 @@
 				<key>CFBundleIconFiles</key>
 				<array>
 					<string>AppIcon-ClearLight</string>
+				</array>
+				<key>UIPrerenderedIcon</key>
+				<false/>
+			</dict>
+			<key>AppIcon-Tinted</key>
+			<dict>
+				<key>CFBundleIconFiles</key>
+				<array>
+					<string>AppIcon-Tinted</string>
 				</array>
 				<key>UIPrerenderedIcon</key>
 				<false/>
@@ -261,12 +261,8 @@
 		<string>localdevvpn</string>
 		<string>new-portal</string>
 	</array>
-	<key>NSUserActivityTypes</key>
-	<array>
-		<string>AddSourceIntent</string>
-		<string>AddCertificateIntent</string>
-		<string>CheckExpiryIntent</string>
-	</array>
+	<key>LSSupportsOpeningDocumentsInPlace</key>
+	<true/>
 	<key>NSAppTransportSecurity</key>
 	<dict>
 		<key>NSExceptionDomains</key>
@@ -282,18 +278,20 @@
 			</dict>
 		</dict>
 	</dict>
-	<key>NSLocalNetworkUsageDescription</key>
-	<string>Portal needs access to your local network to discover nearby devices for wireless backup transfer.</string>
 	<key>NSBonjourServices</key>
 	<array>
 		<string>_portal-backup._tcp</string>
 		<string>_portal-backup._udp</string>
 	</array>
+	<key>NSLocalNetworkUsageDescription</key>
+	<string>Portal needs access to your local network to discover nearby devices for wireless backup transfer.</string>
 	<key>NSSupportsLiveActivities</key>
 	<true/>
-	<key>UIBackgroundModes</key>
+	<key>NSUserActivityTypes</key>
 	<array>
-		<string>audio</string>
+		<string>AddSourceIntent</string>
+		<string>AddCertificateIntent</string>
+		<string>CheckExpiryIntent</string>
 	</array>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
@@ -312,6 +310,10 @@
 			</array>
 		</dict>
 	</dict>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>audio</string>
+	</array>
 	<key>UIFileSharingEnabled</key>
 	<true/>
 	<key>UILaunchScreen</key>
@@ -331,8 +333,6 @@
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
 	<key>UISupportsDocumentBrowser</key>
-	<true/>
-	<key>LSSupportsOpeningDocumentsInPlace</key>
 	<true/>
 	<key>UTExportedTypeDeclarations</key>
 	<array>
