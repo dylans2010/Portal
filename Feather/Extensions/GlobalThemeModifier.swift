@@ -10,16 +10,52 @@ struct GlobalThemeModifier: ViewModifier {
     @Environment(\.colorScheme) var colorScheme
 
     func body(content: Content) -> some View {
-        let bgColor = appState.isSigning ? Color(hex: bgColorHex) : (colorScheme == .light ? .black : Color(hex: bgColorHex))
-        let uiColor = appState.isSigning ? Color(hex: uiElementColorHex) : (colorScheme == .light ? .black : Color(hex: uiElementColorHex))
-        let textColor = appState.isSigning ? Color(hex: textColorHex) : (colorScheme == .light ? .black : Color(hex: textColorHex))
+        let isDarkMode = colorScheme == .dark
+
+        // Background Color
+        let bgColor: Color
+        if appState.isSigning {
+            bgColor = Color(hex: bgColorHex)
+        } else {
+            if isDarkMode && (bgColorHex == Color.defaultBackground) {
+                bgColor = .black
+            } else {
+                bgColor = Color(hex: bgColorHex)
+            }
+        }
+
+        // UI Element / Tint Color
+        let uiColor: Color
+        if appState.isSigning {
+            uiColor = Color(hex: uiElementColorHex)
+        } else {
+            // Default to white for better contrast in dark mode if using default blue
+            if isDarkMode && (uiElementColorHex == Color.defaultUIElement) {
+                uiColor = .white
+            } else {
+                uiColor = Color(hex: uiElementColorHex)
+            }
+        }
+
+        // Text Color
+        let textColor: Color
+        if appState.isSigning {
+            textColor = Color(hex: textColorHex)
+        } else {
+            // Force white text in dark mode if using default black text
+            if isDarkMode && (textColorHex == Color.defaultText) {
+                textColor = .white
+            } else {
+                textColor = Color(hex: textColorHex)
+            }
+        }
 
         return content
             .foregroundStyle(textColor)
             .tint(uiColor)
             .accentColor(uiColor)
             .background(bgColor.ignoresSafeArea())
-            .toolbarColorScheme(colorScheme == .light ? .dark : nil, for: .navigationBar)
+            .toolbarColorScheme(isDarkMode ? .dark : .light, for: .navigationBar)
     }
 }
 

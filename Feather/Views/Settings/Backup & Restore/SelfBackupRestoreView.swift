@@ -561,7 +561,24 @@ class SelfBackupRestoreViewModel: ObservableObject {
             
             // Create ZIP archive
             let backupZipPath = backupsDirectory.appendingPathComponent("\(backupID.uuidString).zip")
-            try fileManager.zipItem(at: tempBackupDir, to: backupZipPath, shouldKeepParent: false)
+
+            guard let archive = Archive(url: backupZipPath, accessMode: .create) else {
+                throw NSError(domain: "SelfBackup", code: -1, userInfo: [NSLocalizedDescriptionKey: "Failed to create archive structure."])
+            }
+
+            // Manually add files to archive with individual error handling
+            let enumerator = fileManager.enumerator(at: tempBackupDir, includingPropertiesForKeys: [.isRegularFileKey], options: [.skipsHiddenFiles])
+            while let fileURL = enumerator?.nextObject() as? URL {
+                let relativePath = fileURL.path.replacingOccurrences(of: tempBackupDir.path + "/", with: "")
+                if relativePath == tempBackupDir.path { continue }
+
+                do {
+                    try archive.addEntry(with: relativePath, fileURL: fileURL)
+                } catch {
+                    AppLogManager.shared.error("Failed to add file to backup: \(relativePath) - \(error.localizedDescription)", category: "Self Backup")
+                    // Continue with other files
+                }
+            }
             
             operationProgress = 0.8
             currentOperation = "Encrypting Backup"
