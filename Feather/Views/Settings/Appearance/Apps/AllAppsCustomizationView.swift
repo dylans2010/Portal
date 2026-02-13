@@ -39,7 +39,6 @@ struct AllAppsCustomizationView: View {
     @AppStorage("Feather.allApps.showDescription") private var showDescription: Bool = false
     @AppStorage("Feather.allApps.descriptionLimit") private var descriptionLimit: Int = 2
     @AppStorage("Feather.allApps.searchBarFloating") private var searchBarFloating: Bool = false
-    @AppStorage("Feather.allApps.rowDividerOpacity") private var rowDividerOpacity: Double = 0.5
     @AppStorage("Feather.allApps.showAppCount") private var showAppCount: Bool = true
     @AppStorage("Feather.allApps.cardBackgroundOpacity") private var cardBackgroundOpacity: Double = 1.0
     @AppStorage("Feather.allApps.searchBarStyle") private var searchBarStyle: Int = 0
@@ -325,7 +324,6 @@ struct AllAppsCustomizationView: View {
         showDescription = false
         descriptionLimit = 2
         searchBarFloating = false
-        rowDividerOpacity = 0.5
         showAppCount = true
         cardBackgroundOpacity = 1.0
         searchBarStyle = 0

@@ -667,7 +667,6 @@ struct AllAppsRowView: View {
     @AppStorage("Feather.allApps.useGlassEffects") private var useGlassEffects: Bool = true
     @AppStorage("Feather.allApps.showDescription") private var showDescription: Bool = false
     @AppStorage("Feather.allApps.descriptionLimit") private var descriptionLimit: Int = 2
-    @AppStorage("Feather.allApps.rowDividerOpacity") private var rowDividerOpacity: Double = 0.5
     @AppStorage("Feather.allApps.cardBackgroundOpacity") private var cardBackgroundOpacity: Double = 1.0
 
 	@ObservedObject private var downloadManager = DownloadManager.shared
