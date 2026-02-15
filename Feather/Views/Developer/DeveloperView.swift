@@ -3267,7 +3267,7 @@ struct FeatureFlagsView: View {
             } header: {
                 Text("Certificates")
             } footer: {
-                Text("When enabled, allows exporting and importing certificates as a single .portalcert file that bundles the P12 and provisioning profile together. This is a super early beta, does not work.")
+                Text("When enabled, allows exporting and importing certificates as a single .portalcert file that bundles the P12 and provisioning profile together.")
             }
             
             Section {
