@@ -133,9 +133,8 @@ struct HomeView: View {
             }
             .background(Color(.systemBackground))
             .navigationBarHidden(true)
-            .sheet(isPresented: $_showAddCertificate) {
+            .fullScreenCover(isPresented: $_showAddCertificate) {
                 CertificatesAddView()
-                    .presentationDetents([.medium])
             }
             .fullScreenCover(isPresented: $_showAddSource) {
                 SourcesAddView()

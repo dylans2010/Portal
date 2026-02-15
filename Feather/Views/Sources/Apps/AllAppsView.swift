@@ -106,6 +106,8 @@ struct AllAppsView: View {
             if isTab {
                 mainContent
                     .searchable(text: $_searchText, placement: .navigationBarDrawer(displayMode: .always), prompt: "Search \(_totalAppCount) Apps")
+                    .navigationTitle("Apps")
+                    .navigationBarTitleDisplayMode(.inline)
             } else {
                 mainContent
             }
@@ -221,9 +223,7 @@ struct AllAppsView: View {
             }
 
             if isTab {
-                Text("Apps")
-                    .font(.system(size: 24, weight: .bold, design: .rounded))
-                    .foregroundStyle(.primary)
+                // Native title used via .navigationTitle
             } else if _showAppCount {
                 VStack(alignment: .leading, spacing: 4) {
                     Text("\(_totalAppCount)")
@@ -505,9 +505,11 @@ struct AllAppsView: View {
 
 			if Task.isCancelled { return }
 
-            await MainActor.run {
-                withAnimation {
-                    _isSearching = true
+            if !searchText.isEmpty {
+                await MainActor.run {
+                    withAnimation {
+                        _isSearching = true
+                    }
                 }
             }
 

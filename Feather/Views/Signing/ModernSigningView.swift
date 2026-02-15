@@ -146,9 +146,8 @@ struct ModernSigningView: View {
                     .background(Color(UIColor.systemBackground))
                 }
             }
-            .sheet(isPresented: $_isAddingCertificatePresenting) {
+            .fullScreenCover(isPresented: $_isAddingCertificatePresenting) {
                 CertificatesAddView()
-                    .presentationDetents([.medium])
             }
             .navigationBarTitleDisplayMode(.inline)
             .toolbar(content: {
@@ -1302,7 +1301,6 @@ struct ModernSigningView: View {
 struct ModernSigningOptionsView: View {
     @Binding var options: Options
     @State private var showPPQInfo = false
-    @State private var floatingAnimation = false
     @AppStorage("Feather.certificateExperience") private var certificateExperience: String = "Developer"
     
     private var hasCertificateWithPPQCheck: Bool {
@@ -1319,120 +1317,171 @@ struct ModernSigningOptionsView: View {
     }
     
     var body: some View {
-        ZStack {
-            // Modern animated background
-            modernOptionsBackground
-            
-            ScrollView {
-                VStack(spacing: 20) {
-                    // Protection Section
-                    modernOptionSection(title: "Protection", icon: "shield.lefthalf.filled", color: .blue) {
-                        modernOptionToggle(
-                            title: "PPQ Protection",
-                            subtitle: isPPQProtectionForced ? "Required for your certificate." : "Append random string to Bundle IDs to avoid Apple flagging this certificate.",
-                            icon: "shield.checkered",
-                            color: .blue,
-                            isOn: Binding(
-                                get: { isPPQProtectionForced ? true : options.ppqProtection },
-                                set: { newValue in
-                                    if !isPPQProtectionForced || newValue {
-                                        options.ppqProtection = newValue
-                                    }
-                                }
-                            ),
-                            disabled: isPPQProtectionForced
-                        )
-                        
-                        Button {
-                            showPPQInfo = true
-                        } label: {
-                            HStack(spacing: 12) {
-                                ZStack {
-                                    Circle()
-                                        .fill(Color.accentColor.opacity(0.15))
-                                        .frame(width: 32, height: 32)
-                                    Image(systemName: "questionmark.circle.fill")
-                                        .font(.system(size: 14))
-                                        .foregroundColor(.accentColor)
-                                }
-                                Text("What is PPQ?")
-                                    .font(.subheadline.weight(.medium))
-                                    .foregroundStyle(.primary)
-                                Spacer()
-                                Image(systemName: "chevron.right")
-                                    .font(.caption.weight(.semibold))
-                                    .foregroundStyle(.tertiary)
-                                    .padding(6)
-                                    .background(Circle().fill(Color(UIColor.tertiarySystemFill)))
-                            }
-                            .padding(12)
+        Form {
+            // Protection Section
+            Section(header: Text("Protection")) {
+                Toggle(isOn: Binding(
+                    get: { isPPQProtectionForced ? true : options.ppqProtection },
+                    set: { newValue in
+                        if !isPPQProtectionForced || newValue {
+                            options.ppqProtection = newValue
                         }
                     }
-                    
-                    // General Section
-                    modernOptionSection(title: "General", icon: "gearshape.2.fill", color: .gray) {
-                        modernOptionPicker(
-                            title: "Appearance",
-                            icon: "paintpalette.fill",
-                            color: .pink,
-                            selection: $options.appAppearance,
-                            values: Options.AppAppearance.allCases
-                        )
-                        
-                        modernOptionPicker(
-                            title: "Minimum Requirement",
-                            icon: "ruler.fill",
-                            color: .indigo,
-                            selection: $options.minimumAppRequirement,
-                            values: Options.MinimumAppRequirement.allCases
-                        )
-                    }
-                    
-                    // Signing Section
-                    modernOptionSection(title: "Signing", icon: "signature", color: .purple) {
-                        modernOptionPicker(
-                            title: "Signing Type",
-                            icon: "pencil.and.scribble",
-                            color: .purple,
-                            selection: $options.signingOption,
-                            values: Options.SigningOption.allCases
-                        )
-                    }
-                    
-                    // App Features Section
-                    modernOptionSection(title: "App Features", icon: "sparkles", color: .yellow) {
-                        modernOptionToggle(title: "File Sharing", subtitle: "Enable Document Sharing.", icon: "folder.fill.badge.person.crop", color: .blue, isOn: $options.fileSharing)
-                        modernOptionToggle(title: "iTunes File Sharing", subtitle: "Access Via iTunes/Finder.", icon: "music.note.list", color: .pink, isOn: $options.itunesFileSharing)
-                        modernOptionToggle(title: "ProMotion", subtitle: "120Hz Display Support.", icon: "gauge.with.dots.needle.67percent", color: .green, isOn: $options.proMotion)
-                        modernOptionToggle(title: "Game Mode", subtitle: "Turn on Gaming Mode (iOS 18+).", icon: "gamecontroller.fill", color: .purple, isOn: $options.gameMode)
-                        modernOptionToggle(title: "iPad Fullscreen", subtitle: "Full Screen On iPad.", icon: "ipad.landscape", color: .orange, isOn: $options.ipadFullscreen)
-                    }
-                    
-                    // Removal Section
-                    modernOptionSection(title: "Removal", icon: "trash.slash.fill", color: .red) {
-                        modernOptionToggle(title: "Remove URL Scheme", subtitle: "Strip URL Handlers.", icon: "link.badge.minus", color: .red, isOn: $options.removeURLScheme)
-                        modernOptionToggle(title: "Remove Provisioning", subtitle: "Exclude .mobileprovision.", icon: "doc.badge.minus", color: .orange, isOn: $options.removeProvisioning)
-                    }
-                    
-                    // Localization Section
-                    modernOptionSection(title: "Localization", icon: "globe.badge.chevron.backward", color: .green) {
-                        modernOptionToggle(title: "Force Localize", subtitle: "Override Localized Titles.", icon: "character.bubble.fill", color: .green, isOn: $options.changeLanguageFilesForCustomDisplayName)
-                    }
-                    
-                    // Post Signing Section
-                    modernOptionSection(title: "Post Signing", icon: "clock.arrow.circlepath", color: .orange) {
-                        modernOptionToggle(title: "Install After Signing", subtitle: "Auto Install When Done.", icon: "arrow.down.circle.fill", color: .green, isOn: $options.post_installAppAfterSigned)
-                        modernOptionToggle(title: "Delete After Signing", subtitle: "Remove Original File.", icon: "trash.fill", color: .red, isOn: $options.post_deleteAppAfterSigned)
-                    }
-                    
-                    // Experiments Section
-                    modernOptionSection(title: "Experiments", icon: "flask.fill", color: .purple, isBeta: true) {
-                        modernOptionToggle(title: "Replace Substrate", subtitle: "Use ElleKit Instead.", icon: "arrow.triangle.2.circlepath.circle.fill", color: .cyan, isOn: $options.experiment_replaceSubstrateWithEllekit)
-                        modernOptionToggle(title: "Liquid Glass", subtitle: "Use iOS 26 Redesign Support.", icon: "sparkles.rectangle.stack.fill", color: .purple, isOn: $options.experiment_supportLiquidGlass)
+                )) {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("PPQ Protection")
+                        Text(isPPQProtectionForced ? "Required for your certificate." : "Append random string to Bundle IDs to avoid Apple flagging this certificate.")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
                     }
                 }
-                .padding(.horizontal, 16)
-                .padding(.vertical, 12)
+                .disabled(isPPQProtectionForced)
+
+                Button {
+                    showPPQInfo = true
+                } label: {
+                    Label("What is PPQ?", systemImage: "questionmark.circle")
+                }
+            }
+
+            // General Section
+            Section(header: Text("General")) {
+                Picker("Appearance", selection: $options.appAppearance) {
+                    ForEach(Options.AppAppearance.allCases, id: \.self) { value in
+                        Text(value.localizedDescription).tag(value)
+                    }
+                }
+
+                Picker("Minimum Requirement", selection: $options.minimumAppRequirement) {
+                    ForEach(Options.MinimumAppRequirement.allCases, id: \.self) { value in
+                        Text(value.localizedDescription).tag(value)
+                    }
+                }
+            }
+
+            // Signing Section
+            Section(header: Text("Signing")) {
+                Picker("Signing Type", selection: $options.signingOption) {
+                    ForEach(Options.SigningOption.allCases, id: \.self) { value in
+                        Text(value.localizedDescription).tag(value)
+                    }
+                }
+            }
+
+            // App Features Section
+            Section(header: Text("App Features")) {
+                Toggle(isOn: $options.fileSharing) {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("File Sharing")
+                        Text("Enable Document Sharing.")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+                Toggle(isOn: $options.itunesFileSharing) {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("iTunes File Sharing")
+                        Text("Access Via iTunes/Finder.")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+                Toggle(isOn: $options.proMotion) {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("ProMotion")
+                        Text("120Hz Display Support.")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+                Toggle(isOn: $options.gameMode) {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Game Mode")
+                        Text("Turn on Gaming Mode (iOS 18+).")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+                Toggle(isOn: $options.ipadFullscreen) {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("iPad Fullscreen")
+                        Text("Full Screen On iPad.")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+            }
+            
+            // Removal Section
+            Section(header: Text("Removal")) {
+                Toggle(isOn: $options.removeURLScheme) {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Remove URL Scheme")
+                        Text("Strip URL Handlers.")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+                Toggle(isOn: $options.removeProvisioning) {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Remove Provisioning")
+                        Text("Exclude .mobileprovision.")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+            }
+            
+            // Localization Section
+            Section(header: Text("Localization")) {
+                Toggle(isOn: $options.changeLanguageFilesForCustomDisplayName) {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Force Localize")
+                        Text("Override Localized Titles.")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+            }
+            
+            // Post Signing Section
+            Section(header: Text("Post Signing")) {
+                Toggle(isOn: $options.post_installAppAfterSigned) {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Install After Signing")
+                        Text("Auto Install When Done.")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+                Toggle(isOn: $options.post_deleteAppAfterSigned) {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Delete After Signing")
+                        Text("Remove Original File.")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+            }
+            
+            // Experiments Section
+            Section(header: Text("Experiments (Beta)")) {
+                Toggle(isOn: $options.experiment_replaceSubstrateWithEllekit) {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Replace Substrate")
+                        Text("Use ElleKit Instead.")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+                Toggle(isOn: $options.experiment_supportLiquidGlass) {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Liquid Glass")
+                        Text("Use iOS 26 Redesign Support.")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                }
             }
         }
         .navigationTitle("Signing Options")
@@ -1446,177 +1495,7 @@ struct ModernSigningOptionsView: View {
             if isPPQProtectionForced && !options.ppqProtection {
                 options.ppqProtection = true
             }
-            withAnimation(.easeInOut(duration: 4).repeatForever(autoreverses: true)) {
-                floatingAnimation = true
-            }
         }
-    }
-    
-    // MARK: - Modern Options Background
-    @ViewBuilder
-    private var modernOptionsBackground: some View {
-        ZStack {
-            Color(UIColor.systemGroupedBackground)
-                .ignoresSafeArea()
-            
-            GeometryReader { geo in
-                Circle()
-                    .fill(
-                        RadialGradient(
-                            colors: [Color.accentColor.opacity(0.15), Color.accentColor.opacity(0)],
-                            center: .center,
-                            startRadius: 0,
-                            endRadius: 200
-                        )
-                    )
-                    .frame(width: 400, height: 400)
-                    .blur(radius: 80)
-                    .offset(x: floatingAnimation ? -30 : 30, y: floatingAnimation ? -20 : 20)
-                    .position(x: geo.size.width * 0.8, y: geo.size.height * 0.2)
-                
-                Circle()
-                    .fill(
-                        RadialGradient(
-                            colors: [Color.purple.opacity(0.1), Color.purple.opacity(0)],
-                            center: .center,
-                            startRadius: 0,
-                            endRadius: 150
-                        )
-                    )
-                    .frame(width: 300, height: 300)
-                    .blur(radius: 60)
-                    .offset(x: floatingAnimation ? 20 : -20, y: floatingAnimation ? 15 : -15)
-                    .position(x: geo.size.width * 0.2, y: geo.size.height * 0.7)
-            }
-            .ignoresSafeArea()
-        }
-    }
-    
-    // MARK: - Modern Section Builder
-    @ViewBuilder
-    private func modernOptionSection<Content: View>(title: String, icon: String, color: Color, isBeta: Bool = false, @ViewBuilder content: () -> Content) -> some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack(spacing: 8) {
-                ZStack {
-                    RoundedRectangle(cornerRadius: 28, style: .continuous)
-                        .fill(
-                            LinearGradient(
-                                colors: [color.opacity(0.3), color.opacity(0.15)],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            )
-                        )
-                        .frame(width: 24, height: 24)
-                    Image(systemName: icon)
-                        .font(.system(size: 12, weight: .semibold))
-                        .foregroundStyle(color)
-                }
-                Text(title)
-                    .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(.secondary)
-                    .textCase(.uppercase)
-                    .tracking(0.5)
-                
-                if isBeta {
-                    Text("Beta")
-                        .font(.system(size: 8, weight: .bold))
-                        .foregroundStyle(.white)
-                        .padding(.horizontal, 5)
-                        .padding(.vertical, 2)
-                        .background(Capsule().fill(color))
-                }
-                
-                Spacer()
-            }
-            .padding(.leading, 4)
-            
-            VStack(spacing: 2) {
-                content()
-            }
-            .background(
-                RoundedRectangle(cornerRadius: 28, style: .continuous)
-                    .fill(.ultraThinMaterial)
-                    .shadow(color: .black.opacity(0.06), radius: 12, x: 0, y: 6)
-            )
-        }
-    }
-    
-    // MARK: - Modern Toggle Row
-    @ViewBuilder
-    private func modernOptionToggle(title: String, subtitle: String? = nil, icon: String, color: Color, isOn: Binding<Bool>, disabled: Bool = false) -> some View {
-        HStack(spacing: 14) {
-            ZStack {
-                RoundedRectangle(cornerRadius: 28, style: .continuous)
-                    .fill(
-                        LinearGradient(
-                            colors: [color.opacity(0.25), color.opacity(0.1)],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        )
-                    )
-                    .frame(width: 36, height: 36)
-                Image(systemName: icon)
-                    .font(.system(size: 14, weight: .semibold))
-                    .foregroundStyle(color)
-            }
-            
-            VStack(alignment: .leading, spacing: 2) {
-                Text(title)
-                    .font(.subheadline.weight(.medium))
-                    .foregroundStyle(.primary)
-                if let subtitle = subtitle {
-                    Text(subtitle)
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
-            }
-            
-            Spacer()
-            
-            Toggle("", isOn: isOn)
-                .labelsHidden()
-                .disabled(disabled)
-                .tint(.accentColor)
-        }
-        .padding(.horizontal, 14)
-        .padding(.vertical, 12)
-    }
-    
-    // MARK: - Modern Picker Row
-    @ViewBuilder
-    private func modernOptionPicker<T: Hashable & LocalizedDescribable>(title: String, icon: String, color: Color, selection: Binding<T>, values: [T]) -> some View {
-        HStack(spacing: 14) {
-            ZStack {
-                RoundedRectangle(cornerRadius: 28, style: .continuous)
-                    .fill(
-                        LinearGradient(
-                            colors: [color.opacity(0.25), color.opacity(0.1)],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        )
-                    )
-                    .frame(width: 36, height: 36)
-                Image(systemName: icon)
-                    .font(.system(size: 14, weight: .semibold))
-                    .foregroundStyle(color)
-            }
-            
-            Text(title)
-                .font(.subheadline.weight(.medium))
-                .foregroundStyle(.primary)
-            
-            Spacer()
-            
-            Picker("", selection: selection) {
-                ForEach(values, id: \.self) { value in
-                    Text(value.localizedDescription).tag(value)
-                }
-            }
-            .labelsHidden()
-            .tint(.secondary)
-        }
-        .padding(.horizontal, 14)
-        .padding(.vertical, 10)
     }
 }
 

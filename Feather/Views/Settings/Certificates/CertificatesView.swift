@@ -84,9 +84,8 @@ struct CertificatesView: View {
 		.sheet(item: $_isSelectedInfoPresenting) { cert in
 			CertificatesInfoView(cert: cert)
 		}
-		.sheet(isPresented: $_isAddingPresenting) {
+		.fullScreenCover(isPresented: $_isAddingPresenting) {
 			CertificatesAddView()
-				.presentationDetents([.medium])
 		}
 		.sheet(isPresented: $_isPasswordChangePresenting) {
 			CertificatePasswordChangeView()
