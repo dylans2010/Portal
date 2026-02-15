@@ -19,11 +19,11 @@ public:
 					bool bForce,
 					bool bWeakInject,
 					bool bEnableCache,
-					bool excludeProvisioning);
+					bool excludeProvisioning = false);
 
 private:
 	bool SignNode(jvalue& jvNode);
-	void GetNodeChangedFiles(jvalue& jvNode, bool dontGenerateEmbeddedMobileProvision);
+	void GetNodeChangedFiles(jvalue& jvNode, bool excludeProvisioning);
 	void GetChangedFiles(jvalue& jvNode, vector<string>& arrChangedFiles);
 	bool ModifyPluginsBundleId(const string& strOldBundleId, const string& strNewBundleId);
 	bool ModifyBundleInfo(const string& strBundleId, const string& strBundleVersion, const string& strDisplayName);
