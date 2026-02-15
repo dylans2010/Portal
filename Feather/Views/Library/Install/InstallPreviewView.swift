@@ -31,15 +31,16 @@ struct InstallPreviewView: View {
     
     var body: some View {
         ZStack {
-            // Modern glass background
-            RoundedRectangle(cornerRadius: 20, style: .continuous)
+            // Modern glass background with explicit clipping
+            RoundedRectangle(cornerRadius: 28, style: .continuous)
                 .fill(.ultraThinMaterial)
                 .overlay(
-                    RoundedRectangle(cornerRadius: 20, style: .continuous)
+                    RoundedRectangle(cornerRadius: 28, style: .continuous)
                         .stroke(Color.primary.opacity(0.08), lineWidth: 1)
                 )
+                .shadow(color: .black.opacity(0.1), radius: 20, x: 0, y: 10)
             
-            VStack(spacing: 16) {
+            VStack(spacing: 20) {
                 InstallProgressView(app: app, viewModel: viewModel)
                     .scaleEffect(appearAnimation ? 1 : 0.9)
                     .opacity(appearAnimation ? 1 : 0)
@@ -52,10 +53,12 @@ struct InstallPreviewView: View {
                     .offset(y: appearAnimation ? 0 : 15)
                     .opacity(appearAnimation ? 1 : 0)
             }
-            .padding(20)
+            .padding(24)
         }
+        .clipShape(RoundedRectangle(cornerRadius: 28, style: .continuous))
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
-        .padding(16)
+        .padding(.horizontal, 20)
+        .padding(.vertical, 10)
         .onAppear {
             withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) {
                 appearAnimation = true
@@ -93,22 +96,28 @@ struct InstallPreviewView: View {
     // MARK: - Status Label
     @ViewBuilder
     private var statusLabel: some View {
-        HStack(spacing: 8) {
-            Image(systemName: viewModel.statusImage)
-                .font(.system(size: 14, weight: .medium))
-                .foregroundStyle(statusColor)
+        HStack(spacing: 10) {
+            ZStack {
+                Circle()
+                    .fill(statusColor.opacity(0.12))
+                    .frame(width: 28, height: 28)
+                Image(systemName: viewModel.statusImage)
+                    .font(.system(size: 12, weight: .bold))
+                    .foregroundStyle(statusColor)
+            }
             
             Text(viewModel.statusLabel)
-                .font(.system(size: 14, weight: .medium))
+                .font(.system(size: 13, weight: .semibold, design: .rounded))
                 .foregroundStyle(.secondary)
         }
-        .padding(.horizontal, 14)
-        .padding(.vertical, 8)
+        .padding(.horizontal, 16)
+        .padding(.vertical, 10)
         .background(
             Capsule()
-                .fill(statusColor.opacity(0.1))
+                .fill(Color.primary.opacity(0.03))
+                .overlay(Capsule().stroke(Color.primary.opacity(0.05), lineWidth: 0.5))
         )
-        .animation(.easeInOut(duration: 0.3), value: viewModel.statusImage)
+        .animation(.spring(response: 0.3), value: viewModel.statusImage)
     }
     
     private var statusColor: Color {

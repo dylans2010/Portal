@@ -150,6 +150,7 @@ struct CertificatesAddView: View {
                     }
                 }
             }
+            .applyGlobalTheme()
             .sheet(isPresented: $_isImportingP12Presenting) {
                 FileImporterRepresentableView(allowedContentTypes: [.p12]) { urls in
                     _p12URL = urls.first
