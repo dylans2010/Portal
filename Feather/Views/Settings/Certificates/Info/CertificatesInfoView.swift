@@ -495,29 +495,47 @@ struct CertificatesInfoView: View {
     // MARK: - Actions Card
     private func actionsCard() -> some View {
         VStack(spacing: 10) {
-            actionButton(
-                icon: "doc.badge.arrow.up",
-                title: "Open P12 In Files",
-                action: {
-                    if let p12URL = Storage.shared.getFile(.certificate, from: cert) {
-                        UIApplication.shared.open(p12URL)
+            if !cert.isPortalCert {
+                actionButton(
+                    icon: "doc.badge.arrow.up",
+                    title: "Open P12 In Files",
+                    action: {
+                        if let p12URL = Storage.shared.getFile(.certificate, from: cert) {
+                            UIApplication.shared.open(p12URL)
+                        }
                     }
-                }
-            )
-            
-            actionButton(
-                icon: "doc.badge.gearshape",
-                title: "Open Provision In Files",
-                action: {
-                    if let provisionURL = Storage.shared.getFile(.provision, from: cert) {
-                        UIApplication.shared.open(provisionURL)
+                )
+
+                actionButton(
+                    icon: "doc.badge.gearshape",
+                    title: "Open Provision In Files",
+                    action: {
+                        if let provisionURL = Storage.shared.getFile(.provision, from: cert) {
+                            UIApplication.shared.open(provisionURL)
+                        }
                     }
+                )
+
+                // Show export to .portalcert only when feature flag is enabled
+                if usePortalCert {
+                    exportPortalCertButton
                 }
-            )
-            
-            // Show export to .portalcert only when feature flag is enabled
-            if usePortalCert {
-                exportPortalCertButton
+            } else {
+                // For portal certs, show a locked status or nothing
+                HStack(spacing: 12) {
+                    Image(systemName: "lock.shield.fill")
+                        .font(.system(size: 16, weight: .medium))
+                        .foregroundStyle(.secondary)
+
+                    Text("Protected Certificate Content")
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundStyle(.secondary)
+
+                    Spacer()
+                }
+                .padding(14)
+                .background(cardBackground)
+                .opacity(0.8)
             }
         }
     }

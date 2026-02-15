@@ -14,6 +14,7 @@ struct CertificatesAddView: View {
     @State private var _provisionURL: URL? = nil
     @State private var _portalCertURL: URL? = nil
     @State private var _zipURL: URL? = nil
+    @State private var _isPortalCert: Bool = false
 
     @State private var _p12Password: String = ""
     @State private var _certificateName: String = ""
@@ -166,12 +167,14 @@ struct CertificatesAddView: View {
             .sheet(isPresented: $_isImportingP12Presenting) {
                 FileImporterRepresentableView(allowedContentTypes: [.p12]) { urls in
                     _p12URL = urls.first
+                    _isPortalCert = false
                 }
                 .ignoresSafeArea()
             }
             .sheet(isPresented: $_isImportingMobileProvisionPresenting) {
                 FileImporterRepresentableView(allowedContentTypes: [.mobileProvision]) { urls in
                     _provisionURL = urls.first
+                    _isPortalCert = false
                 }
                 .ignoresSafeArea()
             }
@@ -241,7 +244,8 @@ struct CertificatesAddView: View {
             provisionURL: provision,
             p12Password: _p12Password,
             certificateName: _certificateName,
-            isDefault: _setAsDefault
+            isDefault: _setAsDefault,
+            isPortalCert: _isPortalCert
         ) { _ in
             dismiss()
         }
@@ -263,6 +267,7 @@ struct CertificatesAddView: View {
             
             _p12URL = newP12URL
             _provisionURL = newProvisionURL
+            _isPortalCert = true
             
             if let nickname = metadata.nickname {
                 _certificateName = nickname
@@ -319,6 +324,7 @@ struct CertificatesAddView: View {
 
             _p12URL = newP12URL
             _provisionURL = newProvisionURL
+            _isPortalCert = false
 
             try? FileManager.default.removeItem(at: tempDir)
 
