@@ -110,6 +110,13 @@ struct AllAppsView: View {
                     } else {
                         mainContent
                             .searchable(text: $_searchText, placement: .navigationBarDrawer(displayMode: .always), prompt: "Search \(_totalAppCount) Apps")
+                            .toolbar {
+                                ToolbarItem(placement: .navigationBarTrailing) {
+                                    if _showSorting {
+                                        sortingMenu
+                                    }
+                                }
+                            }
                     }
                 }
                 .navigationTitle("Apps")
@@ -212,133 +219,144 @@ struct AllAppsView: View {
 
     // MARK: - Subviews
 
-    private var headerView: some View {
-        HStack(spacing: 16) {
-            if !isTab {
+    private var sortingMenu: some View {
+        Menu {
+            ForEach(AppSortOption.allCases) { option in
                 Button {
-                    HapticsManager.shared.softImpact()
-                    dismiss()
+                    if _sortOption == option {
+                        _sortAscending.toggle()
+                    } else {
+                        _sortOption = option
+                        _sortAscending = true
+                    }
+                    _filterApps()
                 } label: {
-                    Image(systemName: "chevron.left")
-                        .font(.system(size: 18, weight: .bold))
-                        .foregroundStyle(Color.accentColor)
-                        .frame(width: 40, height: 40)
-                        .background(Color.accentColor.opacity(0.1))
-                        .clipShape(Circle())
-                }
-            }
-
-            if isTab {
-                // Native title used via .navigationTitle
-            } else if _showAppCount {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("\(_totalAppCount)")
-                        .font(.system(size: 34, weight: .bold, design: .rounded))
-                        .foregroundStyle(.primary)
-                    Text("Apps Available")
-                        .font(.system(size: 15, weight: .medium))
-                        .foregroundStyle(.secondary)
-                }
-            } else {
-                Text("All Apps")
-                    .font(.system(size: 24, weight: .bold, design: .rounded))
-                    .foregroundStyle(.primary)
-            }
-
-            Spacer()
-
-            if _showSorting {
-                Menu {
-                    ForEach(AppSortOption.allCases) { option in
-                        Button {
-                            if _sortOption == option {
-                                _sortAscending.toggle()
-                            } else {
-                                _sortOption = option
-                                _sortAscending = true
-                            }
-                            _filterApps()
-                        } label: {
-                            HStack {
-                                Label(option.rawValue, systemImage: option.icon)
-                                if _sortOption == option {
-                                    Image(systemName: _sortAscending ? "chevron.up" : "chevron.down")
-                                }
-                            }
+                    HStack {
+                        Label(option.rawValue, systemImage: option.icon)
+                        if _sortOption == option {
+                            Image(systemName: _sortAscending ? "chevron.up" : "chevron.down")
                         }
                     }
-                } label: {
-                    Image(systemName: "line.3.horizontal.decrease.circle.fill")
-                        .font(.system(size: 22))
-                        .foregroundStyle(Color.accentColor)
-                        .padding(8)
-                        .background(Color.accentColor.opacity(0.1))
-                        .clipShape(Circle())
                 }
             }
+        } label: {
+            Image(systemName: "line.3.horizontal.decrease.circle.fill")
+                .font(.system(size: 22))
+                .foregroundStyle(Color.accentColor)
+                .padding(8)
+                .background(Color.accentColor.opacity(0.1))
+                .clipShape(Circle())
         }
-        .padding(.horizontal, 20)
-        .padding(.top, 16)
-        .padding(.bottom, 10)
+    }
+
+    @ViewBuilder
+    private var headerView: some View {
+        if isTab {
+            EmptyView()
+        } else {
+            HStack(spacing: 16) {
+                if !isTab {
+                    Button {
+                        HapticsManager.shared.softImpact()
+                        dismiss()
+                    } label: {
+                        Image(systemName: "chevron.left")
+                            .font(.system(size: 18, weight: .bold))
+                            .foregroundStyle(Color.accentColor)
+                            .frame(width: 40, height: 40)
+                            .background(Color.accentColor.opacity(0.1))
+                            .clipShape(Circle())
+                    }
+                }
+
+                if isTab {
+                    // Native title used via .navigationTitle
+                } else if _showAppCount {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("\(_totalAppCount)")
+                            .font(.system(size: 34, weight: .bold, design: .rounded))
+                            .foregroundStyle(.primary)
+                        Text("Apps Available")
+                            .font(.system(size: 15, weight: .medium))
+                            .foregroundStyle(.secondary)
+                    }
+                } else {
+                    Text("All Apps")
+                        .font(.system(size: 24, weight: .bold, design: .rounded))
+                        .foregroundStyle(.primary)
+                }
+
+                Spacer()
+            }
+            .padding(.horizontal, 20)
+            .padding(.top, 16)
+            .padding(.bottom, 10)
+        }
     }
 
     private var searchBar: some View {
         HStack(spacing: 12) {
-            Image(systemName: "magnifyingglass")
-                .font(.system(size: 16, weight: .medium))
-                .foregroundStyle(.secondary)
+            HStack(spacing: 12) {
+                Image(systemName: "magnifyingglass")
+                    .font(.system(size: 16, weight: .medium))
+                    .foregroundStyle(.secondary)
 
-            TextField("Search \(_totalAppCount) Apps", text: $_searchText)
-                .font(.system(size: 16))
-                .focused($_searchFieldFocused)
-                .submitLabel(.search)
-                .autocorrectionDisabled()
-                .textInputAutocapitalization(.never)
+                TextField("Search \(_totalAppCount) Apps", text: $_searchText)
+                    .font(.system(size: 16))
+                    .focused($_searchFieldFocused)
+                    .submitLabel(.search)
+                    .autocorrectionDisabled()
+                    .textInputAutocapitalization(.never)
 
-            if !_searchText.isEmpty {
-                Button {
-                    _searchText = ""
-                    _filterApps()
-                    HapticsManager.shared.softImpact()
-                } label: {
-                    Image(systemName: "xmark.circle.fill")
-                        .font(.system(size: 18))
-                        .foregroundStyle(.tertiary)
-                }
-            }
-        }
-        .padding(.horizontal, _searchBarStyle == 2 ? 0 : 14)
-        .padding(.vertical, _searchBarStyle == 1 ? 14 : 10)
-        .background(
-            Group {
-                if _searchBarStyle == 2 {
-                    Color.clear
-                } else {
-                    Group {
-                        if _useGlassEffects {
-                            RoundedRectangle(cornerRadius: _searchBarStyle == 1 ? 20 : 14, style: .continuous)
-                                .fill(.ultraThinMaterial)
-                        } else {
-                            RoundedRectangle(cornerRadius: _searchBarStyle == 1 ? 20 : 14, style: .continuous)
-                                .fill(Color(uiColor: .secondarySystemGroupedBackground))
-                        }
+                if !_searchText.isEmpty {
+                    Button {
+                        _searchText = ""
+                        _filterApps()
+                        HapticsManager.shared.softImpact()
+                    } label: {
+                        Image(systemName: "xmark.circle.fill")
+                            .font(.system(size: 18))
+                            .foregroundStyle(.tertiary)
                     }
-                    .overlay(
-                        RoundedRectangle(cornerRadius: _searchBarStyle == 1 ? 20 : 14, style: .continuous)
-                            .stroke(Color.primary.opacity(0.1), lineWidth: 0.5)
-                    )
                 }
             }
-        )
-        .overlay(alignment: .bottom) {
-            if _searchBarStyle == 2 {
-                Rectangle()
-                    .fill(Color.secondary.opacity(0.3))
-                    .frame(height: 1)
-                    .offset(y: 8)
+            .padding(.horizontal, _searchBarStyle == 2 ? 0 : 14)
+            .padding(.vertical, _searchBarStyle == 1 ? 14 : 10)
+            .background(
+                Group {
+                    if _searchBarStyle == 2 {
+                        Color.clear
+                    } else {
+                        Group {
+                            if _useGlassEffects {
+                                RoundedRectangle(cornerRadius: _searchBarStyle == 1 ? 20 : 14, style: .continuous)
+                                    .fill(.ultraThinMaterial)
+                            } else {
+                                RoundedRectangle(cornerRadius: _searchBarStyle == 1 ? 20 : 14, style: .continuous)
+                                    .fill(Color(uiColor: .secondarySystemGroupedBackground))
+                            }
+                        }
+                        .overlay(
+                            RoundedRectangle(cornerRadius: _searchBarStyle == 1 ? 20 : 14, style: .continuous)
+                                .stroke(Color.primary.opacity(0.1), lineWidth: 0.5)
+                        )
+                    }
+                }
+            )
+            .overlay(alignment: .bottom) {
+                if _searchBarStyle == 2 {
+                    Rectangle()
+                        .fill(Color.secondary.opacity(0.3))
+                        .frame(height: 1)
+                        .offset(y: 8)
+                }
+            }
+            .shadow(color: _searchBarFloating ? Color.black.opacity(0.1) : Color.clear, radius: 10, x: 0, y: 5)
+
+            if _showSorting && !isTab {
+                sortingMenu
             }
         }
-        .shadow(color: _searchBarFloating ? Color.black.opacity(0.1) : Color.clear, radius: 10, x: 0, y: 5)
         .padding(.horizontal, 20)
         .padding(.bottom, _searchBarFloating ? 0 : 16)
     }

@@ -6,6 +6,7 @@ import OSLog
 
 struct CertificatesAddView: View {
     @Environment(\.dismiss) private var dismiss
+    @AppStorage("feature_usePortalCert") private var usePortalCert = false
 
     @State private var _selectedSegment = 0 // 0: Manual, 1: Portal Cert, 2: ZIP File
     
@@ -58,8 +59,19 @@ struct CertificatesAddView: View {
                                     _isImportingMobileProvisionPresenting = true
                                 }
                             } else if _selectedSegment == 1 {
-                                fileRow(title: "Portal Certificate (.portalcert)", subtitle: _portalCertURL?.lastPathComponent ?? "Select File", icon: "shippingbox.fill") {
-                                    _isImportingPortalCertPresenting = true
+                                if usePortalCert {
+                                    fileRow(title: "Portal Certificate (.portalcert)", subtitle: _portalCertURL?.lastPathComponent ?? "Select File", icon: "shippingbox.fill") {
+                                        _isImportingPortalCertPresenting = true
+                                    }
+                                } else {
+                                    VStack(alignment: .leading, spacing: 8) {
+                                        Text("Not Ready")
+                                            .font(.headline)
+                                        Text("This feature is still under development and will be available in a later Portal release. Thanks for your patience and interest on the new certificate format!")
+                                            .font(.subheadline)
+                                            .foregroundStyle(.secondary)
+                                    }
+                                    .padding()
                                 }
                             } else {
                                 fileRow(title: "Certificate ZIP (.zip)", subtitle: _zipURL?.lastPathComponent ?? "Select File", icon: "doc.zipper") {
