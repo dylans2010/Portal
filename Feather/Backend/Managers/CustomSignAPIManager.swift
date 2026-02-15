@@ -13,13 +13,13 @@ enum CustomSignAPIError: Error, LocalizedError {
 
     var errorDescription: String? {
         switch self {
-        case .appNotFound: return .localized("Unable to locate app file.")
-        case .missingCertificate: return .localized("Certificate file not found.")
-        case .missingProvisioningProfile: return .localized("Provisioning profile not found.")
-        case .invalidResponse: return .localized("Invalid response from server.")
-        case .serverError(let message): return "\(.localized("Server error")): \(message)"
-        case .zippingFailed: return .localized("Failed to package app into IPA.")
-        case .invalidURL: return .localized("Invalid API URL.")
+        case .appNotFound: return String.localized("Unable to locate app file.")
+        case .missingCertificate: return String.localized("Certificate file not found.")
+        case .missingProvisioningProfile: return String.localized("Provisioning profile not found.")
+        case .invalidResponse: return String.localized("Invalid response from server.")
+        case .serverError(let message): return "\(String.localized("Server error")): \(message)"
+        case .zippingFailed: return String.localized("Failed to package app into IPA.")
+        case .invalidURL: return String.localized("Invalid API URL.")
         }
     }
 }
