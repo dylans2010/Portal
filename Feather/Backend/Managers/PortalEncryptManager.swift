@@ -9,9 +9,25 @@ final class PortalEncryptManager {
     private let _fileManager = FileManager.default
 
     /// Obfuscated extension for encrypted portal cert files
-    static let encryptedExtension = "portaldata"
+    static let encryptedExtension = "portalcert"
 
     private init() {}
+
+    // MARK: - Identification
+
+    /// Checks if a file is an encrypted portal cert bundle
+    /// - Parameter url: URL to the file
+    /// - Returns: True if it appears to be an encrypted bundle (not a ZIP)
+    func isEncryptedPortalCert(at url: URL) -> Bool {
+        guard let fileHandle = try? FileHandle(forReadingFrom: url) else { return false }
+        defer { try? fileHandle.close() }
+
+        guard let firstBytes = try? fileHandle.read(upToCount: 4) else { return false }
+
+        // ZIP files start with PK\x03\x04 (0x50 0x4B 0x03 0x04)
+        let zipMagic = Data([0x50, 0x4B, 0x03, 0x04])
+        return firstBytes != zipMagic
+    }
 
     // MARK: - Protection
 
@@ -44,9 +60,9 @@ final class PortalEncryptManager {
             throw PortalEncryptError.encryptionFailed
         }
 
-        // 4. Write to destination with obfuscated name
+        // 4. Write to destination with standardized name
         try _fileManager.createDirectory(at: destination, withIntermediateDirectories: true)
-        let encryptedURL = destination.appendingPathComponent("data.\(Self.encryptedExtension)")
+        let encryptedURL = destination.appendingPathComponent("certificate.\(Self.encryptedExtension)")
 
         // Security check: ensure file doesn't exist or remove it first
         if _fileManager.fileExists(atPath: encryptedURL.path) {
@@ -69,14 +85,20 @@ final class PortalEncryptManager {
     // MARK: - Decryption
 
     /// Decrypts the protected bundle into plain Data
-    /// - Parameter directory: Directory containing the .portaldata file
+    /// - Parameter directory: Directory containing the .portalcert file
     /// - Returns: Tuple of decrypted P12 and Provision data
     func getDecryptedFiles(from directory: URL) throws -> (p12: Data, provision: Data) {
-        let encryptedURL = directory.appendingPathComponent("data.\(Self.encryptedExtension)")
+        var encryptedURL = directory.appendingPathComponent("certificate.\(Self.encryptedExtension)")
 
-        guard _fileManager.fileExists(atPath: encryptedURL.path) else {
-            AppLogManager.shared.error("Protected file not found at: \(encryptedURL.path)", category: "Security")
-            throw PortalEncryptError.protectedFileNotFound
+        if !_fileManager.fileExists(atPath: encryptedURL.path) {
+            // Fallback for legacy data.portaldata
+            let legacyURL = directory.appendingPathComponent("data.portaldata")
+            if _fileManager.fileExists(atPath: legacyURL.path) {
+                encryptedURL = legacyURL
+            } else {
+                AppLogManager.shared.error("Protected file not found at: \(encryptedURL.path)", category: "Security")
+                throw PortalEncryptError.protectedFileNotFound
+            }
         }
 
         let encryptedData = try Data(contentsOf: encryptedURL)
@@ -97,7 +119,7 @@ final class PortalEncryptManager {
 
     /// Provides temporary access to plain files for a specific operation
     /// - Parameters:
-    ///   - directory: Directory containing the .portaldata file
+    ///   - directory: Directory containing the .portalcert file
     ///   - perform: Closure that uses the temporary plain files
     func withDecryptedFiles<T>(from directory: URL, perform: (URL, URL) async throws -> T) async throws -> T {
         AppLogManager.shared.debug("Creating temporary plain files for operation", category: "Security")

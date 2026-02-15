@@ -77,32 +77,29 @@ extension Storage {
                 
                 if cert.isPortalCert {
                         guard let certDir = getUuidDirectory(for: cert) else { return }
-                        do {
-                                let (p12Data, provisionData) = try PortalEncryptManager.shared.getDecryptedFiles(from: certDir)
 
-                                // We need temporary files because checkRevokage takes paths
-                                let tempDir = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
-                                try FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
-                                let p12URL = tempDir.appendingPathComponent("cert.p12")
-                                let provisionURL = tempDir.appendingPathComponent("profile.mobileprovision")
-                                try p12Data.write(to: p12URL)
-                                try provisionData.write(to: provisionURL)
-
-                                Zsign.checkRevokage(
-                                        provisionPath: provisionURL.path,
-                                        p12Path: p12URL.path,
-                                        p12Password: cert.password ?? ""
-                                ) { (status, _, _) in
-                                        try? FileManager.default.removeItem(at: tempDir)
-                                        if status == 1 {
-                                                DispatchQueue.main.async {
-                                                        cert.revoked = true
-                                                        self.saveContext()
+                        Task {
+                                do {
+                                        try await PortalEncryptManager.shared.withDecryptedFiles(from: certDir) { p12URL, provisionURL in
+                                                return try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
+                                                        Zsign.checkRevokage(
+                                                                provisionPath: provisionURL.path,
+                                                                p12Path: p12URL.path,
+                                                                p12Password: cert.password ?? ""
+                                                        ) { (status, _, _) in
+                                                                if status == 1 {
+                                                                        DispatchQueue.main.async {
+                                                                                cert.revoked = true
+                                                                                self.saveContext()
+                                                                        }
+                                                                }
+                                                                continuation.resume()
+                                                        }
                                                 }
                                         }
+                                } catch {
+                                        AppLogManager.shared.error("Failed to decrypt for revokage check: \(error.localizedDescription)", category: "Storage")
                                 }
-                        } catch {
-                                AppLogManager.shared.error("Failed to decrypt for revokage check: \(error.localizedDescription)", category: "Storage")
                         }
                 } else {
                         Zsign.checkRevokage(

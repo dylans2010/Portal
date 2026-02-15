@@ -149,10 +149,50 @@ struct PortalCertHandler {
             Logger.misc.error("[PortalCert] File not found: \(portalCertURL.path)")
             throw PortalCertError.fileNotFound
         }
-        
+
         // Create extraction directory
         let extractDir = FileManager.default.temporaryDirectory.appendingPathComponent("portalcert-extract-\(UUID().uuidString)")
         try FileManager.default.createDirectory(at: extractDir, withIntermediateDirectories: true)
+
+        // Check if it's an encrypted bundle or a ZIP
+        if PortalEncryptManager.shared.isEncryptedPortalCert(at: portalCertURL) {
+            Logger.misc.info("[PortalCert] Detected encrypted .portalcert bundle")
+            do {
+                // Since getDecryptedFiles takes a directory, and we have a direct file URL,
+                // we need to handle this carefully.
+                // Actually, getDecryptedFiles expects a directory containing certificate.portalcert or data.portaldata.
+                // If we are importing a file, we can temporarily put it in a directory.
+                let tempDir = FileManager.default.temporaryDirectory.appendingPathComponent("portalcert-decrypt-\(UUID().uuidString)")
+                try FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
+                defer { try? FileManager.default.removeItem(at: tempDir) }
+
+                let certTargetURL = tempDir.appendingPathComponent("certificate.portalcert")
+                try FileManager.default.copyItem(at: portalCertURL, to: certTargetURL)
+
+                let (p12Data, provisionData) = try PortalEncryptManager.shared.getDecryptedFiles(from: tempDir)
+
+                let p12URL = extractDir.appendingPathComponent("certificate.p12")
+                let provisionURL = extractDir.appendingPathComponent("profile.mobileprovision")
+
+                try p12Data.write(to: p12URL)
+                try provisionData.write(to: provisionURL)
+
+                let metadata = PortalCertMetadata(
+                    version: formatVersion,
+                    createdAt: Date().timeIntervalSince1970,
+                    p12Filename: p12URL.lastPathComponent,
+                    provisionFilename: provisionURL.lastPathComponent,
+                    nickname: portalCertURL.deletingPathExtension().lastPathComponent,
+                    hasPassword: false // We don't know for sure, but decryption succeeded
+                )
+
+                return (p12URL, provisionURL, metadata)
+            } catch {
+                Logger.misc.error("[PortalCert] Failed to decrypt encrypted bundle: \(error.localizedDescription)")
+                try? FileManager.default.removeItem(at: extractDir)
+                throw PortalCertError.decodingFailed
+            }
+        }
         
         // Extract ZIP
         do {
@@ -305,29 +345,45 @@ struct PortalCertHandler {
     static func exportCertificate(
         _ certificate: CertificatePair,
         to outputDirectory: URL
-    ) throws -> URL {
+    ) async throws -> URL {
         Logger.misc.info("[PortalCert] Exporting certificate: \(certificate.nickname ?? "Unknown")")
-        
-        guard let p12URL = Storage.shared.getFile(.certificate, from: certificate) else {
-            Logger.misc.error("[PortalCert] P12 file not found for certificate")
-            throw PortalCertError.missingP12
-        }
-        
-        guard let provisionURL = Storage.shared.getFile(.provision, from: certificate) else {
-            Logger.misc.error("[PortalCert] Provision file not found for certificate")
-            throw PortalCertError.missingProvision
-        }
         
         let filename = (certificate.nickname ?? "certificate").replacingOccurrences(of: " ", with: "_")
         let outputURL = outputDirectory.appendingPathComponent(filename).appendingPathExtension(fileExtension)
-        
-        return try createPortalCert(
-            p12URL: p12URL,
-            provisionURL: provisionURL,
-            hasPassword: certificate.password != nil && !certificate.password!.isEmpty,
-            nickname: certificate.nickname,
-            outputURL: outputURL
-        )
+
+        if certificate.isPortalCert {
+            guard let certDir = Storage.shared.getUuidDirectory(for: certificate) else {
+                throw PortalCertError.fileNotFound
+            }
+
+            return try await PortalEncryptManager.shared.withDecryptedFiles(from: certDir) { p12URL, provisionURL in
+                return try createPortalCert(
+                    p12URL: p12URL,
+                    provisionURL: provisionURL,
+                    hasPassword: certificate.password != nil && !certificate.password!.isEmpty,
+                    nickname: certificate.nickname,
+                    outputURL: outputURL
+                )
+            }
+        } else {
+            guard let p12URL = Storage.shared.getFile(.certificate, from: certificate) else {
+                Logger.misc.error("[PortalCert] P12 file not found for certificate")
+                throw PortalCertError.missingP12
+            }
+
+            guard let provisionURL = Storage.shared.getFile(.provision, from: certificate) else {
+                Logger.misc.error("[PortalCert] Provision file not found for certificate")
+                throw PortalCertError.missingProvision
+            }
+
+            return try createPortalCert(
+                p12URL: p12URL,
+                provisionURL: provisionURL,
+                hasPassword: certificate.password != nil && !certificate.password!.isEmpty,
+                nickname: certificate.nickname,
+                outputURL: outputURL
+            )
+        }
     }
 }
 

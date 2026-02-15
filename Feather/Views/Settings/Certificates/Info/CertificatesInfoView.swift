@@ -517,13 +517,15 @@ struct CertificatesInfoView: View {
                         }
                     }
                 )
+            }
 
-                // Show export to .portalcert only when feature flag is enabled
-                if usePortalCert {
-                    exportPortalCertButton
-                }
-            } else {
-                // For portal certs, show a locked status or nothing
+            // Show export to .portalcert for all certs if feature flag is enabled
+            if usePortalCert {
+                exportPortalCertButton
+            }
+
+            if cert.isPortalCert {
+                // For portal certs, show a locked status
                 HStack(spacing: 12) {
                     Image(systemName: "lock.shield.fill")
                         .font(.system(size: 16, weight: .medium))
@@ -576,23 +578,28 @@ struct CertificatesInfoView: View {
     private func exportToPortalCert() {
         Logger.misc.info("[PortalCert Export] Starting export for certificate: \(cert.nickname ?? "Unknown")")
         
-        do {
-            let outputDir = FileManager.default.temporaryDirectory
-            let exportedURL = try PortalCertHandler.exportCertificate(cert, to: outputDir)
-            
-            Logger.misc.info("[PortalCert Export] Successfully exported to: \(exportedURL.path)")
-            
-            exportedFileURL = exportedURL
-            showExportSheet = true
-            
-            HapticsManager.shared.success()
-        } catch {
-            Logger.misc.error("[PortalCert Export] Failed: \(error.localizedDescription)")
-            
-            UIAlertController.showAlertWithOk(
-                title: .localized("Export Failed"),
-                message: error.localizedDescription
-            )
+        Task {
+            do {
+                let outputDir = FileManager.default.temporaryDirectory
+                let exportedURL = try await PortalCertHandler.exportCertificate(cert, to: outputDir)
+
+                Logger.misc.info("[PortalCert Export] Successfully exported to: \(exportedURL.path)")
+
+                await MainActor.run {
+                    exportedFileURL = exportedURL
+                    showExportSheet = true
+                    HapticsManager.shared.success()
+                }
+            } catch {
+                await MainActor.run {
+                    Logger.misc.error("[PortalCert Export] Failed: \(error.localizedDescription)")
+
+                    UIAlertController.showAlertWithOk(
+                        title: .localized("Export Failed"),
+                        message: error.localizedDescription
+                    )
+                }
+            }
         }
     }
     
