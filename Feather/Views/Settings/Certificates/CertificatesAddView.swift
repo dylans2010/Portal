@@ -4,142 +4,241 @@ import UniformTypeIdentifiers
 import ZIPFoundation
 import OSLog
 
-// MARK: - Modern Compact Certificate Add View
 struct CertificatesAddView: View {
     @Environment(\.dismiss) private var dismiss
-    @AppStorage("feature_usePortalCert") private var usePortalCert = false
+
+    @State private var _selectedSegment = 0 // 0: Manual, 1: Portal Cert, 2: ZIP File
     
     @State private var _p12URL: URL? = nil
     @State private var _provisionURL: URL? = nil
+    @State private var _portalCertURL: URL? = nil
+    @State private var _zipURL: URL? = nil
+
     @State private var _p12Password: String = ""
     @State private var _certificateName: String = ""
+    @State private var _setAsDefault: Bool = false
     
     @State private var _isImportingP12Presenting = false
     @State private var _isImportingMobileProvisionPresenting = false
-    @State private var _isImportingZipPresenting = false
     @State private var _isImportingPortalCertPresenting = false
+    @State private var _isImportingZipPresenting = false
     
     var saveButtonDisabled: Bool {
-        _p12URL == nil || _provisionURL == nil
+        switch _selectedSegment {
+        case 0: return _p12URL == nil || _provisionURL == nil
+        case 1: return _portalCertURL == nil
+        case 2: return _zipURL == nil
+        default: return true
+        }
     }
     
     var body: some View {
-        NavigationView {
-            contentView
-        }
-    }
-    
-    // MARK: - Content View
-    private var contentView: some View {
-        VStack(spacing: 0) {
-            VStack(spacing: 16) {
-                fileImportSection
-                dividerSection
-                inputFieldsSection
-                Spacer(minLength: 16)
-                saveButton
-            }
-            .padding(20)
-        }
-        .background(Color(UIColor.systemGroupedBackground))
-        .navigationTitle("Add Certificate")
-        .navigationBarTitleDisplayMode(.inline)
-        .toolbar(content: {
-            ToolbarItem(placement: .cancellationAction) {
-                Button("Cancel") {
-                    dismiss()
-                }
-            }
-        })
-        .sheet(isPresented: $_isImportingP12Presenting) {
-            p12ImportSheet
-        }
-        .sheet(isPresented: $_isImportingMobileProvisionPresenting) {
-            provisionImportSheet
-        }
-        .sheet(isPresented: $_isImportingZipPresenting) {
-            zipImportSheet
-        }
-        .sheet(isPresented: $_isImportingPortalCertPresenting) {
-            portalCertImportSheet
-        }
-    }
-    
-    // MARK: - File Import Section
-    private var fileImportSection: some View {
-        LazyVGrid(columns: [GridItem(.flexible(), spacing: 12), GridItem(.flexible(), spacing: 12)], spacing: 12) {
-            compactImportCard(
-                title: "P12",
-                subtitle: _p12URL?.lastPathComponent ?? "Select",
-                icon: "key.fill",
-                isSelected: _p12URL != nil,
-                color: .orange
-            ) {
-                _isImportingP12Presenting = true
-            }
-            
-            compactImportCard(
-                title: "Provision",
-                subtitle: _provisionURL?.lastPathComponent ?? "Select",
-                icon: "doc.badge.gearshape.fill",
-                isSelected: _provisionURL != nil,
-                color: .blue
-            ) {
-                _isImportingMobileProvisionPresenting = true
-            }
-            
-            compactImportCard(
-                title: "ZIP",
-                subtitle: "Import ZIP",
-                icon: "doc.zipper",
-                isSelected: false,
-                color: .purple
-            ) {
-                _isImportingZipPresenting = true
-            }
+        NavigationStack {
+            ZStack(alignment: .bottom) {
+                Form {
+                    Section {
+                        Picker("Import Mode", selection: $_selectedSegment) {
+                            Text("Manual").tag(0)
+                            Text("Portal Cert").tag(1)
+                            Text("ZIP File").tag(2)
+                        }
+                        .pickerStyle(.segmented)
+                        .listRowBackground(Color.clear)
+                        .listRowInsets(EdgeInsets())
+                    }
 
-            if usePortalCert {
-                compactImportCard(
-                    title: "Portal",
-                    subtitle: "Custom",
-                    icon: "shippingbox.fill",
-                    isSelected: false,
-                    color: .indigo
-                ) {
-                    _isImportingPortalCertPresenting = true
+                    Section(header: Text("Files")) {
+                        VStack(spacing: 0) {
+                            if _selectedSegment == 0 {
+                                fileRow(title: "Certificate (.p12)", subtitle: _p12URL?.lastPathComponent ?? "Select File", icon: "key.fill") {
+                                    _isImportingP12Presenting = true
+                                }
+                                Divider()
+                                fileRow(title: "Provisioning Profile", subtitle: _provisionURL?.lastPathComponent ?? "Select File", icon: "doc.badge.gearshape.fill") {
+                                    _isImportingMobileProvisionPresenting = true
+                                }
+                            } else if _selectedSegment == 1 {
+                                fileRow(title: "Portal Certificate (.portalcert)", subtitle: _portalCertURL?.lastPathComponent ?? "Select File", icon: "shippingbox.fill") {
+                                    _isImportingPortalCertPresenting = true
+                                }
+                            } else {
+                                fileRow(title: "Certificate ZIP (.zip)", subtitle: _zipURL?.lastPathComponent ?? "Select File", icon: "doc.zipper") {
+                                    _isImportingZipPresenting = true
+                                }
+                            }
+                        }
+                        .background(Color(uiColor: .secondarySystemGroupedBackground))
+                        .clipShape(RoundedRectangle(cornerRadius: 12))
+                    }
+                    .listRowInsets(EdgeInsets())
+                    .listRowBackground(Color.clear)
+
+                    Section {
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Password")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                                .padding(.leading, 4)
+
+                            SecureField("Leave blank if no password required", text: $_p12Password)
+                                .padding()
+                                .background(Color(uiColor: .secondarySystemGroupedBackground))
+                                .clipShape(RoundedRectangle(cornerRadius: 12))
+                        }
+                        .listRowBackground(Color.clear)
+                        .listRowInsets(EdgeInsets(top: 8, leading: 0, bottom: 8, trailing: 0))
+
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Nickname (Optional)")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                                .padding(.leading, 4)
+
+                            TextField("Enter Nickname", text: $_certificateName)
+                                .padding()
+                                .background(Color(uiColor: .secondarySystemGroupedBackground))
+                                .clipShape(RoundedRectangle(cornerRadius: 12))
+                        }
+                        .listRowBackground(Color.clear)
+                        .listRowInsets(EdgeInsets(top: 8, leading: 0, bottom: 8, trailing: 0))
+                    }
+
+                    Section {
+                        Toggle("Set as Default", isOn: $_setAsDefault)
+                            .tint(.accentColor)
+
+                        Text("Default certificate will be automatically selected when signing apps")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+
+                    // Spacer for bottom button
+                    Section {
+                        Color.clear.frame(height: 80)
+                    }
+                    .listRowBackground(Color.clear)
                 }
+                .listStyle(.insetGrouped)
+
+                // Bottom Button
+                VStack {
+                    Button {
+                        _saveAction()
+                    } label: {
+                        Text("Save Certificate")
+                            .font(.headline)
+                            .foregroundStyle(.white)
+                            .frame(maxWidth: .infinity)
+                            .padding()
+                            .background(saveButtonDisabled ? Color.gray : Color.accentColor)
+                            .clipShape(RoundedRectangle(cornerRadius: 14))
+                    }
+                    .disabled(saveButtonDisabled)
+                    .padding(.horizontal, 20)
+                    .padding(.bottom, 20)
+                }
+                .background(
+                    LinearGradient(colors: [Color(uiColor: .systemGroupedBackground).opacity(0), Color(uiColor: .systemGroupedBackground)], startPoint: .top, endPoint: .bottom)
+                )
+            }
+            .navigationTitle("Add Certificate")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button("Cancel") {
+                        dismiss()
+                    }
+                }
+            }
+            .sheet(isPresented: $_isImportingP12Presenting) {
+                FileImporterRepresentableView(allowedContentTypes: [.p12]) { urls in
+                    _p12URL = urls.first
+                }
+                .ignoresSafeArea()
+            }
+            .sheet(isPresented: $_isImportingMobileProvisionPresenting) {
+                FileImporterRepresentableView(allowedContentTypes: [.mobileProvision]) { urls in
+                    _provisionURL = urls.first
+                }
+                .ignoresSafeArea()
+            }
+            .sheet(isPresented: $_isImportingPortalCertPresenting) {
+                FileImporterRepresentableView(allowedContentTypes: [.portalCert, .data]) { urls in
+                    if let url = urls.first {
+                        _portalCertURL = url
+                        _handlePortalCertImport(url)
+                    }
+                }
+                .ignoresSafeArea()
+            }
+            .sheet(isPresented: $_isImportingZipPresenting) {
+                FileImporterRepresentableView(allowedContentTypes: [.certificateZip]) { urls in
+                    if let url = urls.first {
+                        _zipURL = url
+                        _handleZipImport(url)
+                    }
+                }
+                .ignoresSafeArea()
             }
         }
     }
     
-    
-    // MARK: - Portal Cert Import Sheet
-    private var portalCertImportSheet: some View {
-        FileImporterRepresentableView(
-            allowedContentTypes: [.portalCert, .data],
-            onDocumentsPicked: { urls in
-                guard let selectedFileURL = urls.first else { return }
-                _handlePortalCertImport(selectedFileURL)
+    private func fileRow(title: String, subtitle: String, icon: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            HStack(spacing: 12) {
+                Image(systemName: icon)
+                    .font(.title3)
+                    .foregroundStyle(.accentColor)
+                    .frame(width: 30)
+
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(title)
+                        .font(.subheadline)
+                        .foregroundStyle(.primary)
+                    Text(subtitle)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                }
+
+                Spacer()
+
+                Image(systemName: "chevron.right")
+                    .font(.caption)
+                    .foregroundStyle(.quaternary)
             }
-        )
-        .ignoresSafeArea()
+            .padding()
+        }
+        .buttonStyle(.plain)
     }
     
-    // MARK: - Handle Portal Cert Import
-    private func _handlePortalCertImport(_ url: URL) {
-        Logger.misc.info("[PortalCert Import] Starting import from: \(url.lastPathComponent)")
+    private func _saveAction() {
+        guard let p12 = _p12URL, let provision = _provisionURL else { return }
+
+        if !FR.checkPasswordForCertificate(for: p12, with: _p12Password, using: provision) {
+            UIAlertController.showAlertWithOk(
+                title: .localized("Error"),
+                message: .localized("The password you entered is wrong, please try again to add this certificate.")
+            )
+            return
+        }
         
-        // FileImporterRepresentableView uses asCopy: true, so the file is already copied
-        // and we don't need security-scoped resource access
+        FR.handleCertificateFiles(
+            p12URL: p12,
+            provisionURL: provision,
+            p12Password: _p12Password,
+            certificateName: _certificateName,
+            isDefault: _setAsDefault
+        ) { _ in
+            dismiss()
+        }
+    }
+
+    // Existing logic for ZIP and PortalCert imports
+    private func _handlePortalCertImport(_ url: URL) {
         do {
-            // Extract the .portalcert bundle directly from the copied file
             let (p12URL, provisionURL, metadata) = try PortalCertHandler.extractPortalCert(from: url)
             
-            Logger.misc.info("[PortalCert Import] Successfully extracted bundle")
-            Logger.misc.debug("[PortalCert Import] P12: \(p12URL.lastPathComponent)")
-            Logger.misc.debug("[PortalCert Import] Provision: \(provisionURL.lastPathComponent)")
-            
-            // Copy files to persistent temporary location
             let persistentTempDir = FileManager.default.temporaryDirectory.appendingPathComponent("portalcert-import-\(UUID().uuidString)")
             try FileManager.default.createDirectory(at: persistentTempDir, withIntermediateDirectories: true)
             
@@ -149,536 +248,87 @@ struct CertificatesAddView: View {
             try FileManager.default.copyItem(at: p12URL, to: newP12URL)
             try FileManager.default.copyItem(at: provisionURL, to: newProvisionURL)
             
-            // Set the URLs
             _p12URL = newP12URL
             _provisionURL = newProvisionURL
             
-            // Set nickname if available
             if let nickname = metadata.nickname {
                 _certificateName = nickname
             }
             
-            // Set password hint if available
-            if metadata.hasPassword {
-                // Show a hint that password is required
-            }
-            
-            Logger.misc.info("[PortalCert Import] Import complete, files ready for saving")
-            
-            // Show success message
-            var message = String.localized("Certificate files extracted successfully from .portalcert bundle.")
-            if metadata.hasPassword {
-                message += " " + String.localized("This certificate requires a password.")
-            }
-            
             UIAlertController.showAlertWithOk(
                 title: .localized("Success"),
-                message: message
+                message: .localized("Certificate files extracted successfully from .portalcert bundle.")
             )
-            
-        } catch let error as PortalCertHandler.PortalCertError {
-            Logger.misc.error("[PortalCert Import] Error: \(error.localizedDescription)")
+        } catch {
             UIAlertController.showAlertWithOk(
                 title: .localized("Import Failed"),
                 message: error.localizedDescription
             )
+        }
+    }
+    
+    private func _handleZipImport(_ zipURL: URL) {
+        let tempDir = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        do {
+            try FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
+            try FileManager.default.unzipItem(at: zipURL, to: tempDir)
+
+            var foundP12: URL?
+            var foundProvision: URL?
+
+            func searchDirectory(_ directory: URL) throws {
+                let items = try FileManager.default.contentsOfDirectory(at: directory, includingPropertiesForKeys: [.isDirectoryKey], options: [.skipsHiddenFiles])
+                for item in items {
+                    let resourceValues = try item.resourceValues(forKeys: [.isDirectoryKey])
+                    if resourceValues.isDirectory == true {
+                        try searchDirectory(item)
+                    } else {
+                        let ext = item.pathExtension.lowercased()
+                        if ext == "p12" && foundP12 == nil { foundP12 = item }
+                        else if ext == "mobileprovision" && foundProvision == nil { foundProvision = item }
+                    }
+                }
+            }
+            try searchDirectory(tempDir)
+            
+            guard let p12URL = foundP12, let provisionURL = foundProvision else {
+                throw CertificateImportError.missingCertificateFiles(".p12 and .mobileprovision")
+            }
+            
+            let persistentTempDir = FileManager.default.temporaryDirectory.appendingPathComponent("certificates-\(UUID().uuidString)")
+            try FileManager.default.createDirectory(at: persistentTempDir, withIntermediateDirectories: true)
+
+            let newP12URL = persistentTempDir.appendingPathComponent(p12URL.lastPathComponent)
+            let newProvisionURL = persistentTempDir.appendingPathComponent(provisionURL.lastPathComponent)
+
+            try FileManager.default.copyItem(at: p12URL, to: newP12URL)
+            try FileManager.default.copyItem(at: provisionURL, to: newProvisionURL)
+
+            _p12URL = newP12URL
+            _provisionURL = newProvisionURL
+
+            try? FileManager.default.removeItem(at: tempDir)
+
+            UIAlertController.showAlertWithOk(
+                title: .localized("Success"),
+                message: .localized("Certificate files extracted successfully from ZIP. Please enter the password now.")
+            )
         } catch {
-            Logger.misc.error("[PortalCert Import] Unexpected error: \(error.localizedDescription)")
+            try? FileManager.default.removeItem(at: tempDir)
             UIAlertController.showAlertWithOk(
                 title: .localized("Import Failed"),
-                message: .localized("Failed to import .portalcert file: \(error.localizedDescription)")
+                message: error.localizedDescription
             )
         }
-    }
-    
-    // MARK: - Compact Import Card Small (for side by side layout)
-    @ViewBuilder
-    private func compactImportCardSmall(
-        title: String,
-        subtitle: String,
-        icon: String,
-        isSelected: Bool,
-        color: Color,
-        action: @escaping () -> Void
-    ) -> some View {
-        Button(action: action) {
-            VStack(spacing: 8) {
-                ZStack {
-                    RoundedRectangle(cornerRadius: 10, style: .continuous)
-                        .fill(
-                            LinearGradient(
-                                colors: [
-                                    isSelected ? Color.green.opacity(0.2) : color.opacity(0.2),
-                                    isSelected ? Color.green.opacity(0.1) : color.opacity(0.1)
-                                ],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            )
-                        )
-                        .frame(width: 36, height: 36)
-                    
-                    Image(systemName: isSelected ? "checkmark.circle.fill" : icon)
-                        .font(.system(size: 16, weight: .bold))
-                        .foregroundStyle(isSelected ? .green : color)
-                }
-                
-                VStack(spacing: 2) {
-                    Text(title)
-                        .font(.system(size: 12, weight: .semibold))
-                        .foregroundStyle(isSelected ? .secondary : .primary)
-                    
-                    Text(subtitle)
-                        .font(.system(size: 10, weight: .medium))
-                        .foregroundStyle(isSelected ? .green : .secondary)
-                        .lineLimit(1)
-                }
-            }
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, 12)
-            .padding(.horizontal, 8)
-            .background(
-                RoundedRectangle(cornerRadius: 12, style: .continuous)
-                    .fill(
-                        LinearGradient(
-                            colors: [
-                                isSelected ? Color.green.opacity(0.08) : color.opacity(0.06),
-                                isSelected ? Color.green.opacity(0.04) : color.opacity(0.03)
-                            ],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        )
-                    )
-            )
-            .overlay(
-                RoundedRectangle(cornerRadius: 12, style: .continuous)
-                    .stroke(
-                        isSelected ? Color.green.opacity(0.3) : color.opacity(0.2),
-                        lineWidth: 1.5
-                    )
-            )
-        }
-        .disabled(isSelected)
-        .animation(.easeInOut(duration: 0.2), value: isSelected)
-    }
-    
-    // MARK: - Divider Section
-    private var dividerSection: some View {
-        Rectangle()
-            .fill(Color(UIColor.separator).opacity(0.3))
-            .frame(height: 1)
-            .padding(.vertical, 4)
-    }
-    
-    // MARK: - Input Fields Section
-    private var inputFieldsSection: some View {
-        VStack(spacing: 12) {
-            passwordField
-            nicknameField
-        }
-    }
-    
-    // MARK: - Password Field
-    private var passwordField: some View {
-        HStack(spacing: 12) {
-            ZStack {
-                Circle()
-                    .fill(Color.orange.opacity(0.15))
-                    .frame(width: 36, height: 36)
-                Image(systemName: "lock.fill")
-                    .font(.system(size: 14, weight: .semibold))
-                    .foregroundStyle(.orange)
-            }
-            
-            SecureField("Password (Optional)", text: $_p12Password)
-                .font(.system(size: 15))
-        }
-        .padding(.horizontal, 14)
-        .padding(.vertical, 10)
-        .background(
-            RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .fill(Color(UIColor.secondarySystemGroupedBackground))
-        )
-    }
-    
-    // MARK: - Nickname Field
-    private var nicknameField: some View {
-        HStack(spacing: 12) {
-            ZStack {
-                Circle()
-                    .fill(Color.accentColor.opacity(0.15))
-                    .frame(width: 36, height: 36)
-                Image(systemName: "tag.fill")
-                    .font(.system(size: 14, weight: .semibold))
-                    .foregroundStyle(Color.accentColor)
-            }
-            
-            TextField("Certificate Name", text: $_certificateName)
-                .font(.system(size: 15))
-        }
-        .padding(.horizontal, 14)
-        .padding(.vertical, 10)
-        .background(
-            RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .fill(Color(UIColor.secondarySystemGroupedBackground))
-        )
-    }
-    
-    // MARK: - Save Button
-    private var saveButton: some View {
-        Button {
-            _saveCertificate()
-        } label: {
-            HStack(spacing: 8) {
-                Image(systemName: "checkmark.circle.fill")
-                    .font(.system(size: 18, weight: .semibold))
-                Text("Save Certificate")
-                    .font(.system(size: 16, weight: .bold))
-            }
-            .foregroundStyle(.white)
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, 16)
-            .background(
-                RoundedRectangle(cornerRadius: 14, style: .continuous)
-                    .fill(
-                        saveButtonDisabled
-                        ? AnyShapeStyle(Color.gray.opacity(0.5))
-                        : AnyShapeStyle(LinearGradient(
-                            colors: [.green, .green.opacity(0.8)],
-                            startPoint: .leading,
-                            endPoint: .trailing
-                        ))
-                    )
-            )
-            .shadow(color: saveButtonDisabled ? .clear : .green.opacity(0.3), radius: 8, x: 0, y: 4)
-        }
-        .disabled(saveButtonDisabled)
-    }
-    
-    // MARK: - Sheet Views
-    private var p12ImportSheet: some View {
-        FileImporterRepresentableView(
-            allowedContentTypes: [.p12],
-            onDocumentsPicked: { urls in
-                guard let selectedFileURL = urls.first else { return }
-                self._p12URL = selectedFileURL
-            }
-        )
-        .ignoresSafeArea()
-    }
-    
-    private var provisionImportSheet: some View {
-        FileImporterRepresentableView(
-            allowedContentTypes: [.mobileProvision],
-            onDocumentsPicked: { urls in
-                guard let selectedFileURL = urls.first else { return }
-                self._provisionURL = selectedFileURL
-            }
-        )
-        .ignoresSafeArea()
-    }
-    
-    private var zipImportSheet: some View {
-        FileImporterRepresentableView(
-            allowedContentTypes: [.certificateZip],
-            onDocumentsPicked: { urls in
-                guard let selectedFileURL = urls.first else { return }
-                _handleZipImport(selectedFileURL)
-            }
-        )
-        .ignoresSafeArea()
-    }
-    
-    // MARK: - Compact Import Card
-    @ViewBuilder
-    private func compactImportCard(
-        title: String,
-        subtitle: String,
-        icon: String,
-        isSelected: Bool,
-        color: Color,
-        action: @escaping () -> Void
-    ) -> some View {
-        Button(action: action) {
-            HStack(spacing: 12) {
-                ZStack {
-                    RoundedRectangle(cornerRadius: 10, style: .continuous)
-                        .fill(
-                            LinearGradient(
-                                colors: [
-                                    isSelected ? Color.green.opacity(0.2) : color.opacity(0.2),
-                                    isSelected ? Color.green.opacity(0.1) : color.opacity(0.1)
-                                ],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            )
-                        )
-                        .frame(width: 40, height: 40)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 10, style: .continuous)
-                                .stroke(
-                                    isSelected ? Color.green.opacity(0.3) : color.opacity(0.3),
-                                    lineWidth: 1.5
-                                )
-                        )
-                    
-                    Image(systemName: isSelected ? "checkmark.circle.fill" : icon)
-                        .font(.system(size: 16, weight: .bold))
-                        .foregroundStyle(isSelected ? .green : color)
-                        .shadow(color: isSelected ? .green.opacity(0.3) : color.opacity(0.3), radius: 2, x: 0, y: 1)
-                }
-                
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(title)
-                        .font(.system(size: 13, weight: .semibold))
-                        .foregroundStyle(isSelected ? .secondary : .primary)
-                    
-                    Text(subtitle)
-                        .font(.system(size: 10, weight: .medium))
-                        .foregroundStyle(isSelected ? .green : .secondary)
-                        .lineLimit(1)
-                }
-                
-                Spacer()
-                
-                if !isSelected {
-                    Image(systemName: "chevron.right")
-                        .font(.system(size: 12, weight: .semibold))
-                        .foregroundStyle(.tertiary)
-                }
-            }
-            .padding(12)
-            .background(
-                ZStack {
-                    RoundedRectangle(cornerRadius: 16, style: .continuous)
-                        .fill(
-                            LinearGradient(
-                                colors: [
-                                    isSelected ? Color.green.opacity(0.08) : color.opacity(0.06),
-                                    isSelected ? Color.green.opacity(0.04) : color.opacity(0.03)
-                                ],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            )
-                        )
-                    
-                    RoundedRectangle(cornerRadius: 16, style: .continuous)
-                        .stroke(
-                            isSelected ? 
-                                LinearGradient(
-                                    colors: [Color.green.opacity(0.4), Color.green.opacity(0.2)],
-                                    startPoint: .topLeading,
-                                    endPoint: .bottomTrailing
-                                ) :
-                                LinearGradient(
-                                    colors: [color.opacity(0.2), color.opacity(0.1)],
-                                    startPoint: .topLeading,
-                                    endPoint: .bottomTrailing
-                                ),
-                            lineWidth: 2
-                        )
-                }
-            )
-            .shadow(color: isSelected ? .green.opacity(0.2) : color.opacity(0.1), radius: 6, x: 0, y: 3)
-        }
-        .disabled(isSelected)
-        .animation(.easeInOut(duration: 0.2), value: isSelected)
     }
 }
 
-// MARK: - Extension: View
-extension CertificatesAddView {
-	@ViewBuilder
-	private func _importButton(
-		_ title: String,
-		file: URL?,
-		iconName: String = "square.and.arrow.down.fill",
-		showCheckmark: Bool = true,
-		action: @escaping () -> Void
-	) -> some View {
-		Button {
-			action()
-		} label: {
-			HStack(spacing: 10) {
-				ZStack {
-					Circle()
-						.fill(
-							file == nil
-								? Color.accentColor.opacity(0.12)
-								: Color.green.opacity(0.12)
-						)
-						.frame(width: 32, height: 32)
-					
-					Image(systemName: showCheckmark && file != nil ? "checkmark.circle.fill" : iconName)
-						.font(.system(size: 14))
-						.foregroundStyle(file == nil ? Color.accentColor : Color.green)
-				}
-				
-				VStack(alignment: .leading, spacing: 2) {
-					Text(title)
-						.font(.subheadline)
-						.fontWeight(.medium)
-						.foregroundStyle(file == nil ? .primary : .secondary)
-					
-					if let file = file {
-						Text(file.lastPathComponent)
-							.font(.caption2)
-							.foregroundStyle(.secondary)
-							.lineLimit(1)
-					} else {
-						Text(.localized("Tap To Select"))
-							.font(.caption2)
-							.foregroundStyle(.secondary)
-					}
-				}
-				
-				Spacer()
-				
-				if file == nil {
-					Image(systemName: "chevron.right")
-						.font(.caption2)
-						.foregroundStyle(.tertiary)
-				}
-			}
-			.padding(.vertical, 2)
-		}
-		.disabled(showCheckmark && file != nil)
-		.animation(.easeInOut(duration: 0.25), value: file != nil)
-	}
-}
-
-// MARK: - Extension: View (import)
-extension CertificatesAddView {
-	private func _saveCertificate() {
-		guard
-			let p12URL = _p12URL,
-			let provisionURL = _provisionURL,
-			FR.checkPasswordForCertificate(for: p12URL, with: _p12Password, using: provisionURL)
-		else {
-			UIAlertController.showAlertWithOk(
-				title: .localized("Error"),
-				message: .localized("The password you entered is wrong, please try again to add this certificate. If the password from this certificate is WSF, restart Portal and try again.")
-			)
-			return
-		}
-		
-		FR.handleCertificateFiles(
-			p12URL: p12URL,
-			provisionURL: provisionURL,
-			p12Password: _p12Password,
-			certificateName: _certificateName
-		) { _ in
-			dismiss()
-		}
-	}
-	
-	private func _handleZipImport(_ zipURL: URL) {
-		// Create a temporary directory for extraction
-		let tempDir = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
-		
-		do {
-			try FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
-			
-			// Extract the ZIP file using ZIPFoundation
-			try FileManager.default.unzipItem(at: zipURL, to: tempDir)
-			
-			// Find .p12 and .mobileprovision files
-			var foundP12: URL?
-			var foundProvision: URL?
-			
-			// Search recursively for certificate files
-			func searchDirectory(_ directory: URL) throws {
-				let items = try FileManager.default.contentsOfDirectory(
-					at: directory,
-					includingPropertiesForKeys: [.isDirectoryKey],
-					options: [.skipsHiddenFiles]
-				)
-				
-				for item in items {
-					let resourceValues = try item.resourceValues(forKeys: [.isDirectoryKey])
-					if resourceValues.isDirectory == true {
-						try searchDirectory(item)
-					} else {
-						let ext = item.pathExtension.lowercased()
-						if ext == "p12" && foundP12 == nil {
-							foundP12 = item
-						} else if ext == "mobileprovision" && foundProvision == nil {
-							foundProvision = item
-						}
-					}
-				}
-			}
-			
-			try searchDirectory(tempDir)
-			
-			// Validate that both files were found
-			guard let p12URL = foundP12, let provisionURL = foundProvision else {
-				var missingFiles: [String] = []
-				if foundP12 == nil { missingFiles.append(".p12") }
-				if foundProvision == nil { missingFiles.append(".mobileprovision") }
-				
-				throw CertificateImportError.missingCertificateFiles(missingFiles.joined(separator: " and "))
-			}
-			
-			// Copy files to a persistent temporary location
-			let persistentTempDir = FileManager.default.temporaryDirectory.appendingPathComponent("certificates-\(UUID().uuidString)")
-			try FileManager.default.createDirectory(at: persistentTempDir, withIntermediateDirectories: true)
-			
-			let newP12URL = persistentTempDir.appendingPathComponent(p12URL.lastPathComponent)
-			let newProvisionURL = persistentTempDir.appendingPathComponent(provisionURL.lastPathComponent)
-			
-			try FileManager.default.copyItem(at: p12URL, to: newP12URL)
-			try FileManager.default.copyItem(at: provisionURL, to: newProvisionURL)
-			
-			// Set the URLs
-			_p12URL = newP12URL
-			_provisionURL = newProvisionURL
-			
-			// Clean up temporary extraction directory
-			try? FileManager.default.removeItem(at: tempDir)
-			
-			// Show success message
-			UIAlertController.showAlertWithOk(
-				title: .localized("Success"),
-				message: .localized("Certificate files extracted successfully from ZIP. Please enter the password now.")
-			)
-			
-		} catch let error as CertificateImportError {
-			// Clean up
-			try? FileManager.default.removeItem(at: tempDir)
-			
-			// Show specific error
-			UIAlertController.showAlertWithOk(
-				title: .localized("Import Failed"),
-				message: error.localizedDescription
-			)
-		} catch {
-			// Clean up
-			try? FileManager.default.removeItem(at: tempDir)
-			
-			// Show generic error
-			UIAlertController.showAlertWithOk(
-				title: .localized("Import Failed"),
-				message: .localized("Failed to extract ZIP file: \(error.localizedDescription)")
-			)
-		}
-	}
-}
-
-// MARK: - Certificate Import Errors
 enum CertificateImportError: LocalizedError {
-	case invalidZipFile
-	case missingCertificateFiles(String)
-	case extractionFailed
-	
-	var errorDescription: String? {
-		switch self {
-		case .invalidZipFile:
-			return NSLocalizedString("The selected file is not a valid ZIP archive.", comment: "")
-		case .missingCertificateFiles(let files):
-			return String(format: NSLocalizedString("Cannot find certificate files in uploaded ZIP. Missing: %@", comment: ""), files)
-		case .extractionFailed:
-			return NSLocalizedString("Failed to extract the ZIP file. The file may be corrupted or password protected.", comment: "")
-		}
-	}
+    case missingCertificateFiles(String)
+    var errorDescription: String? {
+        switch self {
+        case .missingCertificateFiles(let files):
+            return "Missing certificate files: \(files)"
+        }
+    }
 }
-
