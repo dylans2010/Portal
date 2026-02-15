@@ -79,10 +79,19 @@ enum FR {
         completion: @escaping (Result<String, Error>) -> Void
     ) {
         Task.detached {
-            let handler = RemoteSigningHandler(app: app, certificate: certificate, options: options)
-            
             do {
-                let installLink = try await handler.sign()
+                let serverMethod = UserDefaults.standard.integer(forKey: "Feather.serverMethod")
+                let installLink: String
+
+                if serverMethod == 2 {
+                    // Custom API
+                    installLink = try await CustomSignAPIManager.shared.sign(app: app, certificate: certificate, options: options)
+                } else {
+                    // Default Remote/Semi-Local
+                    let handler = RemoteSigningHandler(app: app, certificate: certificate, options: options)
+                    installLink = try await handler.sign()
+                }
+
                 await MainActor.run {
                     completion(.success(installLink))
                 }

@@ -268,7 +268,7 @@ struct ServerView: View {
 			Label("Custom API Configuration", systemImage: "gearshape.2.fill")
 		} footer: {
 			VStack(alignment: .leading, spacing: 8) {
-				Text("Use your own API signing endpoint, this feature is still under development, it does not work yet.")
+				Text("Use your own API signing endpoint for remote signing and installation.")
 					.font(.caption)
 				
 				if !_customSigningAPI.isEmpty {
