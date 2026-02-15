@@ -89,7 +89,7 @@ final class ZsignHandler {
 				customName: _options.appName ?? "",
 				customVersion: _options.appVersion ?? "",
 				adhoc: false,
-				removeProvision: !_options.removeProvisioning,
+				removeProvision: _options.removeProvisioning,
 				completion: { success, error in
 					self.hadError = error
 					if let error = error {
@@ -109,7 +109,7 @@ final class ZsignHandler {
 			appPath: _appUrl.relativePath,
 			entitlementsPath: _options.appEntitlementsFile?.path ?? "",
 			adhoc: true,
-			removeProvision: !_options.removeProvisioning,
+			removeProvision: _options.removeProvisioning,
 			completion: { _, error in
 				self.hadError = error
 			}
