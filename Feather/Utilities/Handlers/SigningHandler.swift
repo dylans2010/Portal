@@ -256,6 +256,7 @@ final class SigningHandler: NSObject {
 		var updatedOptions = _options
 		if let identifier = modifiedIdentifier {
 			updatedOptions.appIdentifier = identifier
+			AppLogManager.shared.info("Using modified bundle identifier: \(identifier)", category: "Signing")
 		}
 		
 		try await _modifyDict(using: infoDictionary, with: updatedOptions, to: movedAppPath)
@@ -309,7 +310,7 @@ final class SigningHandler: NSObject {
 			try await _locateMachosAndFixupArm64eSlice(for: movedAppPath)
 		}
 		
-		let handler = ZsignHandler(appUrl: movedAppPath, options: _options, cert: appCertificate)
+		let handler = ZsignHandler(appUrl: movedAppPath, options: updatedOptions, cert: appCertificate)
 		try await handler.disinject()
 		
 		if

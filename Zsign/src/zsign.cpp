@@ -103,7 +103,7 @@ int main(int argc, char* argv[])
 		options, &argslot))) {
 		switch (opt) {
 		case 'd':
-			ZLog::SetLogLever(ZLog::E_DEBUG);
+			ZLog::SetLogLevel(ZLog::E_DEBUG);
 			break;
 		case 'f':
 			bForce = true;
@@ -160,7 +160,7 @@ int main(int argc, char* argv[])
 			bCheckSignature = true;
 			break;
 		case 'q':
-			ZLog::SetLogLever(ZLog::E_NONE);
+			ZLog::SetLogLevel(ZLog::E_NONE);
 			break;
 		case 'v': {
 			printf("version: %s\n", ZSIGN_VERSION);

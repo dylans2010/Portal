@@ -337,10 +337,24 @@ bool ZArchO::BuildCodeSignature(ZSignAsset* pSignAsset,
 	string strEntitlementsSlot;
 	string strDerEntitlementsSlot;
 
-	string strEmptyEntitlements = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">\n<plist version=\"1.0\">\n<dict/>\n</plist>\n";
-	ZSign::SlotBuildRequirements(strBundleId, pSignAsset->m_strSubjectCN, strRequirementsSlot);
-	ZSign::SlotBuildEntitlements(IsExecute() ? pSignAsset->m_strEntitleData : strEmptyEntitlements, strEntitlementsSlot);
-	ZSign::SlotBuildDerEntitlements(IsExecute() ? pSignAsset->m_strEntitleData : "", strDerEntitlementsSlot);
+	if (IsExecute()) {
+		string strEntitlementsData = pSignAsset->m_strEntitleData;
+		if (!strBundleId.empty() && !pSignAsset->m_strTeamId.empty()) {
+			jvalue jvEntitlements;
+			if (jvEntitlements.read_plist(strEntitlementsData)) {
+				string strAppId = pSignAsset->m_strTeamId + "." + strBundleId;
+				jvEntitlements["application-identifier"] = strAppId;
+				jvEntitlements["com.apple.developer.team-identifier"] = pSignAsset->m_strTeamId;
+				jvEntitlements.style_write_plist(strEntitlementsData);
+			}
+		}
+
+		ZSign::SlotBuildRequirements(strBundleId, pSignAsset->m_strSubjectCN, strRequirementsSlot);
+		ZSign::SlotBuildEntitlements(strEntitlementsData, strEntitlementsSlot);
+		ZSign::SlotBuildDerEntitlements(strEntitlementsData, strDerEntitlementsSlot);
+	} else {
+		ZSign::SlotBuildRequirements(strBundleId, pSignAsset->m_strSubjectCN, strRequirementsSlot);
+	}
 
 	string strRequirementsSlotSHA1;
 	string strRequirementsSlotSHA256;

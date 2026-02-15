@@ -37,6 +37,20 @@ final class ZsignHandler {
 			throw SigningFileHandlerError.missingCertifcate
 		}
 
+		let logObserver = NotificationCenter.default.addObserver(
+			forName: NSNotification.Name("ZsignLogNotification"),
+			object: nil,
+			queue: .main
+		) { notification in
+			if let message = notification.object as? String {
+				AppLogManager.shared.debug(message.trimmingCharacters(in: .whitespacesAndNewlines), category: "Zsign")
+			}
+		}
+
+		defer {
+			NotificationCenter.default.removeObserver(logObserver)
+		}
+
 		AppLogManager.shared.info("Starting signing process for: \(_appUrl.lastPathComponent)", category: "Signing")
 		AppLogManager.shared.debug("Using certificate: \(cert.nickname ?? "Unknown")", category: "Signing")
 
@@ -56,6 +70,14 @@ final class ZsignHandler {
 	}
 
 	private func _performSign(p12Path: String, provisionPath: String, cert: CertificatePair) async throws {
+		AppLogManager.shared.info("Performing sign with assets:", category: "Signing")
+		AppLogManager.shared.debug("- App Path: \(_appUrl.relativePath)", category: "Signing")
+		AppLogManager.shared.debug("- P12 Path: \(p12Path)", category: "Signing")
+		AppLogManager.shared.debug("- Provision Path: \(provisionPath)", category: "Signing")
+		AppLogManager.shared.debug("- Entitlements: \(_options.appEntitlementsFile?.path ?? "None")", category: "Signing")
+		AppLogManager.shared.debug("- Bundle ID: \(_options.appIdentifier ?? "Default")", category: "Signing")
+		AppLogManager.shared.debug("- App Name: \(_options.appName ?? "Default")", category: "Signing")
+
 		return try await withCheckedThrowingContinuation { continuation in
 			let _ = Zsign.sign(
 				appPath: _appUrl.relativePath,
@@ -63,6 +85,10 @@ final class ZsignHandler {
 				p12Path: p12Path,
 				p12Password: cert.password ?? "",
 				entitlementsPath: _options.appEntitlementsFile?.path ?? "",
+				customIdentifier: _options.appIdentifier ?? "",
+				customName: _options.appName ?? "",
+				customVersion: _options.appVersion ?? "",
+				adhoc: false,
 				removeProvision: !_options.removeProvisioning,
 				completion: { success, error in
 					self.hadError = error
