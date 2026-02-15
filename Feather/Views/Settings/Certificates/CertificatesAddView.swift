@@ -189,7 +189,7 @@ struct CertificatesAddView: View {
             HStack(spacing: 12) {
                 Image(systemName: icon)
                     .font(.title3)
-                    .foregroundStyle(.accentColor)
+                    .foregroundStyle(Color.accentColor)
                     .frame(width: 30)
 
                 VStack(alignment: .leading, spacing: 2) {
