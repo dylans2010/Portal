@@ -104,10 +104,16 @@ struct AllAppsView: View {
     var body: some View {
         Group {
             if isTab {
-                mainContent
-                    .searchable(text: $_searchText, placement: .navigationBarDrawer(displayMode: .always), prompt: "Search \(_totalAppCount) Apps")
-                    .navigationTitle("Apps")
-                    .navigationBarTitleDisplayMode(.inline)
+                Group {
+                    if _isLoading {
+                        mainContent
+                    } else {
+                        mainContent
+                            .searchable(text: $_searchText, placement: .navigationBarDrawer(displayMode: .always), prompt: "Search \(_totalAppCount) Apps")
+                    }
+                }
+                .navigationTitle("Apps")
+                .navigationBarTitleDisplayMode(.inline)
             } else {
                 mainContent
             }
@@ -162,7 +168,7 @@ struct AllAppsView: View {
                     VStack(spacing: 0) {
                         if !_searchBarFloating {
                             headerView
-                            if !isTab {
+                            if !isTab && !_isLoading {
                                 searchBar
                             }
                         } else {
@@ -193,7 +199,7 @@ struct AllAppsView: View {
                     }
                 }
 
-                if _searchBarFloating && !isTab {
+                if _searchBarFloating && !isTab && !_isLoading {
                     searchBar
                         .padding(.bottom, 20)
                         .transition(AnyTransition.move(edge: .bottom).combined(with: .opacity))

@@ -33,6 +33,8 @@ struct ModernSigningView: View {
     @State private var _editingName = ""
     @State private var _editingBundleId = ""
     @State private var _editingVersion = ""
+    @State private var _isCloneMode = false
+    @State private var _originalBundleId: String? = nil
     
     // Animation states
     @State private var _appearAnimation = false
@@ -256,6 +258,8 @@ struct ModernSigningView: View {
             Button {
                 _temporaryOptions = OptionsManager.shared.options
                 appIcon = nil
+                _isCloneMode = false
+                _originalBundleId = nil
             } label: {
                 Text("Reset")
                     .font(.subheadline.weight(.medium))
@@ -500,6 +504,32 @@ struct ModernSigningView: View {
                     
                     cleanEditableRow(title: "Version", value: _temporaryOptions.appVersion ?? app.version ?? "1.0", icon: "tag") {
                         _isVersionDialogPresenting = true
+                    }
+
+                    Divider().padding(.leading, 52)
+
+                    Toggle(isOn: $_isCloneMode) {
+                        HStack(spacing: 14) {
+                            Image(systemName: "square.on.square")
+                                .font(.system(size: 16, weight: .medium))
+                                .foregroundStyle(.secondary)
+                                .frame(width: 24)
+
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("Clone App")
+                                    .font(.system(size: 15, weight: .medium))
+                                    .foregroundStyle(.primary)
+                                Text("Automatically add a prefix to the bundle ID")
+                                    .font(.system(size: 12, weight: .medium))
+                                    .foregroundStyle(.secondary)
+                            }
+                        }
+                    }
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 12)
+                    .tint(.accentColor)
+                    .onChange(of: _isCloneMode) { newValue in
+                        _handleCloneToggle(newValue)
                     }
                 }
                 .background(
@@ -1291,6 +1321,37 @@ struct ModernSigningView: View {
                         }
                     }
                     dismiss()
+                }
+            }
+        }
+    }
+
+    private func _generateClonePrefix() -> String {
+        let chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+        return String((0..<7).compactMap { _ in chars.randomElement() })
+    }
+
+    private func _handleCloneToggle(_ isEnabled: Bool) {
+        let currentId = _temporaryOptions.appIdentifier ?? app.identifier ?? ""
+
+        if isEnabled {
+            // Save original if not already saved
+            if _originalBundleId == nil {
+                _originalBundleId = currentId
+            }
+
+            let prefix = _generateClonePrefix()
+            _temporaryOptions.appIdentifier = "\(prefix).\(currentId)"
+        } else {
+            // Restore original if we have it
+            if let original = _originalBundleId {
+                _temporaryOptions.appIdentifier = original
+                _originalBundleId = nil
+            } else {
+                // Try to strip prefix if it matches RANDOM7.pattern
+                let components = currentId.components(separatedBy: ".")
+                if components.count > 1 && components[0].count == 7 {
+                    _temporaryOptions.appIdentifier = components.dropFirst().joined(separator: ".")
                 }
             }
         }
