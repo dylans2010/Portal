@@ -245,31 +245,27 @@ struct PortalCertHandler {
         var foundP12: URL?
         var foundProvision: URL?
         
-        func searchDirectory(_ dir: URL) throws {
-            let items = try FileManager.default.contentsOfDirectory(
-                at: dir,
-                includingPropertiesForKeys: [.isDirectoryKey],
-                options: [.skipsHiddenFiles]
-            )
+        let enumerator = FileManager.default.enumerator(
+            at: directory,
+            includingPropertiesForKeys: [.isRegularFileKey],
+            options: [.skipsHiddenFiles, .skipsPackageDescendants]
+        )
+
+        while let fileURL = enumerator?.nextObject() as? URL {
+            let ext = fileURL.pathExtension.lowercased()
+            if ext == "p12" && foundP12 == nil {
+                foundP12 = fileURL
+                Logger.misc.debug("[PortalCert] Found P12 during search: \(fileURL.lastPathComponent)")
+            } else if ext == "mobileprovision" && foundProvision == nil {
+                foundProvision = fileURL
+                Logger.misc.debug("[PortalCert] Found provision during search: \(fileURL.lastPathComponent)")
+            }
             
-            for item in items {
-                let resourceValues = try item.resourceValues(forKeys: [.isDirectoryKey])
-                if resourceValues.isDirectory == true {
-                    try searchDirectory(item)
-                } else {
-                    let ext = item.pathExtension.lowercased()
-                    if ext == "p12" && foundP12 == nil {
-                        foundP12 = item
-                        Logger.misc.debug("[PortalCert] Found P12: \(item.lastPathComponent)")
-                    } else if ext == "mobileprovision" && foundProvision == nil {
-                        foundProvision = item
-                        Logger.misc.debug("[PortalCert] Found provision: \(item.lastPathComponent)")
-                    }
-                }
+            if foundP12 != nil && foundProvision != nil {
+                break
             }
         }
         
-        try searchDirectory(directory)
         return (foundP12, foundProvision)
     }
     
@@ -287,7 +283,10 @@ struct PortalCertHandler {
         }
         
         do {
-            let (_, _, _) = try extractPortalCert(from: url)
+            let (p12, _, _) = try extractPortalCert(from: url)
+            // Cleanup validation extraction
+            try? FileManager.default.removeItem(at: p12.deletingLastPathComponent())
+
             Logger.misc.debug("[PortalCert] File is valid")
             return true
         } catch {

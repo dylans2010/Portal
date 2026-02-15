@@ -28,8 +28,8 @@ struct CertificatesAddView: View {
     var saveButtonDisabled: Bool {
         switch _selectedSegment {
         case 0: return _p12URL == nil || _provisionURL == nil
-        case 1: return _portalCertURL == nil
-        case 2: return _zipURL == nil
+        case 1: return _portalCertURL == nil || _p12URL == nil || _provisionURL == nil
+        case 2: return _zipURL == nil || _p12URL == nil || _provisionURL == nil
         default: return true
         }
     }
@@ -60,19 +60,8 @@ struct CertificatesAddView: View {
                                     _isImportingMobileProvisionPresenting = true
                                 }
                             } else if _selectedSegment == 1 {
-                                if usePortalCert {
-                                    fileRow(title: "Portal Certificate (.portalcert)", subtitle: _portalCertURL?.lastPathComponent ?? "Select File", icon: "shippingbox.fill") {
-                                        _isImportingPortalCertPresenting = true
-                                    }
-                                } else {
-                                    VStack(alignment: .leading, spacing: 8) {
-                                        Text("Not Ready")
-                                            .font(.headline)
-                                        Text("This feature is still under development and will be available in a later Portal release. Thanks for your patience and interest on the new certificate format!")
-                                            .font(.subheadline)
-                                            .foregroundStyle(.secondary)
-                                    }
-                                    .padding()
+                                fileRow(title: "Portal Certificate (.portalcert)", subtitle: _portalCertURL?.lastPathComponent ?? "Select File", icon: "shippingbox.fill") {
+                                    _isImportingPortalCertPresenting = true
                                 }
                             } else {
                                 fileRow(title: "Certificate ZIP (.zip)", subtitle: _zipURL?.lastPathComponent ?? "Select File", icon: "doc.zipper") {
@@ -265,6 +254,9 @@ struct CertificatesAddView: View {
             try FileManager.default.copyItem(at: p12URL, to: newP12URL)
             try FileManager.default.copyItem(at: provisionURL, to: newProvisionURL)
             
+            // Cleanup the extraction directory
+            try? FileManager.default.removeItem(at: p12URL.deletingLastPathComponent())
+
             _p12URL = newP12URL
             _provisionURL = newProvisionURL
             _isPortalCert = true

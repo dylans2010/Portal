@@ -501,7 +501,8 @@ struct CertificatesInfoView: View {
                     title: "Open P12 In Files",
                     action: {
                         if let p12URL = Storage.shared.getFile(.certificate, from: cert) {
-                            UIApplication.shared.open(p12URL)
+                            exportedFileURL = p12URL
+                            showExportSheet = true
                         }
                     }
                 )
@@ -511,7 +512,8 @@ struct CertificatesInfoView: View {
                     title: "Open Provision In Files",
                     action: {
                         if let provisionURL = Storage.shared.getFile(.provision, from: cert) {
-                            UIApplication.shared.open(provisionURL)
+                            exportedFileURL = provisionURL
+                            showExportSheet = true
                         }
                     }
                 )
