@@ -17,6 +17,7 @@
         <attribute name="ppQCheck" attributeType="Boolean" usesScalarValueType="YES"/>
         <attribute name="revoked" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
         <attribute name="uuid" attributeType="String"/>
+        <attribute name="isPortalCert" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
         <relationship name="signedApps" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="Signed" inverseName="certificate" inverseEntity="Signed"/>
     </entity>
     <entity name="Imported" representedClassName="Imported" syncable="YES" codeGenerationType="class">
