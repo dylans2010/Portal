@@ -14,6 +14,7 @@
 #include "timer.h"
 #include "archive.h"
 
+#include <Foundation/Foundation.h>
 #include <openssl/ocsp.h>
 #include <openssl/x509.h>
 #include <openssl/pem.h>
@@ -23,6 +24,15 @@
 #include <openssl/asn1.h>
 
 extern "C" {
+
+void ZsignLogCallback(const char* szLog) {
+	@autoreleasepool {
+		NSString* logMessage = [NSString stringWithUTF8String:szLog];
+		if (logMessage) {
+			[[NSNotificationCenter defaultCenter] postNotificationName:@"ZsignLogNotification" object:logMessage];
+		}
+	}
+}
 
 bool CheckIfSigned(NSString *filePath) {
 	ZTimer gtimer;
@@ -173,9 +183,12 @@ int zsign(
 	NSString *displayname,
 	NSString *bundleversion,
 	bool adhoc,
-	bool excludeprovion,
+	bool excludeProvisioning,
 	void(^completionHandler)(BOOL success, NSError *error)
 ) {
+	ZLog::SetLogCallback(ZsignLogCallback);
+	ZLog::SetLogLevel(ZLog::E_DEBUG);
+
 	ZTimer atimer;
 	ZTimer gtimer;
 	
@@ -220,7 +233,7 @@ int zsign(
 	
 	atimer.Reset();
 	ZBundle bundle;
-	bool bRet = bundle.SignFolder(&zsa, strFolder, strBundleId, strBundleVersion, strDisplayName, arrDylibFiles, bForce, bWeakInject, bEnableCache, excludeprovion);
+	bool bRet = bundle.SignFolder(&zsa, strFolder, strBundleId, strBundleVersion, strDisplayName, arrDylibFiles, bForce, bWeakInject, bEnableCache, excludeProvisioning);
 	ZLog::PrintV(">>> Signing:\t%s %s\n", strPath.c_str(), (bAdhoc ? " (Ad-hoc)" : ""));
 	atimer.PrintResult(bRet, ">>> Signed %s!", bRet ? "OK" : "Failed");
 	

@@ -2,6 +2,7 @@
 
 
 int ZLog::g_nLogLevel = ZLog::E_INFO;
+ZLog::LogCallback ZLog::g_pLogCallback = NULL;
 
 void ZLog::_Print(const char* szLog, int nColor)
 {
@@ -47,6 +48,10 @@ void ZLog::_Print(const char* szLog, int nColor)
 	}
 	
 #endif
+
+	if (NULL != g_pLogCallback) {
+		g_pLogCallback(szLog);
+	}
 }
 
 void ZLog::Print(int nLevel, const char* szLog)

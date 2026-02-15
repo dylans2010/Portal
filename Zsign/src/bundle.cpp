@@ -239,7 +239,7 @@ void ZBundle::GetChangedFiles(jvalue& jvNode, vector<string>& arrChangedFiles)
 	}
 }
 
-void ZBundle::GetNodeChangedFiles(jvalue& jvNode, bool excludeProvisioning)
+void ZBundle::GetNodeChangedFiles(jvalue& jvNode, bool includeProvisioning)
 {
 	if (jvNode.has("folders")) {
 		for (size_t i = 0; i < jvNode["folders"].size(); i++) {
@@ -253,7 +253,7 @@ void ZBundle::GetNodeChangedFiles(jvalue& jvNode, bool excludeProvisioning)
 		jvNode["changed"].push_back(arrChangedFiles[i]);
 	}
 	
-	if (excludeProvisioning) {
+	if (includeProvisioning) {
 		if ("/" == jvNode["path"]) { // root
 			jvNode["changed"].push_back("embedded.mobileprovision");
 		}
@@ -512,7 +512,7 @@ bool ZBundle::SignFolder(ZSignAsset* pSignAsset,
 							bool bForce,
 							bool bWeakInject,
 							bool bEnableCache,
-							bool excludeProvisioning)
+							bool includeProvisioning)
 {
 	m_bForceSign = bForce;
 	m_pSignAsset = pSignAsset;
@@ -535,10 +535,13 @@ bool ZBundle::SignFolder(ZSignAsset* pSignAsset,
 
 	ZFile::RemoveFileV("%s/embedded.mobileprovision", m_strAppFolder.c_str());
 	if (!pSignAsset->m_strProvData.empty()) {
-		if (excludeProvisioning) {
-			if (!ZFile::WriteFileV(pSignAsset->m_strProvData, "%s/embedded.mobileprovision", m_strAppFolder.c_str())) { // embedded.mobileprovision
-				ZLog::ErrorV(">>> Can't write embedded.mobileprovision!\n");
-				return false;
+		if (includeProvisioning) {
+			bool isApp = ZFile::IsPathSuffix(m_strAppFolder, ".app") || ZFile::IsPathSuffix(m_strAppFolder, ".appex");
+			if (isApp) {
+				if (!ZFile::WriteFileV(pSignAsset->m_strProvData, "%s/embedded.mobileprovision", m_strAppFolder.c_str())) { // embedded.mobileprovision
+					ZLog::ErrorV(">>> Can't write embedded.mobileprovision!\n");
+					return false;
+				}
 			}
 		}
 	}
@@ -570,7 +573,7 @@ bool ZBundle::SignFolder(ZSignAsset* pSignAsset,
 		if (!GetObjectsToSign(m_strAppFolder, jvRoot)) {
 			return false;
 		}
-		GetNodeChangedFiles(jvRoot, excludeProvisioning);
+		GetNodeChangedFiles(jvRoot, includeProvisioning);
 	} else {
 		jvRoot.read_from_file("./.zsign_cache/%s.json", strCacheName.c_str());
 	}
@@ -589,7 +592,7 @@ bool ZBundle::SignFolder(ZSignAsset* pSignAsset,
 	ZLog::PrintV(">>> TeamId: \t%s\n", m_pSignAsset->m_strTeamId.c_str());
 	ZLog::PrintV(">>> SubjectCN: \t%s\n", m_pSignAsset->m_strSubjectCN.c_str());
 	ZLog::PrintV(">>> ReadCache: \t%s\n", m_bForceSign ? "NO" : "YES");
-	ZLog::PrintV(">>> Exclude MobileProvision: \t%s\n", excludeProvisioning ? "NO" : "YES");
+	ZLog::PrintV(">>> Include MobileProvision: \t%s\n", includeProvisioning ? "YES" : "NO");
 
 	if (SignNode(jvRoot)) {
 		if (bEnableCache) {

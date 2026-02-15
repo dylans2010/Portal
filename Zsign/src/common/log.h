@@ -14,6 +14,10 @@ public:
 	};
 
 public:
+	typedef void (*LogCallback)(const char* szLog);
+	static void SetLogCallback(LogCallback callback) { g_pLogCallback = callback; }
+
+public:
 	static bool IsDebug() { return (E_DEBUG == g_nLogLevel); }
 	static void Print(const char* szLog);
 	static void PrintV(const char* szFormat, ...);
@@ -29,9 +33,10 @@ public:
 	static bool PrintResultV(bool bSuccess, const char* szFormat, ...);
 	static void Print(int nLevel, const char* szLog);
 	static void PrintV(int nLevel, const char* szFormat, ...);
-	static void SetLogLever(int nLogLevel) { g_nLogLevel = nLogLevel; }
+	static void SetLogLevel(int nLogLevel) { g_nLogLevel = nLogLevel; }
 
 private:
 	static void _Print(const char* szLog, int nColor = 0);
 	static int g_nLogLevel;
+	static LogCallback g_pLogCallback;
 };
