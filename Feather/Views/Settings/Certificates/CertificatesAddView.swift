@@ -41,12 +41,18 @@ struct CertificatesAddView: View {
                     Section {
                         Picker("Import Mode", selection: $_selectedSegment) {
                             Text("Manual").tag(0)
-                            Text("Portal Cert").tag(1)
+                            Text(usePortalCert ? "Portal Cert" : "Portal Cert (Unavailable)")
+                                .tag(1)
                             Text("ZIP File").tag(2)
                         }
                         .pickerStyle(.segmented)
                         .listRowBackground(Color.clear)
                         .listRowInsets(EdgeInsets())
+                        .onChange(of: _selectedSegment) { newValue in
+                            if newValue == 1 && !usePortalCert {
+                                _selectedSegment = 0
+                            }
+                        }
                     }
 
                     Section(header: Text("Files")) {
@@ -60,8 +66,22 @@ struct CertificatesAddView: View {
                                     _isImportingMobileProvisionPresenting = true
                                 }
                             } else if _selectedSegment == 1 {
-                                fileRow(title: "Portal Certificate (.portalcert)", subtitle: _portalCertURL?.lastPathComponent ?? "Select File", icon: "shippingbox.fill") {
-                                    _isImportingPortalCertPresenting = true
+                                if usePortalCert {
+                                    fileRow(title: "Portal Certificate (.portalcert)", subtitle: _portalCertURL?.lastPathComponent ?? "Select File", icon: "shippingbox.fill") {
+                                        _isImportingPortalCertPresenting = true
+                                    }
+                                } else {
+                                    VStack(spacing: 12) {
+                                        Image(systemName: "lock.shield.fill")
+                                            .font(.title2)
+                                            .foregroundStyle(.secondary)
+                                        Text("Portal Certificates are disabled in Developer settings.")
+                                            .font(.caption)
+                                            .foregroundStyle(.secondary)
+                                            .multilineTextAlignment(.center)
+                                    }
+                                    .frame(maxWidth: .infinity)
+                                    .padding()
                                 }
                             } else {
                                 fileRow(title: "Certificate ZIP (.zip)", subtitle: _zipURL?.lastPathComponent ?? "Select File", icon: "doc.zipper") {

@@ -28,13 +28,23 @@ string ZSign::_DER(const jvalue& data)
 	} else if (data.is_int()) {
 		uint64_t uVal = data.as_int64();
 		strOutput.append(1, 0x02);
-		_DERLength(strOutput, uVal);
 
-		uint32_t sLength = (64 - ZUtil::builtin_clzll(uVal) + 7) / 8;
-		sLength *= 8;
-		do {
+		uint32_t uLen = (uVal == 0) ? 1 : (64 - ZUtil::builtin_clzll(uVal) + 7) / 8;
+		if (uVal > 0 && (uVal >> (uLen * 8 - 1)) & 1) {
+			uLen++;
+		}
+
+		_DERLength(strOutput, uLen);
+
+		if (uLen > ((uVal == 0) ? 0 : (64 - ZUtil::builtin_clzll(uVal) + 7) / 8)) {
+			strOutput.append(1, 0);
+			uLen--;
+		}
+
+		uint32_t sLength = uLen * 8;
+		while (sLength != 0) {
 			strOutput.append(1, (char)(uVal >> (sLength -= 8)));
-		} while (sLength != 0);
+		}
 	} else if (data.is_string()) {
 		string strVal = data.as_cstr();
 		strOutput.append(1, 0x0c);
@@ -57,14 +67,15 @@ string ZSign::_DER(const jvalue& data)
 			string& strKey = arrKeys[i];
 			string strVal = _DER(data[strKey]);
 
+			string strPair;
+			strPair.append(1, 0x0c);
+			_DERLength(strPair, strKey.size());
+			strPair += strKey;
+			strPair += strVal;
+
 			strDict.append(1, 0x30);
-			_DERLength(strDict, (2 + strKey.size() + strVal.size()));
-
-			strDict.append(1, 0x0c);
-			_DERLength(strDict, strKey.size());
-			strDict += strKey;
-
-			strDict += strVal;
+			_DERLength(strDict, strPair.size());
+			strDict += strPair;
 		}
 
 		strOutput.append(1, 0x31);
@@ -75,7 +86,10 @@ string ZSign::_DER(const jvalue& data)
 	} else if (data.is_date()) {
 		assert(false);
 	} else if (data.is_data()) {
-		assert(false);
+		string strData = data.as_data();
+		strOutput.append(1, 0x04);
+		_DERLength(strOutput, strData.size());
+		strOutput += strData;
 	} else {
 		assert(false && "Unsupported Entitlements DER Type");
 	}
