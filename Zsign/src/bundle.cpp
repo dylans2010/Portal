@@ -318,6 +318,7 @@ bool ZBundle::SignNode(jvalue& jvNode)
 	ZLog::PrintV(">>> SignFolder: %s, (%s)\n", ("/" == strFolder) ? ZUtil::GetBaseName(m_strAppFolder.c_str()) : strFolder.c_str(), strBundleExe.c_str());
 
 	ZFile::RemoveFileV("%s/embedded.mobileprovision", strBaseFolder.c_str());
+	ZFile::RemoveFolderV("%s/_CodeSignature", strBaseFolder.c_str());
 	if (!m_pSignAsset->m_strProvData.empty()) {
 		if (!m_bExcludeProvisioning) {
 			if (ZFile::IsPathSuffix(strBaseFolder, ".app") || ZFile::IsPathSuffix(strBaseFolder, ".appex")) {

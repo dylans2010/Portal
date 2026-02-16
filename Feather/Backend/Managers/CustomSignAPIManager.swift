@@ -129,18 +129,11 @@ final class CustomSignAPIManager {
     }
 
     private func _withCertificateFiles<T>(for cert: CertificatePair, perform: (URL, URL) async throws -> T) async throws -> T {
-        if cert.isPortalCert {
-            guard let certDir = Storage.shared.getUuidDirectory(for: cert) else {
-                throw CustomSignAPIError.missingCertificate
-            }
-            return try await PortalEncryptManager.shared.withDecryptedFiles(from: certDir, perform: perform)
-        } else {
-            guard let p12URL = Storage.shared.getFile(.certificate, from: cert),
-                  let provisionURL = Storage.shared.getFile(.provision, from: cert) else {
-                throw CustomSignAPIError.missingCertificate
-            }
-            return try await perform(p12URL, provisionURL)
+        guard let p12URL = Storage.shared.getFile(.certificate, from: cert),
+              let provisionURL = Storage.shared.getFile(.provision, from: cert) else {
+            throw CustomSignAPIError.missingCertificate
         }
+        return try await perform(p12URL, provisionURL)
     }
 
     private func _uploadAndSign(

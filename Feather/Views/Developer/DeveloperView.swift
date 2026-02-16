@@ -3241,7 +3241,6 @@ struct AppStateView: View {
 struct FeatureFlagsView: View {
     @AppStorage("feature_enhancedAnimations") var enhancedAnimations = false
     @AppStorage("feature_advancedSigning") var advancedSigning = false
-    @AppStorage("feature_usePortalCert") var usePortalCert = false
     @AppStorage("feature_advancedFilesFeatures") var advancedFilesFeatures = false
     @AppStorage("feature_advancedBackupTools") var advancedBackupTools = false
     @AppStorage("feature_passwordChanger") var passwordChanger = false
@@ -3264,12 +3263,8 @@ struct FeatureFlagsView: View {
             
             Section {
                 Toggle("Password Changer", isOn: $passwordChanger)
-
-                Toggle("Use .portalcert for certificates", isOn: $usePortalCert)
             } header: {
                 Text("Certificates")
-            } footer: {
-                Text("When enabled, allows exporting and importing certificates as a single .portalcert file that bundles the P12 and provisioning profile together.")
             }
             
             Section {

@@ -76,9 +76,6 @@ final class AppFileHandler: NSObject, @unchecked Sendable {
 				}
 			}
 		}
-		
-		// Load default frameworks after extraction
-		try await loadDefaultFrameworks()
 	}
 	
 	/// Load default frameworks into the extracted app

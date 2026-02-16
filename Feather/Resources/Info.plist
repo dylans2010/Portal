@@ -46,20 +46,6 @@
 				<string>ayon1xw.Feather.backup</string>
 			</array>
 		</dict>
-		<dict>
-			<key>CFBundleTypeIconFile</key>
-			<string>feather_extension</string>
-			<key>CFBundleTypeName</key>
-			<string>Portal Certificate Bundle</string>
-			<key>CFBundleTypeRole</key>
-			<string>Editor</string>
-			<key>LSHandlerRank</key>
-			<string>Owner</string>
-			<key>LSItemContentTypes</key>
-			<array>
-				<string>dev.portal.portalcert</string>
-			</array>
-		</dict>
 	</array>
 	<key>CFBundleIcons</key>
 	<dict>
@@ -438,26 +424,6 @@
 				<key>public.mime-type</key>
 				<array>
 					<string>application/x-portal-backup</string>
-				</array>
-			</dict>
-		</dict>
-		<dict>
-			<key>UTTypeConformsTo</key>
-			<array>
-				<string>public.data</string>
-				<string>public.archive</string>
-			</array>
-			<key>UTTypeDescription</key>
-			<string>Portal Certificate Bundle</string>
-			<key>UTTypeIconFile</key>
-			<string>feather_extension</string>
-			<key>UTTypeIdentifier</key>
-			<string>dev.portal.portalcert</string>
-			<key>UTTypeTagSpecification</key>
-			<dict>
-				<key>public.filename-extension</key>
-				<array>
-					<string>portalcert</string>
 				</array>
 			</dict>
 		</dict>

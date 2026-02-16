@@ -31,7 +31,7 @@ final class CertificateFileHandler: NSObject {
 		super.init()
 	}
 	
-	func copy(isPortalCert: Bool = false) async throws {
+	func copy() async throws {
 		guard
 			(_certPair != nil)
 		else {
@@ -41,19 +41,14 @@ final class CertificateFileHandler: NSObject {
 		let destinationURL = try await _directory()
 		try _fileManager.createDirectory(at: destinationURL, withIntermediateDirectories: true)
 
-		if isPortalCert {
-			try PortalEncryptManager.shared.protectPortalCertFiles(p12: _key, provision: _provision, destination: destinationURL)
-		} else {
-			try _fileManager.copyItem(at: _key, to: destinationURL.appendingPathComponent(_key.lastPathComponent))
-			try _fileManager.copyItem(at: _provision, to: destinationURL.appendingPathComponent(_provision.lastPathComponent))
-		}
+		try _fileManager.copyItem(at: _key, to: destinationURL.appendingPathComponent(_key.lastPathComponent))
+		try _fileManager.copyItem(at: _provision, to: destinationURL.appendingPathComponent(_provision.lastPathComponent))
 	}
 	
-	func addToDatabase(isPortalCert: Bool = false) async throws {
+	func addToDatabase() async throws {
 		
 		Storage.shared.addCertificate(
 			uuid: _uuid,
-			isPortalCert: isPortalCert,
 			password: _keyPassword,
 			nickname: _certNickname,
 			ppq: _certPair?.PPQCheck ?? false,

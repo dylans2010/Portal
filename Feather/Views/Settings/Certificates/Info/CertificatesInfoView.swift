@@ -58,7 +58,6 @@ struct EntitlementMapping {
 // MARK: - Clean Certificate Info View
 struct CertificatesInfoView: View {
     @Environment(\.dismiss) var dismiss
-    @AppStorage("feature_usePortalCert") private var usePortalCert = false
     @State private var data: Certificate?
     @State private var isEntitlementsExpanded = false
     @State private var isDevicesExpanded = false
@@ -495,109 +494,30 @@ struct CertificatesInfoView: View {
     // MARK: - Actions Card
     private func actionsCard() -> some View {
         VStack(spacing: 10) {
-            if !cert.isPortalCert {
-                actionButton(
-                    icon: "doc.badge.arrow.up",
-                    title: "Open P12 In Files",
-                    action: {
-                        if let p12URL = Storage.shared.getFile(.certificate, from: cert) {
-                            exportedFileURL = p12URL
-                            showExportSheet = true
-                        }
+            actionButton(
+                icon: "doc.badge.arrow.up",
+                title: "Open P12 In Files",
+                action: {
+                    if let p12URL = Storage.shared.getFile(.certificate, from: cert) {
+                        exportedFileURL = p12URL
+                        showExportSheet = true
                     }
-                )
+                }
+            )
 
-                actionButton(
-                    icon: "doc.badge.gearshape",
-                    title: "Open Provision In Files",
-                    action: {
-                        if let provisionURL = Storage.shared.getFile(.provision, from: cert) {
-                            exportedFileURL = provisionURL
-                            showExportSheet = true
-                        }
+            actionButton(
+                icon: "doc.badge.gearshape",
+                title: "Open Provision In Files",
+                action: {
+                    if let provisionURL = Storage.shared.getFile(.provision, from: cert) {
+                        exportedFileURL = provisionURL
+                        showExportSheet = true
                     }
-                )
-            }
-
-            // Show export to .portalcert for all certs if feature flag is enabled
-            if usePortalCert {
-                exportPortalCertButton
-            }
-
-            if cert.isPortalCert {
-                // For portal certs, show a locked status
-                HStack(spacing: 12) {
-                    Image(systemName: "lock.shield.fill")
-                        .font(.system(size: 16, weight: .medium))
-                        .foregroundStyle(.secondary)
-
-                    Text("Protected Certificate Content")
-                        .font(.system(size: 14, weight: .semibold))
-                        .foregroundStyle(.secondary)
-
-                    Spacer()
                 }
-                .padding(14)
-                .background(cardBackground)
-                .opacity(0.8)
-            }
-        }
-    }
-    
-    // MARK: - Export Portal Cert Button
-    private var exportPortalCertButton: some View {
-        Button {
-            exportToPortalCert()
-        } label: {
-            HStack(spacing: 12) {
-                Image(systemName: "shippingbox.fill")
-                    .font(.system(size: 16, weight: .medium))
-                    .foregroundStyle(.indigo)
-                
-                Text("Export As .portalcert")
-                    .font(.system(size: 14, weight: .semibold))
-                    .foregroundStyle(.primary)
-                
-                Spacer()
-                
-                Image(systemName: "square.and.arrow.up")
-                    .font(.system(size: 12, weight: .semibold))
-                    .foregroundStyle(.indigo)
-            }
-            .padding(14)
-            .background(cardBackground)
-        }
-        .sheet(isPresented: $showExportSheet) {
-            if let url = exportedFileURL {
-                ShareSheet(urls: [url])
-            }
-        }
-    }
-    
-    // MARK: - Export to Portal Cert
-    private func exportToPortalCert() {
-        Logger.misc.info("[PortalCert Export] Starting export for certificate: \(cert.nickname ?? "Unknown")")
-        
-        Task {
-            do {
-                let outputDir = FileManager.default.temporaryDirectory
-                let exportedURL = try await PortalCertHandler.exportCertificate(cert, to: outputDir)
-
-                Logger.misc.info("[PortalCert Export] Successfully exported to: \(exportedURL.path)")
-
-                await MainActor.run {
-                    exportedFileURL = exportedURL
-                    showExportSheet = true
-                    HapticsManager.shared.success()
-                }
-            } catch {
-                await MainActor.run {
-                    Logger.misc.error("[PortalCert Export] Failed: \(error.localizedDescription)")
-
-                    UIAlertController.showAlertWithOk(
-                        title: .localized("Export Failed"),
-                        message: error.localizedDescription
-                    )
+            )
+            .sheet(isPresented: $showExportSheet) {
+                if let url = exportedFileURL {
+                    ShareSheet(urls: [url])
                 }
             }
         }

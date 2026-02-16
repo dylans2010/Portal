@@ -350,6 +350,10 @@ bool ZArchO::BuildCodeSignature(ZSignAsset* pSignAsset,
 				string strAppId = pSignAsset->m_strTeamId + "." + strBundleId;
 				jvEntitlements["application-identifier"] = strAppId;
 				jvEntitlements["com.apple.developer.team-identifier"] = pSignAsset->m_strTeamId;
+
+				// Ensure keychain-access-groups matches the Team ID / App ID exactly
+				jvEntitlements["keychain-access-groups"].clear();
+				jvEntitlements["keychain-access-groups"].push_back(strAppId);
 			}
 			if (jvEntitlements["get-task-allow"].as_bool()) {
 				uExecSegFlags |= CS_EXECSEG_ALLOW_UNSIGNED;

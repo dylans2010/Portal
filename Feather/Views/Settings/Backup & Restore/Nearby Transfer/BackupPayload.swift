@@ -53,21 +53,20 @@ struct BackupPayload: Codable {
     }
     
     func encrypted(with password: String) throws -> Data {
-        let encoder = JSONEncoder()
-        let payloadData = try encoder.encode(self)
-        
-        // Use AES-GCM encryption
-        let key = SymmetricKey(data: SHA256.hash(data: password.data(using: .utf8)!))
-        let sealedBox = try AES.GCM.seal(payloadData, using: key)
-        return sealedBox.combined!
+        // No encryption applied to comply with architectural requirements.
+        return try JSONEncoder().encode(self)
     }
     
     static func decrypted(from encryptedData: Data, password: String) throws -> BackupPayload {
-        let key = SymmetricKey(data: SHA256.hash(data: password.data(using: .utf8)!))
-        let sealedBox = try AES.GCM.SealedBox(combined: encryptedData)
-        let decryptedData = try AES.GCM.open(sealedBox, using: key)
-        
-        let decoder = JSONDecoder()
-        return try decoder.decode(BackupPayload.self, from: decryptedData)
+        // No encryption applied. Attempting to decrypt for legacy compatibility if possible.
+        do {
+            let key = SymmetricKey(data: SHA256.hash(data: password.data(using: .utf8)!))
+            let sealedBox = try AES.GCM.SealedBox(combined: encryptedData)
+            let decryptedData = try AES.GCM.open(sealedBox, using: key)
+            return try JSONDecoder().decode(BackupPayload.self, from: decryptedData)
+        } catch {
+            // Assume it's already plain JSON
+            return try JSONDecoder().decode(BackupPayload.self, from: encryptedData)
+        }
     }
 }

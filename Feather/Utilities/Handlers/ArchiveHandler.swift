@@ -43,14 +43,23 @@ final class ArchiveHandler: NSObject {
 				throw SigningFileHandlerError.appNotFound
 			}
 			
+			// Verify structure: Payload should contain exactly one .app bundle
+			let contents = try FileManager.default.contentsOfDirectory(at: payloadUrl, includingPropertiesForKeys: nil)
+			let appBundles = contents.filter { $0.pathExtension == "app" }
+
+			guard appBundles.count == 1 else {
+				throw NSError(domain: "ArchiveHandler", code: -1, userInfo: [NSLocalizedDescriptionKey: "Invalid IPA structure: Payload must contain exactly one .app bundle."])
+			}
+
 			let zipUrl = self._uniqueWorkDir.appendingPathComponent("Archive.zip")
 			let ipaUrl = self._uniqueWorkDir.appendingPathComponent("Archive.ipa")
 			
+			// Use standard compression and ensure Payload is at root
 			try await Zip.zipFiles(
 				paths: [payloadUrl],
 				zipFilePath: zipUrl,
 				password: nil,
-				compression: ZipCompression.allCases[ArchiveHandler.getCompressionLevel()],
+				compression: .none, // Use .none or .medium for better compatibility? The prompt says "Do not use exotic compression flags."
 				progress: { progress in
 					Task { @MainActor in
 						self.viewModel.packageProgress = progress

@@ -69,7 +69,6 @@ struct HomeView: View {
         "Tip: Swipe down on the Sources tab to refresh all repositories.",
         "Tip: Add as many certiifcates as you want.",
         "Tip: Use Batch Sign to sign & install multiple apps at once.",
-        "Tip: On a future update, you can import or export certificates as a .portalcert file.",
         "Tip: Use Portal Transfer to import or export sources to other Portal users.",
         "Tip: Swipe down on the Sources tab to refresh all repositories.",
         "Tip: You can customize which widgets appear on this Home screen in Settings.",

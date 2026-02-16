@@ -634,13 +634,17 @@ extension SigningHandler {
 		var files = [
 			"embedded.mobileprovision", // Remove this because zsign doesn't replace it
 			"com.apple.WatchPlaceholder", // Useless
-			"SignedByEsign" // Useless
+			"SignedByEsign", // Useless
+			"SC_Info" // Useless App Store info
 		].map {
 			app.appendingPathComponent($0)
 		}
 		
 		await files += try _locateCodeSignatureDirectories(for: app)
 		
+		// Also find and remove any nested embedded.mobileprovision in appex/frameworks
+		await files += _enumerateFiles(at: app) { $0.hasSuffix("embedded.mobileprovision") }
+
 		for file in files {
 			try _fileManager.removeFileIfNeeded(at: file)
 		}

@@ -6,15 +6,11 @@ import OSLog
 
 struct CertificatesAddView: View {
     @Environment(\.dismiss) private var dismiss
-    @AppStorage("feature_usePortalCert") private var usePortalCert = false
-
-    @State private var _selectedSegment = 0 // 0: Manual, 1: Portal Cert, 2: ZIP File
+    @State private var _selectedSegment = 0 // 0: Manual, 1: ZIP File
     
     @State private var _p12URL: URL? = nil
     @State private var _provisionURL: URL? = nil
-    @State private var _portalCertURL: URL? = nil
     @State private var _zipURL: URL? = nil
-    @State private var _isPortalCert: Bool = false
 
     @State private var _p12Password: String = ""
     @State private var _certificateName: String = ""
@@ -28,8 +24,7 @@ struct CertificatesAddView: View {
     var saveButtonDisabled: Bool {
         switch _selectedSegment {
         case 0: return _p12URL == nil || _provisionURL == nil
-        case 1: return _portalCertURL == nil || _p12URL == nil || _provisionURL == nil
-        case 2: return _zipURL == nil || _p12URL == nil || _provisionURL == nil
+        case 1: return _zipURL == nil || _p12URL == nil || _provisionURL == nil
         default: return true
         }
     }
@@ -41,18 +36,11 @@ struct CertificatesAddView: View {
                     Section {
                         Picker("Import Mode", selection: $_selectedSegment) {
                             Text("Manual").tag(0)
-                            Text(usePortalCert ? "Portal Cert" : "Portal Cert (Unavailable)")
-                                .tag(1)
-                            Text("ZIP File").tag(2)
+                            Text("ZIP File").tag(1)
                         }
                         .pickerStyle(.segmented)
                         .listRowBackground(Color.clear)
                         .listRowInsets(EdgeInsets())
-                        .onChange(of: _selectedSegment) { newValue in
-                            if newValue == 1 && !usePortalCert {
-                                _selectedSegment = 0
-                            }
-                        }
                     }
 
                     Section(header: Text("Files")) {
@@ -64,24 +52,6 @@ struct CertificatesAddView: View {
                                 Divider()
                                 fileRow(title: "Provisioning Profile", subtitle: _provisionURL?.lastPathComponent ?? "Select File", icon: "doc.badge.gearshape.fill") {
                                     _isImportingMobileProvisionPresenting = true
-                                }
-                            } else if _selectedSegment == 1 {
-                                if usePortalCert {
-                                    fileRow(title: "Portal Certificate (.portalcert)", subtitle: _portalCertURL?.lastPathComponent ?? "Select File", icon: "shippingbox.fill") {
-                                        _isImportingPortalCertPresenting = true
-                                    }
-                                } else {
-                                    VStack(spacing: 12) {
-                                        Image(systemName: "lock.shield.fill")
-                                            .font(.title2)
-                                            .foregroundStyle(.secondary)
-                                        Text("Portal Certificates are disabled in Developer settings.")
-                                            .font(.caption)
-                                            .foregroundStyle(.secondary)
-                                            .multilineTextAlignment(.center)
-                                    }
-                                    .frame(maxWidth: .infinity)
-                                    .padding()
                                 }
                             } else {
                                 fileRow(title: "Certificate ZIP (.zip)", subtitle: _zipURL?.lastPathComponent ?? "Select File", icon: "doc.zipper") {
@@ -176,23 +146,12 @@ struct CertificatesAddView: View {
             .sheet(isPresented: $_isImportingP12Presenting) {
                 FileImporterRepresentableView(allowedContentTypes: [.p12]) { urls in
                     _p12URL = urls.first
-                    _isPortalCert = false
                 }
                 .ignoresSafeArea()
             }
             .sheet(isPresented: $_isImportingMobileProvisionPresenting) {
                 FileImporterRepresentableView(allowedContentTypes: [.mobileProvision]) { urls in
                     _provisionURL = urls.first
-                    _isPortalCert = false
-                }
-                .ignoresSafeArea()
-            }
-            .sheet(isPresented: $_isImportingPortalCertPresenting) {
-                FileImporterRepresentableView(allowedContentTypes: [.portalCert, .data]) { urls in
-                    if let url = urls.first {
-                        _portalCertURL = url
-                        _handlePortalCertImport(url)
-                    }
                 }
                 .ignoresSafeArea()
             }
@@ -253,47 +212,9 @@ struct CertificatesAddView: View {
             provisionURL: provision,
             p12Password: _p12Password,
             certificateName: _certificateName,
-            isDefault: _setAsDefault,
-            isPortalCert: _isPortalCert
+            isDefault: _setAsDefault
         ) { _ in
             dismiss()
-        }
-    }
-
-    // Existing logic for ZIP and PortalCert imports
-    private func _handlePortalCertImport(_ url: URL) {
-        do {
-            let (p12URL, provisionURL, metadata) = try PortalCertHandler.extractPortalCert(from: url)
-            
-            let persistentTempDir = FileManager.default.temporaryDirectory.appendingPathComponent("portalcert-import-\(UUID().uuidString)")
-            try FileManager.default.createDirectory(at: persistentTempDir, withIntermediateDirectories: true)
-            
-            let newP12URL = persistentTempDir.appendingPathComponent(p12URL.lastPathComponent)
-            let newProvisionURL = persistentTempDir.appendingPathComponent(provisionURL.lastPathComponent)
-            
-            try FileManager.default.copyItem(at: p12URL, to: newP12URL)
-            try FileManager.default.copyItem(at: provisionURL, to: newProvisionURL)
-            
-            // Cleanup the extraction directory
-            try? FileManager.default.removeItem(at: p12URL.deletingLastPathComponent())
-
-            _p12URL = newP12URL
-            _provisionURL = newProvisionURL
-            _isPortalCert = true
-            
-            if let nickname = metadata.nickname {
-                _certificateName = nickname
-            }
-            
-            UIAlertController.showAlertWithOk(
-                title: .localized("Success"),
-                message: .localized("Certificate files extracted successfully from .portalcert bundle.")
-            )
-        } catch {
-            UIAlertController.showAlertWithOk(
-                title: .localized("Import Failed"),
-                message: error.localizedDescription
-            )
         }
     }
     
@@ -336,7 +257,6 @@ struct CertificatesAddView: View {
 
             _p12URL = newP12URL
             _provisionURL = newProvisionURL
-            _isPortalCert = false
 
             try? FileManager.default.removeItem(at: tempDir)
 
