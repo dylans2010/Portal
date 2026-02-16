@@ -211,28 +211,21 @@ bool ZSignAsset::GenerateCMS(void* pscert, void* pspkey, const string& strCDHash
 	}
 
 	// add CDHashes
-	string sha256;
-	char buf[16] = { 0 };
-	for (size_t i = 0; i < strAltnateCodeDirectorySlot256.size(); i++) {
-		snprintf(buf, sizeof(buf), "%02x", (uint8_t)strAltnateCodeDirectorySlot256[i]);
-		sha256 += buf;
-	}
-	transform(sha256.begin(), sha256.end(), sha256.begin(), ::toupper);
-
-	ASN1_OBJECT* obj2 = OBJ_txt2obj("1.2.840.113635.100.9.2", 1);
-	if (!obj2) {
+	ASN1_OBJECT* obj_cdhash = OBJ_txt2obj("1.2.840.113635.100.9.2", 1);
+	if (!obj_cdhash) {
 		return CMSError();
 	}
 
-	X509_ATTRIBUTE* attr = X509_ATTRIBUTE_new();
-	X509_ATTRIBUTE_set1_object(attr, obj2);
+	if (!strCodeDirectorySlotSHA1.empty() && strCodeDirectorySlotSHA1.size() >= 20) {
+		if (!CMS_signed_add1_attr_by_OBJ(si, obj_cdhash, V_ASN1_OCTET_STRING, strCodeDirectorySlotSHA1.data(), 20)) {
+			return CMSError();
+		}
+	}
 
-	ASN1_TYPE* type_256 = (ASN1_TYPE*)GenerateASN1Type(sha256);
-	X509_ATTRIBUTE_set1_data(attr, V_ASN1_SEQUENCE,
-		type_256->value.asn1_string->data, type_256->value.asn1_string->length);
-	int addHashSHA = CMS_signed_add1_attr(si, attr);
-	if (!addHashSHA) {
-		return CMSError();
+	if (!strAltnateCodeDirectorySlot256.empty() && strAltnateCodeDirectorySlot256.size() >= 20) {
+		if (!CMS_signed_add1_attr_by_OBJ(si, obj_cdhash, V_ASN1_OCTET_STRING, strAltnateCodeDirectorySlot256.data(), 20)) {
+			return CMSError();
+		}
 	}
 
 	if (!CMS_final(cms, in, NULL, nFlags)) {
@@ -257,7 +250,6 @@ bool ZSignAsset::GenerateCMS(void* pscert, void* pspkey, const string& strCDHash
 
 	strCMSOutput.clear();
 	strCMSOutput.append(bptr->data, bptr->length);
-	ASN1_TYPE_free(type_256);
 	return (!strCMSOutput.empty());
 }
 

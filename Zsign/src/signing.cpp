@@ -24,7 +24,7 @@ string ZSign::_DER(const jvalue& data)
 	if (data.is_bool()) {
 		strOutput.append(1, 0x01);
 		strOutput.append(1, 1);
-		strOutput.append(1, data.as_bool() ? 1 : 0);
+		strOutput.append(1, data.as_bool() ? (char)0xff : 0);
 	} else if (data.is_int()) {
 		uint64_t uVal = data.as_int64();
 		strOutput.append(1, 0x02);
@@ -616,17 +616,34 @@ bool ZSign::SlotBuildCMSSignature(ZSignAsset* pSignAsset,
 
 	jvalue jvHashes;
 	string strCDHashesPlist;
-	string strCodeDirectorySlotSHA1;
-	string strAltnateCodeDirectorySlot256;
-	ZSHA::SHA1(strCodeDirectorySlot, strCodeDirectorySlotSHA1);
-	ZSHA::SHA256(strAltnateCodeDirectorySlot, strAltnateCodeDirectorySlot256);
+	string strCodeDirectorySlotSHA;
+	string strAltnateCodeDirectorySlotSHA;
 
-	jvHashes["cdhashes"][0].assign_data(strCodeDirectorySlotSHA1.data(), strCodeDirectorySlotSHA1.size());
-	jvHashes["cdhashes"][1].assign_data(strAltnateCodeDirectorySlot256.data(), strCodeDirectorySlotSHA1.size());
+	int nHashCount = 0;
+	if (!strCodeDirectorySlot.empty()) {
+		CS_CodeDirectory* pCD = (CS_CodeDirectory*)strCodeDirectorySlot.data();
+		if (2 == pCD->hashType) {
+			ZSHA::SHA256(strCodeDirectorySlot, strCodeDirectorySlotSHA);
+		} else {
+			ZSHA::SHA1(strCodeDirectorySlot, strCodeDirectorySlotSHA);
+		}
+		jvHashes["cdhashes"][nHashCount++].assign_data(strCodeDirectorySlotSHA.data(), 20);
+	}
+
+	if (!strAltnateCodeDirectorySlot.empty()) {
+		CS_CodeDirectory* pCD = (CS_CodeDirectory*)strAltnateCodeDirectorySlot.data();
+		if (1 == pCD->hashType) {
+			ZSHA::SHA1(strAltnateCodeDirectorySlot, strAltnateCodeDirectorySlotSHA);
+		} else {
+			ZSHA::SHA256(strAltnateCodeDirectorySlot, strAltnateCodeDirectorySlotSHA);
+		}
+		jvHashes["cdhashes"][nHashCount++].assign_data(strAltnateCodeDirectorySlotSHA.data(), 20);
+	}
+
 	jvHashes.style_write_plist(strCDHashesPlist);
 
 	string strCMSData;
-	if (!pSignAsset->GenerateCMS(strCodeDirectorySlot, strCDHashesPlist, strCodeDirectorySlotSHA1, strAltnateCodeDirectorySlot256, strCMSData)) {
+	if (!pSignAsset->GenerateCMS(strCodeDirectorySlot, strCDHashesPlist, strCodeDirectorySlotSHA, strAltnateCodeDirectorySlotSHA, strCMSData)) {
 		return false;
 	}
 
