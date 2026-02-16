@@ -35,11 +35,13 @@ extension ServerInstaller {
 	}
 	
 	var externalServerLink: String {
-		let baseUrl = "https://api.palera.in/genPlist?bundleid=\(app.identifier!)&name=\(app.name!)&version=\(app.version!)&fetchurl=\(self.payloadEndpoint.absoluteString)"
-		let encodedBaseUrl = baseUrl.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed)!
-		let finalEncodedUrl = encodedBaseUrl.addingPercentEncoding(withAllowedCharacters: .alphanumerics)!
+		let bundleId = app.identifier?.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
+		let name = app.name?.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
+		let version = app.version?.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
+		let fetchUrl = self.payloadEndpoint.absoluteString.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
 		
-		return finalEncodedUrl
+		let baseUrl = "https://api.palera.in/genPlist?bundleid=\(bundleId)&name=\(name)&version=\(version)&fetchurl=\(fetchUrl)"
+		return baseUrl.addingPercentEncoding(withAllowedCharacters: .alphanumerics) ?? baseUrl
 	}
 
 	var iTunesLink: String {

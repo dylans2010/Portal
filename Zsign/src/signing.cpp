@@ -621,9 +621,8 @@ bool ZSign::SlotBuildCMSSignature(ZSignAsset* pSignAsset,
 	ZSHA::SHA1(strCodeDirectorySlot, strCodeDirectorySlotSHA1);
 	ZSHA::SHA256(strAltnateCodeDirectorySlot, strAltnateCodeDirectorySlot256);
 
-	size_t cdHashSize = strCodeDirectorySlotSHA1.size();
-	jvHashes["cdhashes"][0].assign_data(strCodeDirectorySlotSHA1.data(), cdHashSize);
-	jvHashes["cdhashes"][1].assign_data(strAltnateCodeDirectorySlot256.data(), cdHashSize);
+	jvHashes["cdhashes"][0].assign_data(strCodeDirectorySlotSHA1.data(), strCodeDirectorySlotSHA1.size());
+	jvHashes["cdhashes"][1].assign_data(strAltnateCodeDirectorySlot256.data(), strAltnateCodeDirectorySlot256.size());
 	jvHashes.style_write_plist(strCDHashesPlist);
 
 	string strCMSData;
