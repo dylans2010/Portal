@@ -3245,6 +3245,7 @@ struct FeatureFlagsView: View {
     @AppStorage("feature_advancedFilesFeatures") var advancedFilesFeatures = false
     @AppStorage("feature_advancedBackupTools") var advancedBackupTools = false
     @AppStorage("feature_passwordChanger") var passwordChanger = false
+    @AppStorage("feature_newSigningMethod") var newSigningMethod = false
     
     var body: some View {
         List {
@@ -3256,6 +3257,7 @@ struct FeatureFlagsView: View {
             
             Section {
                 Toggle("Advanced Signing Options", isOn: $advancedSigning)
+                Toggle("New Signing Method", isOn: $newSigningMethod)
             } header: {
                 Text("Signing")
             }

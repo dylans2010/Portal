@@ -79,10 +79,14 @@ struct InstallPreviewView: View {
                         UIApplication.shared.open(URL(string: installer.iTunesLink)!)
                     } else if _serverMethod == 1 || _serverMethod == 2 {
                         _isWebviewPresenting = true
+                    } else if _serverMethod == 3 {
+                        if let url = URL(string: installer.iTunesLinkExternal) {
+                            UIApplication.shared.open(url)
+                        }
                     }
                 }
                 
-                if case .sendingPayload = newStatus, (_serverMethod == 1 || _serverMethod == 2) {
+                if case .sendingPayload = newStatus, (_serverMethod == 1 || _serverMethod == 2 || _serverMethod == 3) {
                     _isWebviewPresenting = false
                 }
                 

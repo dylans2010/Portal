@@ -42,12 +42,14 @@ extension ServerView {
 		case fullyLocal = 0
 		case semiLocal = 1
 		case custom = 2
+		case background = 3
 		
 		var name: String {
 			switch self {
 			case .fullyLocal: return .localized("On Device")
 			case .semiLocal: return .localized("Server")
 			case .custom: return .localized("Custom")
+			case .background: return .localized("New Signing Method")
 			}
 		}
 		
@@ -56,6 +58,7 @@ extension ServerView {
 			case .fullyLocal: return .localized("Fully signs and installs apps on device.")
 			case .semiLocal: return .localized("Signs locally but uses a local server for installation via Wi-Fi.")
 			case .custom: return .localized("Use your own custom API endpoint for remote signing and installation.")
+			case .background: return .localized("Advanced background signing method without web views.")
 			}
 		}
 		
@@ -64,6 +67,7 @@ extension ServerView {
 			case .fullyLocal: return "iphone"
 			case .semiLocal: return "cloud"
 			case .custom: return "link"
+			case .background: return "bolt.shield"
 			}
 		}
 		
@@ -72,6 +76,7 @@ extension ServerView {
 			case .fullyLocal: return .blue
 			case .semiLocal: return .green
 			case .custom: return .purple
+			case .background: return .red
 			}
 		}
 	}
@@ -146,6 +151,7 @@ private struct ServerMethodCard: View {
 
 // MARK: - View
 struct ServerView: View {
+	@AppStorage("feature_newSigningMethod") private var _newSigningMethod = false
 	@AppStorage("Feather.ipFix") private var _ipFix: Bool = false
 	@AppStorage("Feather.serverMethod") private var _serverMethod: Int = 0
 	@AppStorage("Feather.customSigningAPI") private var _customSigningAPI: String = ""
@@ -187,14 +193,16 @@ struct ServerView: View {
 		Section {
 			VStack(spacing: 10) {
 				ForEach(ServerMethod.allCases, id: \.rawValue) { method in
-					ServerMethodCard(
-						method: method,
-						isSelected: _serverMethod == method.rawValue
-					) {
-						withAnimation(.spring(response: 0.35, dampingFraction: 0.7)) {
-							_serverMethod = method.rawValue
+					if method != .background || _newSigningMethod {
+						ServerMethodCard(
+							method: method,
+							isSelected: _serverMethod == method.rawValue
+						) {
+							withAnimation(.spring(response: 0.35, dampingFraction: 0.7)) {
+								_serverMethod = method.rawValue
+							}
+							HapticsManager.shared.softImpact()
 						}
-						HapticsManager.shared.softImpact()
 					}
 				}
 			}
@@ -384,7 +392,7 @@ struct ServerView: View {
 		let urlString: String
 		if _serverMethod == 2 {
 			urlString = _customSigningAPI.isEmpty ? "https://google.com" : _customSigningAPI //lmaoo google
-		} else if _serverMethod == 1 {
+		} else if _serverMethod == 1 || _serverMethod == 3 {
 			urlString = "http://localhost:4000" // Default local server port
 		} else {
 			urlString = "https://backloop.dev"
