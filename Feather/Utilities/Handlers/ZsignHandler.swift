@@ -1,6 +1,7 @@
 import Foundation
 import ZsignSwift
 import UIKit
+import CommonCrypto
 
 final class ZsignHandler {
 	var hadError: Error?
@@ -60,38 +61,17 @@ final class ZsignHandler {
 	}
 
 	private func _performSign(p12Path: String, provisionPath: String, cert: CertificatePair) async throws {
-		AppLogManager.shared.info("Performing sign with assets:", category: "Signing")
+		AppLogManager.shared.info("Performing sign with assets using new Swift CoreSigner:", category: "Signing")
 		AppLogManager.shared.debug("- App Path: \(_appUrl.relativePath)", category: "Signing")
-		AppLogManager.shared.debug("- P12 Path: \(p12Path)", category: "Signing")
-		AppLogManager.shared.debug("- Provision Path: \(provisionPath)", category: "Signing")
-		AppLogManager.shared.debug("- Entitlements: \(_options.appEntitlementsFile?.path ?? "None")", category: "Signing")
-		AppLogManager.shared.debug("- Bundle ID: \(_options.appIdentifier ?? "Default")", category: "Signing")
-		AppLogManager.shared.debug("- App Name: \(_options.appName ?? "Default")", category: "Signing")
 
-		return try await withCheckedThrowingContinuation { continuation in
-			let _ = Zsign.sign(
-				appPath: _appUrl.relativePath,
-				provisionPath: provisionPath,
-				p12Path: p12Path,
-				p12Password: cert.password ?? "",
-				entitlementsPath: _options.appEntitlementsFile?.path ?? "",
-				customIdentifier: _options.appIdentifier ?? "",
-				customName: _options.appName ?? "",
-				customVersion: _options.appVersion ?? "",
-				adhoc: false,
-				removeProvision: _options.removeProvisioning,
-				completion: { success, error in
-					self.hadError = error
-					if let error = error {
-						AppLogManager.shared.error("Signing failed: \(error.localizedDescription)", category: "Signing")
-						continuation.resume(throwing: error)
-					} else {
-						AppLogManager.shared.success("Signing completed successfully", category: "Signing")
-						continuation.resume()
-					}
-				}
-			)
-		}
+		let p12Data = try Data(contentsOf: URL(fileURLWithPath: p12Path))
+		let provisionData = try Data(contentsOf: URL(fileURLWithPath: provisionPath))
+
+		try await Task.detached {
+			try CoreSigner.sign(bundleURL: self._appUrl, p12Data: p12Data, p12Password: cert.password ?? "", provisionData: provisionData)
+		}.value
+
+		AppLogManager.shared.success("Signing completed successfully using new Swift pipeline", category: "Signing")
 	}
 	
 	func adhocSign() async throws {
