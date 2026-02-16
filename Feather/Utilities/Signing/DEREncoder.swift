@@ -48,7 +48,7 @@ class DEREncoder {
             var result = Data()
             result.append(0x01)
             result.append(0x01)
-            result.append(bool ? 0x01 : 0x00)
+            result.append(bool ? 0xff : 0x00)
             return result
         } else if let int = value as? Int {
             // ASN.1 INTEGER (0x02)

@@ -55,6 +55,12 @@ final class ZsignHandler {
 		AppLogManager.shared.info("Starting signing process for: \(_appUrl.lastPathComponent)", category: "Signing")
 		AppLogManager.shared.debug("Using certificate: \(cert.nickname ?? "Unknown")", category: "Signing")
 
+		// 1. Initial Certificate and Provision Checks
+		if let expiryDate = cert.expiryDate, expiryDate < Date() {
+			AppLogManager.shared.error("Certificate is expired: \(expiryDate)", category: "Signing")
+			throw SigningFileHandlerError.signFailed
+		}
+
 		let p12Path = Storage.shared.getFile(.certificate, from: cert)?.path ?? ""
 		let provisionPath = Storage.shared.getFile(.provision, from: cert)?.path ?? ""
 		try await _performSign(p12Path: p12Path, provisionPath: provisionPath, cert: cert)

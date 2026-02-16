@@ -96,6 +96,11 @@ final class AppLogManager: ObservableObject {
         function: String = #function,
         line: Int = #line
     ) {
+        // When verbose logging is enabled, suppress all non-signing logs
+        if isVerboseLoggingEnabled && category != "Signing" && category != "Zsign" && level != .error && level != .critical {
+            return
+        }
+
         let entry = LogEntry(
             id: UUID(),
             timestamp: Date(),

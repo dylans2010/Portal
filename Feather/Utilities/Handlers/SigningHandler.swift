@@ -256,7 +256,11 @@ final class SigningHandler: NSObject {
 		var updatedOptions = _options
 		if let identifier = modifiedIdentifier {
 			updatedOptions.appIdentifier = identifier
-			AppLogManager.shared.info("Using modified bundle identifier: \(identifier)", category: "Signing")
+			if UserDefaults.standard.bool(forKey: "Feather.verboseLogging") {
+				AppLogManager.shared.verbose("VERBOSE: Using modified bundle identifier: \(identifier)", category: "Signing")
+			} else {
+				AppLogManager.shared.info("Using modified bundle identifier: \(identifier)", category: "Signing")
+			}
 		}
 		
 		try await _modifyDict(using: infoDictionary, with: updatedOptions, to: movedAppPath)
@@ -317,7 +321,11 @@ final class SigningHandler: NSObject {
 			_options.signingOption == .default,
 			appCertificate != nil
 		{
-			AppLogManager.shared.info("Starting code signing with certificate", category: "Signing")
+			if UserDefaults.standard.bool(forKey: "Feather.verboseLogging") {
+				AppLogManager.shared.verbose("VERBOSE: Starting code signing with certificate: \(appCertificate?.nickname ?? "Unknown")", category: "Signing")
+			} else {
+				AppLogManager.shared.info("Starting code signing with certificate", category: "Signing")
+			}
 
 			if #available(iOS 16.2, *) {
 				await LiveActivityManager.shared.updateActivity(
