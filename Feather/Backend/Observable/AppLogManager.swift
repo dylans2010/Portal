@@ -72,10 +72,16 @@ final class AppLogManager: ObservableObject {
     static let shared = AppLogManager()
     
     @Published private(set) var logs: [LogEntry] = []
+    @Published var isVerboseLoggingEnabled: Bool {
+        didSet {
+            UserDefaults.standard.set(isVerboseLoggingEnabled, forKey: "Feather.isVerboseLoggingEnabled")
+        }
+    }
     private let maxLogs = 10000
     private let persistenceKey = "Feather.AppLogs"
     
     private init() {
+        self.isVerboseLoggingEnabled = UserDefaults.standard.bool(forKey: "Feather.isVerboseLoggingEnabled")
         loadPersistedLogs()
         setupLogInterception()
     }
@@ -137,6 +143,12 @@ final class AppLogManager: ObservableObject {
         log(message, level: .debug, category: category, file: file, function: function, line: line)
     }
     
+    func verbose(_ message: String, category: String = "General", file: String = #file, function: String = #function, line: Int = #line) {
+        if isVerboseLoggingEnabled {
+            log(message, level: .debug, category: category, file: file, function: function, line: line)
+        }
+    }
+
     func info(_ message: String, category: String = "General", file: String = #file, function: String = #function, line: Int = #line) {
         log(message, level: .info, category: category, file: file, function: function, line: line)
     }

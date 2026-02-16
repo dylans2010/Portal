@@ -38,6 +38,8 @@ class CodeResourcesBuilder {
             let sha1 = sha1Hash(data: fileData)
             let sha256 = sha256Hash(data: fileData)
 
+            AppLogManager.shared.verbose("Hashed file: \(relativePath) (SHA1: \(sha1.map { String(format: "%02hhx", $0) }.joined()), SHA256: \(sha256.map { String(format: "%02hhx", $0) }.joined()))", category: "Signing")
+
             let isOptional = relativePath.contains(".lproj/")
             let isOmit = relativePath.contains("locversion.plist") || relativePath.contains(".DS_Store")
 

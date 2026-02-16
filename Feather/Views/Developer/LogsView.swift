@@ -16,7 +16,10 @@ struct AppLogsView: View {
     @Environment(\.colorScheme) var colorScheme
 
     var filteredLogs: [LogEntry] {
-        logManager.filteredLogs(searchText: searchText, level: selectedLevel, category: selectedCategory)
+        if logManager.isVerboseLoggingEnabled {
+            return logManager.logs.filter { $0.category == "Signing" }.sorted(by: { $0.timestamp < $1.timestamp })
+        }
+        return logManager.filteredLogs(searchText: searchText, level: selectedLevel, category: selectedCategory)
     }
 
     var body: some View {
@@ -28,6 +31,26 @@ struct AppLogsView: View {
             VStack(spacing: 0) {
                 // Search and Filter Bar
                 VStack(spacing: 10) {
+                    // Verbose Logging Toggle
+                    HStack {
+                        Label("Verbose Logging", systemImage: "terminal.fill")
+                            .font(.system(size: 14, weight: .semibold))
+
+                        Spacer()
+
+                        Toggle("", isOn: $logManager.isVerboseLoggingEnabled)
+                            .labelsHidden()
+                            .tint(Color.accentColor)
+                    }
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 8)
+                    .background(Color(UIColor.secondarySystemGroupedBackground))
+                    .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 12, style: .continuous)
+                            .stroke(.white.opacity(colorScheme == .dark ? 0.05 : 0.1), lineWidth: 1)
+                    )
+
                     HStack(spacing: 10) {
                         Image(systemName: "magnifyingglass")
                             .foregroundStyle(.secondary)

@@ -37,11 +37,27 @@ class CodeDirectoryBuilder {
         let hasher: (Data) -> Data = isSHA256 ? sha256Hash : sha1Hash
 
         // Slot -7: DER Entitlements
-        specialSlots.append(entitlementsDerData.map(hasher) ?? emptyHash)
+        if let derData = entitlementsDerData {
+            var derBlob = Data()
+            derBlob.append(uint32BE(0xfade7172)) // CSMAGIC_EMBEDDED_DER_ENTITLEMENTS
+            derBlob.append(uint32BE(UInt32(derData.count + 8)))
+            derBlob.append(derData)
+            specialSlots.append(hasher(derBlob))
+        } else {
+            specialSlots.append(emptyHash)
+        }
         // Slot -6: Unused
         specialSlots.append(emptyHash)
         // Slot -5: Entitlements
-        specialSlots.append(entitlementsData.map(hasher) ?? emptyHash)
+        if let entData = entitlementsData {
+            var entBlob = Data()
+            entBlob.append(uint32BE(0xfade7171)) // CSMAGIC_EMBEDDED_ENTITLEMENTS
+            entBlob.append(uint32BE(UInt32(entData.count + 8)))
+            entBlob.append(entData)
+            specialSlots.append(hasher(entBlob))
+        } else {
+            specialSlots.append(emptyHash)
+        }
         // Slot -4: Application Specific (Unused)
         specialSlots.append(emptyHash)
         // Slot -3: CodeResources
