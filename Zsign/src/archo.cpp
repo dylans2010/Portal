@@ -337,16 +337,24 @@ bool ZArchO::BuildCodeSignature(ZSignAsset* pSignAsset,
 	string strEntitlementsSlot;
 	string strDerEntitlementsSlot;
 
+	uint64_t uExecSegFlags = 0;
+	if (MH_EXECUTE == m_uFileType) {
+		uExecSegFlags = CS_EXECSEG_MAIN_BINARY;
+	}
+
 	if (IsExecute()) {
 		string strEntitlementsData = pSignAsset->m_strEntitleData;
-		if (!strBundleId.empty() && !pSignAsset->m_strTeamId.empty()) {
-			jvalue jvEntitlements;
-			if (jvEntitlements.read_plist(strEntitlementsData)) {
+		jvalue jvEntitlements;
+		if (jvEntitlements.read_plist(strEntitlementsData)) {
+			if (!strBundleId.empty() && !pSignAsset->m_strTeamId.empty()) {
 				string strAppId = pSignAsset->m_strTeamId + "." + strBundleId;
 				jvEntitlements["application-identifier"] = strAppId;
 				jvEntitlements["com.apple.developer.team-identifier"] = pSignAsset->m_strTeamId;
-				jvEntitlements.style_write_plist(strEntitlementsData);
 			}
+			if (jvEntitlements["get-task-allow"].as_bool()) {
+				uExecSegFlags |= CS_EXECSEG_ALLOW_UNSIGNED;
+			}
+			jvEntitlements.style_write_plist(strEntitlementsData);
 		}
 
 		ZSign::SlotBuildRequirements(strBundleId, pSignAsset->m_strSubjectCN, strRequirementsSlot);
@@ -389,18 +397,6 @@ bool ZArchO::BuildCodeSignature(ZSignAsset* pSignAsset,
 	uint32_t uCodeSlots256DataLength = 0;
 	if (!bForce) {
 		ZSign::GetCodeSignatureExistsCodeSlotsData(m_pSignBase, pCodeSlots1Data, uCodeSlots1DataLength, pCodeSlots256Data, uCodeSlots256DataLength);
-	}
-
-	uint64_t uExecSegFlags = 0;
-	if (MH_EXECUTE == m_uFileType) {
-		if (pSignAsset->m_bAdhoc || pSignAsset->m_bSingleBinary) {
-			uExecSegFlags = CS_EXECSEG_MAIN_BINARY;
-		}
-	}
-
-	if (NULL != strstr(strEntitlementsSlot.data() + 8, "<key>get-task-allow</key>")) {
-		// TODO: Check if get-task-allow is actually set to true
-		uExecSegFlags |= CS_EXECSEG_MAIN_BINARY | CS_EXECSEG_ALLOW_UNSIGNED;
 	}
 
 	string strCodeDirectorySlot;

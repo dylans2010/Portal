@@ -172,7 +172,7 @@ bool ZBundle::GenerateCodeResources(const string& strFolder, jvalue& jvCodeRes)
 			bomit2 = true;
 		}
 
-		if (ZFile::IsPathSuffix(strKey, ".DS_Store") || "Info.plist" == strKey || "PkgInfo" == strKey) {
+		if (ZFile::IsPathSuffix(strKey, ".DS_Store")) {
 			bomit2 = true;
 		}
 
@@ -211,11 +211,9 @@ bool ZBundle::GenerateCodeResources(const string& strFolder, jvalue& jvCodeRes)
 	jvCodeRes["rules2"]["^.*\\.lproj/locversion.plist$"]["omit"] = true;
 	jvCodeRes["rules2"]["^.*\\.lproj/locversion.plist$"]["weight"] = 1100.0;
 	jvCodeRes["rules2"]["^Base\\.lproj/"]["weight"] = 1010.0;
-	jvCodeRes["rules2"]["^Info\\.plist$"]["omit"] = true;
 	jvCodeRes["rules2"]["^Info\\.plist$"]["weight"] = 20.0;
-	jvCodeRes["rules2"]["^PkgInfo$"]["omit"] = true;
 	jvCodeRes["rules2"]["^PkgInfo$"]["weight"] = 20.0;
-	jvCodeRes["rules2"]["^embedded\\.provisionprofile$"]["weight"] = 20.0;
+	jvCodeRes["rules2"]["^embedded\\.mobileprovision$"]["weight"] = 20.0;
 	jvCodeRes["rules2"]["^version\\.plist$"]["weight"] = 20.0;
 
 	return true;
