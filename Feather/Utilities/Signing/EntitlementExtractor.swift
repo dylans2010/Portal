@@ -9,7 +9,7 @@ class EntitlementExtractor {
     static func extractEntitlements(from provisionData: Data) throws -> Data {
         // Find the XML plist within the CMS data
         guard let xmlStartRange = provisionData.range(of: "<?xml".data(using: .utf8)!),
-              let xmlEndRange = provisionData.range(of: "</plist>".data(using: .utf8)!, options: .backwards, range: xmlStartRange.lowerBound..<provisionData.count) else {
+              let xmlEndRange = provisionData.range(of: "</plist>".data(using: .utf8)!, options: .backwards, range: xmlStartRange.lowerBound..<provisionData.endIndex) else {
             throw EntitlementExtractorError.invalidProvisioningProfile
         }
 
@@ -71,7 +71,7 @@ class EntitlementExtractor {
             throw EntitlementExtractorError.entitlementsNotFound
         }
 
-        let entitlementsString = String(xmlString[dictStartRange.lowerBound..<endIndex])
+        let entitlementsString: String = String(xmlString[dictStartRange.lowerBound..<endIndex])
         guard let entitlementsData = entitlementsString.data(using: .utf8) else {
             throw EntitlementExtractorError.entitlementsNotFound
         }
@@ -81,7 +81,7 @@ class EntitlementExtractor {
 
     static func parseFullPlist(from provisionData: Data) throws -> [String: Any] {
         guard let xmlStartRange = provisionData.range(of: "<?xml".data(using: .utf8)!),
-              let xmlEndRange = provisionData.range(of: "</plist>".data(using: .utf8)!, options: .backwards, range: xmlStartRange.lowerBound..<provisionData.count) else {
+              let xmlEndRange = provisionData.range(of: "</plist>".data(using: .utf8)!, options: .backwards, range: xmlStartRange.lowerBound..<provisionData.endIndex) else {
             throw EntitlementExtractorError.invalidProvisioningProfile
         }
 

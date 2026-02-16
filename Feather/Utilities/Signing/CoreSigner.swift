@@ -80,6 +80,8 @@ class CoreSigner {
             cdBuilder.execSegFlags = 0x1 // CS_EXECSEG_MAIN_BINARY
         }
 
+        let headerSize = is64Bit ? MemoryLayout<mach_header_64>.size : MemoryLayout<mach_header>.size
+
         // Find __TEXT segment vmsize for execSegLimit
         var currentOffset = headerSize
         let ncmds: UInt32
