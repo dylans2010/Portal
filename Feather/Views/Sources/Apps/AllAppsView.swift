@@ -105,12 +105,13 @@ struct AllAppsView: View {
         Group {
             if isTab {
                 mainContent
+                    .navigationTitle("Apps")
+                    .navigationBarTitleDisplayMode(.large)
                     .searchable(text: $_searchText, placement: .navigationBarDrawer(displayMode: .always), prompt: "Search \(_totalAppCount) Apps")
             } else {
                 mainContent
             }
         }
-        .navigationBarHidden(!isTab)
         .onAppear {
             _loadAllSources()
         }
@@ -160,7 +161,7 @@ struct AllAppsView: View {
                     VStack(spacing: 0) {
                         if !_searchBarFloating {
                             headerView
-                            if !isTab {
+                            if !isTab && !_isLoading {
                                 searchBar
                             }
                         } else {
@@ -221,9 +222,7 @@ struct AllAppsView: View {
             }
 
             if isTab {
-                Text("Apps")
-                    .font(.system(size: 24, weight: .bold, design: .rounded))
-                    .foregroundStyle(.primary)
+                // Using native navigationTitle
             } else if _showAppCount {
                 VStack(alignment: .leading, spacing: 4) {
                     Text("\(_totalAppCount)")
@@ -505,9 +504,11 @@ struct AllAppsView: View {
 
 			if Task.isCancelled { return }
 
-            await MainActor.run {
-                withAnimation {
-                    _isSearching = true
+            if !searchText.isEmpty {
+                await MainActor.run {
+                    withAnimation {
+                        _isSearching = true
+                    }
                 }
             }
 

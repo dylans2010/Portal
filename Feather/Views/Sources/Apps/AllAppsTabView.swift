@@ -49,7 +49,7 @@ struct AllAppsTabView: View {
             }
         }
         .task(id: Array(sources)) {
-            await viewModel.fetchSources(sources)
+            await viewModel.fetchSources(Array(sources))
         }
     }
 }

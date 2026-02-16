@@ -48,6 +48,9 @@ final class SourcesViewModel: ObservableObject {
         Task {
             await loadAllSourcesFromCache()
             isFinished = true
+
+            // Background refresh to ensure data is up to date
+            await refreshAllSourcesInBackground()
         }
     }
 
@@ -150,15 +153,16 @@ final class SourcesViewModel: ObservableObject {
     }
     
     // MARK: - Full Manual Fetch
-    func forceFetchAllSources(_ sources: FetchedResults<AltSource>) async {
+    func forceFetchAllSources(_ sources: [AltSource]) async {
         _cacheManager.clearCache()
         errorMessage = nil
         await fetchSources(sources, refresh: true)
     }
 
     // MARK: - Optimized Fetch with Cancellation Support
-    func fetchSources(_ sources: FetchedResults<AltSource>, refresh: Bool = false, batchSize: Int = 10) async {
-        AppLogManager.shared.info("Starting source fetch (refresh: \(refresh), count: \(sources.count))", category: "Sources")
+    func fetchSources(_ sources: [AltSource]? = nil, refresh: Bool = false, batchSize: Int = 10) async {
+        let sourcesToFetch = sources ?? Storage.shared.getSources()
+        AppLogManager.shared.info("Starting source fetch (refresh: \(refresh), count: \(sourcesToFetch.count))", category: "Sources")
 
         // Cancel any existing fetch task
         _fetchTask?.cancel()
@@ -173,7 +177,7 @@ final class SourcesViewModel: ObservableObject {
         }
         
         // Check if sources to be fetched are the same as before
-        if !refresh, sources.allSatisfy({ self.sources[$0] != nil }) { return }
+        if !refresh, sourcesToFetch.allSatisfy({ self.sources[$0] != nil }) { return }
         
         isFinished = false
         fetchState = .loading
@@ -192,7 +196,7 @@ final class SourcesViewModel: ObservableObject {
             
             // Load cached data in parallel
             await withTaskGroup(of: (AltSource, ASRepository?).self) { group in
-                for source in sources {
+                for source in sourcesToFetch {
                     group.addTask {
                         if let url = source.sourceURL, let cachedRepo = self._cacheManager.getCachedRepository(for: url) {
                             return (source, cachedRepo)
@@ -211,7 +215,7 @@ final class SourcesViewModel: ObservableObject {
             self.sources = [:]
         }
         
-        let sourcesArray = refresh ? Array(sources) : Array(sources).filter { self.sources[$0] == nil }
+        let sourcesArray = refresh ? Array(sourcesToFetch) : Array(sourcesToFetch).filter { self.sources[$0] == nil }
         let totalSources = sourcesArray.count
         
         if totalSources == 0 {
@@ -329,6 +333,28 @@ final class SourcesViewModel: ObservableObject {
         }
     }
     
+    // MARK: - Background Refresh
+    /// Performs a background refresh of all sources if they haven't been updated recently
+    func refreshAllSourcesInBackground() async {
+        let allSources = Storage.shared.getSources()
+        guard !allSources.isEmpty else { return }
+
+        // Rate limiting - don't background refresh too often (e.g. 1 hour)
+        if let lastFetch = _lastFetchTime, Date().timeIntervalSince(lastFetch) < 3600 {
+            return
+        }
+
+        AppLogManager.shared.info("Starting background source refresh...", category: "Sources")
+
+        // We use a FetchedResults-like array here
+        // Since we can't easily get FetchedResults outside of a View, we just fetch from Storage
+        // Actually fetchSources takes FetchedResults<AltSource> but it just iterates over it.
+        // I should probably make fetchSources accept [AltSource] or similar.
+
+        // Let's modify fetchSources to be more flexible or just implement a background one here.
+        await fetchSources(refresh: true)
+    }
+
     // MARK: - Search Across All Sources
     func searchApps(query: String) -> [(source: ASRepository, app: ASRepository.App)] {
         guard !query.isEmpty else { return [] }

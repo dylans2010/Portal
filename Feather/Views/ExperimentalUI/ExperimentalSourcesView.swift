@@ -59,7 +59,7 @@ struct ExperimentalSourcesView: View {
             }
             .navigationBarHidden(true)
             .task {
-                await viewModel.fetchSources(sources, refresh: false)
+                await viewModel.fetchSources(Array(sources), refresh: false)
             }
         }
         .accentColor(ExperimentalUITheme.Colors.accentPrimary)

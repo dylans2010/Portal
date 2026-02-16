@@ -200,7 +200,7 @@ struct HomeView: View {
             _deviceModel = UIDevice.current.humanReadableModelName
         }
         .task(id: Array(_sources)) {
-            await viewModel.fetchSources(_sources)
+            await viewModel.fetchSources(Array(_sources))
             // Check for app updates after sources are loaded
             await _updateTrackingManager.checkForUpdates(sources: viewModel.sources)
         }

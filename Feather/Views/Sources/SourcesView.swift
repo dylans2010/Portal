@@ -109,7 +109,7 @@ struct SourcesView: View {
                     }
                 }
                 .refreshable {
-                    await viewModel.fetchSources(_sources, refresh: true)
+                    await viewModel.fetchSources(Array(_sources), refresh: true)
                 }
             }
             .navigationBarHidden(true)
@@ -126,7 +126,7 @@ struct SourcesView: View {
             }
         }
         .task(id: Array(_sources)) {
-            await viewModel.fetchSources(_sources)
+            await viewModel.fetchSources(Array(_sources))
         }
         .onAppear {
             // Ensure default required source exists

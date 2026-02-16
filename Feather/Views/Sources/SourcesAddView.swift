@@ -72,10 +72,9 @@ struct SourcesAddView: View {
 	// MARK: Body
 	var body: some View {
 		NavigationStack {
-			ScrollView {
+			Form {
 				_mainContent
 			}
-			.background(Color(.systemGroupedBackground))
 			.navigationTitle(.localized("Add Source"))
 			.navigationBarTitleDisplayMode(.inline)
 			.toolbar(content: {
@@ -99,27 +98,24 @@ struct SourcesAddView: View {
 	// MARK: - Main Content
 	@ViewBuilder
 	private var _mainContent: some View {
-		VStack(spacing: 24) {
-			// Import Results Section (shown after bulk import)
-			if _showImportResults {
-				_importResultsSection()
-			}
-			
-			// Regular UI when not showing import results
-			if !_showImportResults {
-				_sourceURLSection
+		// Import Results Section (shown after bulk import)
+		if _showImportResults {
+			_importResultsSection()
+		}
 
-				if !_isExportMode {
-					_featuredSourcesSection
-				}
-			}
-			
-			// Export mode UI
-			if _isExportMode {
-				_exportSelectionSection()
+		// Regular UI when not showing import results
+		if !_showImportResults {
+			_sourceURLSection
+
+			if !_isExportMode {
+				_featuredSourcesSection
 			}
 		}
-		.padding(.bottom, 30)
+
+		// Export mode UI
+		if _isExportMode {
+			_exportSelectionSection()
+		}
 	}
 	
 	// MARK: - Toolbar Content
@@ -189,88 +185,76 @@ struct SourcesAddView: View {
 	// MARK: - Source URL Section
 	@ViewBuilder
 	private var _sourceURLSection: some View {
-		VStack(alignment: .leading, spacing: 12) {
-			Text(.localized("Add Source"))
-				.font(.system(.title3, design: .rounded).bold())
-				.foregroundStyle(.primary)
-				.padding(.horizontal, 4)
-			
-			VStack(spacing: 16) {
-				HStack(spacing: 12) {
-					Image(systemName: "link")
-						.font(.system(size: 18, weight: .semibold))
-						.foregroundStyle(Color.accentColor)
-						.frame(width: 40, height: 40)
-						.background(Color.accentColor.opacity(0.1))
-						.clipShape(Circle())
-					
-					TextField(.localized("Repository URL"), text: $_sourceURL)
-						.keyboardType(.URL)
-						.textInputAutocapitalization(.never)
-						.font(.system(.body, design: .rounded))
-					
-					if !_sourceURL.isEmpty {
-						Button {
-							_sourceURL = ""
-						} label: {
-							Image(systemName: "xmark.circle.fill")
-								.foregroundStyle(.secondary)
-						}
-						.buttonStyle(.plain)
-					}
-				}
-				.padding(12)
-				.background(Color(UIColor.secondarySystemGroupedBackground))
-				.clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
-				.shadow(color: .black.opacity(0.03), radius: 8, x: 0, y: 4)
+		Section {
+			HStack(spacing: 12) {
+				Image(systemName: "link")
+					.foregroundStyle(Color.accentColor)
 
-				HStack(spacing: 12) {
-					_actionButton(
-						title: .localized("Import"),
-						icon: "square.and.arrow.down",
-						color: .blue
-					) {
-						_isImporting = true
-						_fetchImportedRepositories(UIPasteboard.general.string) { }
+				TextField(.localized("Repository URL"), text: $_sourceURL)
+					.keyboardType(.URL)
+					.textInputAutocapitalization(.never)
+
+				if !_sourceURL.isEmpty {
+					Button {
+						_sourceURL = ""
+					} label: {
+						Image(systemName: "xmark.circle.fill")
+							.foregroundStyle(.secondary)
 					}
-					
-					_actionButton(
-						title: .localized("Export"),
-						icon: "doc.on.doc",
-						color: .green
-					) {
-						_isExportMode = true
-						let sources = Storage.shared.getSources()
-						guard !sources.isEmpty else {
-							_alertTitle = .localized("No Sources")
-							_alertMessage = .localized("No Sources To Export")
-							_showAlert = true
-							_isExportMode = false
-							return
-						}
-						_selectedSourcesForExport = Set(sources.compactMap { $0.sourceURL?.absoluteString })
-					}
-					
-					_actionButton(
-						title: .localized("Transfer"),
-						icon: "square.and.arrow.down.on.square.fill",
-						color: .purple
-					) {
-						_openPortalExportDirectly()
-					}
+					.buttonStyle(.plain)
 				}
 			}
-			
+
+			HStack(spacing: 0) {
+				Button {
+					_isImporting = true
+					_fetchImportedRepositories(UIPasteboard.general.string) { }
+				} label: {
+					Label(.localized("Import"), systemImage: "square.and.arrow.down")
+						.frame(maxWidth: .infinity)
+				}
+				.buttonStyle(.bordered)
+
+				Divider().padding(.horizontal, 8)
+
+				Button {
+					_isExportMode = true
+					let sources = Storage.shared.getSources()
+					guard !sources.isEmpty else {
+						_alertTitle = .localized("No Sources")
+						_alertMessage = .localized("No Sources To Export")
+						_showAlert = true
+						_isExportMode = false
+						return
+					}
+					_selectedSourcesForExport = Set(sources.compactMap { $0.sourceURL?.absoluteString })
+				} label: {
+					Label(.localized("Export"), systemImage: "doc.on.doc")
+						.frame(maxWidth: .infinity)
+				}
+				.buttonStyle(.bordered)
+
+				Divider().padding(.horizontal, 8)
+
+				Button {
+					_openPortalExportDirectly()
+				} label: {
+					Label(.localized("Transfer"), systemImage: "square.and.arrow.down.on.square.fill")
+						.frame(maxWidth: .infinity)
+				}
+				.buttonStyle(.bordered)
+			}
+			.listRowBackground(Color.clear)
+			.listRowInsets(EdgeInsets())
+		} header: {
+			Text(.localized("Add Source"))
+		} footer: {
 			VStack(alignment: .leading, spacing: 4) {
 				Label(.localized("Only AltStore repositories are supported."), systemImage: "info.circle")
 				Label(.localized("Supports KravaShit/MapleSign and ESign imports."), systemImage: "arrow.triangle.2.circlepath")
 			}
-			.font(.system(size: 11, weight: .medium, design: .rounded))
-			.foregroundStyle(.secondary)
-			.padding(.horizontal, 8)
-			.padding(.top, 4)
+			.font(.caption)
 		}
-		.padding(.horizontal)
 	}
 
 	@ViewBuilder
@@ -332,69 +316,46 @@ struct SourcesAddView: View {
 	// MARK: - Featured Sources List
 	@ViewBuilder
 	private var _featuredSourcesList: some View {
-		VStack(alignment: .leading, spacing: 16) {
-			HStack {
-				Text(.localized("Featured Sources"))
-					.font(.system(.title3, design: .rounded).bold())
-				Spacer()
-				Text(.localized("Recommended"))
-					.font(.caption.bold())
-					.foregroundStyle(.secondary)
-					.padding(.horizontal, 8)
-					.padding(.vertical, 4)
-					.background(Color.secondary.opacity(0.1))
-					.clipShape(Capsule())
+		Section {
+			ForEach(_filteredRecommendedSourcesData, id: \.url) { (url, source) in
+				_featuredSourceRow(url: url, source: source)
 			}
-			.padding(.horizontal, 4)
-			
-			VStack(spacing: 12) {
-				ForEach(_filteredRecommendedSourcesData, id: \.url) { (url, source) in
-					_featuredSourceRow(url: url, source: source)
-				}
-			}
-			
+		} header: {
+			Text(.localized("Featured Sources"))
+		} footer: {
 			Text(.localized("More sources will be added soon!"))
-				.font(.system(size: 12, weight: .medium, design: .rounded))
-				.foregroundStyle(.secondary)
-				.frame(maxWidth: .infinity, alignment: .center)
-				.padding(.top, 8)
 		}
-		.padding(.horizontal)
 	}
 	
 	// MARK: - Featured Source Row
 	@ViewBuilder
 	private func _featuredSourceRow(url: URL, source: ASRepository) -> some View {
-		HStack(spacing: 16) {
-			HStack(spacing: 12) {
-				if let iconURL = source.currentIconURL {
-					AsyncImage(url: iconURL) { image in
-						image.resizable()
-							.aspectRatio(contentMode: .fill)
-					} placeholder: {
-						Color.accentColor.opacity(0.1)
-					}
-					.frame(width: 44, height: 44)
-					.clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
-				} else {
-					ZStack {
-						RoundedRectangle(cornerRadius: 10, style: .continuous)
-							.fill(Color.accentColor.opacity(0.1))
-							.frame(width: 44, height: 44)
-						Image(systemName: "globe")
-							.font(.system(size: 22))
-							.foregroundStyle(Color.accentColor)
-					}
+		HStack(spacing: 12) {
+			if let iconURL = source.currentIconURL {
+				AsyncImage(url: iconURL) { image in
+					image.resizable()
+						.aspectRatio(contentMode: .fill)
+				} placeholder: {
+					Color.accentColor.opacity(0.1)
 				}
+				.frame(width: 32, height: 32)
+				.clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+			} else {
+				Image(systemName: "globe")
+					.font(.system(size: 18))
+					.foregroundStyle(Color.accentColor)
+					.frame(width: 32, height: 32)
+					.background(Color.accentColor.opacity(0.1))
+					.clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+			}
 
-				VStack(alignment: .leading, spacing: 2) {
-					Text(source.name ?? .localized("Unknown"))
-						.font(.system(.body, design: .rounded).bold())
-						.foregroundStyle(.primary)
-					Text(url.host ?? url.absoluteString)
-						.font(.system(.caption, design: .rounded))
-						.foregroundStyle(.secondary)
-				}
+			VStack(alignment: .leading, spacing: 2) {
+				Text(source.name ?? .localized("Unknown"))
+					.font(.body.bold())
+					.foregroundStyle(.primary)
+				Text(url.host ?? url.absoluteString)
+					.font(.caption)
+					.foregroundStyle(.secondary)
 			}
 			
 			Spacer()
@@ -407,22 +368,10 @@ struct SourcesAddView: View {
 				}
 			} label: {
 				Text(.localized("Add"))
-					.font(.system(size: 14, weight: .bold, design: .rounded))
-					.foregroundStyle(.white)
-					.padding(.horizontal, 20)
-					.padding(.vertical, 8)
-					.background(
-						Capsule()
-							.fill(Color.accentColor)
-					)
-					.shadow(color: Color.accentColor.opacity(0.3), radius: 5, x: 0, y: 3)
+					.font(.subheadline.bold())
 			}
-			.buttonStyle(.plain)
+			.buttonStyle(.bordered)
 		}
-		.padding(12)
-		.background(Color(UIColor.secondarySystemGroupedBackground))
-		.clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
-		.shadow(color: .black.opacity(0.02), radius: 8, x: 0, y: 4)
 	}
 	
 	// MARK: - Import Results Section
@@ -565,119 +514,69 @@ struct SourcesAddView: View {
 	private func _exportSelectionSection() -> some View {
 		let sources = Storage.shared.getSources()
 		
-		VStack(alignment: .leading, spacing: 16) {
-			Text(.localized("Select Sources To Export"))
-				.font(.system(.headline, design: .rounded))
-				.foregroundStyle(.primary)
-				.padding(.horizontal, 4)
-			
+		Section {
 			// Select All / Deselect All buttons
-			HStack(spacing: 12) {
+			HStack {
 				Button {
 					withAnimation {
 						_selectedSourcesForExport = Set(sources.compactMap { $0.sourceURL?.absoluteString })
 					}
 				} label: {
-					Label(.localized("Select All"), systemImage: "checkmark.circle.fill")
-						.font(.subheadline.bold())
-						.foregroundStyle(.blue)
-						.padding(.horizontal, 16)
-						.padding(.vertical, 10)
-						.background(Color.blue.opacity(0.1))
-						.clipShape(Capsule())
+					Text(.localized("Select All"))
 				}
 				
+				Spacer()
+
 				Button {
 					withAnimation {
 						_selectedSourcesForExport.removeAll()
 					}
 				} label: {
-					Label(.localized("Deselect All"), systemImage: "circle")
-						.font(.subheadline.bold())
-						.foregroundStyle(.gray)
-						.padding(.horizontal, 16)
-						.padding(.vertical, 10)
-						.background(Color.gray.opacity(0.1))
-						.clipShape(Capsule())
+					Text(.localized("Deselect All"))
 				}
-				
-				Spacer()
 			}
-			.padding(.horizontal)
-			
-			GroupBox {
-				VStack(spacing: 0) {
-					ForEach(sources, id: \.sourceURL?.absoluteString) { source in
-						if let urlString = source.sourceURL?.absoluteString {
-							Button {
-								if _selectedSourcesForExport.contains(urlString) {
-									_selectedSourcesForExport.remove(urlString)
-								} else {
-									_selectedSourcesForExport.insert(urlString)
-								}
-							} label: {
-								HStack(spacing: 12) {
-									Image(systemName: _selectedSourcesForExport.contains(urlString) ? "checkmark.circle.fill" : "circle")
-										.font(.title3)
-										.foregroundStyle(_selectedSourcesForExport.contains(urlString) ? Color.accentColor : Color.secondary)
-										.symbolRenderingMode(.hierarchical)
+			.buttonStyle(.borderless)
 
-									VStack(alignment: .leading, spacing: 2) {
-										Text(source.name ?? .localized("Unknown"))
-											.font(.system(.body, design: .rounded).bold())
-											.foregroundStyle(.primary)
-										Text(urlString)
-											.font(.system(.caption, design: .monospaced))
-											.foregroundStyle(.secondary)
-											.lineLimit(1)
-									}
+			ForEach(sources, id: \.sourceURL?.absoluteString) { source in
+				if let urlString = source.sourceURL?.absoluteString {
+					Button {
+						if _selectedSourcesForExport.contains(urlString) {
+							_selectedSourcesForExport.remove(urlString)
+						} else {
+							_selectedSourcesForExport.insert(urlString)
+						}
+					} label: {
+						HStack(spacing: 12) {
+							Image(systemName: _selectedSourcesForExport.contains(urlString) ? "checkmark.circle.fill" : "circle")
+								.foregroundStyle(_selectedSourcesForExport.contains(urlString) ? Color.accentColor : Color.secondary)
 
-									Spacer()
-								}
-								.padding(.vertical, 10)
-							}
-							.buttonStyle(.plain)
-
-							if sources.last?.sourceURL?.absoluteString != urlString {
-								Divider()
+							VStack(alignment: .leading, spacing: 2) {
+								Text(source.name ?? .localized("Unknown"))
+									.font(.body.bold())
+									.foregroundStyle(.primary)
+								Text(urlString)
+									.font(.caption.monospaced())
+									.foregroundStyle(.secondary)
+									.lineLimit(1)
 							}
 						}
 					}
+					.buttonStyle(.plain)
 				}
-			} label: {
-				Label(.localized("Available Sources"), systemImage: "list.bullet.rectangle.stack.fill")
-					.font(.caption.bold())
-					.foregroundStyle(.secondary)
 			}
-			.groupBoxStyle(PlainGroupBoxStyle())
-			.padding(.horizontal)
+		} header: {
+			Text(.localized("Select Sources To Export"))
+		}
 
-			// Export through Portal button
+		Section {
 			Button {
 				_exportThroughPortal()
 			} label: {
-				HStack(spacing: 10) {
-					Image(systemName: "arrow.up.doc.fill")
-						.font(.system(size: 18, weight: .bold))
-					Text(.localized("Portal Transfer"))
-						.font(.system(.subheadline, design: .rounded).bold())
-				}
-				.foregroundStyle(.white)
-				.frame(maxWidth: .infinity)
-				.padding(.vertical, 16)
-				.background(
-					LinearGradient(
-						colors: [Color.purple, Color.indigo.opacity(0.8)],
-						startPoint: .leading,
-						endPoint: .trailing
-					)
-				)
-				.clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
-				.shadow(color: Color.purple.opacity(0.3), radius: 8, x: 0, y: 4)
+				Label(.localized("Portal Transfer"), systemImage: "arrow.up.doc.fill")
+					.frame(maxWidth: .infinity)
 			}
+			.buttonStyle(.borderedProminent)
 			.disabled(_selectedSourcesForExport.isEmpty)
-			.opacity(_selectedSourcesForExport.isEmpty ? 0.6 : 1)
-			.padding(.horizontal)
 		}
 	}
 
@@ -899,35 +798,22 @@ struct PortalExportView: View {
 	
 	var body: some View {
 		NavigationStack {
-			ZStack {
-				// Animated background gradient
-				LinearGradient(
-					colors: [
-						Color(UIColor.systemGroupedBackground),
-						isImportMode ? Color.cyan.opacity(0.03) : Color.purple.opacity(0.03)
-					],
-					startPoint: .top,
-					endPoint: .bottom
-				)
-				.ignoresSafeArea()
-				.animation(.easeInOut(duration: 0.5), value: isImportMode)
-				
-				ScrollView {
-					VStack(spacing: 24) {
-						headerSection
-						modeSelector
-						
-						if isImportMode {
-							importSection
-						} else {
-							exportSection
-						}
-						
-						quickTipsSection
-					}
-					.padding(.horizontal, 16)
-					.padding(.vertical, 20)
+			List {
+				Section {
+					modeSelector
 				}
+				.listRowBackground(Color.clear)
+				.listRowInsets(EdgeInsets())
+
+				headerSection
+
+				if isImportMode {
+					importSection
+				} else {
+					exportSection
+				}
+
+				quickTipsSection
 			}
 			.navigationTitle(.localized("Portal Transfer"))
 			.navigationBarTitleDisplayMode(.inline)
@@ -937,336 +823,106 @@ struct PortalExportView: View {
 				}
 			})
 		}
-		.onAppear {
-			withAnimation(.easeInOut(duration: 2).repeatForever(autoreverses: true)) {
-				iconRotation = 10
-			}
-		}
 	}
 	
 	// MARK: - Header Section
 	private var headerSection: some View {
-		VStack(spacing: 16) {
-			ZStack {
-				// Main circle
-				Circle()
-					.fill(
-						LinearGradient(
-							colors: gradientColors,
-							startPoint: .topLeading,
-							endPoint: .bottomTrailing
-						)
-					)
-					.frame(width: 90, height: 90)
-					.shadow(color: gradientColors[0].opacity(0.3), radius: 20, x: 0, y: 10)
-
-				// Subtle ring
-				Circle()
-					.stroke(gradientColors[0].opacity(0.2), lineWidth: 4)
-					.frame(width: 110, height: 110)
-					.scaleEffect(iconRotation > 0 ? 1.05 : 1.0)
-				
-				// Icon
+		Section {
+			VStack(spacing: 12) {
 				Image(systemName: isImportMode ? "arrow.down.circle.fill" : "arrow.up.circle.fill")
-					.font(.system(size: 40, weight: .medium))
-					.foregroundStyle(.white)
-			}
-			.animation(.spring(response: 0.5, dampingFraction: 0.7), value: isImportMode)
-			
-			VStack(spacing: 6) {
+					.font(.system(size: 48))
+					.foregroundStyle(isImportMode ? .cyan : .purple)
+
 				Text(isImportMode ? .localized("Import Sources") : .localized("Export Sources"))
-					.font(.system(size: 22, weight: .bold, design: .rounded))
-					.foregroundStyle(.primary)
+					.font(.headline)
 				
 				Text(isImportMode ? .localized("Paste your Portal Transfer code from another device to import sources.") : .localized("Share your sources with a Portal Transfer code."))
 					.font(.subheadline)
 					.foregroundStyle(.secondary)
 					.multilineTextAlignment(.center)
 			}
+			.frame(maxWidth: .infinity)
+			.padding(.vertical)
 		}
-		.padding(.bottom, 8)
 	}
 	
 	// MARK: - Mode Selector
 	private var modeSelector: some View {
-		HStack(spacing: 0) {
-			ForEach([false, true], id: \.self) { isImport in
-				Button {
-					withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
-						isImportMode = isImport
-						importResult = nil
-						HapticsManager.shared.softImpact()
-					}
-				} label: {
-					VStack(spacing: 8) {
-						Image(systemName: isImport ? "arrow.down.doc.fill" : "arrow.up.doc.fill")
-							.font(.system(size: 20, weight: .semibold))
-						Text(isImport ? .localized("Import") : .localized("Export"))
-							.font(.system(size: 14, weight: .bold))
-					}
-					.foregroundStyle((isImportMode == isImport) ? .white : .secondary)
-					.frame(maxWidth: .infinity)
-					.padding(.vertical, 16)
-					.background(
-						RoundedRectangle(cornerRadius: 16, style: .continuous)
-							.fill(
-								(isImportMode == isImport)
-								? AnyShapeStyle(LinearGradient(
-									colors: isImport ? [.cyan, .blue.opacity(0.8)] : [.purple, .indigo.opacity(0.8)],
-									startPoint: .topLeading,
-									endPoint: .bottomTrailing
-								))
-								: AnyShapeStyle(Color.clear)
-							)
-					)
-				}
-				.buttonStyle(.plain)
-			}
+		Picker(.localized("Mode"), selection: $isImportMode) {
+			Text(.localized("Export")).tag(false)
+			Text(.localized("Import")).tag(true)
 		}
-		.padding(6)
-		.background(
-			RoundedRectangle(cornerRadius: 20, style: .continuous)
-				.fill(Color(UIColor.tertiarySystemBackground))
-		)
-		.shadow(color: .black.opacity(colorScheme == .dark ? 0.3 : 0.08), radius: 12, x: 0, y: 6)
+		.pickerStyle(.segmented)
+		.padding(.horizontal)
 	}
 	
 	// MARK: - Export Section
 	private var exportSection: some View {
-		VStack(spacing: 16) {
-			// Collapsible Transfer Code Section
+		Group {
 			if !exportData.isEmpty {
-				VStack(spacing: 0) {
-					// Header with dropdown
+				Section {
+					Text(exportData)
+						.font(.caption.monospaced())
+						.textSelection(.enabled)
+						.listRowBackground(Color(UIColor.secondarySystemGroupedBackground))
+
 					Button {
-						withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-							isEncodedDataExpanded.toggle()
-							HapticsManager.shared.softImpact()
+						UIPasteboard.general.string = exportData
+						HapticsManager.shared.success()
+						showCopiedFeedback = true
+						DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+							showCopiedFeedback = false
 						}
 					} label: {
-						HStack {
-							HStack(spacing: 10) {
-								ZStack {
-									Circle()
-										.fill(Color.purple.opacity(0.1))
-										.frame(width: 40, height: 40)
-									Image(systemName: "key.fill")
-										.font(.system(size: 16, weight: .semibold))
-										.foregroundStyle(.purple)
-								}
-								
-								VStack(alignment: .leading, spacing: 2) {
-									Text(.localized("Transfer Code"))
-										.font(.system(.subheadline, design: .rounded).bold())
-										.foregroundStyle(.primary)
-									Text(.localized("Ready To Share!"))
-										.font(.caption2)
-										.foregroundStyle(.secondary)
-								}
-							}
-							
-							Spacer()
-							
-							// Copy button
-							Button {
-								UIPasteboard.general.string = exportData
-								HapticsManager.shared.success()
-								withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-									showCopiedFeedback = true
-								}
-								DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
-									withAnimation {
-										showCopiedFeedback = false
-									}
-								}
-							} label: {
-								HStack(spacing: 4) {
-									Image(systemName: showCopiedFeedback ? "checkmark" : "doc.on.doc")
-									if showCopiedFeedback {
-										Text(.localized("Copied"))
-											.font(.caption)
-									}
-								}
-								.font(.system(size: 12, weight: .semibold))
-								.foregroundStyle(showCopiedFeedback ? .green : .purple)
-								.padding(.horizontal, 10)
-								.padding(.vertical, 6)
-								.background(
-									Capsule()
-										.fill(showCopiedFeedback ? Color.green.opacity(0.15) : Color.purple.opacity(0.15))
-								)
-							}
-							.buttonStyle(.plain)
-							
-							// Dropdown chevron
-							Image(systemName: "chevron.down")
-								.font(.system(size: 12, weight: .bold))
-								.foregroundStyle(.secondary)
-								.rotationEffect(.degrees(isEncodedDataExpanded ? 0 : -90))
-								.padding(.leading, 8)
-						}
-						.padding(16)
+						Label(showCopiedFeedback ? .localized("Copied") : .localized("Copy Code"), systemImage: showCopiedFeedback ? "checkmark" : "doc.on.doc")
 					}
-					.buttonStyle(.plain)
-					
-					// Expandable content
-					if isEncodedDataExpanded {
-						Divider()
-							.padding(.horizontal, 16)
-						
-						Text(exportData)
-							.font(.system(.caption2, design: .monospaced))
-							.textSelection(.enabled)
-							.padding(16)
-							.frame(maxWidth: .infinity, alignment: .leading)
-							.background(Color(UIColor.tertiarySystemBackground).opacity(0.5))
-					}
+				} header: {
+					Text(.localized("Transfer Code"))
 				}
-				.background(
-					RoundedRectangle(cornerRadius: 16, style: .continuous)
-						.fill(Color(UIColor.secondarySystemGroupedBackground))
-				)
-				.overlay(
-					RoundedRectangle(cornerRadius: 16, style: .continuous)
-						.stroke(Color.purple.opacity(0.2), lineWidth: 1)
-				)
 			} else {
-				// No data message
-				VStack(spacing: 12) {
-					Image(systemName: "doc.text.magnifyingglass")
-						.font(.system(size: 40))
-						.foregroundStyle(.secondary)
-					
-					Text(.localized("No Export Data"))
-						.font(.headline)
-						.foregroundStyle(.secondary)
-					
+				Section {
 					Text(.localized("Select sources from the Export Mode to generate the source data."))
-						.font(.caption)
-						.foregroundStyle(.tertiary)
-						.multilineTextAlignment(.center)
+						.foregroundStyle(.secondary)
 				}
-				.frame(maxWidth: .infinity)
-				.padding(30)
-				.background(
-					RoundedRectangle(cornerRadius: 16, style: .continuous)
-						.fill(Color(UIColor.secondarySystemGroupedBackground))
-						.overlay(
-							RoundedRectangle(cornerRadius: 16, style: .continuous)
-								.strokeBorder(style: StrokeStyle(lineWidth: 2, dash: [8]))
-								.foregroundStyle(Color.secondary.opacity(0.3))
-						)
-				)
 			}
 		}
 	}
 	
 	// MARK: - Import Section
 	private var importSection: some View {
-		VStack(spacing: 16) {
-			// Input card
-			VStack(alignment: .leading, spacing: 12) {
-				HStack {
-					HStack(spacing: 10) {
-						ZStack {
-							Circle()
-								.fill(Color.cyan.opacity(0.1))
-								.frame(width: 40, height: 40)
-							Image(systemName: "square.and.pencil")
-								.font(.system(size: 16, weight: .semibold))
-								.foregroundStyle(.cyan)
-						}
-						
-						Text(.localized("Portal Code"))
-							.font(.system(.subheadline, design: .rounded).bold())
-							.foregroundStyle(.primary)
-					}
-					
-					Spacer()
-					
-					Button {
-						if let clipboard = UIPasteboard.general.string {
-							importText = clipboard
-							HapticsManager.shared.softImpact()
-						}
-					} label: {
-						HStack(spacing: 4) {
-							Image(systemName: "doc.on.clipboard.fill")
-							Text(.localized("Paste"))
-						}
-						.font(.system(size: 12, weight: .semibold))
-						.foregroundStyle(.cyan)
-						.padding(.horizontal, 10)
-						.padding(.vertical, 6)
-						.background(
-							Capsule()
-								.fill(Color.cyan.opacity(0.15))
-						)
-					}
-					.buttonStyle(.plain)
-				}
-				
+		Group {
+			Section {
 				TextEditor(text: $importText)
-					.font(.system(.caption, design: .monospaced))
-					.frame(minHeight: 120)
-					.padding(12)
-					.background(
-						RoundedRectangle(cornerRadius: 12, style: .continuous)
-							.fill(Color(UIColor.tertiarySystemBackground))
-					)
-					.overlay(
-						RoundedRectangle(cornerRadius: 12, style: .continuous)
-							.stroke(Color.cyan.opacity(0.3), lineWidth: 1)
-					)
+					.font(.caption.monospaced())
+					.frame(minHeight: 100)
 				
-				if !importText.isEmpty {
-					HStack {
-						Image(systemName: importText.hasPrefix("PORTAL:") ? "checkmark.circle.fill" : "exclamationmark.circle.fill")
-						Text(importText.hasPrefix("PORTAL:") ? .localized("Valid Portal Format Detected") : .localized("Unknown format, will attempt to parse..."))
+				Button {
+					if let clipboard = UIPasteboard.general.string {
+						importText = clipboard
+						HapticsManager.shared.softImpact()
 					}
-					.font(.caption)
-					.foregroundColor(importText.hasPrefix("PORTAL:") ? .green : .orange)
+				} label: {
+					Label(.localized("Paste Code"), systemImage: "doc.on.clipboard")
 				}
+			} header: {
+				Text(.localized("Portal Code"))
 			}
-			.padding(16)
-			.background(
-				RoundedRectangle(cornerRadius: 16, style: .continuous)
-					.fill(Color(UIColor.secondarySystemGroupedBackground))
-			)
-			
-			// Import button
-			Button {
-				performImport()
-			} label: {
-				HStack(spacing: 12) {
-					Image(systemName: "arrow.down.circle.fill")
-						.font(.system(size: 20, weight: .semibold))
-					Text(.localized("Import Sources"))
-						.font(.system(size: 17, weight: .bold))
+
+			Section {
+				Button {
+					performImport()
+				} label: {
+					Label(.localized("Import Sources"), systemImage: "arrow.down.circle.fill")
+						.frame(maxWidth: .infinity)
 				}
-				.foregroundStyle(.white)
-				.frame(maxWidth: .infinity)
-				.padding(.vertical, 18)
-				.background(
-					RoundedRectangle(cornerRadius: 16, style: .continuous)
-						.fill(
-							importText.isEmpty
-							? AnyShapeStyle(Color.gray.opacity(0.4))
-							: AnyShapeStyle(LinearGradient(colors: [.cyan, .blue.opacity(0.8)], startPoint: .leading, endPoint: .trailing))
-						)
-				)
-				.shadow(color: importText.isEmpty ? .clear : .cyan.opacity(0.4), radius: 12, x: 0, y: 6)
+				.buttonStyle(.borderedProminent)
+				.disabled(importText.isEmpty)
 			}
-			.disabled(importText.isEmpty)
-			.animation(.easeInOut(duration: 0.2), value: importText.isEmpty)
-			
-			// Import result
+
 			if let result = importResult {
-				resultCard(result: result)
-					.transition(AnyTransition.asymmetric(
-						insertion: .scale(scale: 0.9).combined(with: .opacity),
-						removal: .opacity
-					))
+				Section {
+					resultCard(result: result)
+				}
 			}
 		}
 	}
@@ -1276,87 +932,44 @@ struct PortalExportView: View {
 		HStack(spacing: 12) {
 			switch result {
 			case .success(let count):
-				ZStack {
-					Circle()
-						.fill(Color.green.opacity(0.15))
-						.frame(width: 44, height: 44)
-					Image(systemName: "checkmark.circle.fill")
-						.font(.system(size: 22))
-						.foregroundStyle(.green)
-				}
+				Image(systemName: "checkmark.circle.fill")
+					.foregroundStyle(.green)
 				
 				VStack(alignment: .leading, spacing: 2) {
 					Text(.localized("Import Successful"))
-						.font(.system(size: 15, weight: .semibold))
-						.foregroundStyle(.primary)
+						.font(.subheadline.bold())
 					Text(.localized("\(count) Sources Added"))
 						.font(.caption)
 						.foregroundStyle(.secondary)
 				}
 				
 			case .error(let message):
-				ZStack {
-					Circle()
-						.fill(Color.red.opacity(0.15))
-						.frame(width: 44, height: 44)
-					Image(systemName: "xmark.circle.fill")
-						.font(.system(size: 22))
-						.foregroundStyle(.red)
-				}
+				Image(systemName: "xmark.circle.fill")
+					.foregroundStyle(.red)
 				
 				VStack(alignment: .leading, spacing: 2) {
 					Text(.localized("Import Failed"))
-						.font(.system(size: 15, weight: .semibold))
-						.foregroundStyle(.primary)
+						.font(.subheadline.bold())
 					Text(message)
 						.font(.caption)
 						.foregroundStyle(.secondary)
 				}
 			}
-			
-			Spacer()
 		}
-		.padding(16)
-		.background(
-			RoundedRectangle(cornerRadius: 16, style: .continuous)
-				.fill(Color(UIColor.secondarySystemGroupedBackground))
-		)
 	}
 	
 	// MARK: - Quick Tips Section
 	private var quickTipsSection: some View {
-		VStack(alignment: .leading, spacing: 12) {
+		Section {
+			Label(isImportMode ? .localized("Paste the Portal code you received") : .localized("Copy the transfer code to share"), systemImage: "1.circle.fill")
+			Label(isImportMode ? .localized("Tap Import to add the sources") : .localized("Send it to friends or save it"), systemImage: "2.circle.fill")
+			Label(isImportMode ? .localized("Sources will be added automatically") : .localized("They can import using this view"), systemImage: "3.circle.fill")
+		} header: {
 			Label(.localized("Portal Transfer Info"), systemImage: "lightbulb.fill")
-				.font(.system(size: 14, weight: .bold))
-				.foregroundStyle(.orange)
-			
-			VStack(alignment: .leading, spacing: 8) {
-				tipRow(icon: "1.circle.fill", text: isImportMode ? .localized("Paste the Portal code you received") : .localized("Copy the transfer code to share"))
-				tipRow(icon: "2.circle.fill", text: isImportMode ? .localized("Tap Import to add the sources") : .localized("Send it to friends or save it"))
-				tipRow(icon: "3.circle.fill", text: isImportMode ? .localized("Sources will be added automatically") : .localized("They can import using this view"))
-			}
 		}
-		.padding(16)
-		.background(
-			RoundedRectangle(cornerRadius: 16, style: .continuous)
-				.fill(Color.orange.opacity(0.08))
-				.overlay(
-					RoundedRectangle(cornerRadius: 16, style: .continuous)
-						.stroke(Color.orange.opacity(0.2), lineWidth: 1)
-				)
-		)
+		.foregroundStyle(.secondary)
 	}
 	
-	private func tipRow(icon: String, text: String) -> some View {
-		HStack(spacing: 10) {
-			Image(systemName: icon)
-				.font(.system(size: 14, weight: .semibold))
-				.foregroundStyle(.orange)
-			Text(text)
-				.font(.caption)
-				.foregroundStyle(.secondary)
-		}
-	}
 	
 	private func performImport() {
 		Logger.misc.info("[Portal Import] Starting import process")
