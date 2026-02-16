@@ -3,3 +3,4 @@
 
 #include "MachOUtils.h"
 #import "iconPoc.h"
+#include "CMSSignerHelper.h"
