@@ -33,6 +33,9 @@ $(SCHEMES): deps
 	    -sdk $(PLATFORM) \
 	    -derivedDataPath $(TMP) \
 	    -skipPackagePluginValidation \
+	    CLANG_ENABLE_OBJC_ARC=YES \
+	    OTHER_CFLAGS='$$(inherited) -fobjc-arc' \
+	    OTHER_LDFLAGS='$$(inherited) -ObjC' \
 	    CODE_SIGNING_ALLOWED=NO \
 	    ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES=NO \
 	    SUPPORTED_PLATFORMS="iphoneos" \
