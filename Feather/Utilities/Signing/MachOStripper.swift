@@ -1,5 +1,6 @@
 import Foundation
 import MachO
+import Darwin
 
 enum MachOStripperError: Error {
     case invalidMachO
@@ -48,7 +49,7 @@ class MachOStripper {
 
         var header = data.withUnsafeBytes { $0.load(as: fat_header.self) }
         if isBigEndian {
-            header.nfat_arch = OSSwapInt32(header.nfat_arch)
+            header.nfat_arch = header.nfat_arch.byteSwapped
         }
 
         let archSize = MemoryLayout<fat_arch>.size
@@ -60,8 +61,8 @@ class MachOStripper {
 
             var arch = data.withUnsafeBytes { $0.load(fromByteOffset: offset, as: fat_arch.self) }
             if isBigEndian {
-                arch.offset = OSSwapInt32(arch.offset)
-                arch.size = OSSwapInt32(arch.size)
+                arch.offset = arch.offset.byteSwapped
+                arch.size = arch.size.byteSwapped
             }
 
             let thinData = data.subdata(in: Int(arch.offset)..<Int(arch.offset + arch.size))
@@ -72,16 +73,16 @@ class MachOStripper {
             // But usually we just remove the load command and maybe truncate.
             // If we truncate, we might need to update the fat_arch size.
 
-            mutableData.replaceSubdata(in: Int(arch.offset)..<Int(arch.offset + arch.size), with: strippedThinData)
+            mutableData.replaceSubrange(Int(arch.offset)..<Int(arch.offset + arch.size), with: strippedThinData)
 
             var newSize = UInt32(strippedThinData.count)
             if isBigEndian {
-                newSize = OSSwapInt32(newSize)
+                newSize = newSize.byteSwapped
             }
 
             // Update arch size in fat header if it changed
             let sizeOffset = offset + 12 // cputype(4) + cpusubtype(4) + offset(4)
-            mutableData.replaceSubdata(in: sizeOffset..<(sizeOffset + 4), with: withUnsafeBytes(of: newSize) { Data($0) })
+            mutableData.replaceSubrange(sizeOffset..<(sizeOffset + 4), with: withUnsafeBytes(of: newSize) { Data($0) })
         }
 
         return mutableData
@@ -114,12 +115,12 @@ class MachOStripper {
 
         if is64Bit {
             var header = mutableData.withUnsafeBytes { $0.load(fromByteOffset: offset, as: mach_header_64.self) }
-            ncmds = isBigEndian ? OSSwapInt32(header.ncmds) : header.ncmds
-            sizeofcmds = isBigEndian ? OSSwapInt32(header.sizeofcmds) : header.sizeofcmds
+            ncmds = isBigEndian ? header.ncmds.byteSwapped : header.ncmds
+            sizeofcmds = isBigEndian ? header.sizeofcmds.byteSwapped : header.sizeofcmds
         } else {
             var header = mutableData.withUnsafeBytes { $0.load(fromByteOffset: offset, as: mach_header.self) }
-            ncmds = isBigEndian ? OSSwapInt32(header.ncmds) : header.ncmds
-            sizeofcmds = isBigEndian ? OSSwapInt32(header.sizeofcmds) : header.sizeofcmds
+            ncmds = isBigEndian ? header.ncmds.byteSwapped : header.ncmds
+            sizeofcmds = isBigEndian ? header.sizeofcmds.byteSwapped : header.sizeofcmds
         }
 
         // 1. Append signature data at the end (aligned to 16 bytes)
@@ -135,13 +136,13 @@ class MachOStripper {
 
         // 2. Add LC_CODE_SIGNATURE load command
         var sigCmd = linkedit_data_command()
-        sigCmd.cmd = isBigEndian ? OSSwapInt32(UInt32(LC_CODE_SIGNATURE)) : UInt32(LC_CODE_SIGNATURE)
-        sigCmd.cmdsize = isBigEndian ? OSSwapInt32(UInt32(MemoryLayout<linkedit_data_command>.size)) : UInt32(MemoryLayout<linkedit_data_command>.size)
-        sigCmd.dataoff = isBigEndian ? OSSwapInt32(signatureOffset) : signatureOffset
-        sigCmd.datasize = isBigEndian ? OSSwapInt32(signatureSize) : signatureSize
+        sigCmd.cmd = isBigEndian ? UInt32(LC_CODE_SIGNATURE).byteSwapped : UInt32(LC_CODE_SIGNATURE)
+        sigCmd.cmdsize = isBigEndian ? UInt32(MemoryLayout<linkedit_data_command>.size).byteSwapped : UInt32(MemoryLayout<linkedit_data_command>.size)
+        sigCmd.dataoff = isBigEndian ? signatureOffset.byteSwapped : signatureOffset
+        sigCmd.datasize = isBigEndian ? signatureSize.byteSwapped : signatureSize
 
         let newCmdOffset = offset + headerSize + Int(sizeofcmds)
-        mutableData.replaceSubdata(in: newCmdOffset..<newCmdOffset, with: withUnsafeBytes(of: sigCmd) { Data($0) })
+        mutableData.replaceSubrange(newCmdOffset..<newCmdOffset, with: withUnsafeBytes(of: sigCmd) { Data($0) })
 
         // 3. Update Header
         let newNcmds = ncmds + 1
@@ -149,42 +150,42 @@ class MachOStripper {
 
         if is64Bit {
             var header = mutableData.withUnsafeBytes { $0.load(fromByteOffset: offset, as: mach_header_64.self) }
-            header.ncmds = isBigEndian ? OSSwapInt32(newNcmds) : newNcmds
-            header.sizeofcmds = isBigEndian ? OSSwapInt32(newSizeofcmds) : newSizeofcmds
-            mutableData.replaceSubdata(in: offset..<(offset + MemoryLayout<mach_header_64>.size), with: withUnsafeBytes(of: header) { Data($0) })
+            header.ncmds = isBigEndian ? newNcmds.byteSwapped : newNcmds
+            header.sizeofcmds = isBigEndian ? newSizeofcmds.byteSwapped : newSizeofcmds
+            mutableData.replaceSubrange(offset..<(offset + MemoryLayout<mach_header_64>.size), with: withUnsafeBytes(of: header) { Data($0) })
         } else {
             var header = mutableData.withUnsafeBytes { $0.load(fromByteOffset: offset, as: mach_header.self) }
-            header.ncmds = isBigEndian ? OSSwapInt32(newNcmds) : newNcmds
-            header.sizeofcmds = isBigEndian ? OSSwapInt32(newSizeofcmds) : newSizeofcmds
-            mutableData.replaceSubdata(in: offset..<(offset + MemoryLayout<mach_header>.size), with: withUnsafeBytes(of: header) { Data($0) })
+            header.ncmds = isBigEndian ? newNcmds.byteSwapped : newNcmds
+            header.sizeofcmds = isBigEndian ? newSizeofcmds.byteSwapped : newSizeofcmds
+            mutableData.replaceSubrange(offset..<(offset + MemoryLayout<mach_header>.size), with: withUnsafeBytes(of: header) { Data($0) })
         }
 
         // 4. Update __LINKEDIT segment
         var currentCmdOffset = offset + headerSize
         for _ in 0..<Int(ncmds) {
             let cmd = machoData.withUnsafeBytes { $0.load(fromByteOffset: currentCmdOffset, as: load_command.self) }
-            let cmdType = isBigEndian ? OSSwapInt32(cmd.cmd) : cmd.cmd
-            let cmdSize = isBigEndian ? OSSwapInt32(cmd.cmdsize) : cmd.cmdsize
+            let cmdType = isBigEndian ? cmd.cmd.byteSwapped : cmd.cmd
+            let cmdSize = isBigEndian ? cmd.cmdsize.byteSwapped : cmd.cmdsize
 
             if cmdType == LC_SEGMENT_64 {
                 var seg = mutableData.withUnsafeBytes { $0.load(fromByteOffset: currentCmdOffset, as: segment_command_64.self) }
                 let segName = withUnsafeBytes(of: seg.segname) { String(cString: $0.baseAddress!.assumingMemoryBound(to: CChar.self)) }
                 if segName == "__LINKEDIT" {
-                    let fileOff = isBigEndian ? OSSwapInt64(seg.fileoff) : seg.fileoff
+                    let fileOff = isBigEndian ? seg.fileoff.byteSwapped : seg.fileoff
                     let newFilesize = UInt64(signatureOffset + signatureSize) - fileOff
-                    seg.filesize = isBigEndian ? OSSwapInt64(newFilesize) : newFilesize
-                    seg.vmsize = isBigEndian ? OSSwapInt64((newFilesize + 4095) & ~4095) : (newFilesize + 4095) & ~4095
-                    mutableData.replaceSubdata(in: currentCmdOffset..<(currentCmdOffset + MemoryLayout<segment_command_64>.size), with: withUnsafeBytes(of: seg) { Data($0) })
+                    seg.filesize = isBigEndian ? newFilesize.byteSwapped : newFilesize
+                    seg.vmsize = isBigEndian ? ((newFilesize + 4095) & ~4095).byteSwapped : (newFilesize + 4095) & ~4095
+                    mutableData.replaceSubrange(currentCmdOffset..<(currentCmdOffset + MemoryLayout<segment_command_64>.size), with: withUnsafeBytes(of: seg) { Data($0) })
                 }
             } else if cmdType == LC_SEGMENT {
                 var seg = mutableData.withUnsafeBytes { $0.load(fromByteOffset: currentCmdOffset, as: segment_command.self) }
                 let segName = withUnsafeBytes(of: seg.segname) { String(cString: $0.baseAddress!.assumingMemoryBound(to: CChar.self)) }
                 if segName == "__LINKEDIT" {
-                    let fileOff = isBigEndian ? OSSwapInt32(seg.fileoff) : seg.fileoff
+                    let fileOff = isBigEndian ? seg.fileoff.byteSwapped : seg.fileoff
                     let newFilesize = UInt32(signatureOffset + signatureSize) - fileOff
-                    seg.filesize = isBigEndian ? OSSwapInt32(newFilesize) : newFilesize
-                    seg.vmsize = isBigEndian ? OSSwapInt32((newFilesize + 4095) & ~4095) : (newFilesize + 4095) & ~4095
-                    mutableData.replaceSubdata(in: currentCmdOffset..<(currentCmdOffset + MemoryLayout<segment_command>.size), with: withUnsafeBytes(of: seg) { Data($0) })
+                    seg.filesize = isBigEndian ? newFilesize.byteSwapped : newFilesize
+                    seg.vmsize = isBigEndian ? ((newFilesize + 4095) & ~4095).byteSwapped : (newFilesize + 4095) & ~4095
+                    mutableData.replaceSubrange(currentCmdOffset..<(currentCmdOffset + MemoryLayout<segment_command>.size), with: withUnsafeBytes(of: seg) { Data($0) })
                 }
             }
             currentCmdOffset += Int(cmdSize)
@@ -207,16 +208,16 @@ class MachOStripper {
         if is64Bit {
             var header = data.withUnsafeBytes { $0.load(fromByteOffset: offset, as: mach_header_64.self) }
             if isBigEndian {
-                header.ncmds = OSSwapInt32(header.ncmds)
-                header.sizeofcmds = OSSwapInt32(header.sizeofcmds)
+                header.ncmds = header.ncmds.byteSwapped
+                header.sizeofcmds = header.sizeofcmds.byteSwapped
             }
             ncmds = header.ncmds
             sizeofcmds = header.sizeofcmds
         } else {
             var header = data.withUnsafeBytes { $0.load(fromByteOffset: offset, as: mach_header.self) }
             if isBigEndian {
-                header.ncmds = OSSwapInt32(header.ncmds)
-                header.sizeofcmds = OSSwapInt32(header.sizeofcmds)
+                header.ncmds = header.ncmds.byteSwapped
+                header.sizeofcmds = header.sizeofcmds.byteSwapped
             }
             ncmds = header.ncmds
             sizeofcmds = header.sizeofcmds
@@ -240,8 +241,8 @@ class MachOStripper {
             var cmdType = cmd.cmd
             var cmdSize = cmd.cmdsize
             if isBigEndian {
-                cmdType = OSSwapInt32(cmdType)
-                cmdSize = OSSwapInt32(cmdSize)
+                cmdType = cmdType.byteSwapped
+                cmdSize = cmdSize.byteSwapped
             }
 
             if cmdType == LC_CODE_SIGNATURE {
@@ -249,8 +250,8 @@ class MachOStripper {
                 var dataOff = sigCmd.dataoff
                 var dataSize = sigCmd.datasize
                 if isBigEndian {
-                    dataOff = OSSwapInt32(dataOff)
-                    dataSize = OSSwapInt32(dataSize)
+                    dataOff = dataOff.byteSwapped
+                    dataSize = dataSize.byteSwapped
                 }
                 codeSignatureOffset = Int(dataOff)
                 codeSignatureSize = Int(dataSize)
@@ -278,56 +279,56 @@ class MachOStripper {
         if let cmdOffset = codeSignatureCommandOffset, let sigOffset = codeSignatureOffset, let sigSize = codeSignatureSize {
             // 1. Remove the LC_CODE_SIGNATURE command by shifting subsequent commands
             let cmdSize = mutableData.withUnsafeBytes { $0.load(fromByteOffset: cmdOffset, as: load_command.self).cmdsize }
-            let moveSize = Int(sizeofcmds) - (cmdOffset - (offset + headerSize)) - Int(isBigEndian ? OSSwapInt32(cmdSize) : cmdSize)
+            let moveSize = Int(sizeofcmds) - (cmdOffset - (offset + headerSize)) - Int(isBigEndian ? cmdSize.byteSwapped : cmdSize)
 
             if moveSize > 0 {
-                let nextCmdOffset = cmdOffset + Int(isBigEndian ? OSSwapInt32(cmdSize) : cmdSize)
+                let nextCmdOffset = cmdOffset + Int(isBigEndian ? cmdSize.byteSwapped : cmdSize)
                 let subsequentData = mutableData.subdata(in: nextCmdOffset..<(nextCmdOffset + moveSize))
-                mutableData.replaceSubdata(in: cmdOffset..<(cmdOffset + moveSize), with: subsequentData)
+                mutableData.replaceSubrange(cmdOffset..<(cmdOffset + moveSize), with: subsequentData)
             }
 
             // Zero out the remaining space in load commands
             let zeroOffset = offset + headerSize + Int(newSizeofcmds)
-            let zeroSize = Int(isBigEndian ? OSSwapInt32(cmdSize) : cmdSize)
-            mutableData.replaceSubdata(in: zeroOffset..<(zeroOffset + zeroSize), with: Data(repeating: 0, count: zeroSize))
+            let zeroSize = Int(isBigEndian ? cmdSize.byteSwapped : cmdSize)
+            mutableData.replaceSubrange(zeroOffset..<(zeroOffset + zeroSize), with: Data(repeating: 0, count: zeroSize))
 
             // 2. Update Mach-O Header
             if is64Bit {
                 var header = mutableData.withUnsafeBytes { $0.load(fromByteOffset: offset, as: mach_header_64.self) }
-                header.ncmds = isBigEndian ? OSSwapInt32(newNcmds) : newNcmds
-                header.sizeofcmds = isBigEndian ? OSSwapInt32(newSizeofcmds) : newSizeofcmds
-                mutableData.replaceSubdata(in: offset..<(offset + MemoryLayout<mach_header_64>.size), with: withUnsafeBytes(of: header) { Data($0) })
+                header.ncmds = isBigEndian ? newNcmds.byteSwapped : newNcmds
+                header.sizeofcmds = isBigEndian ? newSizeofcmds.byteSwapped : newSizeofcmds
+                mutableData.replaceSubrange(offset..<(offset + MemoryLayout<mach_header_64>.size), with: withUnsafeBytes(of: header) { Data($0) })
             } else {
                 var header = mutableData.withUnsafeBytes { $0.load(fromByteOffset: offset, as: mach_header.self) }
-                header.ncmds = isBigEndian ? OSSwapInt32(newNcmds) : newNcmds
-                header.sizeofcmds = isBigEndian ? OSSwapInt32(newSizeofcmds) : newSizeofcmds
-                mutableData.replaceSubdata(in: offset..<(offset + MemoryLayout<mach_header>.size), with: withUnsafeBytes(of: header) { Data($0) })
+                header.ncmds = isBigEndian ? newNcmds.byteSwapped : newNcmds
+                header.sizeofcmds = isBigEndian ? newSizeofcmds.byteSwapped : newSizeofcmds
+                mutableData.replaceSubrange(offset..<(offset + MemoryLayout<mach_header>.size), with: withUnsafeBytes(of: header) { Data($0) })
             }
 
             // 3. Adjust __LINKEDIT segment
             if let linkEditOffset = linkEditCommandOffset {
                 if is64Bit {
                     var seg = mutableData.withUnsafeBytes { $0.load(fromByteOffset: linkEditOffset, as: segment_command_64.self) }
-                    var vmsize = isBigEndian ? OSSwapInt64(seg.vmsize) : seg.vmsize
-                    var filesize = isBigEndian ? OSSwapInt64(seg.filesize) : seg.filesize
+                    var vmsize = isBigEndian ? seg.vmsize.byteSwapped : seg.vmsize
+                    var filesize = isBigEndian ? seg.filesize.byteSwapped : seg.filesize
 
-                    let newFilesize = UInt64(sigOffset) - (isBigEndian ? OSSwapInt64(seg.fileoff) : seg.fileoff)
-                    seg.filesize = isBigEndian ? OSSwapInt64(newFilesize) : newFilesize
+                    let newFilesize = UInt64(sigOffset) - (isBigEndian ? seg.fileoff.byteSwapped : seg.fileoff)
+                    seg.filesize = isBigEndian ? newFilesize.byteSwapped : newFilesize
 
                     let newVmsize = (newFilesize + 4095) & ~4095
-                    seg.vmsize = isBigEndian ? OSSwapInt64(newVmsize) : newVmsize
+                    seg.vmsize = isBigEndian ? newVmsize.byteSwapped : newVmsize
 
-                    mutableData.replaceSubdata(in: linkEditOffset..<(linkEditOffset + MemoryLayout<segment_command_64>.size), with: withUnsafeBytes(of: seg) { Data($0) })
+                    mutableData.replaceSubrange(linkEditOffset..<(linkEditOffset + MemoryLayout<segment_command_64>.size), with: withUnsafeBytes(of: seg) { Data($0) })
                 } else {
                     var seg = mutableData.withUnsafeBytes { $0.load(fromByteOffset: linkEditOffset, as: segment_command.self) }
 
-                    let newFilesize = UInt32(sigOffset) - (isBigEndian ? OSSwapInt32(seg.fileoff) : seg.fileoff)
-                    seg.filesize = isBigEndian ? OSSwapInt32(newFilesize) : newFilesize
+                    let newFilesize = UInt32(sigOffset) - (isBigEndian ? seg.fileoff.byteSwapped : seg.fileoff)
+                    seg.filesize = isBigEndian ? newFilesize.byteSwapped : newFilesize
 
                     let newVmsize = (newFilesize + 4095) & ~4095
-                    seg.vmsize = isBigEndian ? OSSwapInt32(newVmsize) : newVmsize
+                    seg.vmsize = isBigEndian ? newVmsize.byteSwapped : newVmsize
 
-                    mutableData.replaceSubdata(in: linkEditOffset..<(linkEditOffset + MemoryLayout<segment_command>.size), with: withUnsafeBytes(of: seg) { Data($0) })
+                    mutableData.replaceSubrange(linkEditOffset..<(linkEditOffset + MemoryLayout<segment_command>.size), with: withUnsafeBytes(of: seg) { Data($0) })
                 }
             }
 

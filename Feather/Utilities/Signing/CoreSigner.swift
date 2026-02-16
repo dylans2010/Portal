@@ -63,17 +63,17 @@ class CoreSigner {
         cdBuilder.requirementsData = requirementsData
 
         // Use MH_EXECUTE flag if it is an executable
-        let magic = machoData.withUnsafeBytes { $0.load(as: uint32_t.self) }
+        let magic = machoData.withUnsafeBytes { $0.load(as: UInt32.self) }
         let is64Bit = magic == MH_MAGIC_64 || magic == MH_CIGAM_64
         let isBigEndian = magic == MH_CIGAM || magic == MH_CIGAM_64
 
-        var fileType: uint32_t = 0
+        var fileType: UInt32 = 0
         if is64Bit {
             let header = machoData.withUnsafeBytes { $0.load(as: mach_header_64.self) }
-            fileType = isBigEndian ? OSSwapInt32(header.filetype) : header.filetype
+            fileType = isBigEndian ? header.filetype.byteSwapped : header.filetype
         } else {
             let header = machoData.withUnsafeBytes { $0.load(as: mach_header.self) }
-            fileType = isBigEndian ? OSSwapInt32(header.filetype) : header.filetype
+            fileType = isBigEndian ? header.filetype.byteSwapped : header.filetype
         }
 
         if fileType == MH_EXECUTE {
@@ -82,31 +82,31 @@ class CoreSigner {
 
         // Find __TEXT segment vmsize for execSegLimit
         var currentOffset = headerSize
-        let ncmds: uint32_t
+        let ncmds: UInt32
         if is64Bit {
             let header = machoData.withUnsafeBytes { $0.load(fromByteOffset: 0, as: mach_header_64.self) }
-            ncmds = isBigEndian ? OSSwapInt32(header.ncmds) : header.ncmds
+            ncmds = isBigEndian ? header.ncmds.byteSwapped : header.ncmds
         } else {
             let header = machoData.withUnsafeBytes { $0.load(fromByteOffset: 0, as: mach_header.self) }
-            ncmds = isBigEndian ? OSSwapInt32(header.ncmds) : header.ncmds
+            ncmds = isBigEndian ? header.ncmds.byteSwapped : header.ncmds
         }
 
         for _ in 0..<Int(ncmds) {
             let cmd = machoData.withUnsafeBytes { $0.load(fromByteOffset: currentOffset, as: load_command.self) }
-            let cmdType = isBigEndian ? OSSwapInt32(cmd.cmd) : cmd.cmd
-            let cmdSize = isBigEndian ? OSSwapInt32(cmd.cmdsize) : cmd.cmdsize
+            let cmdType = isBigEndian ? cmd.cmd.byteSwapped : cmd.cmd
+            let cmdSize = isBigEndian ? cmd.cmdsize.byteSwapped : cmd.cmdsize
 
             if cmdType == LC_SEGMENT_64 {
                 let seg = machoData.withUnsafeBytes { $0.load(fromByteOffset: currentOffset, as: segment_command_64.self) }
                 let segName = withUnsafeBytes(of: seg.segname) { String(cString: $0.baseAddress!.assumingMemoryBound(to: CChar.self)) }
                 if segName == "__TEXT" {
-                    cdBuilder.execSegLimit = isBigEndian ? OSSwapInt64(seg.vmsize) : seg.vmsize
+                    cdBuilder.execSegLimit = isBigEndian ? seg.vmsize.byteSwapped : seg.vmsize
                 }
             } else if cmdType == LC_SEGMENT {
                 let seg = machoData.withUnsafeBytes { $0.load(fromByteOffset: currentOffset, as: segment_command.self) }
                 let segName = withUnsafeBytes(of: seg.segname) { String(cString: $0.baseAddress!.assumingMemoryBound(to: CChar.self)) }
                 if segName == "__TEXT" {
-                    cdBuilder.execSegLimit = UInt64(isBigEndian ? OSSwapInt32(seg.vmsize) : seg.vmsize)
+                    cdBuilder.execSegLimit = UInt64(isBigEndian ? seg.vmsize.byteSwapped : seg.vmsize)
                 }
             }
             currentOffset += Int(cmdSize)
@@ -256,27 +256,27 @@ class CoreSigner {
 
     private static func verify(executableURL: URL, bundleID: String) throws {
         let machoData = try Data(contentsOf: executableURL)
-        let magic = machoData.withUnsafeBytes { $0.load(as: uint32_t.self) }
+        let magic = machoData.withUnsafeBytes { $0.load(as: UInt32.self) }
         let is64Bit = magic == MH_MAGIC_64 || magic == MH_CIGAM_64
         let isBigEndian = magic == MH_CIGAM || magic == MH_CIGAM_64
 
         let headerSize = is64Bit ? MemoryLayout<mach_header_64>.size : MemoryLayout<mach_header>.size
-        var ncmds: uint32_t = 0
+        var ncmds: UInt32 = 0
 
         if is64Bit {
             let header = machoData.withUnsafeBytes { $0.load(fromByteOffset: 0, as: mach_header_64.self) }
-            ncmds = isBigEndian ? OSSwapInt32(header.ncmds) : header.ncmds
+            ncmds = isBigEndian ? header.ncmds.byteSwapped : header.ncmds
         } else {
             let header = machoData.withUnsafeBytes { $0.load(fromByteOffset: 0, as: mach_header.self) }
-            ncmds = isBigEndian ? OSSwapInt32(header.ncmds) : header.ncmds
+            ncmds = isBigEndian ? header.ncmds.byteSwapped : header.ncmds
         }
 
         var currentOffset = headerSize
         var foundSignature = false
         for _ in 0..<Int(ncmds) {
             let cmd = machoData.withUnsafeBytes { $0.load(fromByteOffset: currentOffset, as: load_command.self) }
-            let cmdType = isBigEndian ? OSSwapInt32(cmd.cmd) : cmd.cmd
-            let cmdSize = isBigEndian ? OSSwapInt32(cmd.cmdsize) : cmd.cmdsize
+            let cmdType = isBigEndian ? cmd.cmd.byteSwapped : cmd.cmd
+            let cmdSize = isBigEndian ? cmd.cmdsize.byteSwapped : cmd.cmdsize
 
             if cmdType == LC_CODE_SIGNATURE {
                 foundSignature = true
