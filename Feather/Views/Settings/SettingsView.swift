@@ -125,7 +125,7 @@ struct SettingsView: View {
                 SettingsRow(icon: "folder.fill", title: String.localized("Files"), color: .accentColor, destination: FilesSettingsView())
             }
             if !hideManager.isHidden("settings.addSource") {
-                SettingsActionRow(icon: "plus.circle.fill", title: String.localized("Add Source"), color: .accentColor) {
+                SettingsActionRow(icon: "plus.circle.fill", title: String.localized("Add Sources"), color: .accentColor) {
                     _showAddSource = true
                 }
             }
@@ -144,7 +144,7 @@ struct SettingsView: View {
                     Task {
                         _isFetchingFullData = true
                         // Fetch both manager's data
-                        await SourcesViewModel.shared.forceFetchAllSources(_sources)
+                        await SourcesViewModel.shared.forceFetchAllSources(Array(_sources))
                         await AppUpdateTrackingManager.shared.manualFetchAllSources()
                         _isFetchingFullData = false
                         HapticsManager.shared.success()
@@ -236,6 +236,10 @@ private struct SettingsActionRow: View {
                 Spacer()
                 if isLoading {
                     ProgressView()
+                } else {
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundStyle(.tertiary)
                 }
             }
         }

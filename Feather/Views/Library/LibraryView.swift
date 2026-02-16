@@ -100,7 +100,7 @@ struct LibraryView: View {
     
     var body: some View {
         NavigationStack {
-            ZStack {
+            ZStack(alignment: .top) {
     
                 Color(.systemBackground)
                     .ignoresSafeArea()
@@ -326,110 +326,11 @@ struct LibraryView: View {
                                         _selectedSigningAppPresenting = AnyApp(base: app)
                                 }
                         }
-                        .overlay {
-                                if _showImportAnimation {
-                                        ZStack {
-                                                Color.black.opacity(0.5)
-                                                        .ignoresSafeArea()
-                                                        .transition(AnyTransition.opacity)
-                                                
-                                                VStack(spacing: 20) {
-                                                        ZStack {
-                                                                // Background circle with status color
-                                                                Circle()
-                                                                        .fill(
-                                                                                _importStatus == .success 
-                                                                                        ? Color.green
-                                                                                        : _importStatus == .failed
-                                                                                        ? Color.red
-                                                                                        : Color.blue
-                                                                        )
-                                                                        .frame(width: 100, height: 100)
-                                                                        .scaleEffect(_showImportAnimation ? 1.0 : 0.5)
-                                                                        .animation(.spring(response: 0.6, dampingFraction: 0.6), value: _showImportAnimation)
-                                                                
-                                                                // Progress ring for downloading state
-                                                                if _importStatus == .downloading {
-                                                                        Circle()
-                                                                                .stroke(Color.white.opacity(0.3), lineWidth: 6)
-                                                                                .frame(width: 90, height: 90)
-                                                                        
-                                                                        Circle()
-                                                                                .trim(from: 0, to: _downloadProgress)
-                                                                                .stroke(Color.white, style: StrokeStyle(lineWidth: 6, lineCap: .round))
-                                                                                .frame(width: 90, height: 90)
-                                                                                .rotationEffect(.degrees(-90))
-                                                                                .animation(.easeInOut(duration: 0.2), value: _downloadProgress)
-                                                                }
-                                                                
-                                                                Group {
-                                                                        switch _importStatus {
-                                                                        case .loading, .processing:
-                                                                                ProgressView()
-                                                                                        .progressViewStyle(CircularProgressViewStyle(tint: .white))
-                                                                                        .scaleEffect(1.5)
-                                                                        case .downloading:
-                                                                                VStack(spacing: 2) {
-                                                                                        Image(systemName: "arrow.down")
-                                                                                                .font(.system(size: 28, weight: .bold))
-                                                                                                .foregroundStyle(.white)
-                                                                                        Text("\(Int(_downloadProgress * 100))%")
-                                                                                                .font(.system(size: 14, weight: .bold))
-                                                                                                .foregroundStyle(.white)
-                                                                                }
-                                                                        case .success:
-                                                                                Image(systemName: "checkmark")
-                                                                                        .font(.system(size: 50, weight: .bold))
-                                                                                        .foregroundStyle(.white)
-                                                                        case .failed:
-                                                                                Image(systemName: "xmark")
-                                                                                        .font(.system(size: 50, weight: .bold))
-                                                                                        .foregroundStyle(.white)
-                                                                        }
-                                                                }
-                                                                .scaleEffect(_showImportAnimation && (_importStatus == .success || _importStatus == .failed) ? 1.0 : (_importStatus == .downloading ? 1.0 : 0.8))
-                                                                .animation(.spring(response: 0.6, dampingFraction: 0.6).delay((_importStatus == .success || _importStatus == .failed) ? 0.1 : 0), value: _importStatus)
-                                                        }
-                                                        
-                                                        VStack(spacing: 8) {
-                                                                Text(_statusTitle)
-                                                                        .font(.title2)
-                                                                        .fontWeight(.bold)
-                                                                        .foregroundStyle(.white)
-                                                                
-                                                                Text(_importedAppName)
-                                                                        .font(.subheadline)
-                                                                        .foregroundStyle(.white.opacity(0.8))
-                                                                        .lineLimit(2)
-                                                                        .multilineTextAlignment(.center)
-                                                                        .padding(.horizontal, 40)
-                                                                
-                                                                // Show error message if failed
-                                                                if _importStatus == .failed && !_importErrorMessage.isEmpty {
-                                                                        Text(_importErrorMessage)
-                                                                                .font(.caption)
-                                                                                .foregroundStyle(.white.opacity(0.6))
-                                                                                .lineLimit(3)
-                                                                                .multilineTextAlignment(.center)
-                                                                                .padding(.horizontal, 20)
-                                                                                .padding(.top, 4)
-                                                                }
-                                                        }
-                                                        .opacity(_showImportAnimation ? 1.0 : 0.0)
-                                                        .offset(y: _showImportAnimation ? 0 : 20)
-                                                        .animation(.easeOut(duration: 0.4).delay(0.2), value: _showImportAnimation)
-                                                }
-                                                .padding(40)
-                                                .background(
-                                                        RoundedRectangle(cornerRadius: 30, style: .continuous)
-                                                                .fill(Color(uiColor: .systemBackground))
-                                                                .shadow(color: .black.opacity(0.3), radius: 30, x: 0, y: 10)
-                                                )
-                                                .scaleEffect(_showImportAnimation ? 1.0 : 0.8)
-                                                .animation(.spring(response: 0.6, dampingFraction: 0.7), value: _showImportAnimation)
-                                        }
-                                }
-                        }
+                if _showImportAnimation {
+                    importHeaderView
+                        .transition(.move(edge: .top).combined(with: .opacity))
+                        .zIndex(100)
+                }
                 }
         }
         
@@ -447,6 +348,73 @@ struct LibraryView: View {
                         return String.localized("Import Failed")
                 }
         }
+
+    private var importHeaderView: some View {
+        VStack(spacing: 0) {
+            HStack(spacing: 12) {
+                // Status Icon
+                ZStack {
+                    Circle()
+                        .fill(statusColor.opacity(0.1))
+                        .frame(width: 32, height: 32)
+
+                    statusIcon
+                        .font(.system(size: 14, weight: .bold))
+                        .foregroundStyle(statusColor)
+                }
+
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(_statusTitle)
+                        .font(.system(size: 14, weight: .bold))
+
+                    Text(_importedAppName)
+                        .font(.system(size: 12))
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                }
+
+                Spacer()
+
+                if _importStatus == .downloading || _importStatus == .processing || _importStatus == .loading {
+                    ProgressView()
+                        .scaleEffect(0.8)
+                }
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 12)
+
+            if _importStatus == .downloading {
+                ProgressView(value: _downloadProgress)
+                    .progressViewStyle(LinearProgressViewStyle())
+                    .tint(statusColor)
+                    .padding(.horizontal, 16)
+                    .padding(.bottom, 8)
+            }
+        }
+        .background(.ultraThinMaterial)
+        .cornerRadius(12)
+        .shadow(color: Color.black.opacity(0.1), radius: 10, x: 0, y: 5)
+        .padding(.horizontal, 16)
+        .padding(.top, 8)
+    }
+
+    private var statusColor: Color {
+        switch _importStatus {
+        case .success: return .green
+        case .failed: return .red
+        default: return .accentColor
+        }
+    }
+
+    @ViewBuilder
+    private var statusIcon: some View {
+        switch _importStatus {
+        case .success: Image(systemName: "checkmark")
+        case .failed: Image(systemName: "xmark")
+        case .downloading: Image(systemName: "arrow.down")
+        default: Image(systemName: "hourglass")
+        }
+    }
 }
 
 // MARK: - Extension: View Components

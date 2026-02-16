@@ -810,7 +810,7 @@ struct AppUpdateTrackingSettingsView: View {
                 }
             }
             .task {
-                await sourcesViewModel.fetchSources(sources)
+                await sourcesViewModel.fetchSources(Array(sources))
             }
         }
     }
