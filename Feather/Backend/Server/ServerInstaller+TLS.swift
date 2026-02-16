@@ -22,7 +22,7 @@ extension ServerInstaller {
 		let app = Application(Self.env)
 		app.threadPool = .init(numberOfThreads: 1)
 		
-		if getServerMethod() != 1 {
+		if getServerMethod() != 1 && getServerMethod() != 3 {
 			if let tls = try tls() {
 				app.http.server.configuration.tlsConfiguration = tls
 			}
@@ -42,7 +42,7 @@ extension ServerInstaller {
 	func sni() -> String {
 		let localhost = "127.0.0.1"
 		
-		if getServerMethod() == 1 {
+		if getServerMethod() == 1 || getServerMethod() == 3 {
 			return !self.getIPFix()
 			? (Self.getLocalAddress() ?? localhost)
 			: localhost

@@ -9,7 +9,7 @@ import UIKit.UIGraphicsImageRenderer
 extension ServerInstaller {
 	var plistEndpoint: URL {
 		var comps = URLComponents()
-		comps.scheme = self.getServerMethod() == 1 ? "http" : "https"
+		comps.scheme = (self.getServerMethod() == 1 || self.getServerMethod() == 3) ? "http" : "https"
 		comps.host = sni()
 		comps.path = "/\(id).plist"
 		comps.port = port
@@ -18,7 +18,7 @@ extension ServerInstaller {
 
 	var payloadEndpoint: URL {
 		var comps = URLComponents()
-		comps.scheme = self.getServerMethod() == 1 ? "http" : "https"
+		comps.scheme = (self.getServerMethod() == 1 || self.getServerMethod() == 3) ? "http" : "https"
 		comps.host = sni()
 		comps.path = "/\(id).ipa"
 		comps.port = port
@@ -27,7 +27,7 @@ extension ServerInstaller {
 	
 	var pageEndpoint: URL {
 		var comps = URLComponents()
-		comps.scheme = self.getServerMethod() == 1 ? "http" : "https"
+		comps.scheme = (self.getServerMethod() == 1 || self.getServerMethod() == 3) ? "http" : "https"
 		comps.host = sni()
 		comps.path = "/install"
 		comps.port = port
