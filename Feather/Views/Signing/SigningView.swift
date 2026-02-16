@@ -193,9 +193,8 @@ struct SigningView: View {
                     .background(Color(UIColor.systemBackground))
                 }
             }
-			.sheet(isPresented: $_isAddingCertificatePresenting) {
+			.fullScreenCover(isPresented: $_isAddingCertificatePresenting) {
 				CertificatesAddView()
-					.presentationDetents([.medium])
 			}
 		}
 		.alert(.localized("Name"), isPresented: $_isNameDialogPresenting) {

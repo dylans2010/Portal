@@ -5800,7 +5800,7 @@ struct CertificateProfileManagerView: View {
         }
         .searchable(text: $searchText, prompt: "Search Certificates")
         .navigationTitle("Certificate Manager")
-        .sheet(isPresented: $showAddCertificate) {
+        .fullScreenCover(isPresented: $showAddCertificate) {
             CertificatesAddView()
         }
         .sheet(item: $selectedCertificate) { cert in
