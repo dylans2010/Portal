@@ -33,30 +33,30 @@ class SigningPipeline {
         // Basic validation of Mach-O structure and signature presence
         // This is a simplified internal verification
 
-        let magic = machoData.withUnsafeBytes { $0.load(as: uint32_t.self) }
+        let magic = machoData.withUnsafeBytes { $0.load(as: UInt32.self) }
         let is64Bit = magic == MH_MAGIC_64 || magic == MH_CIGAM_64
         let isBigEndian = magic == MH_CIGAM || magic == MH_CIGAM_64
 
         let headerSize = is64Bit ? MemoryLayout<mach_header_64>.size : MemoryLayout<mach_header>.size
-        var ncmds: uint32_t = 0
-        var sizeofcmds: uint32_t = 0
+        var ncmds: UInt32 = 0
+        var sizeofcmds: UInt32 = 0
 
         if is64Bit {
             let header = machoData.withUnsafeBytes { $0.load(as: mach_header_64.self) }
-            ncmds = isBigEndian ? OSSwapInt32(header.ncmds) : header.ncmds
-            sizeofcmds = isBigEndian ? OSSwapInt32(header.sizeofcmds) : header.sizeofcmds
+            ncmds = isBigEndian ? header.ncmds.byteSwapped : header.ncmds
+            sizeofcmds = isBigEndian ? header.sizeofcmds.byteSwapped : header.sizeofcmds
         } else {
             let header = machoData.withUnsafeBytes { $0.load(as: mach_header.self) }
-            ncmds = isBigEndian ? OSSwapInt32(header.ncmds) : header.ncmds
-            sizeofcmds = isBigEndian ? OSSwapInt32(header.sizeofcmds) : header.sizeofcmds
+            ncmds = isBigEndian ? header.ncmds.byteSwapped : header.ncmds
+            sizeofcmds = isBigEndian ? header.sizeofcmds.byteSwapped : header.sizeofcmds
         }
 
         var currentOffset = headerSize
         var foundSignature = false
         for _ in 0..<Int(ncmds) {
             let cmd = machoData.withUnsafeBytes { $0.load(fromByteOffset: currentOffset, as: load_command.self) }
-            let cmdType = isBigEndian ? OSSwapInt32(cmd.cmd) : cmd.cmd
-            let cmdSize = isBigEndian ? OSSwapInt32(cmd.cmdsize) : cmd.cmdsize
+            let cmdType = isBigEndian ? cmd.cmd.byteSwapped : cmd.cmd
+            let cmdSize = isBigEndian ? cmd.cmdsize.byteSwapped : cmd.cmdsize
 
             if cmdType == LC_CODE_SIGNATURE {
                 foundSignature = true
