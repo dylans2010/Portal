@@ -65,13 +65,19 @@ struct SourcesAddView: View {
 	@State private var _showPortalExport = false
 	@State private var _portalExportData = ""
 	
+	@State private var _showAlert = false
+	@State private var _alertTitle = ""
+	@State private var _alertMessage = ""
+
 	// MARK: Body
 	var body: some View {
-		NBNavigationView(.localized("Add Source"), displayMode: .inline) {
+		NavigationStack {
 			ScrollView {
 				_mainContent
 			}
 			.background(Color(.systemGroupedBackground))
+			.navigationTitle(.localized("Add Source"))
+			.navigationBarTitleDisplayMode(.inline)
 			.toolbar(content: {
 				_toolbarContent
 			})
@@ -81,6 +87,11 @@ struct SourcesAddView: View {
 			}
 			.sheet(isPresented: $_showPortalExport) {
 				PortalExportView(exportData: $_portalExportData)
+			}
+			.alert(_alertTitle, isPresented: $_showAlert) {
+				Button(.localized("OK"), role: .cancel) { }
+			} message: {
+				Text(_alertMessage)
 			}
 		}
 	}
@@ -128,13 +139,11 @@ struct SourcesAddView: View {
 				Button {
 					let selectedUrls = _selectedSourcesForExport.joined(separator: "\n")
 					UIPasteboard.general.string = selectedUrls
-					UIAlertController.showAlertWithOk(
-						title: .localized("Success"),
-						message: .localized("Sources Copied To Clipboard")
-					) {
-						_isExportMode = false
-						_selectedSourcesForExport.removeAll()
-					}
+					_alertTitle = .localized("Success")
+					_alertMessage = .localized("Sources Copied To Clipboard")
+					_showAlert = true
+					_isExportMode = false
+					_selectedSourcesForExport.removeAll()
 				} label: {
 					Text(.localized("Export Selected"))
 				}
@@ -151,18 +160,23 @@ struct SourcesAddView: View {
 				}
 			}
 		} else {
-			NBToolbarButton(role: .cancel)
+			ToolbarItem(placement: .cancellationAction) {
+				Button(.localized("Cancel"), role: .cancel) {
+					dismiss()
+				}
+			}
 			
 			if !_isImporting {
-				NBToolbarButton(
-					.localized("Save"),
-					style: .text,
-					placement: .confirmationAction,
-					isDisabled: _sourceURL.isEmpty
-				) {
-					FR.handleSource(_sourceURL) {
-						dismiss()
+				ToolbarItem(placement: .confirmationAction) {
+					Button {
+						FR.handleSource(_sourceURL) {
+							dismiss()
+						}
+					} label: {
+						Text(.localized("Save"))
+							.fontWeight(.semibold)
 					}
+					.disabled(_sourceURL.isEmpty)
 				}
 			} else {
 				ToolbarItem(placement: .confirmationAction) {
@@ -228,10 +242,9 @@ struct SourcesAddView: View {
 						_isExportMode = true
 						let sources = Storage.shared.getSources()
 						guard !sources.isEmpty else {
-							UIAlertController.showAlertWithOk(
-								title: .localized("No Sources"),
-								message: .localized("No Sources To Export")
-							)
+							_alertTitle = .localized("No Sources")
+							_alertMessage = .localized("No Sources To Export")
+							_showAlert = true
 							_isExportMode = false
 							return
 						}
@@ -353,11 +366,36 @@ struct SourcesAddView: View {
 	@ViewBuilder
 	private func _featuredSourceRow(url: URL, source: ASRepository) -> some View {
 		HStack(spacing: 16) {
-			FRIconCellView(
-				title: source.name ?? .localized("Unknown"),
-				subtitle: url.host ?? url.absoluteString,
-				iconUrl: source.currentIconURL
-			)
+			HStack(spacing: 12) {
+				if let iconURL = source.currentIconURL {
+					AsyncImage(url: iconURL) { image in
+						image.resizable()
+							.aspectRatio(contentMode: .fill)
+					} placeholder: {
+						Color.accentColor.opacity(0.1)
+					}
+					.frame(width: 44, height: 44)
+					.clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+				} else {
+					ZStack {
+						RoundedRectangle(cornerRadius: 10, style: .continuous)
+							.fill(Color.accentColor.opacity(0.1))
+							.frame(width: 44, height: 44)
+						Image(systemName: "globe")
+							.font(.system(size: 22))
+							.foregroundStyle(Color.accentColor)
+					}
+				}
+
+				VStack(alignment: .leading, spacing: 2) {
+					Text(source.name ?? .localized("Unknown"))
+						.font(.system(.body, design: .rounded).bold())
+						.foregroundStyle(.primary)
+					Text(url.host ?? url.absoluteString)
+						.font(.system(.caption, design: .rounded))
+						.foregroundStyle(.secondary)
+				}
+			}
 			
 			Spacer()
 			
