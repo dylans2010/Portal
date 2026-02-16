@@ -221,13 +221,13 @@ bool ZSignAsset::GenerateCMS(void* pscert, void* pspkey, const string& strCDHash
 	X509_ATTRIBUTE_set1_object(attr_cdhash, obj_cdhash);
 
 	if (!strCodeDirectorySlotSHA1.empty() && strCodeDirectorySlotSHA1.size() >= 20) {
-		if (X509_ATTRIBUTE_add1_data(attr_cdhash, V_ASN1_OCTET_STRING, strCodeDirectorySlotSHA1.data(), 20)) {
+		if (X509_ATTRIBUTE_set1_data(attr_cdhash, V_ASN1_OCTET_STRING, strCodeDirectorySlotSHA1.data(), 20)) {
 			hasCDHashes = true;
 		}
 	}
 
 	if (!strAltnateCodeDirectorySlot256.empty() && strAltnateCodeDirectorySlot256.size() >= 20) {
-		if (X509_ATTRIBUTE_add1_data(attr_cdhash, V_ASN1_OCTET_STRING, strAltnateCodeDirectorySlot256.data(), 20)) {
+		if (X509_ATTRIBUTE_set1_data(attr_cdhash, V_ASN1_OCTET_STRING, strAltnateCodeDirectorySlot256.data(), 20)) {
 			hasCDHashes = true;
 		}
 	}
