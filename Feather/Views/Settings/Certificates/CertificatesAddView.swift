@@ -13,6 +13,8 @@ struct CertificatesAddView: View {
     @State private var _provisionURL: URL? = nil
     @State private var _p12Password: String = ""
     @State private var _certificateName: String = ""
+    @State private var _selectedSegment = 0
+    @State private var _isDefault = false
     
     @State private var _isImportingP12Presenting = false
     @State private var _isImportingMobileProvisionPresenting = false
@@ -20,7 +22,12 @@ struct CertificatesAddView: View {
     @State private var _isImportingPortalCertPresenting = false
     
     var saveButtonDisabled: Bool {
-        _p12URL == nil || _provisionURL == nil
+        switch _selectedSegment {
+        case 0: return _p12URL == nil || _provisionURL == nil
+        case 1: return _p12URL == nil || _provisionURL == nil // Portal cert sets both
+        case 2: return _p12URL == nil || _provisionURL == nil // ZIP sets both
+        default: return true
+        }
     }
     
     var body: some View {
@@ -31,12 +38,124 @@ struct CertificatesAddView: View {
     
     // MARK: - Content View
     private var contentView: some View {
-        VStack(spacing: 0) {
-            VStack(spacing: 16) {
-                fileImportSection
-                dividerSection
-                inputFieldsSection
-                Spacer(minLength: 16)
+        ScrollView {
+            VStack(spacing: 24) {
+                // Mode Picker
+                Picker("Mode", selection: $_selectedSegment) {
+                    Text("Manual").tag(0)
+                    Text("Portal Cert").tag(1)
+                    Text("ZIP File").tag(2)
+                }
+                .pickerStyle(.segmented)
+                .padding(.top, 8)
+
+                // Files Section
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Files")
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundStyle(.secondary)
+                        .padding(.horizontal, 4)
+
+                    VStack(spacing: 0) {
+                        Button {
+                            switch _selectedSegment {
+                            case 0: _isImportingP12Presenting = true
+                            case 1: _isImportingPortalCertPresenting = true
+                            case 2: _isImportingZipPresenting = true
+                            default: break
+                            }
+                        } label: {
+                            HStack {
+                                Text(_selectedSegment == 0 ? "Certificate (.p12)" : (_selectedSegment == 1 ? "Portal Certificate (.portalcert)" : "Certificate ZIP (.zip)"))
+                                    .foregroundStyle(Color.accentColor)
+                                Spacer()
+                                if let url = _p12URL {
+                                    Text(url.lastPathComponent)
+                                        .font(.caption)
+                                        .foregroundStyle(.secondary)
+                                        .lineLimit(1)
+                                }
+                                Image(systemName: "chevron.right")
+                                    .font(.system(size: 14, weight: .semibold))
+                                    .foregroundStyle(.tertiary)
+                            }
+                            .padding()
+                        }
+
+                        if _selectedSegment == 0 {
+                            Divider().padding(.leading)
+
+                            Button {
+                                _isImportingMobileProvisionPresenting = true
+                            } label: {
+                                HStack {
+                                    Text("Provisioning Profile")
+                                        .foregroundStyle(Color.accentColor)
+                                    Spacer()
+                                    if let url = _provisionURL {
+                                        Text(url.lastPathComponent)
+                                            .font(.caption)
+                                            .foregroundStyle(.secondary)
+                                            .lineLimit(1)
+                                    }
+                                    Image(systemName: "chevron.right")
+                                        .font(.system(size: 14, weight: .semibold))
+                                        .foregroundStyle(.tertiary)
+                                }
+                                .padding()
+                            }
+                        }
+                    }
+                    .background(Color(UIColor.secondarySystemGroupedBackground))
+                    .cornerRadius(12)
+                }
+
+                // Password Field
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Password")
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundStyle(.secondary)
+                        .padding(.horizontal, 4)
+
+                    TextField("Leave blank if no password required", text: $_p12Password)
+                        .padding()
+                        .background(Color(UIColor.secondarySystemGroupedBackground))
+                        .cornerRadius(12)
+                }
+
+                // Nickname Field
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Nickname (Optional)")
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundStyle(.secondary)
+                        .padding(.horizontal, 4)
+
+                    TextField("Nickname (Optional)", text: $_certificateName)
+                        .padding()
+                        .background(Color(UIColor.secondarySystemGroupedBackground))
+                        .cornerRadius(12)
+                }
+
+                // Set as Default
+                VStack(alignment: .leading, spacing: 6) {
+                    HStack {
+                        Text("Set as Default")
+                        Spacer()
+                        Toggle("", isOn: $_isDefault)
+                            .labelsHidden()
+                    }
+                    .padding()
+                    .background(Color(UIColor.secondarySystemGroupedBackground))
+                    .cornerRadius(12)
+
+                    Text("Default certificate will be automatically selected when signing apps")
+                        .font(.system(size: 12))
+                        .foregroundStyle(.secondary)
+                        .padding(.horizontal, 4)
+                }
+
+                Spacer(minLength: 20)
+
                 saveButton
             }
             .padding(20)
@@ -51,6 +170,7 @@ struct CertificatesAddView: View {
                 }
             }
         })
+        .preferredColorScheme(.dark)
         .sheet(isPresented: $_isImportingP12Presenting) {
             p12ImportSheet
         }
@@ -64,54 +184,6 @@ struct CertificatesAddView: View {
             portalCertImportSheet
         }
     }
-    
-    // MARK: - File Import Section
-    private var fileImportSection: some View {
-        LazyVGrid(columns: [GridItem(.flexible(), spacing: 12), GridItem(.flexible(), spacing: 12)], spacing: 12) {
-            compactImportCard(
-                title: "P12",
-                subtitle: _p12URL?.lastPathComponent ?? "Select",
-                icon: "key.fill",
-                isSelected: _p12URL != nil,
-                color: .orange
-            ) {
-                _isImportingP12Presenting = true
-            }
-            
-            compactImportCard(
-                title: "Provision",
-                subtitle: _provisionURL?.lastPathComponent ?? "Select",
-                icon: "doc.badge.gearshape.fill",
-                isSelected: _provisionURL != nil,
-                color: .blue
-            ) {
-                _isImportingMobileProvisionPresenting = true
-            }
-            
-            compactImportCard(
-                title: "ZIP",
-                subtitle: "Import ZIP",
-                icon: "doc.zipper",
-                isSelected: false,
-                color: .purple
-            ) {
-                _isImportingZipPresenting = true
-            }
-
-            if usePortalCert {
-                compactImportCard(
-                    title: "Portal",
-                    subtitle: "Custom",
-                    icon: "shippingbox.fill",
-                    isSelected: false,
-                    color: .indigo
-                ) {
-                    _isImportingPortalCertPresenting = true
-                }
-            }
-        }
-    }
-    
     
     // MARK: - Portal Cert Import Sheet
     private var portalCertImportSheet: some View {
@@ -191,137 +263,6 @@ struct CertificatesAddView: View {
         }
     }
     
-    // MARK: - Compact Import Card Small (for side by side layout)
-    @ViewBuilder
-    private func compactImportCardSmall(
-        title: String,
-        subtitle: String,
-        icon: String,
-        isSelected: Bool,
-        color: Color,
-        action: @escaping () -> Void
-    ) -> some View {
-        Button(action: action) {
-            VStack(spacing: 8) {
-                ZStack {
-                    RoundedRectangle(cornerRadius: 10, style: .continuous)
-                        .fill(
-                            LinearGradient(
-                                colors: [
-                                    isSelected ? Color.green.opacity(0.2) : color.opacity(0.2),
-                                    isSelected ? Color.green.opacity(0.1) : color.opacity(0.1)
-                                ],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            )
-                        )
-                        .frame(width: 36, height: 36)
-                    
-                    Image(systemName: isSelected ? "checkmark.circle.fill" : icon)
-                        .font(.system(size: 16, weight: .bold))
-                        .foregroundStyle(isSelected ? .green : color)
-                }
-                
-                VStack(spacing: 2) {
-                    Text(title)
-                        .font(.system(size: 12, weight: .semibold))
-                        .foregroundStyle(isSelected ? .secondary : .primary)
-                    
-                    Text(subtitle)
-                        .font(.system(size: 10, weight: .medium))
-                        .foregroundStyle(isSelected ? .green : .secondary)
-                        .lineLimit(1)
-                }
-            }
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, 12)
-            .padding(.horizontal, 8)
-            .background(
-                RoundedRectangle(cornerRadius: 12, style: .continuous)
-                    .fill(
-                        LinearGradient(
-                            colors: [
-                                isSelected ? Color.green.opacity(0.08) : color.opacity(0.06),
-                                isSelected ? Color.green.opacity(0.04) : color.opacity(0.03)
-                            ],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        )
-                    )
-            )
-            .overlay(
-                RoundedRectangle(cornerRadius: 12, style: .continuous)
-                    .stroke(
-                        isSelected ? Color.green.opacity(0.3) : color.opacity(0.2),
-                        lineWidth: 1.5
-                    )
-            )
-        }
-        .disabled(isSelected)
-        .animation(.easeInOut(duration: 0.2), value: isSelected)
-    }
-    
-    // MARK: - Divider Section
-    private var dividerSection: some View {
-        Rectangle()
-            .fill(Color(UIColor.separator).opacity(0.3))
-            .frame(height: 1)
-            .padding(.vertical, 4)
-    }
-    
-    // MARK: - Input Fields Section
-    private var inputFieldsSection: some View {
-        VStack(spacing: 12) {
-            passwordField
-            nicknameField
-        }
-    }
-    
-    // MARK: - Password Field
-    private var passwordField: some View {
-        HStack(spacing: 12) {
-            ZStack {
-                Circle()
-                    .fill(Color.orange.opacity(0.15))
-                    .frame(width: 36, height: 36)
-                Image(systemName: "lock.fill")
-                    .font(.system(size: 14, weight: .semibold))
-                    .foregroundStyle(.orange)
-            }
-            
-            SecureField("Password (Optional)", text: $_p12Password)
-                .font(.system(size: 15))
-        }
-        .padding(.horizontal, 14)
-        .padding(.vertical, 10)
-        .background(
-            RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .fill(Color(UIColor.secondarySystemGroupedBackground))
-        )
-    }
-    
-    // MARK: - Nickname Field
-    private var nicknameField: some View {
-        HStack(spacing: 12) {
-            ZStack {
-                Circle()
-                    .fill(Color.accentColor.opacity(0.15))
-                    .frame(width: 36, height: 36)
-                Image(systemName: "tag.fill")
-                    .font(.system(size: 14, weight: .semibold))
-                    .foregroundStyle(Color.accentColor)
-            }
-            
-            TextField("Certificate Name", text: $_certificateName)
-                .font(.system(size: 15))
-        }
-        .padding(.horizontal, 14)
-        .padding(.vertical, 10)
-        .background(
-            RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .fill(Color(UIColor.secondarySystemGroupedBackground))
-        )
-    }
     
     // MARK: - Save Button
     private var saveButton: some View {
@@ -388,162 +329,6 @@ struct CertificatesAddView: View {
         .ignoresSafeArea()
     }
     
-    // MARK: - Compact Import Card
-    @ViewBuilder
-    private func compactImportCard(
-        title: String,
-        subtitle: String,
-        icon: String,
-        isSelected: Bool,
-        color: Color,
-        action: @escaping () -> Void
-    ) -> some View {
-        Button(action: action) {
-            HStack(spacing: 12) {
-                ZStack {
-                    RoundedRectangle(cornerRadius: 10, style: .continuous)
-                        .fill(
-                            LinearGradient(
-                                colors: [
-                                    isSelected ? Color.green.opacity(0.2) : color.opacity(0.2),
-                                    isSelected ? Color.green.opacity(0.1) : color.opacity(0.1)
-                                ],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            )
-                        )
-                        .frame(width: 40, height: 40)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 10, style: .continuous)
-                                .stroke(
-                                    isSelected ? Color.green.opacity(0.3) : color.opacity(0.3),
-                                    lineWidth: 1.5
-                                )
-                        )
-                    
-                    Image(systemName: isSelected ? "checkmark.circle.fill" : icon)
-                        .font(.system(size: 16, weight: .bold))
-                        .foregroundStyle(isSelected ? .green : color)
-                        .shadow(color: isSelected ? .green.opacity(0.3) : color.opacity(0.3), radius: 2, x: 0, y: 1)
-                }
-                
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(title)
-                        .font(.system(size: 13, weight: .semibold))
-                        .foregroundStyle(isSelected ? .secondary : .primary)
-                    
-                    Text(subtitle)
-                        .font(.system(size: 10, weight: .medium))
-                        .foregroundStyle(isSelected ? .green : .secondary)
-                        .lineLimit(1)
-                }
-                
-                Spacer()
-                
-                if !isSelected {
-                    Image(systemName: "chevron.right")
-                        .font(.system(size: 12, weight: .semibold))
-                        .foregroundStyle(.tertiary)
-                }
-            }
-            .padding(12)
-            .background(
-                ZStack {
-                    RoundedRectangle(cornerRadius: 16, style: .continuous)
-                        .fill(
-                            LinearGradient(
-                                colors: [
-                                    isSelected ? Color.green.opacity(0.08) : color.opacity(0.06),
-                                    isSelected ? Color.green.opacity(0.04) : color.opacity(0.03)
-                                ],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            )
-                        )
-                    
-                    RoundedRectangle(cornerRadius: 16, style: .continuous)
-                        .stroke(
-                            isSelected ? 
-                                LinearGradient(
-                                    colors: [Color.green.opacity(0.4), Color.green.opacity(0.2)],
-                                    startPoint: .topLeading,
-                                    endPoint: .bottomTrailing
-                                ) :
-                                LinearGradient(
-                                    colors: [color.opacity(0.2), color.opacity(0.1)],
-                                    startPoint: .topLeading,
-                                    endPoint: .bottomTrailing
-                                ),
-                            lineWidth: 2
-                        )
-                }
-            )
-            .shadow(color: isSelected ? .green.opacity(0.2) : color.opacity(0.1), radius: 6, x: 0, y: 3)
-        }
-        .disabled(isSelected)
-        .animation(.easeInOut(duration: 0.2), value: isSelected)
-    }
-}
-
-// MARK: - Extension: View
-extension CertificatesAddView {
-	@ViewBuilder
-	private func _importButton(
-		_ title: String,
-		file: URL?,
-		iconName: String = "square.and.arrow.down.fill",
-		showCheckmark: Bool = true,
-		action: @escaping () -> Void
-	) -> some View {
-		Button {
-			action()
-		} label: {
-			HStack(spacing: 10) {
-				ZStack {
-					Circle()
-						.fill(
-							file == nil
-								? Color.accentColor.opacity(0.12)
-								: Color.green.opacity(0.12)
-						)
-						.frame(width: 32, height: 32)
-					
-					Image(systemName: showCheckmark && file != nil ? "checkmark.circle.fill" : iconName)
-						.font(.system(size: 14))
-						.foregroundStyle(file == nil ? Color.accentColor : Color.green)
-				}
-				
-				VStack(alignment: .leading, spacing: 2) {
-					Text(title)
-						.font(.subheadline)
-						.fontWeight(.medium)
-						.foregroundStyle(file == nil ? .primary : .secondary)
-					
-					if let file = file {
-						Text(file.lastPathComponent)
-							.font(.caption2)
-							.foregroundStyle(.secondary)
-							.lineLimit(1)
-					} else {
-						Text(.localized("Tap To Select"))
-							.font(.caption2)
-							.foregroundStyle(.secondary)
-					}
-				}
-				
-				Spacer()
-				
-				if file == nil {
-					Image(systemName: "chevron.right")
-						.font(.caption2)
-						.foregroundStyle(.tertiary)
-				}
-			}
-			.padding(.vertical, 2)
-		}
-		.disabled(showCheckmark && file != nil)
-		.animation(.easeInOut(duration: 0.25), value: file != nil)
-	}
 }
 
 // MARK: - Extension: View (import)
@@ -565,7 +350,8 @@ extension CertificatesAddView {
 			p12URL: p12URL,
 			provisionURL: provisionURL,
 			p12Password: _p12Password,
-			certificateName: _certificateName
+			certificateName: _certificateName,
+			isDefault: _isDefault
 		) { _ in
 			dismiss()
 		}

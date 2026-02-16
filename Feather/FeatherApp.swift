@@ -96,7 +96,7 @@ struct FeatherApp: App {
 							.environment(\.navigateToUpdates, $navigateToUpdates)
 							.onOpenURL(perform: _handleURL)
 								.transition(AnyTransition.move(edge: .top).combined(with: .opacity))
-                            .sheet(isPresented: $_showCertAdd) {
+                            .fullScreenCover(isPresented: $_showCertAdd) {
                                 CertificatesAddView()
                             }
                             .sheet(isPresented: $_showCertificates) {

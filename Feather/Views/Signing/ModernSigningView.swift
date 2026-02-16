@@ -146,9 +146,8 @@ struct ModernSigningView: View {
                     .background(Color(UIColor.systemBackground))
                 }
             }
-            .sheet(isPresented: $_isAddingCertificatePresenting) {
+            .fullScreenCover(isPresented: $_isAddingCertificatePresenting) {
                 CertificatesAddView()
-                    .presentationDetents([.medium])
             }
             .navigationBarTitleDisplayMode(.inline)
             .toolbar(content: {
