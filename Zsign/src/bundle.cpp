@@ -10,6 +10,7 @@ ZBundle::ZBundle()
 	m_pSignAsset = NULL;
 	m_bForceSign = false;
 	m_bWeakInject = false;
+	m_bExcludeProvisioning = false;
 	signFailedFiles = "";
 }
 
@@ -268,7 +269,8 @@ bool ZBundle::SignNode(jvalue& jvNode)
 			ZLog::PrintV(">>> SignFile: \t%s\n", strFile.c_str());
 			ZMachO macho;
 			if (macho.InitV("%s/%s", m_strAppFolder.c_str(), strFile.c_str())) {
-				if (!macho.Sign(m_pSignAsset, m_bForceSign, "", "", "", "")) {
+				string strId = ZUtil::GetBaseName(strFile.c_str());
+				if (!macho.Sign(m_pSignAsset, m_bForceSign, strId, "", "", "")) {
 					signFailedFiles += strFile;
 					signFailedFiles += "\n";
 //					return false;
@@ -316,6 +318,18 @@ bool ZBundle::SignNode(jvalue& jvNode)
 
 	string strExePath = strBaseFolder + "/" + strBundleExe;
 	ZLog::PrintV(">>> SignFolder: %s, (%s)\n", ("/" == strFolder) ? ZUtil::GetBaseName(m_strAppFolder.c_str()) : strFolder.c_str(), strBundleExe.c_str());
+
+	ZFile::RemoveFileV("%s/embedded.mobileprovision", strBaseFolder.c_str());
+	if (!m_pSignAsset->m_strProvData.empty()) {
+		if (!m_bExcludeProvisioning) {
+			if (ZFile::IsPathSuffix(strBaseFolder, ".app") || ZFile::IsPathSuffix(strBaseFolder, ".appex")) {
+				if (!ZFile::WriteFileV(m_pSignAsset->m_strProvData, "%s/embedded.mobileprovision", strBaseFolder.c_str())) {
+					ZLog::ErrorV(">>> Can't write embedded.mobileprovision! %s\n", strBaseFolder.c_str());
+					return false;
+				}
+			}
+		}
+	}
 
 	ZMachO macho;
 	if (!macho.Init(strExePath.c_str())) {
@@ -517,6 +531,7 @@ bool ZBundle::SignFolder(ZSignAsset* pSignAsset,
 	m_bForceSign = bForce;
 	m_pSignAsset = pSignAsset;
 	m_bWeakInject = bWeakInject;
+	m_bExcludeProvisioning = excludeProvisioning;
 	if (NULL == m_pSignAsset) {
 		return false;
 	}
@@ -530,19 +545,6 @@ bool ZBundle::SignFolder(ZSignAsset* pSignAsset,
 		m_bForceSign = true;
 		if (!ModifyBundleInfo(strBundleId, strBundleVersion, strDisplayName)) {
 			return false;
-		}
-	}
-
-	ZFile::RemoveFileV("%s/embedded.mobileprovision", m_strAppFolder.c_str());
-	if (!pSignAsset->m_strProvData.empty()) {
-		if (!excludeProvisioning) {
-			bool isApp = ZFile::IsPathSuffix(m_strAppFolder, ".app") || ZFile::IsPathSuffix(m_strAppFolder, ".appex");
-			if (isApp) {
-				if (!ZFile::WriteFileV(pSignAsset->m_strProvData, "%s/embedded.mobileprovision", m_strAppFolder.c_str())) { // embedded.mobileprovision
-					ZLog::ErrorV(">>> Can't write embedded.mobileprovision!\n");
-					return false;
-				}
-			}
 		}
 	}
 

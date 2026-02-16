@@ -39,6 +39,7 @@ private:
 private:
 	bool			m_bForceSign;
 	bool			m_bWeakInject;
+	bool			m_bExcludeProvisioning;
 	ZSignAsset*		m_pSignAsset;
 	vector<string>	m_arrInjectDylibs;
 
