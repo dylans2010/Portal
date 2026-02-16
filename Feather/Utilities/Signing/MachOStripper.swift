@@ -25,7 +25,7 @@ class MachOStripper {
 
     func strip() throws -> Data {
         var mutableData = data
-        let magic = mutableData.withUnsafeBytes { $0.load(as: uint32_t.self) }
+        let magic = mutableData.withUnsafeBytes { $0.load(as: UInt32.self) }
 
         if magic == FAT_MAGIC || magic == FAT_CIGAM {
             return try stripFat(magic: magic)
@@ -36,11 +36,11 @@ class MachOStripper {
         }
     }
 
-    private func isMachOMagic(_ magic: uint32_t) -> Bool {
+    private func isMachOMagic(_ magic: UInt32) -> Bool {
         return magic == MH_MAGIC || magic == MH_CIGAM || magic == MH_MAGIC_64 || magic == MH_CIGAM_64
     }
 
-    private func stripFat(magic: uint32_t) throws -> Data {
+    private func stripFat(magic: UInt32) throws -> Data {
         let isBigEndian = magic == FAT_CIGAM
 
         let headerSize = MemoryLayout<fat_header>.size
@@ -74,7 +74,7 @@ class MachOStripper {
 
             mutableData.replaceSubdata(in: Int(arch.offset)..<Int(arch.offset + arch.size), with: strippedThinData)
 
-            var newSize = uint32_t(strippedThinData.count)
+            var newSize = UInt32(strippedThinData.count)
             if isBigEndian {
                 newSize = OSSwapInt32(newSize)
             }
@@ -89,7 +89,7 @@ class MachOStripper {
 
     func appendSignature(_ signature: Data) throws -> Data {
         var mutableData = data
-        let magic = mutableData.withUnsafeBytes { $0.load(as: uint32_t.self) }
+        let magic = mutableData.withUnsafeBytes { $0.load(as: UInt32.self) }
 
         if magic == FAT_MAGIC || magic == FAT_CIGAM {
             // Appending signature to Fat binary is complex because we need to append to each thin slice
@@ -103,14 +103,14 @@ class MachOStripper {
 
     private func appendSignatureThin(to machoData: Data, signature: Data, offset: Int) throws -> Data {
         var mutableData = machoData
-        let magic = mutableData.withUnsafeBytes { $0.load(fromByteOffset: offset, as: uint32_t.self) }
+        let magic = mutableData.withUnsafeBytes { $0.load(fromByteOffset: offset, as: UInt32.self) }
         let is64Bit = magic == MH_MAGIC_64 || magic == MH_CIGAM_64
         let isBigEndian = magic == MH_CIGAM || magic == MH_CIGAM_64
 
         let headerSize = is64Bit ? MemoryLayout<mach_header_64>.size : MemoryLayout<mach_header>.size
 
-        var ncmds: uint32_t = 0
-        var sizeofcmds: uint32_t = 0
+        var ncmds: UInt32 = 0
+        var sizeofcmds: UInt32 = 0
 
         if is64Bit {
             var header = mutableData.withUnsafeBytes { $0.load(fromByteOffset: offset, as: mach_header_64.self) }
@@ -129,14 +129,14 @@ class MachOStripper {
             mutableData.append(Data(repeating: 0, count: padding))
         }
 
-        let signatureOffset = uint32_t(mutableData.count)
+        let signatureOffset = UInt32(mutableData.count)
         mutableData.append(signature)
-        let signatureSize = uint32_t(signature.count)
+        let signatureSize = UInt32(signature.count)
 
         // 2. Add LC_CODE_SIGNATURE load command
         var sigCmd = linkedit_data_command()
-        sigCmd.cmd = isBigEndian ? OSSwapInt32(uint32_t(LC_CODE_SIGNATURE)) : uint32_t(LC_CODE_SIGNATURE)
-        sigCmd.cmdsize = isBigEndian ? OSSwapInt32(uint32_t(MemoryLayout<linkedit_data_command>.size)) : uint32_t(MemoryLayout<linkedit_data_command>.size)
+        sigCmd.cmd = isBigEndian ? OSSwapInt32(UInt32(LC_CODE_SIGNATURE)) : UInt32(LC_CODE_SIGNATURE)
+        sigCmd.cmdsize = isBigEndian ? OSSwapInt32(UInt32(MemoryLayout<linkedit_data_command>.size)) : UInt32(MemoryLayout<linkedit_data_command>.size)
         sigCmd.dataoff = isBigEndian ? OSSwapInt32(signatureOffset) : signatureOffset
         sigCmd.datasize = isBigEndian ? OSSwapInt32(signatureSize) : signatureSize
 
@@ -145,7 +145,7 @@ class MachOStripper {
 
         // 3. Update Header
         let newNcmds = ncmds + 1
-        let newSizeofcmds = sizeofcmds + uint32_t(MemoryLayout<linkedit_data_command>.size)
+        let newSizeofcmds = sizeofcmds + UInt32(MemoryLayout<linkedit_data_command>.size)
 
         if is64Bit {
             var header = mutableData.withUnsafeBytes { $0.load(fromByteOffset: offset, as: mach_header_64.self) }
@@ -171,7 +171,7 @@ class MachOStripper {
                 let segName = withUnsafeBytes(of: seg.segname) { String(cString: $0.baseAddress!.assumingMemoryBound(to: CChar.self)) }
                 if segName == "__LINKEDIT" {
                     let fileOff = isBigEndian ? OSSwapInt64(seg.fileoff) : seg.fileoff
-                    let newFilesize = uint64_t(signatureOffset + signatureSize) - fileOff
+                    let newFilesize = UInt64(signatureOffset + signatureSize) - fileOff
                     seg.filesize = isBigEndian ? OSSwapInt64(newFilesize) : newFilesize
                     seg.vmsize = isBigEndian ? OSSwapInt64((newFilesize + 4095) & ~4095) : (newFilesize + 4095) & ~4095
                     mutableData.replaceSubdata(in: currentCmdOffset..<(currentCmdOffset + MemoryLayout<segment_command_64>.size), with: withUnsafeBytes(of: seg) { Data($0) })
@@ -181,7 +181,7 @@ class MachOStripper {
                 let segName = withUnsafeBytes(of: seg.segname) { String(cString: $0.baseAddress!.assumingMemoryBound(to: CChar.self)) }
                 if segName == "__LINKEDIT" {
                     let fileOff = isBigEndian ? OSSwapInt32(seg.fileoff) : seg.fileoff
-                    let newFilesize = uint32_t(signatureOffset + signatureSize) - fileOff
+                    let newFilesize = UInt32(signatureOffset + signatureSize) - fileOff
                     seg.filesize = isBigEndian ? OSSwapInt32(newFilesize) : newFilesize
                     seg.vmsize = isBigEndian ? OSSwapInt32((newFilesize + 4095) & ~4095) : (newFilesize + 4095) & ~4095
                     mutableData.replaceSubdata(in: currentCmdOffset..<(currentCmdOffset + MemoryLayout<segment_command>.size), with: withUnsafeBytes(of: seg) { Data($0) })
@@ -194,15 +194,15 @@ class MachOStripper {
     }
 
     private func stripThin(offset: Int) throws -> Data {
-        let magic = data.withUnsafeBytes { $0.load(fromByteOffset: offset, as: uint32_t.self) }
+        let magic = data.withUnsafeBytes { $0.load(fromByteOffset: offset, as: UInt32.self) }
         let is64Bit = magic == MH_MAGIC_64 || magic == MH_CIGAM_64
         let isBigEndian = magic == MH_CIGAM || magic == MH_CIGAM_64
 
         let headerSize = is64Bit ? MemoryLayout<mach_header_64>.size : MemoryLayout<mach_header>.size
         guard data.count >= offset + headerSize else { throw MachOStripperError.invalidMachO }
 
-        var ncmds: uint32_t = 0
-        var sizeofcmds: uint32_t = 0
+        var ncmds: UInt32 = 0
+        var sizeofcmds: UInt32 = 0
 
         if is64Bit {
             var header = data.withUnsafeBytes { $0.load(fromByteOffset: offset, as: mach_header_64.self) }
@@ -311,7 +311,7 @@ class MachOStripper {
                     var vmsize = isBigEndian ? OSSwapInt64(seg.vmsize) : seg.vmsize
                     var filesize = isBigEndian ? OSSwapInt64(seg.filesize) : seg.filesize
 
-                    let newFilesize = uint64_t(sigOffset) - (isBigEndian ? OSSwapInt64(seg.fileoff) : seg.fileoff)
+                    let newFilesize = UInt64(sigOffset) - (isBigEndian ? OSSwapInt64(seg.fileoff) : seg.fileoff)
                     seg.filesize = isBigEndian ? OSSwapInt64(newFilesize) : newFilesize
 
                     let newVmsize = (newFilesize + 4095) & ~4095
@@ -321,7 +321,7 @@ class MachOStripper {
                 } else {
                     var seg = mutableData.withUnsafeBytes { $0.load(fromByteOffset: linkEditOffset, as: segment_command.self) }
 
-                    let newFilesize = uint32_t(sigOffset) - (isBigEndian ? OSSwapInt32(seg.fileoff) : seg.fileoff)
+                    let newFilesize = UInt32(sigOffset) - (isBigEndian ? OSSwapInt32(seg.fileoff) : seg.fileoff)
                     seg.filesize = isBigEndian ? OSSwapInt32(newFilesize) : newFilesize
 
                     let newVmsize = (newFilesize + 4095) & ~4095
