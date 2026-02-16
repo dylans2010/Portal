@@ -59,7 +59,7 @@ final class ArchiveHandler: NSObject {
 				paths: [payloadUrl],
 				zipFilePath: zipUrl,
 				password: nil,
-				compression: .none, // Use .none or .medium for better compatibility? The prompt says "Do not use exotic compression flags."
+				compression: .DefaultCompression, // Use .NoCompression or .DefaultCompression for better compatibility
 				progress: { progress in
 					Task { @MainActor in
 						self.viewModel.packageProgress = progress
