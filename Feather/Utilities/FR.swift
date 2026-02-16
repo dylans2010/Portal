@@ -113,7 +113,6 @@ enum FR {
 		p12Password: String,
 		certificateName: String = "",
 		isDefault: Bool = false,
-		isPortalCert: Bool = false,
 		completion: @escaping (Error?) -> Void
 	) {
 		Task.detached {
@@ -126,8 +125,8 @@ enum FR {
 			)
 			
 			do {
-				try await handler.copy(isPortalCert: isPortalCert)
-				try await handler.addToDatabase(isPortalCert: isPortalCert)
+				try await handler.copy()
+				try await handler.addToDatabase()
 				
 				// Check if certificate has PPQCheck and automatically enable PPQ Protection
 				if let hasPPQCheck = handler.hasPPQCheck(), hasPPQCheck {

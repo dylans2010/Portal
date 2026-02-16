@@ -6,7 +6,6 @@ import WidgetKit
 extension Storage {
         func addCertificate(
                 uuid: String,
-                isPortalCert: Bool = false,
                 password: String? = nil,
                 nickname: String? = nil,
                 ppq: Bool = false,
@@ -17,7 +16,7 @@ extension Storage {
                 
                 let new = CertificatePair(context: context)
                 new.uuid = uuid
-                new.isPortalCert = isPortalCert
+                new.isPortalCert = false
                 new.date = Date()
                 new.password = password
                 new.ppQCheck = ppq
@@ -75,43 +74,15 @@ extension Storage {
         func revokagedCertificate(for cert: CertificatePair) {
                 guard !cert.revoked else { return }
                 
-                if cert.isPortalCert {
-                        guard let certDir = getUuidDirectory(for: cert) else { return }
-
-                        Task {
-                                do {
-                                        try await PortalEncryptManager.shared.withDecryptedFiles(from: certDir) { p12URL, provisionURL in
-                                                return try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
-                                                        Zsign.checkRevokage(
-                                                                provisionPath: provisionURL.path,
-                                                                p12Path: p12URL.path,
-                                                                p12Password: cert.password ?? ""
-                                                        ) { (status, _, _) in
-                                                                if status == 1 {
-                                                                        DispatchQueue.main.async {
-                                                                                cert.revoked = true
-                                                                                self.saveContext()
-                                                                        }
-                                                                }
-                                                                continuation.resume()
-                                                        }
-                                                }
-                                        }
-                                } catch {
-                                        AppLogManager.shared.error("Failed to decrypt for revokage check: \(error.localizedDescription)", category: "Storage")
-                                }
-                        }
-                } else {
-                        Zsign.checkRevokage(
-                                provisionPath: Storage.shared.getFile(.provision, from: cert)?.path ?? "",
-                                p12Path: Storage.shared.getFile(.certificate, from: cert)?.path ?? "",
-                                p12Password: cert.password ?? ""
-                        ) { (status, _, _) in
-                                if status == 1 {
-                                        DispatchQueue.main.async {
-                                                cert.revoked = true
-                                                self.saveContext()
-                                        }
+                Zsign.checkRevokage(
+                        provisionPath: Storage.shared.getFile(.provision, from: cert)?.path ?? "",
+                        p12Path: Storage.shared.getFile(.certificate, from: cert)?.path ?? "",
+                        p12Password: cert.password ?? ""
+                ) { (status, _, _) in
+                        if status == 1 {
+                                DispatchQueue.main.async {
+                                        cert.revoked = true
+                                        self.saveContext()
                                 }
                         }
                 }
@@ -131,18 +102,6 @@ extension Storage {
         }
         
         func getProvisionFileDecoded(for cert: CertificatePair) -> Certificate? {
-                if cert.isPortalCert {
-                        guard let certDir = getUuidDirectory(for: cert) else { return nil }
-                        do {
-                                let (_, provisionData) = try PortalEncryptManager.shared.getDecryptedFiles(from: certDir)
-                                let read = CertificateReader(data: provisionData)
-                                return read.decoded
-                        } catch {
-                                AppLogManager.shared.error("Failed to decrypt provision for decoding: \(error.localizedDescription)", category: "Storage")
-                                return nil
-                        }
-                }
-
                 guard let url = getFile(.provision, from: cert) else {
                         return nil
                 }

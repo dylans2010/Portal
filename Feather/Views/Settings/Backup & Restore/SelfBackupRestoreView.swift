@@ -199,10 +199,10 @@ struct SelfBackupRestoreView: View {
             // Features Section
             Section {
                 featureCard(
-                    icon: "lock.shield.fill",
+                    icon: "shield.fill",
                     iconColor: .green,
-                    title: .localized("Encrypted Storage"),
-                    description: .localized("All backups are encrypted for security.")
+                    title: .localized("Standard Storage"),
+                    description: .localized("All backups use standard formats for maximum compatibility.")
                 )
                 
                 featureCard(
@@ -1158,49 +1158,44 @@ class SelfBackupRestoreViewModel: ObservableObject {
     }
     
     private func encryptData(_ data: Data, with customPassword: String? = nil) throws -> Data {
-        let encryptionPassword = customPassword ?? password
-        let key = SymmetricKey(data: SHA256.hash(data: encryptionPassword.data(using: .utf8)!))
-
-        // Use direct binary format for better efficiency
-        let sealedBox = try AES.GCM.seal(data, using: key)
-
-        // Add a magic header to identify binary encrypted backups (v2)
-        var combined = "PORTAL_V2".data(using: .utf8)!
-        combined.append(sealedBox.combined!)
-        return combined
+        // From this point forward, there must be absolutely no encryption.
+        // Returning raw data to comply with architectural requirements.
+        return data
     }
     
     private func decryptData(_ encryptedData: Data, with customPassword: String? = nil) throws -> Data {
-        let decryptionPassword = customPassword ?? password
-        let key = SymmetricKey(data: SHA256.hash(data: decryptionPassword.data(using: .utf8)!))
+        // From this point forward, there must be absolutely no encryption.
+        // We try to handle legacy encrypted backups for compatibility if possible,
+        // but new backups are plain data.
 
-        // Check for binary magic header (v2)
         let v2Header = "PORTAL_V2".data(using: .utf8)!
-        if encryptedData.starts(with: v2Header) {
-            let dataToDecrypt = encryptedData.suffix(from: v2Header.count)
-            let sealedBox = try AES.GCM.SealedBox(combined: dataToDecrypt)
-            return try AES.GCM.open(sealedBox, using: key)
-        }
-
-        // Fallback to legacy JSON format (v1)
-        var dataToDecrypt = encryptedData
         let v1Header = "PORTAL_ENC".data(using: .utf8)!
-        if encryptedData.starts(with: v1Header) {
-            dataToDecrypt = encryptedData.suffix(from: v1Header.count)
-        }
+        
+        if encryptedData.starts(with: v2Header) || encryptedData.starts(with: v1Header) {
+            // Legacy encryption detected. Attempting to decrypt with default or provided password.
+            let encryptionPassword = customPassword ?? password
+            let key = SymmetricKey(data: SHA256.hash(data: encryptionPassword.data(using: .utf8)!))
 
-        struct SimplePayload: Codable {
-            let version: String
-            let timestamp: TimeInterval
-            let data: Data
+            if encryptedData.starts(with: v2Header) {
+                let dataToDecrypt = encryptedData.suffix(from: v2Header.count)
+                let sealedBox = try AES.GCM.SealedBox(combined: dataToDecrypt)
+                return try AES.GCM.open(sealedBox, using: key)
+            } else {
+                let dataToDecrypt = encryptedData.suffix(from: v1Header.count)
+                struct SimplePayload: Codable {
+                    let version: String
+                    let timestamp: TimeInterval
+                    let data: Data
+                }
+                let sealedBox = try AES.GCM.SealedBox(combined: dataToDecrypt)
+                let decryptedData = try AES.GCM.open(sealedBox, using: key)
+                let payload = try JSONDecoder().decode(SimplePayload.self, from: decryptedData)
+                return payload.data
+            }
         }
         
-        let sealedBox = try AES.GCM.SealedBox(combined: dataToDecrypt)
-        let decryptedData = try AES.GCM.open(sealedBox, using: key)
-        
-        let decoder = JSONDecoder()
-        let payload = try decoder.decode(SimplePayload.self, from: decryptedData)
-        return payload.data
+        // No encryption header, assume plain data.
+        return encryptedData
     }
 }
 

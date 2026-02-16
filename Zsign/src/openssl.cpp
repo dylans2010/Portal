@@ -210,23 +210,35 @@ bool ZSignAsset::GenerateCMS(void* pscert, void* pspkey, const string& strCDHash
 		return CMSError();
 	}
 
-	// add CDHashes
+	// add CDHashes - MUST be a single attribute with multiple values
 	ASN1_OBJECT* obj_cdhash = OBJ_txt2obj("1.2.840.113635.100.9.2", 1);
 	if (!obj_cdhash) {
 		return CMSError();
 	}
 
+	bool hasCDHashes = false;
+	X509_ATTRIBUTE* attr_cdhash = X509_ATTRIBUTE_new();
+	X509_ATTRIBUTE_set1_object(attr_cdhash, obj_cdhash);
+
 	if (!strCodeDirectorySlotSHA1.empty() && strCodeDirectorySlotSHA1.size() >= 20) {
-		if (!CMS_signed_add1_attr_by_OBJ(si, obj_cdhash, V_ASN1_OCTET_STRING, strCodeDirectorySlotSHA1.data(), 20)) {
-			return CMSError();
+		if (X509_ATTRIBUTE_add1_data(attr_cdhash, V_ASN1_OCTET_STRING, strCodeDirectorySlotSHA1.data(), 20)) {
+			hasCDHashes = true;
 		}
 	}
 
 	if (!strAltnateCodeDirectorySlot256.empty() && strAltnateCodeDirectorySlot256.size() >= 20) {
-		if (!CMS_signed_add1_attr_by_OBJ(si, obj_cdhash, V_ASN1_OCTET_STRING, strAltnateCodeDirectorySlot256.data(), 20)) {
+		if (X509_ATTRIBUTE_add1_data(attr_cdhash, V_ASN1_OCTET_STRING, strAltnateCodeDirectorySlot256.data(), 20)) {
+			hasCDHashes = true;
+		}
+	}
+
+	if (hasCDHashes) {
+		if (!CMS_signed_add1_attr(si, attr_cdhash)) {
+			X509_ATTRIBUTE_free(attr_cdhash);
 			return CMSError();
 		}
 	}
+	X509_ATTRIBUTE_free(attr_cdhash);
 
 	if (!CMS_final(cms, in, NULL, nFlags)) {
 		return CMSError();
@@ -591,8 +603,22 @@ bool ZSignAsset::Init(
 	if (GetCMSContent(m_strProvData, strProvContent)) {
 		if (jvProv.read_plist(strProvContent)) {
 			m_strTeamId = jvProv["TeamIdentifier"][0].as_cstr();
+
+			// Extract entitlements directly from the provisioning profile
+			string strProvEntitlements;
+			jvProv["Entitlements"].style_write_plist(strProvEntitlements);
+
 			if (m_strEntitleData.empty()) {
-				jvProv["Entitlements"].style_write_plist(m_strEntitleData);
+				m_strEntitleData = strProvEntitlements;
+			} else {
+				// If user provided entitlements, we should still ensure they are valid
+				// and perhaps merge them. For now, let's log and use provided if they exist,
+				// but the requirement says "Extract entitlements directly from the provisioning profile".
+				// So let's prioritize them if they exist in profile.
+				if (!strProvEntitlements.empty()) {
+					ZLog::PrintV(">>> Using entitlements from provisioning profile.\n");
+					m_strEntitleData = strProvEntitlements;
+				}
 			}
 		}
 	}

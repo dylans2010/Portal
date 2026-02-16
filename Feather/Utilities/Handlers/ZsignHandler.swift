@@ -54,19 +54,9 @@ final class ZsignHandler {
 		AppLogManager.shared.info("Starting signing process for: \(_appUrl.lastPathComponent)", category: "Signing")
 		AppLogManager.shared.debug("Using certificate: \(cert.nickname ?? "Unknown")", category: "Signing")
 
-		if cert.isPortalCert {
-			guard let certDir = Storage.shared.getUuidDirectory(for: cert) else {
-				throw SigningFileHandlerError.missingCertifcate
-			}
-
-			try await PortalEncryptManager.shared.withDecryptedFiles(from: certDir) { p12URL, provisionURL in
-				try await _performSign(p12Path: p12URL.path, provisionPath: provisionURL.path, cert: cert)
-			}
-		} else {
-			let p12Path = Storage.shared.getFile(.certificate, from: cert)?.path ?? ""
-			let provisionPath = Storage.shared.getFile(.provision, from: cert)?.path ?? ""
-			try await _performSign(p12Path: p12Path, provisionPath: provisionPath, cert: cert)
-		}
+		let p12Path = Storage.shared.getFile(.certificate, from: cert)?.path ?? ""
+		let provisionPath = Storage.shared.getFile(.provision, from: cert)?.path ?? ""
+		try await _performSign(p12Path: p12Path, provisionPath: provisionPath, cert: cert)
 	}
 
 	private func _performSign(p12Path: String, provisionPath: String, cert: CertificatePair) async throws {
