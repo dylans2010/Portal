@@ -56,8 +56,8 @@ final class ZsignHandler {
 		AppLogManager.shared.debug("Using certificate: \(cert.nickname ?? "Unknown")", category: "Signing")
 
 		// 1. Initial Certificate and Provision Checks
-		if let expiryDate = cert.expiryDate, expiryDate < Date() {
-			AppLogManager.shared.error("Certificate is expired: \(expiryDate)", category: "Signing")
+		if let expiration = cert.expiration, expiration < Date() {
+			AppLogManager.shared.error("Certificate is expired: \(expiration)", category: "Signing")
 			throw SigningFileHandlerError.signFailed
 		}
 
