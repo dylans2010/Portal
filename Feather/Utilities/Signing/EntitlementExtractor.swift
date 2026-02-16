@@ -71,12 +71,10 @@ class EntitlementExtractor {
             throw EntitlementExtractorError.entitlementsNotFound
         }
 
-        let entitlementsString: String = String(xmlString[dictStartRange.lowerBound..<endIndex])
-        guard let entitlementsData = entitlementsString.data(using: .utf8) else {
-            throw EntitlementExtractorError.entitlementsNotFound
-        }
+        let startOffset = xmlString.distance(from: xmlString.startIndex, to: dictStartRange.lowerBound)
+        let endOffset = xmlString.distance(from: xmlString.startIndex, to: endIndex)
 
-        return entitlementsData
+        return xmlData.subdata(in: startOffset..<endOffset)
     }
 
     static func parseFullPlist(from provisionData: Data) throws -> [String: Any] {

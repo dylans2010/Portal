@@ -6,7 +6,7 @@
 #include <openssl/bio.h>
 #include <openssl/x509.h>
 
-NSData* CreateCMSSignature(NSData* p12Data, NSString* p12Password, NSData* cdData, NSData* cdHashesPlist, NSArray<NSData*>* cdHashes, NSError** error) {
+NSData* CreateCMSSignature(NSData* p12Data, NSString* p12Password, NSData* cdData, NSData* cdHashesPlist, NSArray<NSData*>* cdHashes, CMSLogBlock logBlock, NSError** error) {
     OpenSSL_add_all_algorithms();
     ERR_load_crypto_strings();
 
@@ -31,6 +31,30 @@ NSData* CreateCMSSignature(NSData* p12Data, NSString* p12Password, NSData* cdDat
     }
     PKCS12_free(p12);
 
+    if (logBlock) {
+        char *subject = X509_NAME_oneline(X509_get_subject_name(cert), NULL, 0);
+        logBlock([NSString stringWithFormat:@"Certificate subject: %s", subject]);
+        OPENSSL_free(subject);
+
+        ASN1_TIME *notAfter = X509_get0_notAfter(cert);
+        BIO *bio = BIO_new(BIO_s_mem());
+        ASN1_TIME_print(bio, notAfter);
+        BUF_MEM *bptr;
+        BIO_get_mem_ptr(bio, &bptr);
+        NSString *expireStr = [[NSString alloc] initWithBytes:bptr->data length:bptr->length encoding:NSUTF8StringEncoding];
+        logBlock([NSString stringWithFormat:@"Certificate expiration date: %@", expireStr]);
+        BIO_free(bio);
+
+        logBlock([NSString stringWithFormat:@"Certificate chain length: %d", sk_X509_num(ca)]);
+    }
+
+    // Check expiration
+    if (X509_cmp_current_time(X509_get0_notAfter(cert)) <= 0) {
+        EVP_PKEY_free(pkey); X509_free(cert); sk_X509_pop_free(ca, X509_free);
+        if (error) *error = [NSError errorWithDomain:@"CMSSigner" code:7 userInfo:@{NSLocalizedDescriptionKey: @"Certificate is expired"}];
+        return nil;
+    }
+
     int nFlags = CMS_PARTIAL | CMS_DETACHED | CMS_NOSMIMECAP | CMS_BINARY;
     CMS_ContentInfo* cms = CMS_sign(NULL, NULL, ca, NULL, nFlags);
     if (!cms) {
@@ -45,6 +69,9 @@ NSData* CreateCMSSignature(NSData* p12Data, NSString* p12Password, NSData* cdDat
         if (error) *error = [NSError errorWithDomain:@"CMSSigner" code:4 userInfo:@{NSLocalizedDescriptionKey: @"Failed to add signer to CMS"}];
         return nil;
     }
+
+    // Explicitly add the signer certificate to the CMS message
+    CMS_add1_cert(cms, cert);
 
     // Add signed attributes
     // 1.2.840.113635.100.9.1 - CDHashes Plist
@@ -69,6 +96,15 @@ NSData* CreateCMSSignature(NSData* p12Data, NSString* p12Password, NSData* cdDat
         if (error) *error = [NSError errorWithDomain:@"CMSSigner" code:5 userInfo:@{NSLocalizedDescriptionKey: @"Failed to finalize CMS"}];
         return nil;
     }
+
+    // Internal validation: Verify the signature we just created
+    BIO* verifyBio = BIO_new_mem_buf([cdData bytes], (int)[cdData length]);
+    if (CMS_verify(cms, NULL, NULL, verifyBio, NULL, CMS_NO_SIGNER_CERT_VERIFY | CMS_DETACHED | CMS_BINARY) != 1) {
+        BIO_free(in); BIO_free(verifyBio); CMS_ContentInfo_free(cms); EVP_PKEY_free(pkey); X509_free(cert); sk_X509_pop_free(ca, X509_free);
+        if (error) *error = [NSError errorWithDomain:@"CMSSigner" code:6 userInfo:@{NSLocalizedDescriptionKey: @"CMS signature verification failed"}];
+        return nil;
+    }
+    BIO_free(verifyBio);
     BIO_free(in);
 
     BIO* out = BIO_new(BIO_s_mem());

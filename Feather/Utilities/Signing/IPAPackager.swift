@@ -11,6 +11,7 @@ class IPAPackager {
     private let fileManager = FileManager.default
 
     func extract(ipaURL: URL, to destinationURL: URL) throws -> URL {
+        AppLogManager.shared.verbose("Extracting IPA: \(ipaURL.lastPathComponent)", category: "Signing")
         try fileManager.createDirectoryIfNeeded(at: destinationURL)
 
         try Zip.unzipFile(ipaURL, destination: destinationURL, overwrite: true, password: nil)
@@ -25,13 +26,18 @@ class IPAPackager {
             throw IPAPackagerError.invalidStructure
         }
 
+        AppLogManager.shared.verbose("Bundle path detected: \(appBundle.lastPathComponent)", category: "Signing")
+        AppLogManager.shared.verbose("IPA extraction completed", category: "Signing")
+
         return appBundle
     }
 
     func package(payloadURL: URL, to outputURL: URL) throws {
+        AppLogManager.shared.verbose("Repackaging IPA...", category: "Signing")
         // Ensure we are zipping the Payload directory itself, not its parent
         // Zip.zipFiles(paths: [payloadURL], ...) usually creates an archive where 'Payload' is a top-level folder.
 
         try Zip.zipFiles(paths: [payloadURL], zipFilePath: outputURL, password: nil, progress: nil)
+        AppLogManager.shared.verbose("IPA repackaged successfully", category: "Signing")
     }
 }

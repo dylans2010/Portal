@@ -18,10 +18,12 @@ class MachOStripper {
     }
 
     static func strip(at url: URL) throws {
+        AppLogManager.shared.verbose("Stripping signature from Mach-O: \(url.lastPathComponent)", category: "Signing")
         let data = try Data(contentsOf: url)
         let stripper = MachOStripper(data: data)
         let strippedData = try stripper.strip()
         try strippedData.write(to: url)
+        AppLogManager.shared.verbose("Signature stripped successfully", category: "Signing")
     }
 
     func strip() throws -> Data {
@@ -131,8 +133,16 @@ class MachOStripper {
         }
 
         let signatureOffset = UInt32(mutableData.count)
-        mutableData.append(signature)
-        let signatureSize = UInt32(signature.count)
+        var paddedSignature = signature
+        let sigPadding = (16 - (paddedSignature.count % 16)) % 16
+        if sigPadding > 0 {
+            paddedSignature.append(Data(repeating: 0, count: sigPadding))
+        }
+
+        mutableData.append(paddedSignature)
+        let signatureSize = UInt32(paddedSignature.count)
+
+        AppLogManager.shared.verbose("LC_CODE_SIGNATURE offset: \(signatureOffset), size: \(signatureSize) (padded)", category: "Signing")
 
         // 2. Add LC_CODE_SIGNATURE load command
         var sigCmd = linkedit_data_command()

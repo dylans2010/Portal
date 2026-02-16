@@ -39,7 +39,10 @@ class CMSSigner {
 
     private func performSigningInC(cdData: Data, cdHashesPlist: Data, cdHashes: [Data]) throws -> Data {
         var error: NSError?
-        guard let signature = CreateCMSSignature(p12Data, p12Password, cdData, cdHashesPlist, cdHashes, &error) else {
+        let logBlock: CMSLogBlock = { message in
+            AppLogManager.shared.verbose(message, category: "Signing")
+        }
+        guard let signature = CreateCMSSignature(p12Data, p12Password, cdData, cdHashesPlist, cdHashes, logBlock, &error) else {
             throw error ?? CMSSignerError.signingError
         }
         return signature
