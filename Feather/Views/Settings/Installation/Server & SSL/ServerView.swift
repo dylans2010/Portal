@@ -208,7 +208,7 @@ struct ServerView: View {
 			}
 			.padding(.vertical, 4)
 			
-			if _serverMethod == 1 {
+			if _serverMethod == 1 || _serverMethod == 3 {
 				Toggle(isOn: $_ipFix) {
 					HStack(spacing: 12) {
 						ZStack {
@@ -393,7 +393,12 @@ struct ServerView: View {
 		if _serverMethod == 2 {
 			urlString = _customSigningAPI.isEmpty ? "https://google.com" : _customSigningAPI //lmaoo google
 		} else if _serverMethod == 1 || _serverMethod == 3 {
-			urlString = "http://localhost:4000" // Default local server port
+			// Local server methods (Server and Background) use a dynamic port and are only active during installation.
+			_serverStatus = "Active during install"
+			_statusColor = .blue
+			_responseTime = "Dynamic"
+			_isCheckingStatus = false
+			return
 		} else {
 			urlString = "https://backloop.dev"
 		}
