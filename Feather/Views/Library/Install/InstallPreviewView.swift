@@ -6,7 +6,6 @@ import IDeviceSwift
 struct InstallPreviewView: View {
     @Environment(\.dismiss) var dismiss
     @Environment(\.colorScheme) var colorScheme
-    var onDismiss: (() -> Void)? = nil
 
     @AppStorage("Feather.useShareSheetForArchiving") private var _useShareSheet: Bool = false
     @AppStorage("Feather.installationMethod") private var _installationMethod: Int = 0
@@ -38,18 +37,6 @@ struct InstallPreviewView: View {
                         .scaleEffect(appearAnimation ? 1 : 0.9)
                         .opacity(appearAnimation ? 1 : 0)
 
-                    if onDismiss != nil {
-                        Spacer()
-
-                        Button {
-                            onDismiss?()
-                        } label: {
-                            Image(systemName: "xmark.circle.fill")
-                                .font(.system(size: 24))
-                                .foregroundStyle(.secondary.opacity(0.5))
-                        }
-                        .padding(.top, 4)
-                    }
                 }
                 
                 statusLabel
@@ -67,10 +54,6 @@ struct InstallPreviewView: View {
                     .shadow(color: Color.black.opacity(0.1), radius: 10, x: 0, y: 5)
             )
             .padding(16)
-
-            if onDismiss == nil {
-                Spacer()
-            }
         }
         .frame(maxWidth: .infinity)
         .onAppear {
@@ -262,12 +245,12 @@ struct InstallPreviewView: View {
                     
                     if await !_useShareSheet {
                         await MainActor.run {
-                            if let onDismiss { onDismiss() } else { dismiss() }
+                            dismiss()
                         }
                     } else {
                         if let package {
                             await MainActor.run {
-                                if let onDismiss { onDismiss() } else { dismiss() }
+                                dismiss()
                                 UIActivityViewController.show(activityItems: [package])
                             }
                         }
@@ -280,7 +263,7 @@ struct InstallPreviewView: View {
                         message: String(describing: error),
                         action: {
                             HeartbeatManager.shared.start(true)
-                            if let onDismiss { onDismiss() } else { dismiss() }
+                            dismiss()
                         }
                     )
                 }
