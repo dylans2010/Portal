@@ -236,11 +236,20 @@ extension LibraryView {
         }
 
         if let app = _selectedInstallAppOverlay {
-            InstallPreviewView(app: app.base, isSharing: app.archive, onDismiss: {
-                withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
-                    _selectedInstallAppOverlay = nil
+            ZStack(alignment: .topTrailing) {
+                InstallPreviewView(app: app.base, isSharing: app.archive)
+
+                Button {
+                    withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+                        _selectedInstallAppOverlay = nil
+                    }
+                } label: {
+                    Image(systemName: "xmark.circle.fill")
+                        .font(.system(size: 24))
+                        .foregroundStyle(.secondary.opacity(0.5))
                 }
-            })
+                .padding(32)
+            }
             .transition(.move(edge: .bottom).combined(with: .opacity))
             .zIndex(101)
             .ignoresSafeArea()
