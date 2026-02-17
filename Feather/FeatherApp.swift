@@ -88,8 +88,6 @@ struct FeatherApp: App {
 							.transition(AnyTransition.move(edge: .top).combined(with: .opacity))
 						}
 						
-						DownloadHeaderView(downloadManager: downloadManager)
-							.transition(AnyTransition.move(edge: .top).combined(with: .opacity))
 						VariedTabbarView()
 							.applyGlobalTheme()
 							.environment(\.managedObjectContext, storage.context)

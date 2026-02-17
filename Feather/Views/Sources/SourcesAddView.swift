@@ -595,10 +595,11 @@ struct PlainGroupBoxStyle: GroupBoxStyle {
 	// MARK: - Open Portal Export Directly
 	private func _openPortalExportDirectly() {
 		// Open Portal Export view directly for import/export
-		_portalExportData = ""
+		let allSources = Storage.shared.getSources().compactMap { $0.sourceURL?.absoluteString }
+		_portalExportData = PortalSourceExport.encode(urls: allSources)
 		_showPortalExport = true
 		
-		Logger.misc.info("[Portal Export] Opening Portal Export view directly")
+		Logger.misc.info("[Portal Export] Opening Portal Export view directly with \(allSources.count) sources")
 	}
 	
 	private func _fetchRecommendedRepositories() async {
@@ -907,8 +908,12 @@ struct PortalExportView: View {
 				}
 			} else {
 				Section {
-					Text(.localized("Select sources from the Export Mode to generate the source data."))
-						.foregroundStyle(.secondary)
+					Button {
+						let allSources = Storage.shared.getSources().compactMap { $0.sourceURL?.absoluteString }
+						exportData = PortalSourceExport.encode(urls: allSources)
+					} label: {
+						Label(.localized("Generate Code For All Sources"), systemImage: "arrow.up.doc.fill")
+					}
 				}
 			}
 		}
