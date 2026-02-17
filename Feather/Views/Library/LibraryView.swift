@@ -99,67 +99,97 @@ struct LibraryView: View {
     
     var body: some View {
         NavigationStack {
-            ZStack(alignment: .bottom) {
-                List(displayedApps, id: \.uuid, selection: $_selectedApps) { app in
-                    appRow(for: app)
-                }
-                .listStyle(.insetGrouped)
-                .refreshable {
-                    HapticsManager.shared.softImpact()
-                }
-                .overlay {
-                    if displayedApps.isEmpty {
-                        emptyStateView
-                    }
-                }
-                .searchable(text: $_searchText, placement: .navigationBarDrawer(displayMode: .always), prompt: "Search Apps")
-                .safeAreaInset(edge: .bottom) {
-                    if !_selectedApps.isEmpty {
-                        batchActionBar
-                            .transition(.move(edge: .bottom).combined(with: .opacity))
-                    }
-                }
+            applyLibraryObservers(to: mainContent)
+        }
+    }
 
-                // Import overlay
-                if _showImportAnimation {
-                    importToast
-                        .transition(.move(edge: .bottom).combined(with: .opacity))
-                        .padding(.bottom, _selectedApps.isEmpty ? 20 : 100)
-                }
+    private var mainContent: some View {
+        let content = ZStack(alignment: .bottom) {
+            appListView
 
-                // Install preview overlay
-                if let app = _selectedInstallAppOverlay {
-                    InstallPreviewView(app: app.base, isSharing: app.archive, onDismiss: {
-                        withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
-                            _selectedInstallAppOverlay = nil
-                        }
-                    })
+            if _showImportAnimation {
+                importToastOverlay
+            }
+
+            if let app = _selectedInstallAppOverlay {
+                installPreviewOverlay(for: app)
+            }
+        }
+        .navigationTitle("Library")
+        .toolbarTitleMenu {
+            filterMenu
+        }
+        .toolbar {
+            libraryToolbar
+        }
+
+        return applyLibrarySheets(to: content)
+    }
+}
+
+// MARK: - Subviews & Actions
+extension LibraryView {
+
+    private var appListView: some View {
+        List(displayedApps, id: \.uuid, selection: $_selectedApps) { app in
+            appRow(for: app)
+        }
+        .listStyle(.insetGrouped)
+        .refreshable {
+            HapticsManager.shared.softImpact()
+        }
+        .overlay {
+            if displayedApps.isEmpty {
+                emptyStateView
+            }
+        }
+        .searchable(text: $_searchText, placement: .navigationBarDrawer(displayMode: .always), prompt: "Search Apps")
+        .safeAreaInset(edge: .bottom) {
+            if !_selectedApps.isEmpty {
+                batchActionBar
                     .transition(.move(edge: .bottom).combined(with: .opacity))
-                    .zIndex(101)
-                    .ignoresSafeArea()
+            }
+        }
+    }
+
+    private var importToastOverlay: some View {
+        importToast
+            .transition(.move(edge: .bottom).combined(with: .opacity))
+            .padding(.bottom, _selectedApps.isEmpty ? 20 : 100)
+    }
+
+    private func installPreviewOverlay(for app: AnyApp) -> some View {
+        InstallPreviewView(app: app.base, isSharing: app.archive, onDismiss: {
+            withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+                _selectedInstallAppOverlay = nil
+            }
+        })
+        .transition(.move(edge: .bottom).combined(with: .opacity))
+        .zIndex(101)
+        .ignoresSafeArea()
+    }
+
+    @ToolbarContentBuilder
+    private var libraryToolbar: some ToolbarContent {
+        ToolbarItem(placement: .topBarTrailing) {
+            if !hideManager.isHidden("library.importButton") {
+                importMenu
+            }
+        }
+        ToolbarItem(placement: .topBarTrailing) {
+            EditButton()
+        }
+        ToolbarItem(placement: .topBarLeading) {
+            if !_selectedApps.isEmpty {
+                Button("Clear") {
+                    _selectedApps.removeAll()
                 }
             }
-            .navigationTitle("Library")
-            .toolbarTitleMenu {
-                filterMenu
-            }
-            .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
-                    if !hideManager.isHidden("library.importButton") {
-                        importMenu
-                    }
-                }
-                ToolbarItem(placement: .topBarTrailing) {
-                    EditButton()
-                }
-                ToolbarItem(placement: .topBarLeading) {
-                    if !_selectedApps.isEmpty {
-                        Button("Clear") {
-                            _selectedApps.removeAll()
-                        }
-                    }
-                }
-            }
+        }
+    }
+
+    private func applyLibrarySheets(to view: some View) -> some View {
+        view
             .sheet(item: $_selectedInfoAppPresenting) { app in
                 LibraryInfoView(app: app.base)
             }
@@ -205,6 +235,10 @@ struct LibraryView: View {
             } message: {
                 Text("Are you sure you want to delete \(_selectedApps.count) selected app(s)?")
             }
+    }
+
+    private func applyLibraryObservers(to view: some View) -> some View {
+        view
             .onReceive(NotificationCenter.default.publisher(for: DownloadManager.importDidSucceedNotification)) { notification in
                 handleImportSuccess(notification: notification)
             }
@@ -235,12 +269,7 @@ struct LibraryView: View {
                     _selectedSigningAppPresenting = AnyApp(base: app)
                 }
             }
-        }
     }
-}
-
-// MARK: - Subviews & Actions
-extension LibraryView {
 
     @ViewBuilder
     private func appRow(for app: AppInfoPresentable) -> some View {
