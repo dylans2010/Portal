@@ -117,13 +117,13 @@ struct FileInfoView: View {
                 }
                 .scrollContentBackground(.hidden)
             }
-            .toolbar(content: {
+            .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
                     Button(.localized("Done")) {
                         dismiss()
                     }
                 }
-            })
+            }
         }
     }
     

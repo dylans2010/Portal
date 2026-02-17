@@ -95,7 +95,7 @@ struct CreatePlistView: View {
                 }
                 .scrollContentBackground(.hidden)
             }
-            .toolbar(content: {
+            .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button(.localized("Cancel")) {
                         dismiss()
@@ -114,7 +114,7 @@ struct CreatePlistView: View {
                     }
                     .disabled(fileName.isEmpty)
                 }
-            })
+            }
         }
     }
     

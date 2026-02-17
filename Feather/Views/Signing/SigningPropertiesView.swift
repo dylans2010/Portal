@@ -47,7 +47,7 @@ struct SigningPropertiesView: View {
 					)
 			}
 		}
-		.toolbar(content: {
+		.toolbar {
 			NBToolbarButton(
 				.localized("Save"),
 				style: .text,
@@ -59,7 +59,7 @@ struct SigningPropertiesView: View {
 					dismiss()
 				}
 			}
-		})
+		}
 		.onAppear {
 			text = initialValue
 		}

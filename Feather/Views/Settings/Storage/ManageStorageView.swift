@@ -1611,11 +1611,11 @@ struct StorageAnalyzerView: View {
             }
             .navigationTitle(.localized("Storage Analyzer"))
             .navigationBarTitleDisplayMode(.inline)
-            .toolbar(content: {
+            .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button(.localized("Done")) { dismiss() }
                 }
-            })
+            }
             .onAppear {
                 performAnalysis()
             }
@@ -1710,11 +1710,11 @@ struct DuplicateFinderView: View {
             }
             .navigationTitle(.localized("Duplicate Finder"))
             .navigationBarTitleDisplayMode(.inline)
-            .toolbar(content: {
+            .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button(.localized("Done")) { dismiss() }
                 }
-            })
+            }
             .onAppear {
                 scanForDuplicates()
             }
@@ -1803,11 +1803,11 @@ struct LargeFilesFinderView: View {
             }
             .navigationTitle(.localized("Large Files"))
             .navigationBarTitleDisplayMode(.inline)
-            .toolbar(content: {
+            .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button(.localized("Done")) { dismiss() }
                 }
-            })
+            }
             .onAppear {
                 findLargeFiles()
             }

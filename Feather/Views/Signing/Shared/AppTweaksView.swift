@@ -40,7 +40,7 @@ struct AppTweaksView: View {
                 }
             }
             .navigationBarTitleDisplayMode(.inline)
-            .toolbar(content: { toolbarContent })
+            .toolbar { toolbarContent }
             .onAppear {
                 loadData()
                 withAnimation(.spring(response: 0.6, dampingFraction: 0.8)) {
@@ -647,11 +647,11 @@ struct AddTweakUrlView: View {
             }
             .navigationTitle("Add From URL")
             .navigationBarTitleDisplayMode(.inline)
-            .toolbar(content: {
+            .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") { dismiss() }
                 }
-            })
+            }
         }
         .presentationDetents([.height(250)])
     }
@@ -728,11 +728,11 @@ struct ExtractTweaksView: View {
             }
             .navigationTitle("Extract Tweaks")
             .navigationBarTitleDisplayMode(.inline)
-            .toolbar(content: {
+            .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") { dismiss() }
                 }
-            })
+            }
             .alert("Success", isPresented: $showSuccessAlert) {
                 Button("OK") { dismiss() }
             } message: {

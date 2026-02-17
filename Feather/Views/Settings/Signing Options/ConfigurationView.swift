@@ -51,13 +51,13 @@ struct InstallationOptionsSplashView: View {
             }
             .navigationTitle("Installation")
             .navigationBarTitleDisplayMode(.inline)
-            .toolbar(content: {
+            .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button("Done") {
                         dismiss()
                     }
                 }
-            })
+            }
         }
     }
 }
@@ -114,7 +114,7 @@ struct ConfigurationView: View {
             }
         }
         .navigationTitle("Signing Options")
-        .toolbar(content: {
+        .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Menu {
                     Section(optionsManager.options.ppqString) {
@@ -135,7 +135,7 @@ struct ConfigurationView: View {
                     Image(systemName: "ellipsis.circle")
                 }
             }
-        })
+        }
         .sheet(isPresented: $showInstallationOptions) {
             InstallationOptionsSplashView()
         }

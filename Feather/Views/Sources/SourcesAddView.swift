@@ -77,9 +77,7 @@ struct SourcesAddView: View {
 			}
 			.navigationTitle(.localized("Add Source"))
 			.navigationBarTitleDisplayMode(.inline)
-			.toolbar(content: {
-				_toolbarContent
-			})
+			.toolbar { _toolbarContent }
 			.animation(.default, value: _filteredRecommendedSourcesData.map { $0.data.id ?? "" })
 			.task {
 				await _fetchRecommendedRepositories()
@@ -822,11 +820,11 @@ struct PortalExportView: View {
 			}
 			.navigationTitle(.localized("Portal Transfer"))
 			.navigationBarTitleDisplayMode(.inline)
-			.toolbar(content: {
+			.toolbar {
 				ToolbarItem(placement: .cancellationAction) {
 					Button(.localized("Done")) { dismiss() }
 				}
-			})
+			}
 		}
 	}
 	

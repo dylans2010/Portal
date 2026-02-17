@@ -26,12 +26,12 @@ struct EditSourcesView: View {
             .navigationTitle("Edit Sources")
             .navigationBarTitleDisplayMode(.inline)
             .environment(\.editMode, $editMode)
-            .toolbar(content: {
+            .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button("Done") { dismiss() }
                         .fontWeight(.semibold)
                 }
-            })
+            }
             .overlay {
                 if sources.isEmpty {
                     emptyStateView

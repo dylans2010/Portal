@@ -26,7 +26,7 @@ struct CreateTextFileView: View {
                     Text(.localized("Content"))
                 }
             }
-            .toolbar(content: {
+            .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button(.localized("Cancel")) {
                         dismiss()
@@ -39,7 +39,7 @@ struct CreateTextFileView: View {
                     }
                     .disabled(fileName.isEmpty)
                 }
-            })
+            }
         }
     }
     

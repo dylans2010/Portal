@@ -114,7 +114,7 @@ struct JSONViewerView: View {
                     }
                 }
             }
-            .toolbar(content: {
+            .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button(.localized("Close")) {
                         dismiss()
@@ -155,7 +155,7 @@ struct JSONViewerView: View {
                     }
                     .disabled(isEditing && validationError != nil)
                 }
-            })
+            }
         }
         .onAppear {
             loadContent()

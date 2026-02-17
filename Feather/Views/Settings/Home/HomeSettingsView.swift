@@ -785,7 +785,7 @@ struct AppUpdateTrackingSettingsView: View {
             }
             .navigationTitle("Tracked Apps")
             .navigationBarTitleDisplayMode(.inline)
-            .toolbar(content: {
+            .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {
                         showAddAppSheet = true
@@ -793,7 +793,7 @@ struct AppUpdateTrackingSettingsView: View {
                         Image(systemName: "plus")
                     }
                 }
-            })
+            }
             .sheet(isPresented: $showAddAppSheet) {
                 SelectAppToTrackView(sources: sourcesViewModel.sources)
             }
@@ -1076,7 +1076,7 @@ struct SelectAppToTrackView: View {
             }
             .navigationTitle("Select App")
             .navigationBarTitleDisplayMode(.inline)
-            .toolbar(content: {
+            .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
                     Button("Cancel") {
                         dismiss()
@@ -1088,7 +1088,7 @@ struct SelectAppToTrackView: View {
                             .scaleEffect(0.8)
                     }
                 }
-            })
+            }
         }
         .onAppear {
             loadAppsIfNeeded()

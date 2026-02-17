@@ -49,7 +49,7 @@ struct CheckForUpdatesView: View {
         .background(Color(UIColor.systemGroupedBackground))
         .navigationTitle("Check For Updates")
         .navigationBarTitleDisplayMode(.inline)
-        .toolbar(content: {
+        .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Button {
                     updateManager.checkForUpdates()
@@ -63,7 +63,7 @@ struct CheckForUpdatesView: View {
                 }
                 .disabled(updateManager.isCheckingUpdates)
             }
-        })
+        }
         .onAppear {
             if !updateManager.hasChecked {
                 updateManager.checkForUpdates()
@@ -779,14 +779,14 @@ struct FullReleaseNotesView: View {
             }
             .navigationTitle("Release Notes")
             .navigationBarTitleDisplayMode(.inline)
-            .toolbar(content: {
+            .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button("Done") {
                         dismiss()
                     }
                     .fontWeight(.semibold)
                 }
-            })
+            }
         }
     }
     
@@ -1168,7 +1168,7 @@ struct UpdateFinishedView: View {
             .background(Color(UIColor.systemGroupedBackground))
             .navigationTitle("Portal Update")
             .navigationBarTitleDisplayMode(.inline)
-            .toolbar(content: {
+            .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {
                         onDismiss()
@@ -1179,7 +1179,7 @@ struct UpdateFinishedView: View {
                             .foregroundStyle(.secondary)
                     }
                 }
-            })
+            }
             .sheet(isPresented: $showShareSheet) {
                 ShareSheet(urls: [ipaURL])
             }

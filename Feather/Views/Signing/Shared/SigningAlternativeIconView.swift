@@ -72,11 +72,11 @@ struct SigningAlternativeIconView: View {
 				}
 			}
 			.onAppear(perform: _loadAlternateIcons)
-			.toolbar(content: {
+			.toolbar {
 				if isModifing {
 					NBToolbarButton(role: .close)
 				}
-			})
+			}
 		}
 	}
 }

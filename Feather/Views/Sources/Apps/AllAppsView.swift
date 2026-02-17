@@ -113,13 +113,13 @@ struct AllAppsView: View {
                         .navigationTitle("Apps")
                         .navigationBarTitleDisplayMode(.large)
                         .searchable(text: $_searchText, placement: .navigationBarDrawer(displayMode: .always), prompt: "Search \(_totalAppCount) Apps")
-                        .toolbar(content: {
+                        .toolbar {
                             if _showSorting {
                                 ToolbarItem(placement: .topBarTrailing) {
                                     sortingMenu
                                 }
                             }
-                        })
+                        }
                 }
             } else {
                 mainContent

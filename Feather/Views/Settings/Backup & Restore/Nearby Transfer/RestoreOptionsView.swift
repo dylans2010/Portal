@@ -74,7 +74,7 @@ struct RestoreOptionsView: View {
             }
             .navigationTitle("Restore Backup")
             .navigationBarTitleDisplayMode(.inline)
-            .toolbar(content: {
+            .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
                     Button("Cancel") {
                         // Clean up the pending backup
@@ -85,7 +85,7 @@ struct RestoreOptionsView: View {
                         dismiss()
                     }
                 }
-            })
+            }
             .overlay {
                 if isRestoring {
                     ZStack {

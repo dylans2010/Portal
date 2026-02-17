@@ -105,13 +105,13 @@ struct HexEditorView: View {
                     }
                 }
             }
-            .toolbar(content: {
+            .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
                     Button(.localized("Done")) {
                         dismiss()
                     }
                 }
-            })
+            }
         }
         .onAppear {
             loadHexContent()

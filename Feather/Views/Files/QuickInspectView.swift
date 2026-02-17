@@ -95,13 +95,13 @@ struct QuickInspectView: View {
                 }
                 .padding()
             }
-            .toolbar(content: {
+            .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button(.localized("Close")) {
                         dismiss()
                     }
                 }
-            })
+            }
         }
         .task {
             await loadFileInformation()

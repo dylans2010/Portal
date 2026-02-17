@@ -142,13 +142,13 @@ struct GuideDetailView: View {
         }
         .navigationTitle(guide.displayName)
         .navigationBarTitleDisplayMode(.inline)
-        .toolbar(content: {
+        .toolbar {
             ToolbarItem(placement: .navigationBarTrailing) {
                 if shouldShowAIButton {
                     aiButton
                 }
             }
-        })
+        }
         .task {
             await loadContent()
         }
@@ -974,7 +974,7 @@ struct AIActionsSheet: View {
             }
             .background(Color(.systemGroupedBackground))
             .navigationBarTitleDisplayMode(.inline)
-            .toolbar(content: {
+            .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button {
                         isPresented = false
@@ -984,7 +984,7 @@ struct AIActionsSheet: View {
                             .foregroundStyle(.secondary)
                     }
                 }
-            })
+            }
         }
     }
 }
@@ -1140,14 +1140,14 @@ struct CustomPromptSheet: View {
                 Spacer()
             }
             .navigationBarTitleDisplayMode(.inline)
-            .toolbar(content: {
+            .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
                     Button("Cancel") {
                         instruction = ""
                         isPresented = false
                     }
                 }
-            })
+            }
             .onAppear {
                 isFocused = true
             }
@@ -1246,7 +1246,7 @@ struct AIErrorSheet: View {
                 .padding(.bottom)
             }
             .navigationBarTitleDisplayMode(.inline)
-            .toolbar(content: {
+            .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button {
                         onDismiss()
@@ -1255,7 +1255,7 @@ struct AIErrorSheet: View {
                             .foregroundStyle(.secondary)
                     }
                 }
-            })
+            }
         }
     }
 }
@@ -1435,7 +1435,7 @@ struct TranslateSheet: View {
             }
             .background(Color(.systemGroupedBackground))
             .navigationBarTitleDisplayMode(.inline)
-            .toolbar(content: {
+            .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
                     Button("Cancel") {
                         selectedLanguage = ""
@@ -1443,7 +1443,7 @@ struct TranslateSheet: View {
                         isPresented = false
                     }
                 }
-            })
+            }
         }
     }
 }

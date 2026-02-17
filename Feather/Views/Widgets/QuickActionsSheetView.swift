@@ -97,7 +97,7 @@ struct QuickActionsSheetView: View {
                 .padding(.bottom, 30)
             }
             .background(Color(.systemGroupedBackground))
-            .toolbar(content: {
+            .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button {
                         dismiss()
@@ -107,7 +107,7 @@ struct QuickActionsSheetView: View {
                             .font(.title3)
                     }
                 }
-            })
+            }
         }
     }
 }

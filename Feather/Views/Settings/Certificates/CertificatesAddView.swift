@@ -215,7 +215,7 @@ struct CertificatesAddView: View {
         }
         .navigationTitle("Add Certificate")
         .navigationBarTitleDisplayMode(.inline)
-        .toolbar(content: {
+        .toolbar {
             ToolbarItem(placement: .cancellationAction) {
                 Button("Cancel") {
                     dismiss()
@@ -227,7 +227,7 @@ struct CertificatesAddView: View {
                     ProgressView()
                 }
             }
-        })
+        }
         .alert(_alertTitle, isPresented: $_showAlert) {
             Button("OK", role: .cancel) { }
         } message: {

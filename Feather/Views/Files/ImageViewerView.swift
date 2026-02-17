@@ -27,7 +27,7 @@ struct ImageViewerView: View {
                 }
             }
             .navigationBarTitleDisplayMode(.inline)
-            .toolbar(content: {
+            .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button {
                         dismiss()
@@ -56,7 +56,7 @@ struct ImageViewerView: View {
                         }
                     }
                 }
-            })
+            }
             .toolbarBackground(.visible, for: .navigationBar)
             .toolbarBackground(Color.black.opacity(0.8), for: .navigationBar)
         }

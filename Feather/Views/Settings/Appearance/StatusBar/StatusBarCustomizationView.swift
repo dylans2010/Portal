@@ -139,7 +139,7 @@ Circle()
 }
 .navigationTitle(.localized("Choose Color"))
 .navigationBarTitleDisplayMode(.inline)
-.toolbar(content: {
+.toolbar {
 ToolbarItem(placement: .cancellationAction) {
 Button(.localized("Cancel")) {
 dismiss()
@@ -152,7 +152,7 @@ colorHex = tempColor.toHex() ?? "#000000"
 dismiss()
 }
 }
-})
+}
 }
 }
 }

@@ -1473,7 +1473,7 @@ struct InfoPlistEditorDebugView: View {
         .searchable(text: $searchText, prompt: "Search Keys Or Values")
         .navigationTitle("Info.plist Editor")
         .navigationBarTitleDisplayMode(.inline)
-        .toolbar(content: {
+        .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Menu {
                     Button {
@@ -1541,7 +1541,7 @@ struct InfoPlistEditorDebugView: View {
                     Image(systemName: "ellipsis.circle")
                 }
             }
-        })
+        }
         .onAppear {
             loadPlistEntries()
             generateRawPlist()
@@ -1891,7 +1891,7 @@ struct InfoPlistEditorDebugView: View {
             }
             .navigationTitle("Add Entry")
             .navigationBarTitleDisplayMode(.inline)
-            .toolbar(content: {
+            .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") {
                         showAddEntry = false
@@ -1905,7 +1905,7 @@ struct InfoPlistEditorDebugView: View {
                     }
                     .disabled(newKey.isEmpty)
                 }
-            })
+            }
         }
         .presentationDetents([.large])
     }
@@ -1970,7 +1970,7 @@ struct InfoPlistEditorDebugView: View {
             }
             .navigationTitle("Edit Entry")
             .navigationBarTitleDisplayMode(.inline)
-            .toolbar(content: {
+            .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") {
                         showEditEntry = false
@@ -1983,7 +1983,7 @@ struct InfoPlistEditorDebugView: View {
                     }
                     .disabled(editKey.isEmpty)
                 }
-            })
+            }
         }
         .presentationDetents([.large])
     }
@@ -2432,7 +2432,7 @@ struct EntitlementsDebugView: View {
                 }
                 .navigationTitle("Add Entitlement")
                 .navigationBarTitleDisplayMode(.inline)
-                .toolbar(content: {
+                .toolbar {
                     ToolbarItem(placement: .cancellationAction) {
                         Button("Cancel") { showAddEntitlement = false }
                     }
@@ -2443,7 +2443,7 @@ struct EntitlementsDebugView: View {
                         }
                         .disabled(newKey.isEmpty)
                     }
-                })
+                }
             }
             .presentationDetents([.medium])
         }
@@ -2596,7 +2596,7 @@ struct ResourceModifierView: View {
         .searchable(text: $searchText, prompt: "Search Resources")
         .navigationTitle("Resource Modifier")
         .navigationBarTitleDisplayMode(.inline)
-        .toolbar(content: {
+        .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Menu {
                     Button {
@@ -2640,7 +2640,7 @@ struct ResourceModifierView: View {
                     Image(systemName: "ellipsis.circle")
                 }
             }
-        })
+        }
         .onAppear {
             loadResources()
         }
@@ -3317,13 +3317,13 @@ struct ResourceDetailView: View {
             }
             .navigationTitle(resource.name)
             .navigationBarTitleDisplayMode(.inline)
-            .toolbar(content: {
+            .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button("Done") {
                         dismiss()
                     }
                 }
-            })
+            }
         }
         .presentationDetents([.large])
     }
@@ -3448,13 +3448,13 @@ struct ResourceStatisticsView: View {
             }
             .navigationTitle("Statistics")
             .navigationBarTitleDisplayMode(.inline)
-            .toolbar(content: {
+            .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button("Done") {
                         dismiss()
                     }
                 }
-            })
+            }
         }
         .presentationDetents([.large])
     }
@@ -3528,7 +3528,7 @@ struct SigningLogsDebugView: View {
         }
         .navigationTitle("Signing Logs")
         .navigationBarTitleDisplayMode(.inline)
-        .toolbar(content: {
+        .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Menu {
                     Toggle("Auto Scroll", isOn: $autoScroll)
@@ -3546,7 +3546,7 @@ struct SigningLogsDebugView: View {
                     Image(systemName: "ellipsis.circle")
                 }
             }
-        })
+        }
         .onAppear {
             loadSampleLogs()
         }

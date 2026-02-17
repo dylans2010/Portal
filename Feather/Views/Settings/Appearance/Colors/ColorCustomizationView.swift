@@ -523,12 +523,12 @@ struct ThemeLibraryView: View {
             }
             .navigationTitle("All Themes")
             .navigationBarTitleDisplayMode(.inline)
-            .toolbar(content: {
+            .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button("Done") { dismiss() }
                         .fontWeight(.bold)
                 }
-            })
+            }
             .background(Color(UIColor.systemGroupedBackground))
         }
     }

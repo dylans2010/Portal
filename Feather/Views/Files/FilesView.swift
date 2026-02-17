@@ -146,7 +146,7 @@ struct FilesView: View {
                 }
             }
             .searchable(text: $searchText, prompt: .localized("Search Files"))
-            .toolbar(content: {
+            .toolbar {
                 ToolbarItemGroup(placement: .navigationBarLeading) {
                     if fileManager.currentDirectory != fileManager.baseDirectory {
                         Button {
@@ -240,7 +240,7 @@ struct FilesView: View {
                         }
                     }
                 }
-            })
+            }
             .sheet(isPresented: $showCreateTextFile) {
                 CreateTextFileView(directoryURL: fileManager.currentDirectory)
             }
@@ -313,13 +313,13 @@ struct FilesView: View {
                                 .padding(.horizontal)
                         }
                         .padding()
-                        .toolbar(content: {
+                        .toolbar {
                             ToolbarItem(placement: .cancellationAction) {
                                 Button(.localized("Close")) {
                                     showCompareSheet = false
                                 }
                             }
-                        })
+                        }
                     }
                 }
             }
@@ -344,13 +344,13 @@ struct FilesView: View {
                                 .padding(.horizontal)
                         }
                         .padding()
-                        .toolbar(content: {
+                        .toolbar {
                             ToolbarItem(placement: .cancellationAction) {
                                 Button(.localized("Close")) {
                                     showCertificateQuickAdd = false
                                 }
                             }
-                        })
+                        }
                     }
                 }
             }

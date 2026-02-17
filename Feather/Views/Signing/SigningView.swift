@@ -141,7 +141,7 @@ struct SigningView: View {
 				.ignoresSafeArea(edges: .bottom)
 			}
 
-			.toolbar(content: {
+			.toolbar {
 				NBToolbarButton(role: .dismiss)
 				NBToolbarButton(
 					.localized("Reset"),
@@ -151,7 +151,7 @@ struct SigningView: View {
 					_temporaryOptions = OptionsManager.shared.options
 					appIcon = nil
 				}
-			})
+			}
 			.sheet(isPresented: $_isAltPickerPresenting) { SigningAlternativeIconView(app: app, appIcon: $appIcon, isModifing: .constant(true)) }
 			.sheet(isPresented: $_isFilePickerPresenting) {
 				FileImporterRepresentableView(

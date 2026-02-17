@@ -150,9 +150,7 @@ struct ModernSigningView: View {
                 CertificatesAddView()
             }
             .navigationBarTitleDisplayMode(.inline)
-            .toolbar(content: {
-                _toolbarContent
-            })
+            .toolbar { _toolbarContent }
             .onAppear {
                 _onAppearAction()
             }

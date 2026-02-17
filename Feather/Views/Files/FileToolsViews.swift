@@ -32,7 +32,7 @@ struct CreateJSONFileView: View {
             }
             .navigationTitle(.localized("Create JSON File"))
             .navigationBarTitleDisplayMode(.inline)
-            .toolbar(content: {
+            .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button(.localized("Cancel")) { dismiss() }
                 }
@@ -42,7 +42,7 @@ struct CreateJSONFileView: View {
                     }
                     .disabled(fileName.isEmpty)
                 }
-            })
+            }
         }
     }
     
@@ -84,7 +84,7 @@ struct CreateXMLFileView: View {
             }
             .navigationTitle(.localized("Create XML File"))
             .navigationBarTitleDisplayMode(.inline)
-            .toolbar(content: {
+            .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button(.localized("Cancel")) { dismiss() }
                 }
@@ -94,7 +94,7 @@ struct CreateXMLFileView: View {
                     }
                     .disabled(fileName.isEmpty)
                 }
-            })
+            }
         }
     }
     
@@ -156,7 +156,7 @@ struct URLImportView: View {
             }
             .navigationTitle(.localized("Import from URL"))
             .navigationBarTitleDisplayMode(.inline)
-            .toolbar(content: {
+            .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button(.localized("Cancel")) { dismiss() }
                 }
@@ -166,7 +166,7 @@ struct URLImportView: View {
                     }
                     .disabled(urlString.isEmpty || isDownloading)
                 }
-            })
+            }
         }
     }
     
@@ -254,7 +254,7 @@ struct ClipboardImportView: View {
             }
             .navigationTitle(.localized("Import from Clipboard"))
             .navigationBarTitleDisplayMode(.inline)
-            .toolbar(content: {
+            .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button(.localized("Cancel")) { dismiss() }
                 }
@@ -264,7 +264,7 @@ struct ClipboardImportView: View {
                     }
                     .disabled(fileName.isEmpty || !hasContent)
                 }
-            })
+            }
             .onAppear {
                 loadClipboard()
             }
@@ -357,7 +357,7 @@ struct FileTerminalView: View {
             }
             .navigationTitle(.localized("Terminal"))
             .navigationBarTitleDisplayMode(.inline)
-            .toolbar(content: {
+            .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button(.localized("Done")) { dismiss() }
                 }
@@ -374,7 +374,7 @@ struct FileTerminalView: View {
                         Image(systemName: "command")
                     }
                 }
-            })
+            }
         }
     }
     
@@ -499,11 +499,11 @@ struct AdvancedFileSearchView: View {
             }
             .navigationTitle(.localized("Advanced Search"))
             .navigationBarTitleDisplayMode(.inline)
-            .toolbar(content: {
+            .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button(.localized("Done")) { dismiss() }
                 }
-            })
+            }
         }
     }
     
@@ -923,11 +923,11 @@ struct DiskUsageView: View {
             }
             .navigationTitle(.localized("Disk Usage"))
             .navigationBarTitleDisplayMode(.inline)
-            .toolbar(content: {
+            .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button(.localized("Done")) { dismiss() }
                 }
-            })
+            }
             .onAppear {
                 calculateUsage()
             }
@@ -1249,11 +1249,11 @@ struct FileHasherView: View {
             }
             .navigationTitle(.localized("Hash Calculator"))
             .navigationBarTitleDisplayMode(.inline)
-            .toolbar(content: {
+            .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button(.localized("Done")) { dismiss() }
                 }
-            })
+            }
             .sheet(isPresented: $isImporting) {
                 FileImporterRepresentableView(
                     allowedContentTypes: [.item],
@@ -1381,11 +1381,11 @@ struct Base64ToolView: View {
             }
             .navigationTitle(.localized("Base64 Tool"))
             .navigationBarTitleDisplayMode(.inline)
-            .toolbar(content: {
+            .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button(.localized("Done")) { dismiss() }
                 }
-            })
+            }
         }
     }
     
@@ -1720,7 +1720,7 @@ struct SymlinkCreatorView: View {
             }
             .navigationTitle(.localized("Create Symlink"))
             .navigationBarTitleDisplayMode(.inline)
-            .toolbar(content: {
+            .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button(.localized("Cancel")) { dismiss() }
                 }
@@ -1730,7 +1730,7 @@ struct SymlinkCreatorView: View {
                     }
                     .disabled(linkName.isEmpty || targetPath.isEmpty)
                 }
-            })
+            }
         }
     }
     

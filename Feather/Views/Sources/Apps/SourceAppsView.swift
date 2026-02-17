@@ -147,7 +147,7 @@ struct SourceAppsView: View {
             prompt: totalAppCount > 0 ? Text("Search \(totalAppCount) Apps") : Text("Search Apps")
         )
         .toolbarTitleMenu { titleMenuContent }
-        .toolbar(content: { toolbarContent })
+        .toolbar { toolbarContent }
         .onAppear(perform: handleOnAppear)
         .onChange(of: viewModel.isFinished) { _ in loadSources() }
         .onChange(of: sortOption) { sortOptionRawValue = $0.rawValue }
