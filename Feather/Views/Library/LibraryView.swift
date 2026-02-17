@@ -101,81 +101,7 @@ struct LibraryView: View {
         NavigationStack {
             ZStack(alignment: .bottom) {
                 List(displayedApps, id: \.uuid, selection: $_selectedApps) { app in
-                    LibraryCellView(
-                        app: app,
-                        selectedInfoAppPresenting: $_selectedInfoAppPresenting,
-                        selectedSigningAppPresenting: $_selectedSigningAppPresenting,
-                        selectedInstallAppPresenting: $_selectedInstallAppOverlay
-                    )
-                    .listRowBackground(Color.clear)
-                    .listRowSeparator(.visible)
-                    .swipeActions(edge: .trailing, allowsFullSwipe: true) {
-                        Button(role: .destructive) {
-                            Storage.shared.deleteApp(for: app)
-                            HapticsManager.shared.success()
-                        } label: {
-                            Label("Delete", systemImage: "trash")
-                        }
-                    }
-                    .swipeActions(edge: .leading) {
-                        Button {
-                            if app.isSigned {
-                                withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
-                                    _selectedInstallAppOverlay = AnyApp(base: app)
-                                }
-                            } else {
-                                _selectedSigningAppPresenting = AnyApp(base: app)
-                            }
-                        } label: {
-                            Label(app.isSigned ? "Install" : "Sign", systemImage: app.isSigned ? "arrow.down" : "signature")
-                        }
-                        .tint(app.isSigned ? .green : .accentColor)
-                    }
-                    .contextMenu {
-                        Button {
-                            _selectedInfoAppPresenting = AnyApp(base: app)
-                        } label: {
-                            Label("Details", systemImage: "info.circle")
-                        }
-
-                        Divider()
-
-                        if app.isSigned {
-                            Button {
-                                withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
-                                    _selectedInstallAppOverlay = AnyApp(base: app)
-                                }
-                            } label: {
-                                Label("Install", systemImage: "arrow.down.circle")
-                            }
-                            Button {
-                                withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
-                                    _selectedInstallAppOverlay = AnyApp(base: app, archive: true)
-                                }
-                            } label: {
-                                Label("Export", systemImage: "square.and.arrow.up")
-                            }
-                            Button {
-                                _selectedSigningAppPresenting = AnyApp(base: app)
-                            } label: {
-                                Label("Sign Again", systemImage: "signature")
-                            }
-                        } else {
-                            Button {
-                                _selectedSigningAppPresenting = AnyApp(base: app)
-                            } label: {
-                                Label("Sign", systemImage: "signature")
-                            }
-                        }
-                        
-                        Divider()
-
-                        Button(role: .destructive) {
-                            Storage.shared.deleteApp(for: app)
-                        } label: {
-                            Label("Delete", systemImage: "trash")
-                        }
-                    }
+                    appRow(for: app)
                 }
                 .listStyle(.insetGrouped)
                 .refreshable {
@@ -315,6 +241,85 @@ struct LibraryView: View {
 
 // MARK: - Subviews & Actions
 extension LibraryView {
+
+    @ViewBuilder
+    private func appRow(for app: AppInfoPresentable) -> some View {
+        LibraryCellView(
+            app: app,
+            selectedInfoAppPresenting: $_selectedInfoAppPresenting,
+            selectedSigningAppPresenting: $_selectedSigningAppPresenting,
+            selectedInstallAppPresenting: $_selectedInstallAppOverlay
+        )
+        .listRowBackground(Color.clear)
+        .listRowSeparator(.visible)
+        .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+            Button(role: .destructive) {
+                Storage.shared.deleteApp(for: app)
+                HapticsManager.shared.success()
+            } label: {
+                Label("Delete", systemImage: "trash")
+            }
+        }
+        .swipeActions(edge: .leading) {
+            Button {
+                if app.isSigned {
+                    withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+                        _selectedInstallAppOverlay = AnyApp(base: app)
+                    }
+                } else {
+                    _selectedSigningAppPresenting = AnyApp(base: app)
+                }
+            } label: {
+                Label(app.isSigned ? "Install" : "Sign", systemImage: app.isSigned ? "arrow.down" : "signature")
+            }
+            .tint(app.isSigned ? .green : .accentColor)
+        }
+        .contextMenu {
+            Button {
+                _selectedInfoAppPresenting = AnyApp(base: app)
+            } label: {
+                Label("Details", systemImage: "info.circle")
+            }
+
+            Divider()
+
+            if app.isSigned {
+                Button {
+                    withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+                        _selectedInstallAppOverlay = AnyApp(base: app)
+                    }
+                } label: {
+                    Label("Install", systemImage: "arrow.down.circle")
+                }
+                Button {
+                    withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+                        _selectedInstallAppOverlay = AnyApp(base: app, archive: true)
+                    }
+                } label: {
+                    Label("Export", systemImage: "square.and.arrow.up")
+                }
+                Button {
+                    _selectedSigningAppPresenting = AnyApp(base: app)
+                } label: {
+                    Label("Sign Again", systemImage: "signature")
+                }
+            } else {
+                Button {
+                    _selectedSigningAppPresenting = AnyApp(base: app)
+                } label: {
+                    Label("Sign", systemImage: "signature")
+                }
+            }
+
+            Divider()
+
+            Button(role: .destructive) {
+                Storage.shared.deleteApp(for: app)
+            } label: {
+                Label("Delete", systemImage: "trash")
+            }
+        }
+    }
 
     private var filterMenu: some View {
         ForEach(FilterMode.allCases, id: \.self) { mode in
