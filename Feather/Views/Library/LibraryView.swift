@@ -105,7 +105,7 @@ struct LibraryView: View {
                 Color(.systemBackground)
                     .ignoresSafeArea()
                 
-                ScrollView {
+                ScrollView(.vertical) {
                     VStack(spacing: 20) {
                         if !hideManager.isHidden("library.filterChips") {
                             filterChips
@@ -591,7 +591,7 @@ extension LibraryView {
 
                             if app.isSigned {
                                 Button {
-                                    _selectedInstallAppPresenting = AnyApp(base: app)
+                                    _selectedInstallAppOverlay = AnyApp(base: app)
                                 } label: {
                                     Label(String.localized("Install"), systemImage: "arrow.down.circle")
                                 }
