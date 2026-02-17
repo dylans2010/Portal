@@ -162,21 +162,54 @@ struct SourcesAddView: View {
 				}
 			}
 			
-			if !_isImporting {
-				ToolbarItem(placement: .confirmationAction) {
-					Button {
-						FR.handleSource(_sourceURL) {
-							dismiss()
+			ToolbarItem(placement: .confirmationAction) {
+				HStack(spacing: 12) {
+					if !_isImporting {
+						Button {
+							FR.handleSource(_sourceURL) {
+								dismiss()
+							}
+						} label: {
+							Text(.localized("Save"))
+								.fontWeight(.semibold)
+						}
+						.disabled(_sourceURL.isEmpty)
+					} else {
+						ProgressView()
+					}
+
+					Menu {
+						Button {
+							_isImporting = true
+							_fetchImportedRepositories(UIPasteboard.general.string) { }
+						} label: {
+							Label(.localized("Import from Clipboard"), systemImage: "square.and.arrow.down")
+						}
+
+						Button {
+							_isExportMode = true
+							let sources = Storage.shared.getSources()
+							guard !sources.isEmpty else {
+								_alertTitle = .localized("No Sources")
+								_alertMessage = .localized("No Sources To Export")
+								_showAlert = true
+								_isExportMode = false
+								return
+							}
+							_selectedSourcesForExport = Set(sources.compactMap { $0.sourceURL?.absoluteString })
+						} label: {
+							Label(.localized("Export Sources"), systemImage: "doc.on.doc")
+						}
+
+						Button {
+							_openPortalExportDirectly()
+						} label: {
+							Label(.localized("Portal Transfer"), systemImage: "square.and.arrow.down.on.square.fill")
 						}
 					} label: {
-						Text(.localized("Save"))
-							.fontWeight(.semibold)
+						Image(systemName: "ellipsis.circle")
+							.font(.system(size: 18))
 					}
-					.disabled(_sourceURL.isEmpty)
-				}
-			} else {
-				ToolbarItem(placement: .confirmationAction) {
-					ProgressView()
 				}
 			}
 		}
@@ -205,47 +238,6 @@ struct SourcesAddView: View {
 				}
 			}
 
-			HStack(spacing: 0) {
-				Button {
-					_isImporting = true
-					_fetchImportedRepositories(UIPasteboard.general.string) { }
-				} label: {
-					Label(.localized("Import"), systemImage: "square.and.arrow.down")
-						.frame(maxWidth: .infinity)
-				}
-				.buttonStyle(.bordered)
-
-				Divider().padding(.horizontal, 8)
-
-				Button {
-					_isExportMode = true
-					let sources = Storage.shared.getSources()
-					guard !sources.isEmpty else {
-						_alertTitle = .localized("No Sources")
-						_alertMessage = .localized("No Sources To Export")
-						_showAlert = true
-						_isExportMode = false
-						return
-					}
-					_selectedSourcesForExport = Set(sources.compactMap { $0.sourceURL?.absoluteString })
-				} label: {
-					Label(.localized("Export"), systemImage: "doc.on.doc")
-						.frame(maxWidth: .infinity)
-				}
-				.buttonStyle(.bordered)
-
-				Divider().padding(.horizontal, 8)
-
-				Button {
-					_openPortalExportDirectly()
-				} label: {
-					Label(.localized("Transfer"), systemImage: "square.and.arrow.down.on.square.fill")
-						.frame(maxWidth: .infinity)
-				}
-				.buttonStyle(.bordered)
-			}
-			.listRowBackground(Color.clear)
-			.listRowInsets(EdgeInsets())
 		} header: {
 			Text(.localized("Add Source"))
 		} footer: {
@@ -798,22 +790,35 @@ struct PortalExportView: View {
 	
 	var body: some View {
 		NavigationStack {
-			List {
-				Section {
-					modeSelector
+			ZStack {
+				LinearGradient(
+					colors: [
+						isImportMode ? Color.cyan.opacity(0.1) : Color.purple.opacity(0.1),
+						Color(UIColor.systemGroupedBackground)
+					],
+					startPoint: .top,
+					endPoint: .bottom
+				)
+				.ignoresSafeArea()
+
+				List {
+					Section {
+						modeSelector
+					}
+					.listRowBackground(Color.clear)
+					.listRowInsets(EdgeInsets())
+
+					headerSection
+
+					if isImportMode {
+						importSection
+					} else {
+						exportSection
+					}
+
+					quickTipsSection
 				}
-				.listRowBackground(Color.clear)
-				.listRowInsets(EdgeInsets())
-
-				headerSection
-
-				if isImportMode {
-					importSection
-				} else {
-					exportSection
-				}
-
-				quickTipsSection
+				.scrollContentBackground(.hidden)
 			}
 			.navigationTitle(.localized("Portal Transfer"))
 			.navigationBarTitleDisplayMode(.inline)
@@ -828,22 +833,45 @@ struct PortalExportView: View {
 	// MARK: - Header Section
 	private var headerSection: some View {
 		Section {
-			VStack(spacing: 12) {
-				Image(systemName: isImportMode ? "arrow.down.circle.fill" : "arrow.up.circle.fill")
-					.font(.system(size: 48))
-					.foregroundStyle(isImportMode ? .cyan : .purple)
+			VStack(spacing: 16) {
+				ZStack {
+					Circle()
+						.fill(isImportMode ? Color.cyan.opacity(0.15) : Color.purple.opacity(0.15))
+						.frame(width: 80, height: 80)
 
-				Text(isImportMode ? .localized("Import Sources") : .localized("Export Sources"))
-					.font(.headline)
-				
-				Text(isImportMode ? .localized("Paste your Portal Transfer code from another device to import sources.") : .localized("Share your sources with a Portal Transfer code."))
-					.font(.subheadline)
-					.foregroundStyle(.secondary)
-					.multilineTextAlignment(.center)
+					Image(systemName: isImportMode ? "arrow.down.circle.fill" : "arrow.up.circle.fill")
+						.font(.system(size: 44))
+						.foregroundStyle(
+							LinearGradient(
+								colors: isImportMode ? [.cyan, .blue] : [.purple, .indigo],
+								startPoint: .topLeading,
+								endPoint: .bottomTrailing
+							)
+						)
+				}
+				.padding(.top, 8)
+
+				VStack(spacing: 6) {
+					Text(isImportMode ? .localized("Import Sources") : .localized("Export Sources"))
+						.font(.system(size: 20, weight: .bold, design: .rounded))
+
+					Text(isImportMode ? .localized("Paste your Portal Transfer code from another device to import sources.") : .localized("Share your sources with a Portal Transfer code."))
+						.font(.system(size: 14, weight: .medium))
+						.foregroundStyle(.secondary)
+						.multilineTextAlignment(.center)
+						.padding(.horizontal, 10)
+				}
 			}
 			.frame(maxWidth: .infinity)
-			.padding(.vertical)
+			.padding(.vertical, 12)
+			.background(.ultraThinMaterial)
+			.clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
+			.overlay(
+				RoundedRectangle(cornerRadius: 24, style: .continuous)
+					.stroke(Color.primary.opacity(0.05), lineWidth: 1)
+			)
 		}
+		.listRowBackground(Color.clear)
 	}
 	
 	// MARK: - Mode Selector
@@ -961,13 +989,33 @@ struct PortalExportView: View {
 	// MARK: - Quick Tips Section
 	private var quickTipsSection: some View {
 		Section {
-			Label(isImportMode ? .localized("Paste the Portal code you received") : .localized("Copy the transfer code to share"), systemImage: "1.circle.fill")
-			Label(isImportMode ? .localized("Tap Import to add the sources") : .localized("Send it to friends or save it"), systemImage: "2.circle.fill")
-			Label(isImportMode ? .localized("Sources will be added automatically") : .localized("They can import using this view"), systemImage: "3.circle.fill")
+			VStack(alignment: .leading, spacing: 14) {
+				tipRow(number: "1", text: isImportMode ? .localized("Paste the Portal code you received") : .localized("Copy the transfer code to share"), color: .blue)
+				tipRow(number: "2", text: isImportMode ? .localized("Tap Import to add the sources") : .localized("Send it to friends or save it"), color: .green)
+				tipRow(number: "3", text: isImportMode ? .localized("Sources will be added automatically") : .localized("They can import using this view"), color: .orange)
+			}
+			.padding(.vertical, 8)
 		} header: {
-			Label(.localized("Portal Transfer Info"), systemImage: "lightbulb.fill")
+			Label(.localized("How it works"), systemImage: "lightbulb.fill")
+				.font(.system(size: 12, weight: .bold))
+				.foregroundStyle(.secondary)
 		}
-		.foregroundStyle(.secondary)
+		.listRowBackground(Color.clear)
+	}
+
+	private func tipRow(number: String, text: LocalizedStringKey, color: Color) -> some View {
+		HStack(spacing: 12) {
+			Text(number)
+				.font(.system(size: 12, weight: .bold))
+				.foregroundStyle(.white)
+				.frame(width: 22, height: 22)
+				.background(color)
+				.clipShape(Circle())
+
+			Text(text)
+				.font(.system(size: 14, weight: .medium))
+				.foregroundStyle(.secondary)
+		}
 	}
 	
 	

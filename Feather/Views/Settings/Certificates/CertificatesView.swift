@@ -108,68 +108,40 @@ struct CertificatesView: View {
 	
 	// MARK: - Certificate Type Card
 	private var certificateTypeCard: some View {
-		VStack(alignment: .leading, spacing: 14) {
-			HStack(spacing: 10) {
-				ZStack {
-					Circle()
-						.fill(Color.blue.opacity(0.12))
-						.frame(width: 28, height: 28)
-					Image(systemName: "person.badge.shield.checkmark.fill")
-						.font(.system(size: 12, weight: .semibold))
-						.foregroundStyle(.blue)
-				}
-				Text("CERTIFICATE TYPE")
-					.font(.system(size: 11, weight: .bold, design: .rounded))
+		HStack(spacing: 12) {
+			HStack(spacing: 8) {
+				Image(systemName: "person.badge.shield.checkmark.fill")
+					.font(.system(size: 12, weight: .semibold))
+					.foregroundStyle(.blue)
+				Text("TYPE")
+					.font(.system(size: 10, weight: .bold, design: .rounded))
 					.foregroundStyle(.secondary)
 			}
+			.padding(.leading, 4)
+
+			Spacer()
 			
-			HStack(spacing: 12) {
+			Picker("Certificate Type", selection: $certificateExperience) {
 				ForEach(CertificateExperience.allCases, id: \.rawValue) { exp in
-					Button {
-						withAnimation(.spring(response: 0.35, dampingFraction: 0.7)) {
-							certificateExperience = exp.rawValue
-							if exp == .enterprise {
-								forceShowGuides = true
-							}
-						}
-						HapticsManager.shared.softImpact()
-					} label: {
-						HStack(spacing: 10) {
-							Image(systemName: exp == .developer ? "person.fill" : "building.2.fill")
-								.font(.system(size: 14, weight: .medium))
-							Text(exp.displayName)
-								.font(.system(size: 14, weight: .semibold))
-						}
-						.foregroundStyle(certificateExperience == exp.rawValue ? .white : .primary)
-						.padding(.vertical, 12)
-						.frame(maxWidth: .infinity)
-						.background {
-							if certificateExperience == exp.rawValue {
-								RoundedRectangle(cornerRadius: 14, style: .continuous)
-									.fill(
-										LinearGradient(
-											colors: [.blue, .blue.opacity(0.8)],
-											startPoint: .topLeading,
-											endPoint: .bottomTrailing
-										)
-									)
-									.shadow(color: .blue.opacity(0.3), radius: 8, x: 0, y: 4)
-							} else {
-								RoundedRectangle(cornerRadius: 14, style: .continuous)
-									.fill(.ultraThinMaterial)
-							}
-						}
-					}
-					.buttonStyle(.plain)
+					Text(exp.displayName).tag(exp.rawValue)
 				}
 			}
+			.pickerStyle(.segmented)
+			.frame(width: 200)
+			.onChange(of: certificateExperience) { newValue in
+				if newValue == CertificateExperience.enterprise.rawValue {
+					forceShowGuides = true
+				}
+				HapticsManager.shared.softImpact()
+			}
 		}
-		.padding(18)
+		.padding(.horizontal, 14)
+		.padding(.vertical, 8)
 		.background(.ultraThinMaterial)
-		.clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
+		.clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
 		.overlay(
-			RoundedRectangle(cornerRadius: 24, style: .continuous)
-				.stroke(Color.primary.opacity(0.08), lineWidth: 1)
+			RoundedRectangle(cornerRadius: 16, style: .continuous)
+				.stroke(Color.primary.opacity(0.06), lineWidth: 1)
 		)
 	}
 	

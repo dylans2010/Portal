@@ -111,7 +111,7 @@ struct CertificatesAddView: View {
                         Text("Portal Cert is Unavailable")
                             .font(.headline)
 
-                        Text("Please enable 'Use .portalcert' in Feature Flags (Developer Mode) to use this feature.")
+                        Text("Portal Cert is coming soon on a future update")
                             .font(.subheadline)
                             .foregroundStyle(.secondary)
                             .multilineTextAlignment(.center)
