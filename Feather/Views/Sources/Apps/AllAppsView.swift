@@ -104,10 +104,23 @@ struct AllAppsView: View {
     var body: some View {
         Group {
             if isTab {
-                mainContent
-                    .navigationTitle("Apps")
-                    .navigationBarTitleDisplayMode(.large)
-                    .searchable(text: $_searchText, placement: .navigationBarDrawer(displayMode: .always), prompt: "Search \(_totalAppCount) Apps")
+                if _isLoading {
+                    mainContent
+                        .navigationTitle("Apps")
+                        .navigationBarTitleDisplayMode(.large)
+                } else {
+                    mainContent
+                        .navigationTitle("Apps")
+                        .navigationBarTitleDisplayMode(.large)
+                        .searchable(text: $_searchText, placement: .navigationBarDrawer(displayMode: .always), prompt: "Search \(_totalAppCount) Apps")
+                        .toolbar {
+                            if _showSorting {
+                                ToolbarItem(placement: .topBarTrailing) {
+                                    sortingMenu
+                                }
+                            }
+                        }
+                }
             } else {
                 mainContent
             }
@@ -192,7 +205,7 @@ struct AllAppsView: View {
                     }
                 }
 
-                if _searchBarFloating && !isTab {
+                if _searchBarFloating && !isTab && !_isLoading {
                     searchBar
                         .padding(.bottom, 20)
                         .transition(AnyTransition.move(edge: .bottom).combined(with: .opacity))
@@ -239,90 +252,97 @@ struct AllAppsView: View {
             }
 
             Spacer()
-
-            if _showSorting {
-                Menu {
-                    ForEach(AppSortOption.allCases) { option in
-                        Button {
-                            if _sortOption == option {
-                                _sortAscending.toggle()
-                            } else {
-                                _sortOption = option
-                                _sortAscending = true
-                            }
-                            _filterApps()
-                        } label: {
-                            HStack {
-                                Label(option.rawValue, systemImage: option.icon)
-                                if _sortOption == option {
-                                    Image(systemName: _sortAscending ? "chevron.up" : "chevron.down")
-                                }
-                            }
-                        }
-                    }
-                } label: {
-                    Image(systemName: "line.3.horizontal.decrease.circle.fill")
-                        .font(.system(size: 22))
-                        .foregroundStyle(Color.accentColor)
-                        .padding(8)
-                        .background(Color.accentColor.opacity(0.1))
-                        .clipShape(Circle())
-                }
-            }
         }
         .padding(.horizontal, 20)
         .padding(.top, 16)
         .padding(.bottom, 10)
     }
 
-    private var searchBar: some View {
-        HStack(spacing: 12) {
-            Image(systemName: "magnifyingglass")
-                .font(.system(size: 16, weight: .medium))
-                .foregroundStyle(.secondary)
-
-            TextField("Search \(_totalAppCount) Apps", text: $_searchText)
-                .font(.system(size: 16))
-                .focused($_searchFieldFocused)
-                .submitLabel(.search)
-                .autocorrectionDisabled()
-                .textInputAutocapitalization(.never)
-
-            if !_searchText.isEmpty {
+    @ViewBuilder
+    private var sortingMenu: some View {
+        Menu {
+            ForEach(AppSortOption.allCases) { option in
                 Button {
-                    _searchText = ""
+                    if _sortOption == option {
+                        _sortAscending.toggle()
+                    } else {
+                        _sortOption = option
+                        _sortAscending = true
+                    }
                     _filterApps()
-                    HapticsManager.shared.softImpact()
                 } label: {
-                    Image(systemName: "xmark.circle.fill")
-                        .font(.system(size: 18))
-                        .foregroundStyle(.tertiary)
-                }
-            }
-        }
-        .padding(.horizontal, _searchBarStyle == 2 ? 0 : 14)
-        .padding(.vertical, _searchBarStyle == 1 ? 14 : 10)
-        .background(
-            Group {
-                if _searchBarStyle == 2 {
-                    Color.clear
-                } else {
-                    Group {
-                        if _useGlassEffects {
-                            RoundedRectangle(cornerRadius: _searchBarStyle == 1 ? 20 : 14, style: .continuous)
-                                .fill(.ultraThinMaterial)
-                        } else {
-                            RoundedRectangle(cornerRadius: _searchBarStyle == 1 ? 20 : 14, style: .continuous)
-                                .fill(Color(uiColor: .secondarySystemGroupedBackground))
+                    HStack {
+                        Label(option.rawValue, systemImage: option.icon)
+                        if _sortOption == option {
+                            Image(systemName: _sortAscending ? "chevron.up" : "chevron.down")
                         }
                     }
-                    .overlay(
-                        RoundedRectangle(cornerRadius: _searchBarStyle == 1 ? 20 : 14, style: .continuous)
-                            .stroke(Color.primary.opacity(0.1), lineWidth: 0.5)
-                    )
                 }
             }
-        )
+        } label: {
+            Image(systemName: "line.3.horizontal.decrease.circle.fill")
+                .font(.system(size: 22))
+                .foregroundStyle(Color.accentColor)
+                .padding(8)
+                .background(Color.accentColor.opacity(0.1))
+                .clipShape(Circle())
+        }
+    }
+
+    private var searchBar: some View {
+        HStack(spacing: 12) {
+            HStack(spacing: 12) {
+                Image(systemName: "magnifyingglass")
+                    .font(.system(size: 16, weight: .medium))
+                    .foregroundStyle(.secondary)
+
+                TextField("Search \(_totalAppCount) Apps", text: $_searchText)
+                    .font(.system(size: 16))
+                    .focused($_searchFieldFocused)
+                    .submitLabel(.search)
+                    .autocorrectionDisabled()
+                    .textInputAutocapitalization(.never)
+
+                if !_searchText.isEmpty {
+                    Button {
+                        _searchText = ""
+                        _filterApps()
+                        HapticsManager.shared.softImpact()
+                    } label: {
+                        Image(systemName: "xmark.circle.fill")
+                            .font(.system(size: 18))
+                            .foregroundStyle(.tertiary)
+                    }
+                }
+            }
+            .padding(.horizontal, _searchBarStyle == 2 ? 0 : 14)
+            .padding(.vertical, _searchBarStyle == 1 ? 14 : 10)
+            .background(
+                Group {
+                    if _searchBarStyle == 2 {
+                        Color.clear
+                    } else {
+                        Group {
+                            if _useGlassEffects {
+                                RoundedRectangle(cornerRadius: _searchBarStyle == 1 ? 20 : 14, style: .continuous)
+                                    .fill(.ultraThinMaterial)
+                            } else {
+                                RoundedRectangle(cornerRadius: _searchBarStyle == 1 ? 20 : 14, style: .continuous)
+                                    .fill(Color(uiColor: .secondarySystemGroupedBackground))
+                            }
+                        }
+                        .overlay(
+                            RoundedRectangle(cornerRadius: _searchBarStyle == 1 ? 20 : 14, style: .continuous)
+                                .stroke(Color.primary.opacity(0.1), lineWidth: 0.5)
+                        )
+                    }
+                }
+            )
+
+            if _showSorting {
+                sortingMenu
+            }
+        }
         .overlay(alignment: .bottom) {
             if _searchBarStyle == 2 {
                 Rectangle()

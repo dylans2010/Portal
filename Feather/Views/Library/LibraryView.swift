@@ -14,7 +14,7 @@ struct LibraryView: View {
     
     @State private var _selectedInfoAppPresenting: AnyApp?
     @State private var _selectedSigningAppPresenting: AnyApp?
-    @State private var _selectedInstallAppPresenting: AnyApp?
+    @State private var _selectedInstallAppOverlay: AnyApp?
     @State private var _selectedInstallModifyAppPresenting: AnyApp?
     @State private var _isImportingPresenting = false
     @State private var _isDownloadingPresenting = false
@@ -132,15 +132,25 @@ struct LibraryView: View {
                         }
                     }
                 })
+
+                if let app = _selectedInstallAppOverlay {
+                    InstallPreviewView(app: app.base, isSharing: app.archive, onDismiss: {
+                        withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+                            _selectedInstallAppOverlay = nil
+                        }
+                    })
+                    .transition(.move(edge: .top).combined(with: .opacity))
+                    .zIndex(101)
+                }
+
+                if _showImportAnimation {
+                    importHeaderView
+                        .transition(.move(edge: .top).combined(with: .opacity))
+                        .zIndex(100)
+                }
             }
                         .sheet(item: $_selectedInfoAppPresenting) { app in
                                 LibraryInfoView(app: app.base)
-                        }
-                        .sheet(item: $_selectedInstallAppPresenting) { app in
-                                InstallPreviewView(app: app.base, isSharing: app.archive)
-                                        .presentationDetents([.height(200)])
-                                        .presentationDragIndicator(.visible)
-                                        .compatPresentationRadius(21)
                         }
                         .fullScreenCover(item: $_selectedSigningAppPresenting) { app in
                                 ModernSigningView(app: app.base)
@@ -318,7 +328,9 @@ struct LibraryView: View {
                         }
                         .onReceive(NotificationCenter.default.publisher(for: Notification.Name("Feather.installApp"))) { _ in
                                 if let latest = _signedApps.first {
-                                        _selectedInstallAppPresenting = AnyApp(base: latest)
+                                        withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+                                            _selectedInstallAppOverlay = AnyApp(base: latest)
+                                        }
                                 }
                         }
                         .onReceive(NotificationCenter.default.publisher(for: Notification.Name("Feather.openSigningView"))) { notification in
@@ -326,11 +338,6 @@ struct LibraryView: View {
                                         _selectedSigningAppPresenting = AnyApp(base: app)
                                 }
                         }
-                if _showImportAnimation {
-                    importHeaderView
-                        .transition(.move(edge: .top).combined(with: .opacity))
-                        .zIndex(100)
-                }
                 }
         }
         
@@ -391,9 +398,6 @@ struct LibraryView: View {
                     .padding(.bottom, 8)
             }
         }
-        .background(.ultraThinMaterial)
-        .cornerRadius(12)
-        .shadow(color: Color.black.opacity(0.1), radius: 10, x: 0, y: 5)
         .padding(.horizontal, 16)
         .padding(.top, 8)
     }
@@ -568,7 +572,14 @@ extension LibraryView {
                             app: app,
                             selectedInfoAppPresenting: $_selectedInfoAppPresenting,
                             selectedSigningAppPresenting: $_selectedSigningAppPresenting,
-                            selectedInstallAppPresenting: $_selectedInstallAppPresenting
+                            selectedInstallAppPresenting: Binding(
+                                get: { _selectedInstallAppOverlay },
+                                set: { newValue in
+                                    withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+                                        _selectedInstallAppOverlay = newValue
+                                    }
+                                }
+                            )
                         )
                         .allowsHitTesting(!_isSelectionMode)
                         .contextMenu {

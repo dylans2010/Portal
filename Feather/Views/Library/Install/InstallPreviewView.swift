@@ -6,7 +6,8 @@ import IDeviceSwift
 struct InstallPreviewView: View {
     @Environment(\.dismiss) var dismiss
     @Environment(\.colorScheme) var colorScheme
-    
+    var onDismiss: (() -> Void)? = nil
+
     @AppStorage("Feather.useShareSheetForArchiving") private var _useShareSheet: Bool = false
     @AppStorage("Feather.installationMethod") private var _installationMethod: Int = 0
     @AppStorage("Feather.serverMethod") private var _serverMethod: Int = 0
@@ -30,19 +31,26 @@ struct InstallPreviewView: View {
     }
     
     var body: some View {
-        ZStack {
-            // Modern glass background
-            RoundedRectangle(cornerRadius: 20, style: .continuous)
-                .fill(.ultraThinMaterial)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 20, style: .continuous)
-                        .stroke(Color.primary.opacity(0.08), lineWidth: 1)
-                )
-            
+        VStack(spacing: 0) {
             VStack(spacing: 16) {
-                InstallProgressView(app: app, viewModel: viewModel)
-                    .scaleEffect(appearAnimation ? 1 : 0.9)
-                    .opacity(appearAnimation ? 1 : 0)
+                HStack(alignment: .top) {
+                    InstallProgressView(app: app, viewModel: viewModel)
+                        .scaleEffect(appearAnimation ? 1 : 0.9)
+                        .opacity(appearAnimation ? 1 : 0)
+
+                    if onDismiss != nil {
+                        Spacer()
+
+                        Button {
+                            onDismiss?()
+                        } label: {
+                            Image(systemName: "xmark.circle.fill")
+                                .font(.system(size: 24))
+                                .foregroundStyle(.secondary.opacity(0.5))
+                        }
+                        .padding(.top, 4)
+                    }
+                }
                 
                 statusLabel
                     .offset(y: appearAnimation ? 0 : 10)
@@ -52,10 +60,19 @@ struct InstallPreviewView: View {
                     .offset(y: appearAnimation ? 0 : 15)
                     .opacity(appearAnimation ? 1 : 0)
             }
-            .padding(20)
+            .padding(24)
+            .background(
+                RoundedRectangle(cornerRadius: 24, style: .continuous)
+                    .fill(.ultraThinMaterial)
+                    .shadow(color: Color.black.opacity(0.1), radius: 10, x: 0, y: 5)
+            )
+            .padding(16)
+
+            if onDismiss == nil {
+                Spacer()
+            }
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
-        .padding(16)
+        .frame(maxWidth: .infinity)
         .onAppear {
             withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) {
                 appearAnimation = true
@@ -243,12 +260,12 @@ struct InstallPreviewView: View {
                     
                     if await !_useShareSheet {
                         await MainActor.run {
-                            dismiss()
+                            if let onDismiss { onDismiss() } else { dismiss() }
                         }
                     } else {
                         if let package {
                             await MainActor.run {
-                                dismiss()
+                                if let onDismiss { onDismiss() } else { dismiss() }
                                 UIActivityViewController.show(activityItems: [package])
                             }
                         }
@@ -261,7 +278,7 @@ struct InstallPreviewView: View {
                         message: String(describing: error),
                         action: {
                             HeartbeatManager.shared.start(true)
-                            dismiss()
+                            if let onDismiss { onDismiss() } else { dismiss() }
                         }
                     )
                 }
