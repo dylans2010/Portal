@@ -67,9 +67,11 @@ struct CertificatesAddView: View {
     
     // MARK: - Content View
     private var contentView: some View {
-        Form {
+        let isPortalUnavailable = _selectedSegment == 1 && !usePortalCert
+
+        return Form {
             // Status Section
-            if let message = _statusMessage {
+            if let message = _statusMessage, !isPortalUnavailable {
                 Section {
                     HStack(spacing: 12) {
                         Image(systemName: _statusType.icon)
@@ -101,7 +103,7 @@ struct CertificatesAddView: View {
 
             // Files Section
             Section {
-                if _selectedSegment == 1 && !usePortalCert {
+                if isPortalUnavailable {
                     VStack(spacing: 16) {
                         Image(systemName: "lock.rectangle.fill")
                             .font(.system(size: 48))
@@ -111,7 +113,7 @@ struct CertificatesAddView: View {
                         Text("Portal Cert is Unavailable")
                             .font(.headline)
 
-                        Text("Please enable 'Use .portalcert' in Feature Flags (Developer Mode) to use this feature.")
+                        Text("Portal Cert is coming soon on a future update")
                             .font(.subheadline)
                             .foregroundStyle(.secondary)
                             .multilineTextAlignment(.center)
@@ -175,42 +177,44 @@ struct CertificatesAddView: View {
                 Label("Required Files", systemImage: "folder.fill")
             }
 
-            // Password Section
-            Section {
-                HStack {
-                    Image(systemName: "key.fill")
-                        .foregroundStyle(.secondary)
-                        .frame(width: 24)
-                    TextField("Password (if required)", text: $_p12Password)
-                        .textContentType(.password)
-                }
-            } header: {
-                Label("Password", systemImage: "lock.fill")
-            }
-
-            // Details Section
-            Section {
-                HStack {
-                    Image(systemName: "tag.fill")
-                        .foregroundStyle(.secondary)
-                        .frame(width: 24)
-                    TextField("Nickname (Optional)", text: $_certificateName)
+            if !isPortalUnavailable {
+                // Password Section
+                Section {
+                    HStack {
+                        Image(systemName: "key.fill")
+                            .foregroundStyle(.secondary)
+                            .frame(width: 24)
+                        TextField("Password (if required)", text: $_p12Password)
+                            .textContentType(.password)
+                    }
+                } header: {
+                    Label("Password", systemImage: "lock.fill")
                 }
 
-                Toggle(isOn: $_isDefault) {
-                    Label("Set as Default", systemImage: "star.fill")
-                }
-            } header: {
-                Label("Details", systemImage: "info.circle.fill")
-            } footer: {
-                Text("Default certificate will be automatically selected when signing apps")
-            }
+                // Details Section
+                Section {
+                    HStack {
+                        Image(systemName: "tag.fill")
+                            .foregroundStyle(.secondary)
+                            .frame(width: 24)
+                        TextField("Nickname (Optional)", text: $_certificateName)
+                    }
 
-            // Save Section
-            Section {
-                saveButton
-                    .listRowInsets(EdgeInsets())
-                    .listRowBackground(Color.clear)
+                    Toggle(isOn: $_isDefault) {
+                        Label("Set as Default", systemImage: "star.fill")
+                    }
+                } header: {
+                    Label("Details", systemImage: "info.circle.fill")
+                } footer: {
+                    Text("Default certificate will be automatically selected when signing apps")
+                }
+
+                // Save Section
+                Section {
+                    saveButton
+                        .listRowInsets(EdgeInsets())
+                        .listRowBackground(Color.clear)
+                }
             }
         }
         .navigationTitle("Add Certificate")

@@ -156,6 +156,7 @@ struct ModernSigningView: View {
             .onAppear {
                 _onAppearAction()
             }
+            .handleStatusBarHiding()
             .sheet(isPresented: $_isNameDialogPresenting) {
                 ModernEditSheet(
                     title: "App Name",

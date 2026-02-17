@@ -28,7 +28,7 @@ struct LibraryView: View {
     
     // Batch selection states
     @State private var _isSelectionMode = false
-    @State private var _selectedApps: Set<String> = []
+    @State private var _selectedApps: Set<String?> = []
     @State private var _showBatchSigningSheet = false
     @State private var _showBatchDeleteConfirmation = false
     
@@ -101,21 +101,17 @@ struct LibraryView: View {
     var body: some View {
         NavigationStack {
             ZStack(alignment: .top) {
-    
                 Color(.systemBackground)
                     .ignoresSafeArea()
                 
-                ScrollView {
-                    VStack(spacing: 20) {
-                        if !hideManager.isHidden("library.filterChips") {
-                            filterChips
-                        }
-                        
-                        appsContent
+                VStack(spacing: 0) {
+                    if !hideManager.isHidden("library.filterChips") {
+                        filterChips
+                            .padding(.horizontal, 20)
+                            .padding(.vertical, 12)
                     }
-                    .padding(.horizontal, 20)
-                    .padding(.top, 20)
-                    .padding(.bottom, 100)
+
+                    appsContent
                 }
                 .navigationTitle("Library")
                 .toolbar(content: {
@@ -326,11 +322,6 @@ struct LibraryView: View {
                                         _selectedSigningAppPresenting = AnyApp(base: app)
                                 }
                         }
-                if _showImportAnimation {
-                    importHeaderView
-                        .transition(.move(edge: .top).combined(with: .opacity))
-                        .zIndex(100)
-                }
                 }
         }
         
@@ -478,51 +469,47 @@ extension LibraryView {
     // MARK: - Selection Action Bar
     @ViewBuilder
     private var selectionActionBar: some View {
-        if _isSelectionMode && !_selectedApps.isEmpty {
-            HStack(spacing: 16) {
-                Text("\(_selectedApps.count) Selected")
-                    .font(.system(size: 15, weight: .medium))
-                    .foregroundStyle(.secondary)
-                
-                Spacer()
-                
-                let unsignedSelectedApps = getSelectedUnsignedApps()
-                if !unsignedSelectedApps.isEmpty {
-                    Button {
-                        _showBatchSigningSheet = true
-                    } label: {
-                        Text("Sign \(unsignedSelectedApps.count)")
-                            .font(.system(size: 15, weight: .semibold))
-                            .foregroundStyle(Color.accentColor)
-                    }
-                    .buttonStyle(.plain)
-                }
-                
+        HStack(spacing: 16) {
+            Text("\(_selectedApps.count) Selected")
+                .font(.system(size: 15, weight: .medium))
+                .foregroundStyle(.secondary)
+
+            Spacer()
+
+            let unsignedSelectedApps = getSelectedUnsignedApps()
+            if !unsignedSelectedApps.isEmpty {
                 Button {
-                    _showBatchDeleteConfirmation = true
+                    _showBatchSigningSheet = true
                 } label: {
-                    Text("Delete")
+                    Text("Sign \(unsignedSelectedApps.count)")
                         .font(.system(size: 15, weight: .semibold))
-                        .foregroundStyle(.red)
+                        .foregroundStyle(Color.accentColor)
                 }
                 .buttonStyle(.plain)
             }
-            .padding(.vertical, 12)
-            .transition(AnyTransition.move(edge: .bottom).combined(with: .opacity))
+
+            Button {
+                _showBatchDeleteConfirmation = true
+            } label: {
+                Text("Delete")
+                    .font(.system(size: 15, weight: .semibold))
+                    .foregroundStyle(.red)
+            }
+            .buttonStyle(.plain)
         }
+        .padding(.vertical, 12)
+        .transition(AnyTransition.move(edge: .bottom).combined(with: .opacity))
     }
     
     private func getSelectedUnsignedApps() -> [AppInfoPresentable] {
         displayedApps.filter { app in
-            guard let uuid = app.uuid else { return false }
-            return _selectedApps.contains(uuid) && !app.isSigned
+            _selectedApps.contains(app.uuid) && !app.isSigned
         }
     }
     
     private func getSelectedApps() -> [AppInfoPresentable] {
         displayedApps.filter { app in
-            guard let uuid = app.uuid else { return false }
-            return _selectedApps.contains(uuid)
+            _selectedApps.contains(app.uuid)
         }
     }
     
@@ -542,85 +529,82 @@ extension LibraryView {
         if displayedApps.isEmpty {
             emptyStateView
         } else {
-            LazyVStack(spacing: 0) {
-                ForEach(displayedApps, id: \.uuid) { app in
-                    HStack(spacing: 12) {
-                        if _isSelectionMode {
-                            Button {
-                                guard let uuid = app.uuid else { return }
-                                withAnimation(.easeInOut(duration: 0.2)) {
-                                    if _selectedApps.contains(uuid) {
-                                        _selectedApps.remove(uuid)
-                                    } else {
-                                        _selectedApps.insert(uuid)
-                                    }
-                                }
-                                HapticsManager.shared.softImpact()
-                            } label: {
-                                Image(systemName: app.uuid != nil && _selectedApps.contains(app.uuid!) ? "checkmark.circle.fill" : "circle")
-                                    .font(.system(size: 22))
-                                    .foregroundStyle(app.uuid != nil && _selectedApps.contains(app.uuid!) ? Color.accentColor : Color.secondary.opacity(0.4))
-                            }
-                            .buttonStyle(.plain)
-                        }
-                        
-                        LibraryAppRow(
-                            app: app,
-                            selectedInfoAppPresenting: $_selectedInfoAppPresenting,
-                            selectedSigningAppPresenting: $_selectedSigningAppPresenting,
-                            selectedInstallAppPresenting: $_selectedInstallAppPresenting
-                        )
-                        .allowsHitTesting(!_isSelectionMode)
-                        .contextMenu {
-                            Button {
-                                _selectedInfoAppPresenting = AnyApp(base: app)
-                            } label: {
-                                Label(String.localized("Details"), systemImage: "info.circle")
-                            }
-
-                            if app.isSigned {
-                                Button {
-                                    _selectedInstallAppPresenting = AnyApp(base: app)
-                                } label: {
-                                    Label(String.localized("Install"), systemImage: "arrow.down.circle")
-                                }
-                                Button {
-                                    _selectedSigningAppPresenting = AnyApp(base: app)
-                                } label: {
-                                    Label(String.localized("Sign Again"), systemImage: "signature")
-                                }
-                            } else {
-                                Button {
-                                    _selectedSigningAppPresenting = AnyApp(base: app)
-                                } label: {
-                                    Label(String.localized("Sign"), systemImage: "signature")
-                                }
-                            }
-
-                            Divider()
-
-                            Button(role: .destructive) {
-                                Storage.shared.deleteApp(for: app)
-                            } label: {
-                                Label(String.localized("Delete"), systemImage: "trash")
-                            }
-                        }
-                        .swipeActions(edge: .trailing, allowsFullSwipe: true) {
-                            Button(role: .destructive) {
-                                Storage.shared.deleteApp(for: app)
-                            } label: {
-                                Label(String.localized("Delete"), systemImage: "trash")
-                            }
+            VStack(spacing: 0) {
+                List(selection: $_selectedApps) {
+                    if _showImportAnimation {
+                        Section {
+                            importHeaderView
+                                .listRowInsets(EdgeInsets())
+                                .listRowBackground(Color.clear)
+                                .listRowSeparator(.hidden)
                         }
                     }
 
-                    Divider()
-                        .padding(.leading, _isSelectionMode ? 94 : 62)
+                    Section {
+                        ForEach(displayedApps, id: \.uuid) { app in
+                            LibraryAppRow(
+                                app: app,
+                                selectedInfoAppPresenting: $_selectedInfoAppPresenting,
+                                selectedSigningAppPresenting: $_selectedSigningAppPresenting,
+                                selectedInstallAppPresenting: $_selectedInstallAppPresenting
+                            )
+                            .tag(app.uuid)
+                            .contextMenu {
+                                Button {
+                                    _selectedInfoAppPresenting = AnyApp(base: app)
+                                } label: {
+                                    Label(String.localized("Details"), systemImage: "info.circle")
+                                }
+
+                                if app.isSigned {
+                                    Button {
+                                        _selectedInstallAppPresenting = AnyApp(base: app)
+                                    } label: {
+                                        Label(String.localized("Install"), systemImage: "arrow.down.circle")
+                                    }
+                                    Button {
+                                        _selectedSigningAppPresenting = AnyApp(base: app)
+                                    } label: {
+                                        Label(String.localized("Sign Again"), systemImage: "signature")
+                                    }
+                                } else {
+                                    Button {
+                                        _selectedSigningAppPresenting = AnyApp(base: app)
+                                    } label: {
+                                        Label(String.localized("Sign"), systemImage: "signature")
+                                    }
+                                }
+
+                                Divider()
+
+                                Button(role: .destructive) {
+                                    Storage.shared.deleteApp(for: app)
+                                } label: {
+                                    Label(String.localized("Delete"), systemImage: "trash")
+                                }
+                            }
+                            .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                                Button(role: .destructive) {
+                                    Storage.shared.deleteApp(for: app)
+                                } label: {
+                                    Label(String.localized("Delete"), systemImage: "trash")
+                                }
+                                .tint(.red)
+                            }
+                        }
+                    }
+                    .listRowInsets(EdgeInsets(top: 8, leading: 20, bottom: 8, trailing: 20))
+                }
+                .listStyle(.plain)
+                .environment(\.editMode, _isSelectionMode ? .constant(.active) : .constant(.inactive))
+
+                if _isSelectionMode && !_selectedApps.isEmpty {
+                    selectionActionBar
+                        .padding(.horizontal, 20)
+                        .padding(.vertical, 16)
+                        .background(.ultraThinMaterial)
                 }
             }
-            
-            selectionActionBar
-                .padding(.top, 16)
         }
     }
     
