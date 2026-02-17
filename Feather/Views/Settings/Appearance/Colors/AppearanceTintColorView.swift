@@ -235,12 +235,12 @@ struct ThemeColorPickerSheet: View {
 			}
 			.navigationTitle("Theme Colors")
 			.navigationBarTitleDisplayMode(.inline)
-			.toolbar {
+			.toolbar(content: {
 				ToolbarItem(placement: .topBarTrailing) {
 					Button("Done") { dismiss() }
 						.fontWeight(.bold)
 				}
-			}
+			})
 			.background(Color(UIColor.systemGroupedBackground))
 			.sheet(isPresented: $showCustomPicker) {
 				CustomColorPickerView(
@@ -356,7 +356,7 @@ struct CustomColorPickerView: View {
 			}
 			.navigationTitle("Advanced Color")
 			.navigationBarTitleDisplayMode(.inline)
-			.toolbar {
+			.toolbar(content: {
 				ToolbarItem(placement: .cancellationAction) {
 					Button("Cancel") { dismiss() }
 				}
@@ -372,7 +372,7 @@ struct CustomColorPickerView: View {
 					}
 					.fontWeight(.bold)
 				}
-			}
+			})
 		}
 		.onAppear {
 			solidColor = SwiftUI.Color(hex: selectedColorHex)

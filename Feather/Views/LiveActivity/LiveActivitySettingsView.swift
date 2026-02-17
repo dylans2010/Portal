@@ -580,7 +580,7 @@ struct ColorPickerView: View {
             }
             .navigationTitle(title)
             .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
+            .toolbar(content: {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") {
                         dismiss()
@@ -594,7 +594,7 @@ struct ColorPickerView: View {
                         dismiss()
                     }
                 }
-            }
+            })
         }
     }
 }

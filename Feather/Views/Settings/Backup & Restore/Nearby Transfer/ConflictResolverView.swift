@@ -140,13 +140,13 @@ struct ConflictResolverView: View {
         }
         .navigationTitle("Conflicts")
         .navigationBarTitleDisplayMode(.inline)
-        .toolbar {
+        .toolbar(content: {
             ToolbarItem(placement: .topBarLeading) {
                 Button("Cancel") {
                     dismiss()
                 }
             }
-        }
+        })
         .onAppear {
             viewModel.scanForConflicts(backupDirectory: backupDirectory)
         }

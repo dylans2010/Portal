@@ -1496,13 +1496,13 @@ struct InfoPlistEntriesView: View {
             }
             .navigationTitle(.localized("Search And Replace"))
             .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
+            .toolbar(content: {
                 ToolbarItem(placement: .cancellationAction) {
                     Button(.localized("Done")) {
                         showSearchReplaceSheet = false
                     }
                 }
-            }
+            })
         }
         .presentationDetents([.medium])
     }
