@@ -222,6 +222,7 @@ struct ModernSigningView: View {
                 .presentationDragIndicator(.visible)
             }
         }
+        .handleStatusBarHiding()
     }
 
     @ViewBuilder

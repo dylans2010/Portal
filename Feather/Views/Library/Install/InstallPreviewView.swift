@@ -93,6 +93,8 @@ struct InstallPreviewView: View {
                         UIApplication.shared.open(URL(string: installer.iTunesLink)!)
                     } else if _serverMethod == 1 || _serverMethod == 2 {
                         _isWebviewPresenting = true
+                    } else if _serverMethod == 3 {
+                        UIApplication.shared.open(URL(string: installer.iTunesLinkExternal)!)
                     }
                 }
                 
