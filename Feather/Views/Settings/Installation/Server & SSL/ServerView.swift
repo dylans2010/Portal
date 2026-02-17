@@ -205,7 +205,7 @@ struct ServerView: View {
 			}
 			.padding(.vertical, 4)
 			
-			if _serverMethod == 1 {
+			if _serverMethod == 1 || _serverMethod == 3 {
 				Toggle(isOn: $_ipFix) {
 					HStack(spacing: 12) {
 						ZStack {
