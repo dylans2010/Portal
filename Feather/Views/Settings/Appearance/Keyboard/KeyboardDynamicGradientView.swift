@@ -131,14 +131,14 @@ struct KeyboardDynamicGradientView: View {
             }
             .navigationTitle("Dynamic Gradient")
             .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
+            .toolbar(content: {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button("Done") {
                         dismiss()
                     }
                     .fontWeight(.bold)
                 }
-            }
+            })
         }
     }
 

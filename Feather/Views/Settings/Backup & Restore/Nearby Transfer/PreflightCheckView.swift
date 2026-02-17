@@ -110,13 +110,13 @@ struct PreflightCheckView: View {
         }
         .navigationTitle("Preflight Check")
         .navigationBarTitleDisplayMode(.inline)
-        .toolbar {
+        .toolbar(content: {
             ToolbarItem(placement: .topBarLeading) {
                 Button("Cancel") {
                     dismiss()
                 }
             }
-        }
+        })
         .onAppear {
             viewModel.performScan()
         }
