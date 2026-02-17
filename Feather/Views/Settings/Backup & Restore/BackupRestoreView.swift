@@ -116,13 +116,13 @@ struct BackupRestoreView: View {
                 }
                 .navigationTitle("Pairing Status")
                 .navigationBarTitleDisplayMode(.inline)
-                .toolbar(content: {
+                .toolbar {
                     ToolbarItem(placement: .topBarTrailing) {
                         Button("Done") {
                             isShowingPairingStatus = false
                         }
                     }
-                })
+                }
             }
         }
         .overlay { _statusOverlays }
@@ -1065,11 +1065,11 @@ struct BackupOptionsView: View {
             }
             .navigationTitle(.localized("Backup Options"))
             .navigationBarTitleDisplayMode(.inline)
-            .toolbar(content: {
+            .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button(.localized("Cancel")) { dismiss() }
                 }
-            })
+            }
         }
     }
 }

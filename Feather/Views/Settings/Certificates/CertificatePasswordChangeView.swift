@@ -41,13 +41,13 @@ struct CertificatePasswordChangeView: View {
             .background(Color(UIColor.systemGroupedBackground))
             .navigationTitle("Change P12 Password")
             .navigationBarTitleDisplayMode(.inline)
-            .toolbar(content: {
+            .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") {
                         dismiss()
                     }
                 }
-            })
+            }
             .sheet(isPresented: $_isImportingP12Presenting) {
                 p12ImportSheet
             }

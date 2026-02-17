@@ -750,7 +750,7 @@ struct SFSymbolsPickerView: View {
             }
             .navigationTitle("SF Symbols")
             .navigationBarTitleDisplayMode(.inline)
-            .toolbar(content: {
+            .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Done") {
                         dismiss()
@@ -766,7 +766,7 @@ struct SFSymbolsPickerView: View {
                             .foregroundColor(showCustomizationPanel ? .accentColor : .primary)
                     }
                 }
-            })
+            }
         }
     }
     

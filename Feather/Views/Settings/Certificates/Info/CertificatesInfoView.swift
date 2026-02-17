@@ -118,12 +118,12 @@ struct CertificatesInfoView: View {
             .background(Color(UIColor.systemGroupedBackground))
             .navigationTitle("Certificate Details")
             .navigationBarTitleDisplayMode(.inline)
-            .toolbar(content: {
+            .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Done") { dismiss() }
                         .font(.system(size: 16, weight: .semibold))
                 }
-            })
+            }
         }
         .onAppear {
             data = Storage.shared.getProvisionFileDecoded(for: cert)

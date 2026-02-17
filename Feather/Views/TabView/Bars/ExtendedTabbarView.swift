@@ -177,7 +177,7 @@ struct ExtendedTabbarView: View {
 				}
 			}
 			.navigationTitle(.localized("Sources"))
-			.toolbar(content: {
+			.toolbar {
 				ToolbarItem(placement: .primaryAction) {
 					Button {
 						_isAddingPresenting = true
@@ -185,7 +185,7 @@ struct ExtendedTabbarView: View {
 						Label(.localized("Add Source"), systemImage: "plus")
 					}
 				}
-			})
+			}
 		}
 	}
 }

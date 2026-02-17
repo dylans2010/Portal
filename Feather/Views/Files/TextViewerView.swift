@@ -151,7 +151,7 @@ struct TextViewerView: View {
                     }
                 }
             }
-            .toolbar(content: {
+            .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button(.localized("Close")) {
                         if hasUnsavedChanges {
@@ -200,7 +200,7 @@ struct TextViewerView: View {
                         }
                     }
                 }
-            })
+            }
             .sheet(isPresented: $showEncodingPicker) {
                 encodingPickerSheet
             }
@@ -243,13 +243,13 @@ struct TextViewerView: View {
                     Text(.localized("Choose the character encoding for this file"))
                 }
             }
-            .toolbar(content: {
+            .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button(.localized("Cancel")) {
                         showEncodingPicker = false
                     }
                 }
-            })
+            }
         }
     }
     

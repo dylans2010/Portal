@@ -82,7 +82,7 @@ struct SearchReplaceView: View {
                     .disabled(searchText.isEmpty || matchCount == 0)
                 }
             }
-            .toolbar(content: {
+            .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button(.localized("Cancel")) {
                         dismiss()
@@ -96,7 +96,7 @@ struct SearchReplaceView: View {
                         }
                     }
                 }
-            })
+            }
         }
         .onAppear {
             loadFile()

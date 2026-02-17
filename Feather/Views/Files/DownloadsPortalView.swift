@@ -223,13 +223,13 @@ struct DownloadsPortalView: View {
                     contentView
                 }
             }
-            .toolbar(content: {
+            .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button(.localized("Close")) {
                         dismiss()
                     }
                 }
-            })
+            }
             .task {
                 await service.fetchDownloads()
             }

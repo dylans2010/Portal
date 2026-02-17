@@ -720,7 +720,7 @@ struct GradientColorPickerSheet: View {
             }
             .navigationTitle(title)
             .navigationBarTitleDisplayMode(.inline)
-            .toolbar(content: {
+            .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") {
                         dismiss()
@@ -732,7 +732,7 @@ struct GradientColorPickerSheet: View {
                         dismiss()
                     }
                 }
-            })
+            }
             .onAppear {
                 tempColor = Color(hex: colorHex)
             }

@@ -57,14 +57,14 @@ struct PairingThroughOTPView: View {
         }
         .navigationTitle("Remote Pairing")
         .navigationBarTitleDisplayMode(.inline)
-        .toolbar(content: {
+        .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Button("Done") {
                     viewModel.cleanup()
                     dismiss()
                 }
             }
-        })
+        }
         .sheet(isPresented: $showingTransfer) {
             NavigationStack {
                 TransferProgressView(

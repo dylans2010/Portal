@@ -100,7 +100,7 @@ struct BatchRenameView: View {
                     }
                 }
             }
-            .toolbar(content: {
+            .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button(.localized("Cancel")) {
                         dismiss()
@@ -119,7 +119,7 @@ struct BatchRenameView: View {
                     }
                     .disabled(isProcessing || !isValidConfiguration)
                 }
-            })
+            }
             .onChange(of: selectedMode) { _ in updatePreview() }
             .onChange(of: replaceText) { _ in updatePreview() }
             .onChange(of: withText) { _ in updatePreview() }

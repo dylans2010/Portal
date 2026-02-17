@@ -708,13 +708,13 @@ struct FilePickerView: View {
             }
             .navigationTitle("Select File")
             .navigationBarTitleDisplayMode(.inline)
-            .toolbar(content: {
+            .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") {
                         dismiss()
                     }
                 }
-            })
+            }
             .onAppear {
                 loadFiles()
             }

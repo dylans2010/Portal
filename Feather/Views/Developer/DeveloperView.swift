@@ -724,7 +724,7 @@ struct ModernPasscodeSetupView: View {
                 }
             }
             .navigationBarTitleDisplayMode(.inline)
-            .toolbar(content: {
+            .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") {
                         onComplete(false)
@@ -732,7 +732,7 @@ struct ModernPasscodeSetupView: View {
                     }
                     .foregroundStyle(.orange)
                 }
-            })
+            }
         }
     }
     
@@ -5382,7 +5382,7 @@ struct CrashLogViewer: View {
         .onAppear {
             loadCrashLogs()
         }
-        .toolbar(content: {
+        .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Button {
                     loadCrashLogs()
@@ -5390,7 +5390,7 @@ struct CrashLogViewer: View {
                     Image(systemName: "arrow.clockwise")
                 }
             }
-        })
+        }
     }
     
     private func loadCrashLogs() {
@@ -5999,7 +5999,7 @@ struct SigningLogsView: View {
         }
         .searchable(text: $searchText, prompt: "Search Logs")
         .navigationTitle("Signing Logs")
-        .toolbar(content: {
+        .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Menu {
                     Button {
@@ -6025,7 +6025,7 @@ struct SigningLogsView: View {
                     Image(systemName: "ellipsis.circle")
                 }
             }
-        })
+        }
     }
     
     private func exportLogs() {

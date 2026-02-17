@@ -358,13 +358,13 @@ struct FileTemplatesView: View {
                     }
                 }
             }
-            .toolbar(content: {
+            .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button(.localized("Cancel")) {
                         dismiss()
                     }
                 }
-            })
+            }
         }
     }
     

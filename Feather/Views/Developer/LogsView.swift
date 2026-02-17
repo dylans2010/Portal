@@ -160,7 +160,7 @@ struct AppLogsView: View {
         }
         .navigationTitle("App Logs")
         .navigationBarTitleDisplayMode(.inline)
-        .toolbar(content: {
+        .toolbar {
             ToolbarItemGroup(placement: .topBarTrailing) {
                 // Auto-scroll toggle
                 Button(action: { autoScroll.toggle() }) {
@@ -186,7 +186,7 @@ struct AppLogsView: View {
                     Image(systemName: "ellipsis.circle")
                 }
             }
-        })
+        }
         .fileExporter(
             isPresented: $showExporter,
             document: logDocument,

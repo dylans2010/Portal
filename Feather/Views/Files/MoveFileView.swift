@@ -132,7 +132,7 @@ struct MoveFileView: View {
                     }
                 }
             }
-            .toolbar(content: {
+            .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button(.localized("Cancel")) {
                         dismiss()
@@ -151,7 +151,7 @@ struct MoveFileView: View {
                     }
                     .disabled(selectedDestination == nil || isProcessing)
                 }
-            })
+            }
             .onAppear {
                 loadFolders()
             }

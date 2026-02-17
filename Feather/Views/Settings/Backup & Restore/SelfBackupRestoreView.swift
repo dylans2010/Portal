@@ -280,13 +280,13 @@ struct SelfBackupRestoreView: View {
                 }
                 .navigationTitle("Select Backup")
                 .navigationBarTitleDisplayMode(.inline)
-                .toolbar(content: {
+                .toolbar {
                     ToolbarItem(placement: .topBarTrailing) {
                         Button("Cancel") {
                             showingRestoreList = false
                         }
                     }
-                })
+                }
             }
         }
         .sheet(isPresented: $showingDocumentPicker) {

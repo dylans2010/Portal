@@ -58,7 +58,7 @@ struct CertificatesView: View {
 				emptyStateView
 			}
 		}
-		.toolbar(content: {
+		.toolbar {
 			ToolbarItem(placement: .topBarTrailing) {
 				HStack(spacing: 12) {
 					if passwordChanger {
@@ -80,7 +80,7 @@ struct CertificatesView: View {
 					}
 				}
 			}
-		})
+		}
 		.sheet(item: $_isSelectedInfoPresenting) { cert in
 			CertificatesInfoView(cert: cert)
 		}

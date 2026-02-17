@@ -105,7 +105,7 @@ struct ZipOperationView: View {
                 }
                 .scrollContentBackground(.hidden)
             }
-            .toolbar(content: {
+            .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button(.localized("Cancel")) {
                         dismiss()
@@ -124,7 +124,7 @@ struct ZipOperationView: View {
                     }
                     .disabled(isProcessing || (operation == .zip && zipName.isEmpty))
                 }
-            })
+            }
         }
         .onAppear {
             targetDirectory = directoryURL

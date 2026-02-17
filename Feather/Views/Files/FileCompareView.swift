@@ -136,7 +136,7 @@ struct FileCompareView: View {
                     }
                 }
             }
-            .toolbar(content: {
+            .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button(.localized("Close")) {
                         dismiss()
@@ -151,7 +151,7 @@ struct FileCompareView: View {
                     }
                     .disabled(isLoading)
                 }
-            })
+            }
         }
         .onAppear {
             loadAndCompare()

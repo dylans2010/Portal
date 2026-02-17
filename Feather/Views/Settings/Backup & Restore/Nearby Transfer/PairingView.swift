@@ -265,14 +265,14 @@ struct PairingView: View {
             }
         }
         .navigationBarTitleDisplayMode(.inline)
-        .toolbar(content: {
+        .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Button("Done") {
                     service.stop()
                     dismiss()
                 }
             }
-        })
+        }
         .sheet(isPresented: $showingProgress) {
             NavigationStack {
                 TransferProgressView(
@@ -291,7 +291,7 @@ struct PairingView: View {
                 )
                 .navigationTitle("Transfer Progress")
                 .navigationBarTitleDisplayMode(.inline)
-                .toolbar(content: {
+                .toolbar {
                     ToolbarItem(placement: .topBarTrailing) {
                         if case .completed = service.state {
                             Button("Done") {
@@ -302,7 +302,7 @@ struct PairingView: View {
                             }
                         }
                     }
-                })
+                }
             }
         }
         .sheet(isPresented: $showRestoreOptions) {
