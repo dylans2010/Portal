@@ -99,67 +99,69 @@ struct LibraryView: View {
     
     var body: some View {
         NavigationStack {
-            ZStack(alignment: .bottom) {
-                List(displayedApps, id: \.uuid, selection: $_selectedApps) { app in
-                    appRow(for: app)
-                }
-                .listStyle(.insetGrouped)
-                .refreshable {
-                    HapticsManager.shared.softImpact()
-                }
-                .overlay {
-                    if displayedApps.isEmpty {
-                        emptyStateView
-                    }
-                }
-                .searchable(text: $_searchText, placement: .navigationBarDrawer(displayMode: .always), prompt: "Search Apps")
-                .safeAreaInset(edge: .bottom) {
-                    if !_selectedApps.isEmpty {
-                        batchActionBar
-                            .transition(.move(edge: .bottom).combined(with: .opacity))
-                    }
-                }
-
-                // Import overlay
-                if _showImportAnimation {
-                    importToast
-                        .transition(.move(edge: .bottom).combined(with: .opacity))
-                        .padding(.bottom, _selectedApps.isEmpty ? 20 : 100)
-                }
-
-                // Install preview overlay
-                if let app = _selectedInstallAppOverlay {
-                    InstallPreviewView(app: app.base, isSharing: app.archive, onDismiss: {
-                        withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
-                            _selectedInstallAppOverlay = nil
+            applyLibraryNotifications(to:
+                applyLibraryModals(to:
+                    libraryMainContent
+                        .navigationTitle("Library")
+                        .toolbarTitleMenu {
+                            filterMenu
                         }
-                    })
-                    .transition(.move(edge: .bottom).combined(with: .opacity))
-                    .zIndex(101)
-                    .ignoresSafeArea()
-                }
-            }
-            .navigationTitle("Library")
-            .toolbarTitleMenu {
-                filterMenu
-            }
-            .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
-                    if !hideManager.isHidden("library.importButton") {
-                        importMenu
-                    }
-                }
-                ToolbarItem(placement: .topBarTrailing) {
-                    EditButton()
-                }
-                ToolbarItem(placement: .topBarLeading) {
-                    if !_selectedApps.isEmpty {
-                        Button("Clear") {
-                            _selectedApps.removeAll()
+                        .toolbar {
+                            libraryToolbar
                         }
+                        .alert("Delete Selected Apps", isPresented: $_showBatchDeleteConfirmation) {
+                            Button("Cancel", role: .cancel) { }
+                            Button("Delete", role: .destructive) {
+                                deleteSelectedApps()
+                            }
+                        } message: {
+                            Text("Are you sure you want to delete \(_selectedApps.count) selected app(s)?")
+                        }
+                )
+            )
+        }
+    }
+}
+
+// MARK: - Subviews & Actions
+extension LibraryView {
+
+    private func applyLibraryNotifications<V: View>(to content: V) -> some View {
+        content
+            .onReceive(NotificationCenter.default.publisher(for: DownloadManager.importDidSucceedNotification)) { notification in
+                handleImportSuccess(notification: notification)
+            }
+            .onReceive(NotificationCenter.default.publisher(for: Notification.Name("Feather.TriggerImport"))) { notification in
+                if let userInfo = notification.userInfo, let autoSign = userInfo["autoSign"] as? Bool {
+                    _shouldAutoSignNext = autoSign
+                }
+                _isImportingPresenting = true
+            }
+            .onReceive(NotificationCenter.default.publisher(for: DownloadManager.importDidFailNotification)) { notification in
+                handleImportFailure(notification: notification)
+            }
+            .onReceive(NotificationCenter.default.publisher(for: DownloadManager.downloadDidFailNotification)) { notification in
+                handleDownloadFailure(notification: notification)
+            }
+            .onReceive(NotificationCenter.default.publisher(for: DownloadManager.downloadDidProgressNotification)) { notification in
+                handleDownloadProgress(notification: notification)
+            }
+            .onReceive(NotificationCenter.default.publisher(for: Notification.Name("Feather.installApp"))) { _ in
+                if let latest = _signedApps.first {
+                    withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+                        _selectedInstallAppOverlay = AnyApp(base: latest)
                     }
                 }
             }
+            .onReceive(NotificationCenter.default.publisher(for: Notification.Name("Feather.openSigningView"))) { notification in
+                if let app = notification.object as? AppInfoPresentable {
+                    _selectedSigningAppPresenting = AnyApp(base: app)
+                }
+            }
+    }
+
+    private func applyLibraryModals<V: View>(to content: V) -> some View {
+        content
             .sheet(item: $_selectedInfoAppPresenting) { app in
                 LibraryInfoView(app: app.base)
             }
@@ -197,50 +199,75 @@ struct LibraryView: View {
                     }
                 )
             }
-            .alert("Delete Selected Apps", isPresented: $_showBatchDeleteConfirmation) {
-                Button("Cancel", role: .cancel) { }
-                Button("Delete", role: .destructive) {
-                    deleteSelectedApps()
-                }
-            } message: {
-                Text("Are you sure you want to delete \(_selectedApps.count) selected app(s)?")
+    }
+
+    @ToolbarContentBuilder
+    private var libraryToolbar: some ToolbarContent {
+        ToolbarItem(placement: .topBarTrailing) {
+            if !hideManager.isHidden("library.importButton") {
+                importMenu
             }
-            .onReceive(NotificationCenter.default.publisher(for: DownloadManager.importDidSucceedNotification)) { notification in
-                handleImportSuccess(notification: notification)
-            }
-            .onReceive(NotificationCenter.default.publisher(for: Notification.Name("Feather.TriggerImport"))) { notification in
-                if let userInfo = notification.userInfo, let autoSign = userInfo["autoSign"] as? Bool {
-                    _shouldAutoSignNext = autoSign
-                }
-                _isImportingPresenting = true
-            }
-            .onReceive(NotificationCenter.default.publisher(for: DownloadManager.importDidFailNotification)) { notification in
-                handleImportFailure(notification: notification)
-            }
-            .onReceive(NotificationCenter.default.publisher(for: DownloadManager.downloadDidFailNotification)) { notification in
-                handleDownloadFailure(notification: notification)
-            }
-            .onReceive(NotificationCenter.default.publisher(for: DownloadManager.downloadDidProgressNotification)) { notification in
-                handleDownloadProgress(notification: notification)
-            }
-            .onReceive(NotificationCenter.default.publisher(for: Notification.Name("Feather.installApp"))) { _ in
-                if let latest = _signedApps.first {
-                    withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
-                        _selectedInstallAppOverlay = AnyApp(base: latest)
-                    }
-                }
-            }
-            .onReceive(NotificationCenter.default.publisher(for: Notification.Name("Feather.openSigningView"))) { notification in
-                if let app = notification.object as? AppInfoPresentable {
-                    _selectedSigningAppPresenting = AnyApp(base: app)
+        }
+        ToolbarItem(placement: .topBarTrailing) {
+            EditButton()
+        }
+        ToolbarItem(placement: .topBarLeading) {
+            if !_selectedApps.isEmpty {
+                Button("Clear") {
+                    _selectedApps.removeAll()
                 }
             }
         }
     }
-}
 
-// MARK: - Subviews & Actions
-extension LibraryView {
+    private var libraryMainContent: some View {
+        ZStack(alignment: .bottom) {
+            libraryAppList
+            libraryStatusOverlays
+        }
+    }
+
+    @ViewBuilder
+    private var libraryStatusOverlays: some View {
+        if _showImportAnimation {
+            importToast
+                .transition(.move(edge: .bottom).combined(with: .opacity))
+                .padding(.bottom, _selectedApps.isEmpty ? 20 : 100)
+        }
+
+        if let app = _selectedInstallAppOverlay {
+            InstallPreviewView(app: app.base, isSharing: app.archive, onDismiss: {
+                withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+                    _selectedInstallAppOverlay = nil
+                }
+            })
+            .transition(.move(edge: .bottom).combined(with: .opacity))
+            .zIndex(101)
+            .ignoresSafeArea()
+        }
+    }
+
+    private var libraryAppList: some View {
+        List(displayedApps, id: \.uuid, selection: $_selectedApps) { app in
+            appRow(for: app)
+        }
+        .listStyle(.insetGrouped)
+        .refreshable {
+            HapticsManager.shared.softImpact()
+        }
+        .overlay {
+            if displayedApps.isEmpty {
+                emptyStateView
+            }
+        }
+        .searchable(text: $_searchText, placement: .navigationBarDrawer(displayMode: .always), prompt: "Search Apps")
+        .safeAreaInset(edge: .bottom) {
+            if !_selectedApps.isEmpty {
+                batchActionBar
+                    .transition(.move(edge: .bottom).combined(with: .opacity))
+            }
+        }
+    }
 
     @ViewBuilder
     private func appRow(for app: AppInfoPresentable) -> some View {
