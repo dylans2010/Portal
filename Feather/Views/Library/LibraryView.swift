@@ -187,26 +187,6 @@ struct LibraryView: View {
                     }
                 }
                 .searchable(text: $_searchText, placement: .navigationBarDrawer(displayMode: .always), prompt: "Search Apps")
-                .navigationTitle("Library")
-                .toolbarTitleMenu {
-                    filterMenu
-                }
-                .toolbar {
-                    ToolbarItemGroup(placement: .topBarTrailing) {
-                        if !hideManager.isHidden("library.importButton") {
-                            importMenu
-                        }
-                        EditButton()
-                    }
-
-                    ToolbarItem(placement: .topBarLeading) {
-                        if !_selectedApps.isEmpty {
-                            Button("Clear") {
-                                _selectedApps.removeAll()
-                            }
-                        }
-                    }
-                }
                 .safeAreaInset(edge: .bottom) {
                     if !_selectedApps.isEmpty {
                         batchActionBar
@@ -231,6 +211,27 @@ struct LibraryView: View {
                     .transition(.move(edge: .bottom).combined(with: .opacity))
                     .zIndex(101)
                     .ignoresSafeArea()
+                }
+            }
+            .navigationTitle("Library")
+            .toolbarTitleMenu {
+                filterMenu
+            }
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    if !hideManager.isHidden("library.importButton") {
+                        importMenu
+                    }
+                }
+                ToolbarItem(placement: .topBarTrailing) {
+                    EditButton()
+                }
+                ToolbarItem(placement: .topBarLeading) {
+                    if !_selectedApps.isEmpty {
+                        Button("Clear") {
+                            _selectedApps.removeAll()
+                        }
+                    }
                 }
             }
             .sheet(item: $_selectedInfoAppPresenting) { app in
