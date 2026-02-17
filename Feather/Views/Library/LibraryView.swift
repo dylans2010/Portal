@@ -118,7 +118,7 @@ struct LibraryView: View {
                     .padding(.bottom, 100)
                 }
                 .navigationTitle("Library")
-                .toolbar {
+                .toolbar(content: {
                     ToolbarItem(placement: .topBarTrailing) {
                         if !hideManager.isHidden("library.importButton") {
                             Menu {
@@ -131,7 +131,7 @@ struct LibraryView: View {
                             }
                         }
                     }
-                }
+                })
 
                 if let app = _selectedInstallAppOverlay {
                     InstallPreviewView(app: app.base, isSharing: app.archive, onDismiss: {
