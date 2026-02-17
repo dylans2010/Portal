@@ -105,7 +105,7 @@ struct LibraryView: View {
                 Color(.systemBackground)
                     .ignoresSafeArea()
                 
-                ScrollView(.vertical) {
+                ScrollView(.vertical, showsIndicators: true) {
                     VStack(spacing: 20) {
                         if !hideManager.isHidden("library.filterChips") {
                             filterChips
