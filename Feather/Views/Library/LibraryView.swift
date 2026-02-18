@@ -423,6 +423,7 @@ extension LibraryView {
                         .foregroundStyle(isSelected ? strokeColor : .secondary)
                         .padding(.horizontal, 12)
                         .padding(.vertical, 6)
+                        .contentShape(Capsule())
                         .background {
                             if isSelected {
                                 Capsule()
@@ -431,7 +432,7 @@ extension LibraryView {
                             }
                         }
                 }
-                .buttonStyle(.plain)
+                .buttonStyle(FilterChipButtonStyle())
             }
             
             Spacer()
@@ -609,11 +610,7 @@ struct LibraryAppRow: View {
         HStack(spacing: 12) {
             if isEditing {
                 Button {
-                    if selectedApps.contains(app.uuid) {
-                        selectedApps.remove(app.uuid)
-                    } else {
-                        selectedApps.insert(app.uuid)
-                    }
+                    toggleSelection()
                 } label: {
                     Image(systemName: selectedApps.contains(app.uuid) ? "checkmark.circle.fill" : "circle")
                         .font(.system(size: 22))
@@ -622,35 +619,47 @@ struct LibraryAppRow: View {
                 .transition(.move(edge: .leading).combined(with: .opacity))
             }
 
-            FRAppIconView(app: app, size: 52)
-                .clipShape(RoundedRectangle(cornerRadius: 11, style: .continuous))
-                .shadow(color: .black.opacity(0.05), radius: 4, x: 0, y: 2)
-            
-            VStack(alignment: .leading, spacing: 2) {
-                Text(app.name ?? String.localized("Unknown"))
-                    .font(.system(size: 16, weight: .bold))
-                    .foregroundStyle(.primary)
-                    .lineLimit(1)
-                
-                HStack(spacing: 6) {
-                    if let version = app.version {
-                        Text(version)
-                            .font(.system(size: 11, design: .monospaced))
-                            .foregroundStyle(.secondary)
-                    }
-                    
-                    Text("•")
-                        .font(.system(size: 11))
-                        .foregroundStyle(.secondary)
-
-                    Text(app.isSigned ? String.localized("Signed") : String.localized("Unsigned"))
-                        .font(.system(size: 11, weight: .bold))
-                        .foregroundStyle(app.isSigned ? .green : .orange)
+            Button {
+                if isEditing {
+                    toggleSelection()
+                } else {
+                    selectedInfoAppPresenting = AnyApp(base: app)
                 }
+            } label: {
+                HStack(spacing: 12) {
+                    FRAppIconView(app: app, size: 52)
+                        .clipShape(RoundedRectangle(cornerRadius: 11, style: .continuous))
+                        .shadow(color: .black.opacity(0.05), radius: 4, x: 0, y: 2)
+                    
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(app.name ?? String.localized("Unknown"))
+                            .font(.system(size: 16, weight: .bold))
+                            .foregroundStyle(.primary)
+                            .lineLimit(1)
+
+                        HStack(spacing: 6) {
+                            if let version = app.version {
+                                Text(version)
+                                    .font(.system(size: 11, design: .monospaced))
+                                    .foregroundStyle(.secondary)
+                            }
+
+                            Text("•")
+                                .font(.system(size: 11))
+                                .foregroundStyle(.secondary)
+
+                            Text(app.isSigned ? String.localized("Signed") : String.localized("Unsigned"))
+                                .font(.system(size: 11, weight: .bold))
+                                .foregroundStyle(app.isSigned ? .green : .orange)
+                        }
+                    }
+
+                    Spacer()
+                }
+                .contentShape(Rectangle())
             }
-            
-            Spacer()
-            
+            .buttonStyle(FilterChipButtonStyle())
+
             if !isEditing {
                 Button {
                     if app.isSigned {
@@ -665,38 +674,21 @@ struct LibraryAppRow: View {
                         .padding(8)
                         .background(app.isSigned ? Color.green.opacity(0.1) : Color.accentColor.opacity(0.1))
                         .clipShape(Circle())
+                        .contentShape(Circle())
                 }
                 .buttonStyle(.plain)
-                .simultaneousGesture(
-                    TapGesture(count: 3)
-                        .onEnded {
-                            ToastManager.shared.show("🧘 Patience is a virtue...", type: .info)
-                            HapticsManager.shared.success()
-                        }
-                )
             }
         }
         .padding(.vertical, 10)
         .padding(.horizontal, 12)
-        .contentShape(Rectangle())
-        .onTapGesture {
-            if isEditing {
-                if selectedApps.contains(app.uuid) {
-                    selectedApps.remove(app.uuid)
-                } else {
-                    selectedApps.insert(app.uuid)
-                }
-            } else {
-                selectedInfoAppPresenting = AnyApp(base: app)
-            }
+    }
+
+    private func toggleSelection() {
+        if selectedApps.contains(app.uuid) {
+            selectedApps.remove(app.uuid)
+        } else {
+            selectedApps.insert(app.uuid)
         }
-        .simultaneousGesture(
-            TapGesture(count: 3)
-                .onEnded {
-                    ToastManager.shared.show("🆔 \(app.identifier ?? "Unknown Bundle ID")", type: .info)
-                    HapticsManager.shared.success()
-                }
-        )
     }
 }
 

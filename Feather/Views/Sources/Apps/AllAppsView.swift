@@ -725,14 +725,26 @@ struct AllAppsRowView: View {
 	
 	var body: some View {
 		VStack(spacing: 0) {
-            Button(action: onTap) {
-                if useGrid {
-                    gridView
+            ZStack(alignment: .trailing) {
+                Button(action: onTap) {
+                    if useGrid {
+                        gridView
+                    } else {
+                        rowView
+                    }
+                }
+                .buttonStyle(AllAppsScaleButtonStyle())
+
+                if !useGrid {
+                    actionButton
+                        .frame(width: 34, height: 34)
+                        .padding(.trailing, rowStyle == .minimal ? 12 : 20)
                 } else {
-                    rowView
+                    actionButton
+                        .frame(width: 28, height: 28)
+                        .offset(x: -4, y: -46) // Positioned near icon in grid
                 }
             }
-			.buttonStyle(AllAppsScaleButtonStyle())
 
 			if !useGrid && showDividers && rowStyle == .minimal && !isLast {
 				Divider()
@@ -826,9 +838,8 @@ struct AllAppsRowView: View {
 
                 Spacer()
 
-                // Action button
-                actionButton
-                    .frame(width: 34, height: 34)
+                // Space for action button in ZStack
+                Color.clear.frame(width: 34, height: 34)
             }
 
             // Progress bar when downloading
@@ -882,9 +893,8 @@ struct AllAppsRowView: View {
                     }
                 }
 
-                actionButton
-                    .frame(width: 28, height: 28)
-                    .offset(x: 8, y: -8)
+                // Space for action button in ZStack
+                Color.clear.frame(width: 28, height: 28)
             }
 
             VStack(spacing: 2) {

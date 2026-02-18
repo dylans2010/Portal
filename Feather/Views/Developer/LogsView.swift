@@ -299,13 +299,14 @@ struct FilterPill: View {
             )
             .foregroundStyle(isSelected ? .white : .primary.opacity(0.8))
             .clipShape(Capsule())
+            .contentShape(Capsule())
             .shadow(color: isSelected ? Color.accentColor.opacity(0.4) : .black.opacity(0.05), radius: 8, x: 0, y: 4)
             .overlay(
                 Capsule()
                     .stroke(.white.opacity(colorScheme == .dark ? 0.1 : 0.3), lineWidth: 1)
             )
         }
-        .buttonStyle(.plain)
+        .buttonStyle(LogButtonStyle())
         .scaleEffect(isSelected ? 1.02 : 1.0)
         .animation(.spring(response: 0.3), value: isSelected)
     }
@@ -367,10 +368,11 @@ struct LogEntryRow: View {
                         .rotationEffect(.degrees(isExpanded ? 90 : 0))
                         .padding(.top, 4)
                 }
+                .contentShape(Rectangle())
                 .padding(.vertical, 12)
                 .padding(.horizontal, 16)
             }
-            .buttonStyle(.plain)
+            .buttonStyle(LogButtonStyle())
 
             if isExpanded {
                 VStack(alignment: .leading, spacing: 8) {
@@ -448,5 +450,15 @@ struct LogDocument: FileDocument {
 
     func fileWrapper(configuration: WriteConfiguration) throws -> FileWrapper {
         return FileWrapper(regularFileWithContents: data)
+    }
+}
+
+// MARK: - Button Style
+struct LogButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .opacity(configuration.isPressed ? 0.8 : 1.0)
+            .scaleEffect(configuration.isPressed ? 0.98 : 1.0)
+            .animation(.easeInOut(duration: 0.1), value: configuration.isPressed)
     }
 }

@@ -246,6 +246,7 @@ struct CertificatesView: View {
 						.background(.ultraThinMaterial)
 				}
 			}
+			.contentShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
 			.clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
 			.shadow(
 				color: isSelected ? Color.accentColor.opacity(0.25) : Color.black.opacity(0.08),
@@ -284,7 +285,7 @@ struct CertificatesView: View {
 				}
 			}
 		}
-		.buttonStyle(.plain)
+		.buttonStyle(CertificateCardButtonStyle())
 	}
 	
 	@ViewBuilder
@@ -368,4 +369,14 @@ struct CertificatesView: View {
 			Storage.shared.revokagedCertificate(for: cert)
 		}
 	}
+}
+
+// MARK: - Button Style
+struct CertificateCardButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .scaleEffect(configuration.isPressed ? 0.98 : 1.0)
+            .opacity(configuration.isPressed ? 0.9 : 1.0)
+            .animation(.spring(response: 0.3, dampingFraction: 0.7), value: configuration.isPressed)
+    }
 }
