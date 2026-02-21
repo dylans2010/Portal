@@ -179,7 +179,7 @@ struct LibraryInfoView: View {
 		}
 		.background(
 			RoundedRectangle(cornerRadius: 24, style: .continuous)
-				.fill(.ultraThinMaterial)
+				.fill(Color.clear)
 				.shadow(color: .black.opacity(0.08), radius: 20, x: 0, y: 10)
 		)
 		.overlay(
@@ -266,7 +266,7 @@ struct LibraryInfoView: View {
 		.padding(18)
 		.background(
 			RoundedRectangle(cornerRadius: 20, style: .continuous)
-				.fill(.ultraThinMaterial)
+				.fill(Color.clear)
 				.shadow(color: .black.opacity(0.06), radius: 15, x: 0, y: 8)
 		)
 		.overlay(
@@ -327,7 +327,7 @@ struct LibraryInfoView: View {
 		.padding(18)
 		.background(
 			RoundedRectangle(cornerRadius: 20, style: .continuous)
-				.fill(.ultraThinMaterial)
+				.fill(Color.clear)
 				.shadow(color: .black.opacity(0.06), radius: 15, x: 0, y: 8)
 		)
 		.overlay(
@@ -375,7 +375,7 @@ struct LibraryInfoView: View {
 		.padding(18)
 		.background(
 			RoundedRectangle(cornerRadius: 20, style: .continuous)
-				.fill(.ultraThinMaterial)
+				.fill(Color.clear)
 				.shadow(color: .black.opacity(0.06), radius: 15, x: 0, y: 8)
 		)
 		.overlay(
@@ -452,7 +452,7 @@ struct LibraryInfoView: View {
 			.padding(16)
 			.background(
 				RoundedRectangle(cornerRadius: 16, style: .continuous)
-					.fill(.ultraThinMaterial)
+					.fill(Color.clear)
 					.shadow(color: .black.opacity(0.06), radius: 15, x: 0, y: 8)
 			)
 			.overlay(

@@ -98,14 +98,17 @@ struct ManageStorageView: View {
             }
         }
         .sheet(isPresented: $showStorageAnalyzer) {
-            StorageAnalyzerView()
-        }
+StorageAnalyzerView()
+.applyGlobalTheme()
+}
         .sheet(isPresented: $showDuplicateFinder) {
-            StorageDuplicateFinderView()
-        }
+StorageDuplicateFinderView()
+.applyGlobalTheme()
+}
         .sheet(isPresented: $showLargeFilesFinder) {
-            LargeFilesFinderView()
-        }
+LargeFilesFinderView()
+.applyGlobalTheme()
+}
     }
     
     // MARK: - Storage Ring Card

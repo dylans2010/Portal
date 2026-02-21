@@ -257,7 +257,7 @@ struct SelfBackupRestoreView: View {
         .navigationTitle("Self Backup & Restore")
         .navigationBarTitleDisplayMode(.inline)
         .sheet(isPresented: $showingBackupOptions) {
-            BackupOptionsView(
+BackupOptionsView(
                 options: $backupOptions,
                 isPreparing: viewModel.isCreatingBackup,
                 onConfirm: {
@@ -267,9 +267,10 @@ struct SelfBackupRestoreView: View {
                     }
                 }
             )
-        }
+.applyGlobalTheme()
+}
         .sheet(isPresented: $showingRestoreList) {
-            let handleRestore: (LocalBackup) -> Void = { backup in
+let handleRestore: (LocalBackup) -> Void = { backup in
                 showingRestoreList = false
                 Task {
                     await viewModel.restoreBackup(backup)
@@ -300,9 +301,11 @@ struct SelfBackupRestoreView: View {
                     }
                 }
             }
-        }
+.applyGlobalTheme()
+}
         .sheet(isPresented: $showingDocumentPicker) {
-            if let backupType = UTType(filenameExtension: "backup") {
+Group {
+if let backupType = UTType(filenameExtension: "backup") {
                 FileImporterRepresentableView(
                     allowedContentTypes: [backupType],
                     allowsMultipleSelection: false,
@@ -319,7 +322,8 @@ struct SelfBackupRestoreView: View {
                 Text("Error: Unable to create document picker")
                     .padding()
             }
-        }
+}.applyGlobalTheme()
+}
         .alert("Rename Backup", isPresented: $showingRenameAlert, presenting: backupToRename) { backup in
             TextField("Backup Name", text: $newBackupName)
             Button("Cancel", role: .cancel) { }

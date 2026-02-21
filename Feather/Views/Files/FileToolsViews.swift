@@ -314,8 +314,7 @@ struct AdvancedFileSearchView: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                Color.clear
-                    .ignoresSafeArea()
+
                 
                 ScrollView {
                     VStack(spacing: 20) {
@@ -742,8 +741,7 @@ struct DiskUsageView: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                Color.clear
-                    .ignoresSafeArea()
+
                 
                 if isCalculating {
                     loadingView
@@ -1094,7 +1092,7 @@ struct FileHasherView: View {
                 }
             }
             .sheet(isPresented: $isImporting) {
-                FileImporterRepresentableView(
+FileImporterRepresentableView(
                     allowedContentTypes: [.item],
                     onDocumentsPicked: { urls in
                         if let url = urls.first {
@@ -1104,7 +1102,8 @@ struct FileHasherView: View {
                     }
                 )
                 .ignoresSafeArea()
-            }
+.applyGlobalTheme()
+}
         }
     }
     
@@ -1200,8 +1199,7 @@ struct Base64ToolView: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                Color.clear
-                    .ignoresSafeArea()
+
                 
                 ScrollView {
                     VStack(spacing: 20) {

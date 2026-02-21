@@ -147,14 +147,16 @@ struct HomeView: View {
             .background(Color.clear)
             .navigationBarHidden(true)
             .sheet(isPresented: $_showAddCertificate) {
-                CertificatesAddView()
+CertificatesAddView()
                     .presentationDetents([.medium])
-            }
+.applyGlobalTheme()
+}
             .fullScreenCover(isPresented: $_showAddSource) {
-                SourcesAddView()
-            }
+SourcesAddView()
+.applyGlobalTheme()
+}
             .sheet(isPresented: $_showImportApp) {
-                FileImporterRepresentableView(
+FileImporterRepresentableView(
                     allowedContentTypes: [.ipa, .tipa],
                     allowsMultipleSelection: true,
                     onDocumentsPicked: { urls in
@@ -166,18 +168,20 @@ struct HomeView: View {
                     }
                 )
                 .ignoresSafeArea()
-            }
+.applyGlobalTheme()
+}
             .sheet(isPresented: $_showSignAndInstallPicker) {
-                SignAndInstallPickerView { importedApp in
+SignAndInstallPickerView { importedApp in
                     _selectedAppForSigning = importedApp
                     _showSignAndInstallPicker = false
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
                         _navigateToSigning = true
                     }
                 }
-            }
+.applyGlobalTheme()
+}
             .sheet(isPresented: $_showAppUpdatesSheet) {
-                AppUpdatesListSheet(
+AppUpdatesListSheet(
                     updates: _updateTrackingManager.availableUpdates,
                     onSignApp: { update in
                         _selectedUpdateForSigning = update
@@ -188,7 +192,8 @@ struct HomeView: View {
                         _updateTrackingManager.dismissUpdate(for: update.bundleIdentifier, version: update.newVersion)
                     }
                 )
-            }
+.applyGlobalTheme()
+}
             .navigationDestination(isPresented: $_navigateToSigning) {
                 if let app = _selectedAppForSigning {
                     ModernSigningView(app: app)
@@ -2332,7 +2337,7 @@ struct SignAndInstallPickerView: View {
                 }
             }
             .sheet(isPresented: $_showFilePicker) {
-                FileImporterRepresentableView(
+FileImporterRepresentableView(
                     allowedContentTypes: [.ipa, .tipa],
                     allowsMultipleSelection: false,
                     onDocumentsPicked: { urls in
@@ -2366,7 +2371,8 @@ struct SignAndInstallPickerView: View {
                     }
                 )
                 .ignoresSafeArea()
-            }
+.applyGlobalTheme()
+}
             .onReceive(NotificationCenter.default.publisher(for: DownloadManager.downloadDidProgressNotification)) { notification in
                 guard let userInfo = notification.userInfo,
                       let downloadId = userInfo["downloadId"] as? String,

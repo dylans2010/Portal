@@ -217,25 +217,33 @@ struct LibraryView: View {
                     }
                 }
             }
-                        .sheet(item: $_selectedInfoAppPresenting) { app in
+                        .sheet(item: $_selectedInfoAppPresenting) {
+app in
                                 LibraryInfoView(app: app.base)
-                        }
-                        .sheet(item: $_selectedInstallAppPresenting) { app in
+.applyGlobalTheme()
+}
+                        .sheet(item: $_selectedInstallAppPresenting) {
+app in
                                 InstallPreviewView(app: app.base, isSharing: app.archive)
                                         .presentationDetents([.height(200)])
                                         .presentationDragIndicator(.visible)
                                         .compatPresentationRadius(21)
-                        }
-                        .fullScreenCover(item: $_selectedSigningAppPresenting) { app in
+.applyGlobalTheme()
+}
+                        .fullScreenCover(item: $_selectedSigningAppPresenting) {
+app in
                                 ModernSigningView(app: app.base)
-                        }
-                        .sheet(item: $_selectedInstallModifyAppPresenting) { app in
+.applyGlobalTheme()
+}
+                        .sheet(item: $_selectedInstallModifyAppPresenting) {
+app in
                                 InstallModifyDialogView(app: app.base)
                                         .presentationDetents([.medium, .large])
                                         .presentationDragIndicator(.visible)
-                        }
+.applyGlobalTheme()
+}
                         .sheet(isPresented: $_isImportingPresenting) {
-                                FileImporterRepresentableView(
+FileImporterRepresentableView(
                                         allowedContentTypes:  [.ipa, .tipa],
                                         allowsMultipleSelection: true,
                                         onDocumentsPicked: { urls in
@@ -262,9 +270,10 @@ struct LibraryView: View {
                                         }
                                 )
                                 .ignoresSafeArea()
-                        }
+.applyGlobalTheme()
+}
                         .sheet(isPresented: $_showImportSelection) {
-                            ImportSelectionSheet(
+ImportSelectionSheet(
                                 onImportFiles: {
                                     _showImportSelection = false
                                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
@@ -281,9 +290,10 @@ struct LibraryView: View {
                             .presentationDetents([.height(260)])
                             .presentationDragIndicator(.visible)
                             .compatPresentationRadius(24)
-                        }
+.applyGlobalTheme()
+}
                         .sheet(isPresented: $_isDownloadingPresenting) {
-                                ModernImportURLView { url in
+ModernImportURLView { url in
                                         // Start URL download with proper tracking
                                         let downloadId = "FeatherManualDownload_\(UUID().uuidString)"
                                         _currentDownloadId = downloadId
@@ -297,9 +307,10 @@ struct LibraryView: View {
                                 }
                                 .presentationDetents([.medium, .large])
                                 .presentationDragIndicator(.visible)
-                        }
+.applyGlobalTheme()
+}
             .fullScreenCover(isPresented: $_showBatchSigningSheet) {
-                BatchSigningView(
+BatchSigningView(
                     apps: getSelectedUnsignedApps(),
                     onComplete: {
                         _showBatchSigningSheet = false
@@ -307,7 +318,8 @@ struct LibraryView: View {
                         _editMode = .inactive
                     }
                 )
-            }
+.applyGlobalTheme()
+}
             .alert("Delete Selected Apps", isPresented: $_showBatchDeleteConfirmation) {
                 Button("Cancel", role: .cancel) { }
                 Button("Delete", role: .destructive) {

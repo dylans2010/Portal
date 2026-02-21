@@ -358,10 +358,11 @@ struct AdvancedToolDetailView: View {
         .navigationTitle(tool.name)
         .navigationBarTitleDisplayMode(.inline)
         .sheet(isPresented: $showFilePicker) {
-            FilePickerView { url in
+FilePickerView { url in
                 selectedFile = url
             }
-        }
+.applyGlobalTheme()
+}
     }
     
     // MARK: - Tool Header

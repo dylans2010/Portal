@@ -344,16 +344,18 @@ struct HomeSettingsView: View {
             Text(.localized("Are you sure you want to remove your Profile Picture?"))
         }
         .sheet(isPresented: $showImagePicker) {
-            ProfileImagePicker { image in
+ProfileImagePicker { image in
                 if let image = image {
                     profileManager.saveProfilePicture(image)
                     HapticsManager.shared.success()
                 }
             }
-        }
+.applyGlobalTheme()
+}
         .sheet(isPresented: $showAppUpdateSettings) {
-            AppUpdateTrackingSettingsView()
-        }
+AppUpdateTrackingSettingsView()
+.applyGlobalTheme()
+}
     }
     
     // MARK: - App Update Section
@@ -796,8 +798,9 @@ struct AppUpdateTrackingSettingsView: View {
                 }
             }
             .sheet(isPresented: $showAddAppSheet) {
-                SelectAppToTrackView(sources: sourcesViewModel.sources)
-            }
+SelectAppToTrackView(sources: sourcesViewModel.sources)
+.applyGlobalTheme()
+}
             .alert("Remove Tracked App", isPresented: $showRemoveConfirmation) {
                 Button("Cancel", role: .cancel) { }
                 Button("Remove", role: .destructive) {

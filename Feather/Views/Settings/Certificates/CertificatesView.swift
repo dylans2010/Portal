@@ -83,15 +83,19 @@ struct CertificatesView: View {
 				}
 			}
 		}
-		.sheet(item: $_isSelectedInfoPresenting) { cert in
+		.sheet(item: $_isSelectedInfoPresenting) {
+cert in
 			CertificatesInfoView(cert: cert)
-		}
+.applyGlobalTheme()
+}
 		.sheet(isPresented: $_isAddingPresenting) {
-			CertificatesAddView()
-		}
+CertificatesAddView()
+.applyGlobalTheme()
+}
 		.sheet(isPresented: $_isPasswordChangePresenting) {
-			CertificatePasswordChangeView()
-		}
+CertificatePasswordChangeView()
+.applyGlobalTheme()
+}
 		.onAppear {
 			withAnimation {
 				appearAnimation = true

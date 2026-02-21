@@ -127,10 +127,11 @@ struct ExtendedTabbarView: View {
 			}
 		}
 		.sheet(isPresented: $_isAddingPresenting) {
-			SourcesAddView()
+SourcesAddView()
 				.presentationDetents([.medium, .large])
 				.presentationDragIndicator(.visible)
-		}
+.applyGlobalTheme()
+}
 	}
 	
 	@ViewBuilder

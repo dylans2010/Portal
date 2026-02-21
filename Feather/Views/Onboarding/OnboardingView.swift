@@ -11,8 +11,7 @@ struct OnboardingView: View {
     var body: some View {
         ZStack {
             // Simple solid background
-            Color.clear
-                .ignoresSafeArea()
+
             
             // Simple content container
             VStack(spacing: 0) {
@@ -192,8 +191,7 @@ struct OnboardingViewLegacy: View {
     var body: some View {
         ZStack {
             // Simple solid background
-            Color.clear
-                .ignoresSafeArea()
+
             
             // Simple content container
             VStack(spacing: 0) {

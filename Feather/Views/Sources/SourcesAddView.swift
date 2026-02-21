@@ -80,8 +80,9 @@ struct SourcesAddView: View {
 				await _fetchRecommendedRepositories()
 			}
 			.sheet(isPresented: $_showPortalExport) {
-				PortalExportView(exportData: $_portalExportData)
-			}
+PortalExportView(exportData: $_portalExportData)
+.applyGlobalTheme()
+}
 		}
 	}
 	

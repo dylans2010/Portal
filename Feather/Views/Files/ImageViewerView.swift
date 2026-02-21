@@ -16,7 +16,7 @@ struct ImageViewerView: View {
     var body: some View {
         NBNavigationView(fileURL.lastPathComponent, displayMode: .inline) {
             ZStack {
-                Color.black.ignoresSafeArea()
+
                 
                 if let error = errorMessage {
                     errorView(error: error)

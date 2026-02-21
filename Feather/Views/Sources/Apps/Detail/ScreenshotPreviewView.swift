@@ -44,7 +44,7 @@ extension ScreenshotPreviewView {
                 .padding(.vertical, 6)
                 .background(
                     Capsule()
-                        .fill(.ultraThinMaterial)
+                        .fill(Color.clear)
                 )
         }
         .padding(.horizontal, 20)

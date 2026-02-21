@@ -48,6 +48,7 @@ struct GrepToolView: View {
                             .font(.system(.caption, design: .monospaced))
                     }
                 }
+                .scrollContentBackground(.hidden)
             }
             .navigationTitle(.localized("File Content Search"))
             .navigationBarTitleDisplayMode(.inline)

@@ -29,6 +29,7 @@ struct ArchiveBrowserView: View {
                     }
                 }
             }
+            .scrollContentBackground(.hidden)
             .navigationTitle(fileURL.lastPathComponent)
             .navigationBarTitleDisplayMode(.inline)
             .onAppear {

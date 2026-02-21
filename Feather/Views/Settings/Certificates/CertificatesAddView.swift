@@ -81,17 +81,21 @@ struct CertificatesAddView: View {
                 }
             }
             .sheet(isPresented: $_isImportingP12Presenting) {
-                p12ImportSheet
-            }
+p12ImportSheet
+.applyGlobalTheme()
+}
             .sheet(isPresented: $_isImportingMobileProvisionPresenting) {
-                provisionImportSheet
-            }
+provisionImportSheet
+.applyGlobalTheme()
+}
             .sheet(isPresented: $_isImportingZipPresenting) {
-                zipImportSheet
-            }
+zipImportSheet
+.applyGlobalTheme()
+}
             .sheet(isPresented: $_isImportingPortalCertPresenting) {
-                portalCertImportSheet
-            }
+portalCertImportSheet
+.applyGlobalTheme()
+}
         }
     }
     

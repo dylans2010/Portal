@@ -39,37 +39,47 @@ struct AppearanceContentPanel: View {
             resetSection
         }
             .scrollContentBackground(.hidden)
-        .listStyle(.insetGrouped)
+
         .sheet(isPresented: $showColorPicker) {
-            ColorPickerSheet(selectedColor: $viewModel.selectedColor, colorHex: $viewModel.colorHex)
-        }
+ColorPickerSheet(selectedColor: $viewModel.selectedColor, colorHex: $viewModel.colorHex)
+.applyGlobalTheme()
+}
         .sheet(isPresented: $showBackgroundColorPicker) {
-            ColorPickerSheet(selectedColor: $viewModel.selectedBackgroundColor, colorHex: $viewModel.backgroundColorHex)
-        }
+ColorPickerSheet(selectedColor: $viewModel.selectedBackgroundColor, colorHex: $viewModel.backgroundColorHex)
+.applyGlobalTheme()
+}
         .sheet(isPresented: $showShadowColorPicker) {
-            ColorPickerSheet(selectedColor: $viewModel.selectedShadowColor, colorHex: $viewModel.shadowColorHex)
-        }
+ColorPickerSheet(selectedColor: $viewModel.selectedShadowColor, colorHex: $viewModel.shadowColorHex)
+.applyGlobalTheme()
+}
         .sheet(isPresented: $showBorderColorPicker) {
-            ColorPickerSheet(selectedColor: $viewModel.selectedBorderColor, colorHex: $viewModel.borderColorHex)
-        }
+ColorPickerSheet(selectedColor: $viewModel.selectedBorderColor, colorHex: $viewModel.borderColorHex)
+.applyGlobalTheme()
+}
         .sheet(isPresented: $showTimeColorPicker) {
-            ColorPickerSheet(selectedColor: $viewModel.selectedTimeColor, colorHex: $viewModel.timeColorHex)
-        }
+ColorPickerSheet(selectedColor: $viewModel.selectedTimeColor, colorHex: $viewModel.timeColorHex)
+.applyGlobalTheme()
+}
         .sheet(isPresented: $showBatteryColorPicker) {
-            ColorPickerSheet(selectedColor: $viewModel.selectedBatteryColor, colorHex: $viewModel.batteryColorHex)
-        }
+ColorPickerSheet(selectedColor: $viewModel.selectedBatteryColor, colorHex: $viewModel.batteryColorHex)
+.applyGlobalTheme()
+}
         .sheet(isPresented: $showGradientStartColorPicker) {
-            GradientColorPickerSheet(colorHex: $viewModel.gradientStartColorHex, title: "Start Color")
-        }
+GradientColorPickerSheet(colorHex: $viewModel.gradientStartColorHex, title: "Start Color")
+.applyGlobalTheme()
+}
         .sheet(isPresented: $showGradientEndColorPicker) {
-            GradientColorPickerSheet(colorHex: $viewModel.gradientEndColorHex, title: "End Color")
-        }
+GradientColorPickerSheet(colorHex: $viewModel.gradientEndColorHex, title: "End Color")
+.applyGlobalTheme()
+}
         .sheet(isPresented: $showGlowColorPicker) {
-            GradientColorPickerSheet(colorHex: $viewModel.glowColorHex, title: "Glow Color")
-        }
+GradientColorPickerSheet(colorHex: $viewModel.glowColorHex, title: "Glow Color")
+.applyGlobalTheme()
+}
         .sheet(isPresented: $showSymbolPicker) {
-            SFSymbolsPickerView(viewModel: viewModel)
-        }
+SFSymbolsPickerView(viewModel: viewModel)
+.applyGlobalTheme()
+}
         .alert("Reset to Defaults?", isPresented: $showResetConfirmation) {
             Button("Cancel", role: .cancel) { }
             Button("Reset", role: .destructive) {

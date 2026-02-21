@@ -162,8 +162,7 @@ struct SourceAppsView: View {
     private var backgroundGradient: some View {
         // Use a single solid color that matches the navigation bar area
         // to ensure seamless appearance from top to content
-        Color.clear
-            .ignoresSafeArea()
+
     }
     
     // MARK: - Loading View

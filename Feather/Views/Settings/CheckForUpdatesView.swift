@@ -68,11 +68,14 @@ struct CheckForUpdatesView: View {
                 updateManager.checkForUpdates()
             }
         }
-        .sheet(item: $selectedReleaseForNotes) { release in
+        .sheet(item: $selectedReleaseForNotes) {
+release in
             FullReleaseNotesView(release: release)
-        }
+.applyGlobalTheme()
+}
         .sheet(isPresented: $updateManager.showUpdateFinished) {
-            if let ipaURL = updateManager.downloadedIPAURL {
+Group {
+if let ipaURL = updateManager.downloadedIPAURL {
                 UpdateFinishedView(
                     ipaURL: ipaURL,
                     fileName: updateManager.downloadedFileName,
@@ -81,7 +84,8 @@ struct CheckForUpdatesView: View {
                     }
                 )
             }
-        }
+}.applyGlobalTheme()
+}
     }
     
     // MARK: - Hero Section
@@ -1185,7 +1189,7 @@ struct UpdateFinishedView: View {
                     if #available(iOS 26.0, *) {
                         ZStack {
                             Rectangle()
-                                .fill(.ultraThinMaterial)
+                                .fill(Color.clear)
 
                             LinearGradient(
                                 colors: [Color.accentColor.opacity(0.1), Color.purple.opacity(0.05), Color.clear],
@@ -1195,7 +1199,7 @@ struct UpdateFinishedView: View {
                         }
                     } else {
                         Rectangle()
-                            .fill(.ultraThinMaterial)
+                            .fill(Color.clear)
                     }
                 }
                 .presentationCornerRadius(32)
@@ -1255,8 +1259,9 @@ struct UpdateFinishedView: View {
             }
         }
         .sheet(isPresented: $showShareSheet) {
-            ShareSheet(urls: [ipaURL])
-        }
+ShareSheet(urls: [ipaURL])
+.applyGlobalTheme()
+}
         .onAppear {
             withAnimation(.spring(response: 0.5, dampingFraction: 0.7).delay(0.1)) {
                 successAnimation = true
@@ -1752,7 +1757,7 @@ extension View {
                     ZStack {
                         // Liquid Glass Base
                         RoundedRectangle(cornerRadius: 24, style: .continuous)
-                            .fill(.ultraThinMaterial)
+                            .fill(Color.clear)
 
                         // Inner Glow
                         RoundedRectangle(cornerRadius: 24, style: .continuous)

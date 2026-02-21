@@ -73,7 +73,7 @@ struct AdvancedSigningOptionsSection: View {
             }
             .background(
                 RoundedRectangle(cornerRadius: 16, style: .continuous)
-                    .fill(.ultraThinMaterial)
+                    .fill(Color.clear)
             )
             .overlay(
                 RoundedRectangle(cornerRadius: 16, style: .continuous)
@@ -721,7 +721,7 @@ struct AdvancedDebugToolsView: View {
             loadAppInfo()
         }
         .sheet(isPresented: $showDylibPicker) {
-            FileImporterRepresentableView(
+FileImporterRepresentableView(
                 allowedContentTypes: [.init(filenameExtension: "dylib")!, .init(filenameExtension: "framework")!, .init(filenameExtension: "deb")!],
                 onDocumentsPicked: { urls in
                     for url in urls {
@@ -732,7 +732,8 @@ struct AdvancedDebugToolsView: View {
                 }
             )
             .ignoresSafeArea()
-        }
+.applyGlobalTheme()
+}
         .alert("Status", isPresented: $showStatusAlert) {
             Button("OK", role: .cancel) { }
         } message: {
@@ -1554,11 +1555,13 @@ struct InfoPlistEditorDebugView: View {
             generateRawPlist()
         }
         .sheet(isPresented: $showAddEntry) {
-            addEntrySheet
-        }
+addEntrySheet
+.applyGlobalTheme()
+}
         .sheet(isPresented: $showEditEntry) {
-            editEntrySheet
-        }
+editEntrySheet
+.applyGlobalTheme()
+}
         .alert("Validation Results", isPresented: $showValidationErrors) {
             Button("OK", role: .cancel) { }
         } message: {
@@ -2435,7 +2438,7 @@ struct EntitlementsDebugView: View {
             loadEntitlements()
         }
         .sheet(isPresented: $showAddEntitlement) {
-            NavigationStack {
+NavigationStack {
                 Form {
                     TextField("Key", text: $newKey)
                         .autocapitalization(.none)
@@ -2458,7 +2461,8 @@ struct EntitlementsDebugView: View {
                 }
             }
             .presentationDetents([.medium])
-        }
+.applyGlobalTheme()
+}
     }
 
     private func loadEntitlements() {
@@ -2657,7 +2661,8 @@ struct ResourceModifierView: View {
             loadResources()
         }
         .sheet(isPresented: $showResourceDetail) {
-            if let resource = selectedResource {
+Group {
+if let resource = selectedResource {
                 ResourceDetailView(resource: resource, onReplace: {
                     showReplaceSheet = true
                 }, onExport: {
@@ -2666,10 +2671,12 @@ struct ResourceModifierView: View {
                     showDeleteConfirmation = true
                 })
             }
-        }
+}.applyGlobalTheme()
+}
         .sheet(isPresented: $showStatistics) {
-            ResourceStatisticsView(resources: resources)
-        }
+ResourceStatisticsView(resources: resources)
+.applyGlobalTheme()
+}
         .alert("Delete Resource?", isPresented: $showDeleteConfirmation) {
             Button("Delete", role: .destructive) {
                 if let resource = selectedResource {

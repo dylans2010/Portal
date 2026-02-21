@@ -46,16 +46,17 @@ struct BackupRestoreView: View {
             _aboutSection
         }
         .sheet(isPresented: $isBackupOptionsPresented) {
-            BackupOptionsView(
+BackupOptionsView(
                 options: $backupOptions,
                 isPreparing: isPreparingBackup,
                 onConfirm: {
                     handleCreateBackup()
                 }
             )
-        }
+.applyGlobalTheme()
+}
         .sheet(isPresented: $isImportIPAPresented) {
-            FileImporterRepresentableView(
+FileImporterRepresentableView(
                 allowedContentTypes: [.zip],
                 allowsMultipleSelection: false,
                 onDocumentsPicked: { urls in
@@ -64,7 +65,8 @@ struct BackupRestoreView: View {
                 }
             )
             .ignoresSafeArea()
-        }
+.applyGlobalTheme()
+}
         .fileImporter(
             isPresented: $isVerifyFilePickerPresented,
             allowedContentTypes: [.zip],
@@ -105,7 +107,7 @@ struct BackupRestoreView: View {
             Text(.localized("Not a valid Backup file because Portal couldn't find the internal checker inside this uploaded file. Please upload an actual .zip file of a backup."))
         }
         .sheet(isPresented: $isShowingPairingStatus) {
-            NavigationStack {
+NavigationStack {
                 ScrollView {
                     VStack(alignment: .leading, spacing: 16) {
                         Text(pairingInfo)
@@ -124,7 +126,8 @@ struct BackupRestoreView: View {
                     }
                 }
             }
-        }
+.applyGlobalTheme()
+}
         .overlay { _statusOverlays }
     }
 
@@ -284,7 +287,7 @@ struct BackupRestoreView: View {
     private var _statusOverlays: some View {
         if isVerifying {
             ZStack {
-                Color.black.opacity(0.4).ignoresSafeArea()
+
                 VStack(spacing: 12) {
                     ProgressView()
                         .tint(.white)
@@ -299,7 +302,7 @@ struct BackupRestoreView: View {
 
         if isRestoring {
             ZStack {
-                Color.black.opacity(0.4).ignoresSafeArea()
+
                 VStack(spacing: 12) {
                     ProgressView()
                         .tint(.white)
@@ -314,7 +317,7 @@ struct BackupRestoreView: View {
 
         if isPreparingBackup {
             ZStack {
-                Color.black.opacity(0.4).ignoresSafeArea()
+
                 VStack(spacing: 12) {
                     ProgressView()
                         .tint(.white)

@@ -142,7 +142,7 @@ struct ExperimentalCustomTabBar: View {
         .padding(.vertical, ExperimentalUITheme.Spacing.sm)
         .background(
             RoundedRectangle(cornerRadius: ExperimentalUITheme.CornerRadius.xl)
-                .fill(.ultraThinMaterial)
+                .fill(Color.clear)
                 .shadow(
                     color: ExperimentalUITheme.Shadow.lg.color,
                     radius: ExperimentalUITheme.Shadow.lg.radius,

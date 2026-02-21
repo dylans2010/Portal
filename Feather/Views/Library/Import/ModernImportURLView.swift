@@ -51,8 +51,7 @@ struct ModernImportURLView: View {
 
     @ViewBuilder
     private var backgroundView: some View {
-        Color.clear
-            .ignoresSafeArea()
+
     }
 
     @ViewBuilder

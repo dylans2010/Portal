@@ -92,13 +92,28 @@ struct InfoPlistEntriesView: View {
             }
             .navigationBarTitleDisplayMode(.inline)
             .toolbar { toolbarContent }
-            .sheet(isPresented: $showAddEntryDialog) { addEntrySheet }
-            .sheet(isPresented: $showPresetSheet) { presetOptionsSheet }
-            .sheet(isPresented: $showEditSheet) { editEntrySheet }
-            .sheet(isPresented: $showBatchActionsSheet) { batchActionsSheet }
-            .sheet(isPresented: $showSearchReplaceSheet) { searchReplaceSheet }
+            .sheet(isPresented: $showAddEntryDialog) {
+addEntrySheet
+.applyGlobalTheme()
+}
+            .sheet(isPresented: $showPresetSheet) {
+presetOptionsSheet
+.applyGlobalTheme()
+}
+            .sheet(isPresented: $showEditSheet) {
+editEntrySheet
+.applyGlobalTheme()
+}
+            .sheet(isPresented: $showBatchActionsSheet) {
+batchActionsSheet
+.applyGlobalTheme()
+}
+            .sheet(isPresented: $showSearchReplaceSheet) {
+searchReplaceSheet
+.applyGlobalTheme()
+}
             .sheet(isPresented: $showImportSheet) {
-                FileImporterRepresentableView(
+FileImporterRepresentableView(
                     allowedContentTypes: [.propertyList, .xml],
                     allowsMultipleSelection: false,
                     onDocumentsPicked: { urls in
@@ -107,7 +122,8 @@ struct InfoPlistEntriesView: View {
                     }
                 )
                 .ignoresSafeArea()
-            }
+.applyGlobalTheme()
+}
             .confirmationDialog(.localized("Delete Entry"), isPresented: $showDeleteConfirmation, titleVisibility: .visible) {
                 Button(.localized("Delete"), role: .destructive) {
                     if let key = entryToDelete {
@@ -517,7 +533,7 @@ struct InfoPlistEntriesView: View {
         .padding(.vertical, 12)
         .background(
             RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .fill(.ultraThinMaterial)
+                .fill(Color.clear)
                 .shadow(color: .black.opacity(0.1), radius: 10, x: 0, y: -5)
         )
         .padding(.horizontal, 16)
@@ -550,7 +566,7 @@ struct InfoPlistEntriesView: View {
     private var addEntrySheet: some View {
         NavigationStack {
             ZStack {
-                Color.clear.ignoresSafeArea()
+
                 
                 ScrollView {
                     VStack(spacing: 20) {
@@ -750,7 +766,7 @@ struct InfoPlistEntriesView: View {
     private var editEntrySheet: some View {
         NavigationStack {
             ZStack {
-                Color.clear.ignoresSafeArea()
+
                 
                 ScrollView {
                     VStack(spacing: 20) {

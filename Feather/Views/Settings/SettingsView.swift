@@ -44,11 +44,12 @@ struct SettingsView: View {
                 if isDeveloperModeEnabled { developerSection }
             }
             .scrollContentBackground(.hidden)
-            .listStyle(.insetGrouped)
+
         }
         .fullScreenCover(isPresented: $_showAddSource) {
-            SourcesAddView()
-        }
+SourcesAddView()
+.applyGlobalTheme()
+}
         .alert(String.localized("Enable Developer Mode"), isPresented: $showDeveloperConfirmation) {
             Button(String.localized("Cancel"), role: .cancel) { developerTapCount = 0 }
             Button(String.localized("Enable")) {

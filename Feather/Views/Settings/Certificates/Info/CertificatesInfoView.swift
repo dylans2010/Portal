@@ -546,10 +546,12 @@ struct CertificatesInfoView: View {
             .background(cardBackground)
         }
         .sheet(isPresented: $showExportSheet) {
-            if let url = exportedFileURL {
+Group {
+if let url = exportedFileURL {
                 ShareSheet(urls: [url])
             }
-        }
+}.applyGlobalTheme()
+}
     }
     
     // MARK: - Export to Portal Cert

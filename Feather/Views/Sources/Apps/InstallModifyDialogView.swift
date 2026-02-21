@@ -12,8 +12,7 @@ struct InstallModifyDialogView: View {
     
     var body: some View {
         ZStack {
-            Color.clear
-                .ignoresSafeArea()
+
             
             VStack(spacing: 0) {
                 // Close button
@@ -129,8 +128,9 @@ struct InstallModifyDialogView: View {
             }
         }
         .fullScreenCover(isPresented: $showModifyView) {
-            ModernSigningView(app: app)
-        }
+ModernSigningView(app: app)
+.applyGlobalTheme()
+}
     }
     
     @ViewBuilder

@@ -132,12 +132,13 @@ struct ColorCustomizationView: View {
             loadColors()
         }
         .sheet(isPresented: $showAllThemes) {
-            ThemeLibraryView(themes: allThemes) { theme in
+ThemeLibraryView(themes: allThemes) { theme in
                 applyTheme(theme)
                 showAllThemes = false
             }
             .presentationDetents([.medium, .large])
-        }
+.applyGlobalTheme()
+}
         .alert("Save Theme", isPresented: $showSaveAlert) {
             TextField("Theme Name", text: $themeName)
             Button("Save") {

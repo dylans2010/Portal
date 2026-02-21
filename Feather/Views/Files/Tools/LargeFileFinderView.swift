@@ -31,6 +31,7 @@ struct LargeFileFinderView: View {
                                 .foregroundStyle(.secondary)
                         }
                     }
+                    .scrollContentBackground(.hidden)
                 }
             }
             .navigationTitle(.localized("Large Files"))

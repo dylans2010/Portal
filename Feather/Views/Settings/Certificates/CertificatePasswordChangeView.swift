@@ -49,8 +49,9 @@ struct CertificatePasswordChangeView: View {
                 }
             }
             .sheet(isPresented: $_isImportingP12Presenting) {
-                p12ImportSheet
-            }
+p12ImportSheet
+.applyGlobalTheme()
+}
         }
     }
 

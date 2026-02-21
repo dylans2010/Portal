@@ -224,8 +224,7 @@ struct BatchSigningView: View {
                 // Progress Overlay
                 if isSigningBatch {
                     ZStack {
-                        Color.black.opacity(0.4)
-                            .ignoresSafeArea()
+
                             .transition(AnyTransition.opacity)
 
                         VStack(spacing: 24) {
@@ -296,7 +295,8 @@ struct BatchSigningView: View {
             }
             .navigationBarHidden(true)
             .sheet(isPresented: $showEditSheet) {
-                if let appId = editingAppId,
+Group {
+if let appId = editingAppId,
                    let app = apps.first(where: { $0.uuid == appId }) {
                     BatchAppEditSheet(
                         app: app,
@@ -309,7 +309,8 @@ struct BatchSigningView: View {
                         }
                     )
                 }
-            }
+}.applyGlobalTheme()
+}
         }
     }
     

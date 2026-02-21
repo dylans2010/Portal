@@ -52,10 +52,12 @@ struct SourceNewsView: View {
 				hasLoadedInitialData = true
 			}
 		}
-		.fullScreenCover(item: $_selectedNewsPresenting) { new in
+		.fullScreenCover(item: $_selectedNewsPresenting) {
+new in
 			SourceNewsCardInfoView(new: new)
 				.compatNavigationTransition(id: new.id, ns: _namespace)
-		}
+.applyGlobalTheme()
+}
 	}
 	
 	private func _load() {

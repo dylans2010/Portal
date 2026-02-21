@@ -66,7 +66,7 @@ struct PairingThroughOTPView: View {
             }
         }
         .sheet(isPresented: $showingTransfer) {
-            NavigationStack {
+NavigationStack {
                 TransferProgressView(
                     service: viewModel.transferService,
                     onCancel: { viewModel.transferService.cancelTransfer() },
@@ -74,7 +74,8 @@ struct PairingThroughOTPView: View {
                 )
                 .navigationTitle("Transfer Progress")
             }
-        }
+.applyGlobalTheme()
+}
         .onAppear { viewModel.setup() }
         .onChange(of: viewModel.transferStarted) { if $0 { showingTransfer = true } }
     }

@@ -242,7 +242,7 @@ struct DownloadsPortalView: View {
     
     private var modernBackground: some View {
         ZStack {
-            Color.clear.ignoresSafeArea()
+
 
             GeometryReader { geo in
                 // Original accent orb
@@ -546,7 +546,7 @@ struct DownloadItemCard: View {
                     .background {
                         ZStack {
                             Capsule().fill(Color.accentColor)
-                            Capsule().fill(.ultraThinMaterial).opacity(0.3)
+                            Capsule().fill(Color.clear).opacity(0.3)
                         }
                     }
                     .clipShape(Capsule())
@@ -566,7 +566,7 @@ struct DownloadItemCard: View {
             if isDownloading {
                 ZStack {
                     RoundedRectangle(cornerRadius: 28, style: .continuous)
-                        .fill(.ultraThinMaterial)
+                        .fill(Color.clear)
 
                     VStack(spacing: 12) {
                         ZStack {

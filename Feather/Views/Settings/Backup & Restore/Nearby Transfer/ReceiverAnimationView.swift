@@ -125,7 +125,7 @@ struct ReceiverAnimationView: View {
                     .scaleEffect(scaleAmount)
                 
                 Circle()
-                    .fill(.ultraThinMaterial)
+                    .fill(Color.clear)
                     .frame(width: 130, height: 130)
                     .overlay(
                         Circle()
@@ -182,7 +182,7 @@ struct ReceiverAnimationView: View {
             VStack(spacing: 8) {
                 ZStack {
                     Circle()
-                        .fill(.ultraThinMaterial)
+                        .fill(Color.clear)
                         .frame(width: 110, height: 110)
                     
                     Image(systemName: "arrow.down.circle.fill")
@@ -214,7 +214,7 @@ struct ReceiverAnimationView: View {
             
             ZStack {
                 Circle()
-                    .fill(.ultraThinMaterial)
+                    .fill(Color.clear)
                     .frame(width: 130, height: 130)
                 
                 Image(systemName: "checkmark")
@@ -245,7 +245,7 @@ struct ReceiverAnimationView: View {
             
             ZStack {
                 Circle()
-                    .fill(.ultraThinMaterial)
+                    .fill(Color.clear)
                     .frame(width: 130, height: 130)
                 
                 Image(systemName: "xmark")

@@ -188,13 +188,15 @@ struct StructureVisibilityPanel: View {
             }
         }
             .scrollContentBackground(.hidden)
-        .listStyle(.insetGrouped)
+
         .sheet(isPresented: $showConfigureLayouts) {
-            ConfigureLayoutsView(viewModel: viewModel)
-        }
+ConfigureLayoutsView(viewModel: viewModel)
+.applyGlobalTheme()
+}
         .sheet(isPresented: $showSavedStyles) {
-            SavedStylesView(viewModel: viewModel)
-        }
+SavedStylesView(viewModel: viewModel)
+.applyGlobalTheme()
+}
         .alert("Widget Limit Reached", isPresented: $showLimitReachedAlert) {
             Button("OK", role: .cancel) {}
         } message: {

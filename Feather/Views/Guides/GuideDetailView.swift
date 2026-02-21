@@ -153,7 +153,7 @@ struct GuideDetailView: View {
             await loadContent()
         }
         .sheet(isPresented: $showingAIActionSheet) {
-            GlassmorphicAIActionsSheet(
+GlassmorphicAIActionsSheet(
                 isPresented: $showingAIActionSheet,
                 isAIAvailable: isAIAvailable,
                 accentColor: accentColor,
@@ -182,9 +182,10 @@ struct GuideDetailView: View {
             .presentationDragIndicator(.hidden)
             .glassmorphicPresentation()
             .interactiveDismissDisabled(false)
-        }
+.applyGlobalTheme()
+}
         .sheet(isPresented: $showingDescribeGuideInput) {
-            GlassmorphicCustomPromptSheet(
+GlassmorphicCustomPromptSheet(
                 isPresented: $showingDescribeGuideInput,
                 instruction: $describeGuideInstruction,
                 accentColor: accentColor,
@@ -201,9 +202,10 @@ struct GuideDetailView: View {
             .presentationDetents([.fraction(0.45)])
             .presentationDragIndicator(.hidden)
             .glassmorphicPresentation()
-        }
+.applyGlobalTheme()
+}
         .sheet(isPresented: $showingTranslateSheet) {
-            GlassmorphicTranslateSheet(
+GlassmorphicTranslateSheet(
                 isPresented: $showingTranslateSheet,
                 selectedLanguage: $selectedLanguage,
                 accentColor: accentColor,
@@ -220,12 +222,13 @@ struct GuideDetailView: View {
             .presentationDetents([.fraction(0.55)])
             .presentationDragIndicator(.hidden)
             .glassmorphicPresentation()
-        }
+.applyGlobalTheme()
+}
         .sheet(isPresented: Binding(
             get: { aiError != nil },
             set: { if !$0 { aiError = nil } }
         )) {
-            GlassmorphicErrorSheet(
+GlassmorphicErrorSheet(
                 error: aiError ?? "",
                 isAIAvailable: isAIAvailable,
                 accentColor: accentColor,
@@ -237,7 +240,8 @@ struct GuideDetailView: View {
             .presentationDetents([.fraction(0.35)])
             .presentationDragIndicator(.hidden)
             .glassmorphicPresentation()
-        }
+.applyGlobalTheme()
+}
     }
     
     @ViewBuilder
@@ -342,7 +346,7 @@ struct GuideDetailView: View {
         ZStack {
             // Full screen frosted glass background
             Rectangle()
-                .fill(.ultraThinMaterial)
+                .fill(Color.clear)
                 .ignoresSafeArea()
             
             // Dynamic gradient overlay
@@ -447,7 +451,7 @@ struct GuideDetailView: View {
                     .padding(20)
                     .background(
                         RoundedRectangle(cornerRadius: 20)
-                            .fill(.ultraThinMaterial)
+                            .fill(Color.clear)
                             .shadow(color: .black.opacity(0.1), radius: 10, x: 0, y: 5)
                     )
                     .overlay(
@@ -485,7 +489,7 @@ struct GuideDetailView: View {
                         .padding(.vertical, 12)
                         .background(
                             Capsule()
-                                .fill(.ultraThinMaterial)
+                                .fill(Color.clear)
                         )
                 }
                 .padding(.bottom, 50)
@@ -2008,7 +2012,7 @@ extension View {
     func glassmorphicPresentation() -> some View {
         if #available(iOS 16.4, *) {
             self
-                .presentationBackground(.ultraThinMaterial)
+                .presentationBackground(Color.clear)
                 .presentationCornerRadius(32)
         } else {
             self

@@ -288,11 +288,12 @@ struct KeyboardCustomizationView: View {
             }
         }
             .scrollContentBackground(.hidden)
-        .listStyle(.insetGrouped)
+
         .navigationTitle("Keyboard Backdrop")
         .fullScreenCover(isPresented: $showingAdvancedGradient) {
-            KeyboardDynamicGradientView()
-        }
+KeyboardDynamicGradientView()
+.applyGlobalTheme()
+}
         .onAppear {
             startColor = Color(hex: manager.gradientStart)
             endColor = Color(hex: manager.gradientEnd)

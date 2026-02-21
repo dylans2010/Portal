@@ -155,8 +155,9 @@ struct PlistEditorView: View {
                 }
             }
             .sheet(isPresented: $showFormatPicker) {
-                formatConversionSheet
-            }
+formatConversionSheet
+.applyGlobalTheme()
+}
         }
         .onAppear {
             loadContent()
@@ -411,7 +412,7 @@ struct PlistTreeView: View {
             PlistNodeView(key: "Root", value: plist)
         }
             .scrollContentBackground(.hidden)
-        .listStyle(.insetGrouped)
+
     }
 }
 
