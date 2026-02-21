@@ -224,8 +224,9 @@ struct BatchSigningView: View {
                 // Progress Overlay
                 if isSigningBatch {
                     ZStack {
-
-                            .transition(AnyTransition.opacity)
+                        Color.black.opacity(0.4)
+                            .ignoresSafeArea()
+                            .transition(.opacity)
 
                         VStack(spacing: 24) {
                             // Animated Icon

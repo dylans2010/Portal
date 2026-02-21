@@ -6262,8 +6262,9 @@ struct DeveloperBatchSigningView: View {
             // Progress Overlay
             if isSigningBatch {
                 ZStack {
-
-                        .transition(AnyTransition.opacity)
+                    Color.black.opacity(0.4)
+                        .ignoresSafeArea()
+                        .transition(.opacity)
 
                     VStack(spacing: 20) {
                         ProgressView(value: batchProgress)
