@@ -318,7 +318,6 @@ struct DynamicGradientView: View {
                     Color.black.opacity(0.01)
                         .overlay(
                             Color.clear
-                            }
                         )
                         .blendMode(.overlay)
                         .opacity(manager.dynamicGradientNoiseOpacity)

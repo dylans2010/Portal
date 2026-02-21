@@ -161,7 +161,14 @@ struct EmojiRainView: View {
 
     var body: some View {
         TimelineView(.animation) { timeline in
-            Color.clear
+            ZStack {
+                Color.clear
+                ForEach(items) { item in
+                    Text(emoji)
+                        .font(.system(size: 30))
+                        .position(x: item.x, y: item.y)
+                        .opacity(item.opacity)
+                        .rotationEffect(.degrees(item.rotation))
                 }
             }
             .onAppear {
@@ -213,7 +220,14 @@ struct ConfettiView: View {
 
     var body: some View {
         TimelineView(.animation) { timeline in
-            Color.clear
+            ZStack {
+                Color.clear
+                ForEach(particles) { particle in
+                    Rectangle()
+                        .fill(particle.color)
+                        .frame(width: 8, height: 8)
+                        .position(x: particle.x, y: particle.y)
+                        .rotationEffect(.degrees(particle.rotation))
                 }
             }
             .onAppear {

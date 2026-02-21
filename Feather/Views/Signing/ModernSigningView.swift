@@ -594,4 +594,3 @@ struct ModernSigningView: View {
             }
         }
     }
-}
