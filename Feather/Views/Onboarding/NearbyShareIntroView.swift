@@ -162,8 +162,7 @@ struct NearbyShareIntroView: View {
     var body: some View {
         ZStack {
             // Background
-            Color.clear
-                .ignoresSafeArea()
+
             
             ScrollView {
                 VStack(spacing: 0) {
@@ -452,8 +451,7 @@ struct NearbyShareIntroViewLegacy: View {
     var body: some View {
         ZStack {
             // Background
-            Color.clear
-                .ignoresSafeArea()
+
             
             ScrollView {
                 VStack(spacing: 0) {

@@ -40,8 +40,7 @@ struct SourceAppsDetailView: View {
     
     var body: some View {
         ZStack(alignment: .top) {
-            Color.clear
-                .ignoresSafeArea()
+
 
             ScrollView(.vertical, showsIndicators: false) {
                 VStack(spacing: 0) {
@@ -68,10 +67,12 @@ struct SourceAppsDetailView: View {
         .navigationTitle(app.currentName)
         .navigationBarTitleDisplayMode(.inline)
         .fullScreenCover(isPresented: $isScreenshotPreviewPresented) {
-            if let screenshotURLs = app.screenshotURLs {
+Group {
+if let screenshotURLs = app.screenshotURLs {
                 ScreenshotPreviewView(screenshotURLs: screenshotURLs, initialIndex: selectedScreenshotIndex)
             }
-        }
+}.applyGlobalTheme()
+}
         .onAppear {
             if let iconURL = app.iconURL {
                 extractDominantColor(from: iconURL)
@@ -114,7 +115,7 @@ struct SourceAppsDetailView: View {
                     )
                     .overlay(
                         Rectangle()
-                            .fill(.ultraThinMaterial)
+                            .fill(Color.clear)
                             .opacity(0.3)
                     )
                 

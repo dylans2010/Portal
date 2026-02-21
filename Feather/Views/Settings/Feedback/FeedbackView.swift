@@ -455,8 +455,7 @@ struct LinkInsertDialog: View {
     
     var body: some View {
         ZStack {
-            Color.black.opacity(0.4)
-                .ignoresSafeArea()
+
                 .onTapGesture { dismissDialog() }
             
             VStack(spacing: 0) {
@@ -640,8 +639,7 @@ struct ScreenshotErrorDialog: View {
     
     var body: some View {
         ZStack {
-            Color.black.opacity(0.4)
-                .ignoresSafeArea()
+
                 .onTapGesture { dismissDialog() }
             
             VStack(spacing: 0) {
@@ -1450,17 +1448,22 @@ struct FeedbackView: View {
                 loadMyFeedbacks()
             }
             .sheet(isPresented: $showCodeEditor) {
-                CodeEditorSheet(code: $codeSnippet)
-            }
+CodeEditorSheet(code: $codeSnippet)
+.applyGlobalTheme()
+}
             .sheet(isPresented: $showSuccessSheet) {
-                FeedbackSuccessSheet(issueNumber: createdIssueNumber, issueURL: createdIssueURL, onDismiss: { dismiss() })
-            }
+FeedbackSuccessSheet(issueNumber: createdIssueNumber, issueURL: createdIssueURL, onDismiss: { dismiss() })
+.applyGlobalTheme()
+}
             .sheet(isPresented: $showErrorSheet) {
-                FeedbackErrorSheet(errorMessage: errorMessage, onRetry: { submitFeedback() }, onDismiss: { showErrorSheet = false })
-            }
-            .sheet(item: $selectedIssue) { issue in
+FeedbackErrorSheet(errorMessage: errorMessage, onRetry: { submitFeedback() }, onDismiss: { showErrorSheet = false })
+.applyGlobalTheme()
+}
+            .sheet(item: $selectedIssue) {
+issue in
                 FeedbackDetailSheet(issue: issue)
-            }
+.applyGlobalTheme()
+}
             .toolbar {
                 ToolbarItemGroup(placement: .keyboard) {
                     if focusedField == .message {
@@ -2129,7 +2132,7 @@ struct CodeEditorSheet: View {
                     .padding(.vertical, 12)
                     .background(
                         Capsule()
-                            .fill(.ultraThinMaterial)
+                            .fill(Color.clear)
                             .shadow(color: .black.opacity(0.1), radius: 10, x: 0, y: 4)
                     )
                     .padding(.bottom, 100)

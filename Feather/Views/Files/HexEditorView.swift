@@ -11,8 +11,7 @@ struct HexEditorView: View {
     var body: some View {
         NBNavigationView(.localized("Hex Editor"), displayMode: .inline) {
             ZStack {
-                Color.clear
-                    .ignoresSafeArea()
+
                 
                 VStack(spacing: 0) {
                     if isLoading {

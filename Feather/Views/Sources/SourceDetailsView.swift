@@ -84,9 +84,11 @@ struct SourceDetailsView: View {
                 extractDominantColor(from: iconURL)
             }
         }
-        .fullScreenCover(item: $_selectedNewsPresenting) { news in
+        .fullScreenCover(item: $_selectedNewsPresenting) {
+news in
             SourceNewsCardInfoView(new: news)
-        }
+.applyGlobalTheme()
+}
         .navigationDestinationIfAvailable(item: $_selectedRoute) { route in
             SourceAppsDetailView(source: route.source, app: route.app)
         }
@@ -526,9 +528,11 @@ struct SourceNewsListView: View {
 				.buttonStyle(.plain)
 			}
 		}
-		.fullScreenCover(item: $_selectedNewsPresenting) { news in
+		.fullScreenCover(item: $_selectedNewsPresenting) {
+news in
 			SourceNewsCardInfoView(new: news)
-		}
+.applyGlobalTheme()
+}
 	}
 }
 
@@ -634,7 +638,7 @@ struct SourceAppsListView: View {
                 VStack(spacing: 0) {
                     // Blur effect divider
                     Rectangle()
-                        .fill(.ultraThinMaterial)
+                        .fill(Color.clear)
                         .frame(height: 1)
                     
                     // Search bar container

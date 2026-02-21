@@ -135,7 +135,7 @@ struct SigningTweaksView: View {
 			}
 		}
 		.sheet(isPresented: $_isAddingPresenting) {
-			FileImporterRepresentableView(
+FileImporterRepresentableView(
 				allowedContentTypes: [.dylib, .deb],
 				allowsMultipleSelection: true,
 				onDocumentsPicked: { urls in
@@ -149,7 +149,8 @@ struct SigningTweaksView: View {
 				}
 			)
 			.ignoresSafeArea()
-		}
+.applyGlobalTheme()
+}
 		.animation(.spring(response: 0.5, dampingFraction: 0.8), value: options.injectionFiles)
 	}
 }

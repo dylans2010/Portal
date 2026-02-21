@@ -59,7 +59,7 @@ struct FullScreenMetalStateView: View {
                     .foregroundStyle(.red)
                     .padding(.horizontal, 30)
                     .padding(.vertical, 12)
-                    .background(.white)
+
                     .clipShape(Capsule())
             }
             .padding(.top, 20)

@@ -40,7 +40,7 @@ struct SigningEntitlementsView: View {
         .navigationTitle("Entitlements")
         .navigationBarTitleDisplayMode(.inline)
         .sheet(isPresented: $_isAddingPresenting) {
-            FileImporterRepresentableView(
+FileImporterRepresentableView(
                 allowedContentTypes: [.xmlPropertyList, .plist, .entitlements],
                 onDocumentsPicked: { urls in
                     guard let selectedFileURL = urls.first else { return }
@@ -51,7 +51,8 @@ struct SigningEntitlementsView: View {
                 }
             )
             .ignoresSafeArea()
-        }
+.applyGlobalTheme()
+}
         .onAppear {
             withAnimation(.spring(response: 0.6, dampingFraction: 0.8)) {
                 _appearAnimation = true
@@ -66,8 +67,7 @@ struct SigningEntitlementsView: View {
     @ViewBuilder
     private var modernBackground: some View {
         ZStack {
-            Color.clear
-                .ignoresSafeArea()
+
             
             GeometryReader { geo in
                 Circle()
@@ -245,7 +245,7 @@ struct SigningEntitlementsView: View {
         }
         .background(
             RoundedRectangle(cornerRadius: 20, style: .continuous)
-                .fill(.ultraThinMaterial)
+                .fill(Color.clear)
                 .shadow(color: .black.opacity(0.08), radius: 15, x: 0, y: 8)
         )
     }

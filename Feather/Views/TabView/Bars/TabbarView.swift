@@ -106,10 +106,12 @@ struct TabbarView: View {
 			}
 		}
 		.sheet(isPresented: $showInstallModifySheet) {
-			if let app = appToInstall {
+Group {
+if let app = appToInstall {
 				InstallModifyDialogView(app: app)
 			}
-		}
+}.applyGlobalTheme()
+}
 			.onReceive(NotificationCenter.default.publisher(for: Notification.Name("Feather.SwitchTab"))) { notification in
 				if let tab = notification.object as? TabEnum {
 					selectedTab = tab

@@ -48,14 +48,16 @@ struct AppTweaksView: View {
                 }
             }
             .sheet(isPresented: $showExtractView) {
-                ExtractTweaksView(app: app, frameworks: frameworks, bundles: bundles)
-            }
+ExtractTweaksView(app: app, frameworks: frameworks, bundles: bundles)
+.applyGlobalTheme()
+}
             .sheet(isPresented: $showAddUrlView) {
-                AddTweakUrlView { url in
+AddTweakUrlView { url in
                     options.injectionFiles.append(url)
                     HapticsManager.shared.success()
                 }
-            }
+.applyGlobalTheme()
+}
         }
     }
 
@@ -674,7 +676,7 @@ struct ExtractTweaksView: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                Color.clear.ignoresSafeArea()
+
 
                 VStack(spacing: 0) {
                     if isExtracting {

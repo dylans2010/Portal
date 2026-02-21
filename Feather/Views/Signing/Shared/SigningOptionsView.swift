@@ -200,8 +200,7 @@ struct SigningOptionsView: View {
     @ViewBuilder
     private var modernBackground: some View {
         ZStack {
-            Color.clear
-                .ignoresSafeArea()
+
 
             GeometryReader { geo in
                 Circle()

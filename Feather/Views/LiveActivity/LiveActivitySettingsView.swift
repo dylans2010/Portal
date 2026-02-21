@@ -27,13 +27,14 @@ struct LiveActivitySettingsView: View {
                 infoSection
             }
             .scrollContentBackground(.hidden)
-            .listStyle(.insetGrouped)
+
         }
         .onAppear {
             loadSettings()
         }
         .sheet(isPresented: $showGradientColorPicker) {
-            if var colors = settings.gradientSettings.colors, selectedGradientColorIndex < colors.count {
+Group {
+if var colors = settings.gradientSettings.colors, selectedGradientColorIndex < colors.count {
                 ColorPickerView(selectedColor: Binding(
                     get: { colors[selectedGradientColorIndex] },
                     set: {
@@ -42,25 +43,29 @@ struct LiveActivitySettingsView: View {
                     }
                 ), title: "Gradient Color \(selectedGradientColorIndex + 1)", onDismiss: saveSettings)
             }
-        }
+}.applyGlobalTheme()
+}
         .sheet(isPresented: $showBorderColorPicker) {
-            ColorPickerView(selectedColor: Binding(
+ColorPickerView(selectedColor: Binding(
                 get: { settings.borderColor ?? settings.accentColor },
                 set: { settings.borderColor = $0 }
             ), title: "Border Color", onDismiss: saveSettings)
-        }
+.applyGlobalTheme()
+}
         .sheet(isPresented: $showShadowColorPicker) {
-            ColorPickerView(selectedColor: Binding(
+ColorPickerView(selectedColor: Binding(
                 get: { settings.shadowColor ?? CodableColor(red: 0, green: 0, blue: 0, opacity: 0.2) },
                 set: { settings.shadowColor = $0 }
             ), title: "Shadow Color", onDismiss: saveSettings)
-        }
+.applyGlobalTheme()
+}
         .sheet(isPresented: $showTextColorPicker) {
-            ColorPickerView(selectedColor: Binding(
+ColorPickerView(selectedColor: Binding(
                 get: { settings.textColor ?? CodableColor(red: 1, green: 1, blue: 1) },
                 set: { settings.textColor = $0 }
             ), title: "Text Color", onDismiss: saveSettings)
-        }
+.applyGlobalTheme()
+}
     }
     
     // MARK: - Load/Save Settings
@@ -217,8 +222,9 @@ struct LiveActivitySettingsView: View {
                 .foregroundColor(.secondary)
         }
         .sheet(isPresented: $showColorPicker) {
-            ColorPickerView(selectedColor: $settings.accentColor, title: "Accent Color", onDismiss: saveSettings)
-        }
+ColorPickerView(selectedColor: $settings.accentColor, title: "Accent Color", onDismiss: saveSettings)
+.applyGlobalTheme()
+}
     }
 
     private var advancedStylingSection: some View {

@@ -22,13 +22,14 @@ struct DefaultFrameworksView: View {
             }
         }
         .sheet(isPresented: $isAddingPresenting) {
-            FileImporterRepresentableView(
+FileImporterRepresentableView(
                 allowedContentTypes: [.dylib, .deb],
                 allowsMultipleSelection: true,
                 onDocumentsPicked: handleDocumentsPicked
             )
             .ignoresSafeArea()
-        }
+.applyGlobalTheme()
+}
         .animation(.spring(response: 0.4, dampingFraction: 0.8), value: manager.frameworks)
     }
     

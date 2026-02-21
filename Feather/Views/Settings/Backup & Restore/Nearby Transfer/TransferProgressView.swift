@@ -31,7 +31,7 @@ struct TransferProgressView: View {
             }
             .padding(24)
         }
-        .background(Color.clear.ignoresSafeArea())
+        .background()
     }
     
     // MARK: - Main Status View

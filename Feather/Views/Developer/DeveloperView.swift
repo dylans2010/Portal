@@ -109,8 +109,9 @@ struct DeveloperAuthView: View {
                         cancelButton
                     }
                     .fullScreenCover(isPresented: $showGlitchView) {
-                        GlitchDeveloperModeView()
-                    }
+GlitchDeveloperModeView()
+.applyGlobalTheme()
+}
                     .padding(.horizontal, 20)
                     .padding(.top, 20)
                     .frame(maxWidth: .infinity)
@@ -118,10 +119,11 @@ struct DeveloperAuthView: View {
             }
             .navigationBarHidden(true)
             .sheet(isPresented: $showSetupPasscode) {
-                ModernPasscodeSetupView(onComplete: { success in
+ModernPasscodeSetupView(onComplete: { success in
                     showSetupPasscode = false
                 })
-            }
+.applyGlobalTheme()
+}
         }
         .onAppear {
             withAnimation(.easeInOut(duration: 1.5).repeatForever(autoreverses: true)) {
@@ -618,8 +620,7 @@ struct ModernPasscodeSetupView: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                Color.clear
-                    .ignoresSafeArea()
+
                 
                 ScrollView {
                     VStack(spacing: 24) {
@@ -909,12 +910,14 @@ struct DeveloperControlPanelView: View {
             }
         }
         .sheet(isPresented: $showNearbyShareIntro) {
-            if #available(iOS 17.0, *) {
+Group {
+if #available(iOS 17.0, *) {
                 NearbyShareIntroView()
             } else {
                 NearbyShareIntroViewLegacy()
             }
-        }
+}.applyGlobalTheme()
+}
     }
     
     @ViewBuilder
@@ -1495,8 +1498,9 @@ struct DeveloperSecurityView: View {
             .scrollContentBackground(.hidden)
         .navigationTitle("Security Settings")
         .sheet(isPresented: $showChangePasscode) {
-            ModernPasscodeSetupView(onComplete: { _ in })
-        }
+ModernPasscodeSetupView(onComplete: { _ in })
+.applyGlobalTheme()
+}
         .alert("Remove Passcode", isPresented: $showRemovePasscode) {
             Button("Cancel", role: .cancel) { }
             Button("Remove", role: .destructive) {
@@ -2427,7 +2431,7 @@ struct IPAInspectorView: View {
         .navigationTitle("IPA Inspector")
         .navigationBarTitleDisplayMode(.inline)
         .sheet(isPresented: $isImporting) {
-            FileImporterRepresentableView(
+FileImporterRepresentableView(
                 allowedContentTypes: [.ipa, .tipa],
                 onDocumentsPicked: { urls in
                     guard let url = urls.first else { return }
@@ -2436,7 +2440,8 @@ struct IPAInspectorView: View {
                 }
             )
             .ignoresSafeArea()
-        }
+.applyGlobalTheme()
+}
     }
     
     private func analyzeIPA(url: URL) {
@@ -2974,7 +2979,7 @@ struct IPAIntegrityCheckerView: View {
         .navigationTitle("Integrity Checker")
         .navigationBarTitleDisplayMode(.inline)
         .sheet(isPresented: $isImporting) {
-            FileImporterRepresentableView(
+FileImporterRepresentableView(
                 allowedContentTypes: [.ipa, .tipa],
                 onDocumentsPicked: { urls in
                     guard let url = urls.first else { return }
@@ -2983,7 +2988,8 @@ struct IPAIntegrityCheckerView: View {
                 }
             )
             .ignoresSafeArea()
-        }
+.applyGlobalTheme()
+}
     }
     
     private var overallStatus: (icon: String, color: Color, message: String) {
@@ -4526,10 +4532,12 @@ struct InstallIPADevView: View {
             .scrollContentBackground(.hidden)
         .navigationTitle("Install & IPA")
         .fullScreenCover(isPresented: $showInstallModifyDialog) {
-            if let app = selectedApp {
+Group {
+if let app = selectedApp {
                 InstallModifyDialogView(app: app)
             }
-        }
+}.applyGlobalTheme()
+}
     }
     
     private func clearPendingInstalls() {
@@ -5827,11 +5835,14 @@ struct CertificateProfileManagerView: View {
         .searchable(text: $searchText, prompt: "Search Certificates")
         .navigationTitle("Certificate Manager")
         .sheet(isPresented: $showAddCertificate) {
-            CertificatesAddView()
-        }
-        .sheet(item: $selectedCertificate) { cert in
+CertificatesAddView()
+.applyGlobalTheme()
+}
+        .sheet(item: $selectedCertificate) {
+cert in
             CertificatesInfoView(cert: cert)
-        }
+.applyGlobalTheme()
+}
     }
     
     private var validCertificatesCount: Int {
@@ -6251,8 +6262,7 @@ struct DeveloperBatchSigningView: View {
             // Progress Overlay
             if isSigningBatch {
                 ZStack {
-                    Color.black.opacity(0.3)
-                        .ignoresSafeArea()
+
                         .transition(AnyTransition.opacity)
 
                     VStack(spacing: 20) {

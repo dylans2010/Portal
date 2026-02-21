@@ -139,8 +139,9 @@ struct ConfigurationView: View {
             }
         }
         .sheet(isPresented: $showInstallationOptions) {
-            InstallationOptionsSplashView()
-        }
+InstallationOptionsSplashView()
+.applyGlobalTheme()
+}
         .alert("PPQ String", isPresented: $isRandomAlertPresenting) {
             TextField("String", text: $randomString)
             Button("Save") {

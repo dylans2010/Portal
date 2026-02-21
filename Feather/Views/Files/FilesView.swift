@@ -269,16 +269,19 @@ struct FilesView: View {
                 }
             }
             .sheet(isPresented: $showCreateTextFile) {
-                CreateTextFileView(directoryURL: fileManager.currentDirectory)
-            }
+CreateTextFileView(directoryURL: fileManager.currentDirectory)
+.applyGlobalTheme()
+}
             .sheet(isPresented: $showCreateFolder) {
-                CreateFolderView(directoryURL: fileManager.currentDirectory)
-            }
+CreateFolderView(directoryURL: fileManager.currentDirectory)
+.applyGlobalTheme()
+}
             .sheet(isPresented: $showCreatePlist) {
-                CreatePlistView(directoryURL: fileManager.currentDirectory)
-            }
+CreatePlistView(directoryURL: fileManager.currentDirectory)
+.applyGlobalTheme()
+}
             .sheet(isPresented: $showDocumentPicker) {
-                FileImporterRepresentableView(
+FileImporterRepresentableView(
                     allowedContentTypes: [.item],
                     allowsMultipleSelection: true,
                     onDocumentsPicked: { urls in
@@ -288,39 +291,53 @@ struct FilesView: View {
                     }
                 )
                 .ignoresSafeArea()
-            }
+.applyGlobalTheme()
+}
             .sheet(isPresented: $showZipSheet) {
-                ZipOperationView(files: selectedFilesArray, operation: .zip, directoryURL: fileManager.currentDirectory)
-            }
+ZipOperationView(files: selectedFilesArray, operation: .zip, directoryURL: fileManager.currentDirectory)
+.applyGlobalTheme()
+}
             .sheet(isPresented: $showUnzipSheet) {
-                if let zipFile = selectedFilesArray.first(where: { $0.url.pathExtension == "zip" }) {
+Group {
+if let zipFile = selectedFilesArray.first(where: { $0.url.pathExtension == "zip" }) {
                     ZipOperationView(files: [zipFile], operation: .unzip, directoryURL: fileManager.currentDirectory)
                 }
-            }
-            .sheet(item: $selectedFile) { file in
+}.applyGlobalTheme()
+}
+            .sheet(item: $selectedFile) {
+file in
                 fileDetailSheet(for: file)
-            }
+.applyGlobalTheme()
+}
             .sheet(isPresented: $showFileInfo) {
-                if let file = selectedFilesArray.first {
+Group {
+if let file = selectedFilesArray.first {
                     FileInfoView(file: file)
                 }
-            }
+}.applyGlobalTheme()
+}
             .sheet(isPresented: $showShareSheet) {
-                ShareSheet(urls: shareURLs)
-            }
+ShareSheet(urls: shareURLs)
+.applyGlobalTheme()
+}
             .sheet(isPresented: $showMoveSheet) {
-                MoveFileView(files: selectedFilesArray, currentDirectory: fileManager.currentDirectory)
-            }
+MoveFileView(files: selectedFilesArray, currentDirectory: fileManager.currentDirectory)
+.applyGlobalTheme()
+}
             .sheet(isPresented: $showChecksumSheet) {
-                if let file = selectedFilesArray.first {
+Group {
+if let file = selectedFilesArray.first {
                     ChecksumCalculatorView(fileURL: file.url)
                 }
-            }
+}.applyGlobalTheme()
+}
             .sheet(isPresented: $showBatchRenameSheet) {
-                BatchRenameView(files: selectedFilesArray)
-            }
+BatchRenameView(files: selectedFilesArray)
+.applyGlobalTheme()
+}
             .sheet(isPresented: $showCompareSheet) {
-                if let file1 = compareFile1, let file2 = compareFile2 {
+Group {
+if let file1 = compareFile1, let file2 = compareFile2 {
                     FileCompareView(file1: file1, file2: file2)
                 } else {
                     // Fallback view if files are not set
@@ -349,9 +366,11 @@ struct FilesView: View {
                         }
                     }
                 }
-            }
+}.applyGlobalTheme()
+}
             .sheet(isPresented: $showCertificateQuickAdd) {
-                if let p12 = detectedP12, let provision = detectedMobileprovision {
+Group {
+if let p12 = detectedP12, let provision = detectedMobileprovision {
                     CertificateQuickAddView(p12URL: p12, mobileprovisionURL: provision)
                 } else {
                     // Fallback view if detection failed
@@ -380,134 +399,190 @@ struct FilesView: View {
                         }
                     }
                 }
-            }
+}.applyGlobalTheme()
+}
             .sheet(isPresented: $showSearchReplaceSheet) {
-                if let file = selectedFilesArray.first, !file.isDirectory {
+Group {
+if let file = selectedFilesArray.first, !file.isDirectory {
                     SearchReplaceView(fileURL: file.url)
                 }
-            }
+}.applyGlobalTheme()
+}
             .sheet(isPresented: $showPermissionsSheet) {
-                if let file = selectedFilesArray.first {
+Group {
+if let file = selectedFilesArray.first {
                     FilePermissionsView(fileURL: file.url)
                 }
-            }
+}.applyGlobalTheme()
+}
             .sheet(isPresented: $showTemplatesSheet) {
-                FileTemplatesView(directoryURL: fileManager.currentDirectory)
-            }
+FileTemplatesView(directoryURL: fileManager.currentDirectory)
+.applyGlobalTheme()
+}
             .sheet(isPresented: $showQuickInspect) {
-                if let file = quickInspectFile {
+Group {
+if let file = quickInspectFile {
                     QuickInspectView(file: file)
                 }
-            }
+}.applyGlobalTheme()
+}
             .sheet(isPresented: $showDownloadsPortal) {
-                DownloadsPortalView()
-            }
+DownloadsPortalView()
+.applyGlobalTheme()
+}
             // New tool sheets
             .sheet(isPresented: $showCreateJSONFile) {
-                CreateJSONFileView(directoryURL: fileManager.currentDirectory)
-            }
+CreateJSONFileView(directoryURL: fileManager.currentDirectory)
+.applyGlobalTheme()
+}
             .sheet(isPresented: $showCreateXMLFile) {
-                CreateXMLFileView(directoryURL: fileManager.currentDirectory)
-            }
+CreateXMLFileView(directoryURL: fileManager.currentDirectory)
+.applyGlobalTheme()
+}
             .sheet(isPresented: $showURLImport) {
-                URLImportView(directoryURL: fileManager.currentDirectory)
-            }
+URLImportView(directoryURL: fileManager.currentDirectory)
+.applyGlobalTheme()
+}
             .sheet(isPresented: $showClipboardImport) {
-                ClipboardImportView(directoryURL: fileManager.currentDirectory)
-            }
+ClipboardImportView(directoryURL: fileManager.currentDirectory)
+.applyGlobalTheme()
+}
             .sheet(isPresented: $showTerminal) {
-                FileToolsTerminalView(currentDirectory: fileManager.currentDirectory)
-            }
+FileToolsTerminalView(currentDirectory: fileManager.currentDirectory)
+.applyGlobalTheme()
+}
             .sheet(isPresented: $showFileSearch) {
-                AdvancedFileSearchView(baseDirectory: fileManager.baseDirectory)
-            }
+AdvancedFileSearchView(baseDirectory: fileManager.baseDirectory)
+.applyGlobalTheme()
+}
             .sheet(isPresented: $showDiskUsage) {
-                DiskUsageView(directory: fileManager.currentDirectory)
-            }
+DiskUsageView(directory: fileManager.currentDirectory)
+.applyGlobalTheme()
+}
             .sheet(isPresented: $showFileHasher) {
-                FileHasherView()
-            }
+FileHasherView()
+.applyGlobalTheme()
+}
             .sheet(isPresented: $showBase64Tool) {
-                Base64ToolView()
-            }
+Base64ToolView()
+.applyGlobalTheme()
+}
             .sheet(isPresented: $showSymlinkCreator) {
-                SymlinkCreatorView(directoryURL: fileManager.currentDirectory)
-            }
+SymlinkCreatorView(directoryURL: fileManager.currentDirectory)
+.applyGlobalTheme()
+}
             .sheet(isPresented: $showIPAExplorer) {
-                if let url = ipaToExplore {
+Group {
+if let url = ipaToExplore {
                     IPAExplorerView(viewModel: IPAExplorerViewModel(ipaURL: url))
                 }
-            }
+}.applyGlobalTheme()
+}
             .sheet(isPresented: $showNativeViewer) {
-                if let url = urlToView {
+Group {
+if let url = urlToView {
                     NativeFileViewer(fileURL: url)
                 }
-            }
+}.applyGlobalTheme()
+}
             .sheet(isPresented: $showImageConverter) {
-                if let url = urlToView { ImageConverterView(fileURL: url) }
-            }
+Group {
+if let url = urlToView { ImageConverterView(fileURL: url) }
+}.applyGlobalTheme()
+}
             .sheet(isPresented: $showEXIFViewer) {
-                if let url = urlToView { EXIFViewerView(fileURL: url) }
-            }
+Group {
+if let url = urlToView { EXIFViewerView(fileURL: url) }
+}.applyGlobalTheme()
+}
             .sheet(isPresented: $showXMLEditor) {
-                if let url = urlToView { XMLEditorView(fileURL: url) }
-            }
+Group {
+if let url = urlToView { XMLEditorView(fileURL: url) }
+}.applyGlobalTheme()
+}
             .sheet(isPresented: $showJSONFormatter) {
-                JSONFormatterView()
-            }
+JSONFormatterView()
+.applyGlobalTheme()
+}
             .sheet(isPresented: $showCSVBrowser) {
-                if let url = urlToView { CSVBrowserView(fileURL: url) }
-            }
+Group {
+if let url = urlToView { CSVBrowserView(fileURL: url) }
+}.applyGlobalTheme()
+}
             .sheet(isPresented: $showMarkdownPreview) {
-                if let url = urlToView { MarkdownPreviewView(fileURL: url) }
-            }
+Group {
+if let url = urlToView { MarkdownPreviewView(fileURL: url) }
+}.applyGlobalTheme()
+}
             .sheet(isPresented: $showDataConverter) {
-                if let url = urlToView { DataConverterView(fileURL: url) }
-            }
+Group {
+if let url = urlToView { DataConverterView(fileURL: url) }
+}.applyGlobalTheme()
+}
             .sheet(isPresented: $showTimestampConverter) {
-                TimestampConverterView()
-            }
+TimestampConverterView()
+.applyGlobalTheme()
+}
             .sheet(isPresented: $showUUIDGenerator) {
-                UUIDGeneratorView()
-            }
+UUIDGeneratorView()
+.applyGlobalTheme()
+}
             .sheet(isPresented: $showHashVerifier) {
-                if let url = urlToView { HashVerifierView(fileURL: url) }
-            }
+Group {
+if let url = urlToView { HashVerifierView(fileURL: url) }
+}.applyGlobalTheme()
+}
             .sheet(isPresented: $showTextTransformer) {
-                TextTransformerView()
-            }
+TextTransformerView()
+.applyGlobalTheme()
+}
             .sheet(isPresented: $showGrepTool) {
-                GrepToolView(baseDirectory: fileManager.baseDirectory)
-            }
+GrepToolView(baseDirectory: fileManager.baseDirectory)
+.applyGlobalTheme()
+}
             .sheet(isPresented: $showArchiveBrowser) {
-                if let url = urlToView { ArchiveBrowserView(fileURL: url) }
-            }
+Group {
+if let url = urlToView { ArchiveBrowserView(fileURL: url) }
+}.applyGlobalTheme()
+}
             .sheet(isPresented: $showAdvancedPermissions) {
-                if let url = urlToView { AdvancedPermissionsView(fileURL: url) }
-            }
+Group {
+if let url = urlToView { AdvancedPermissionsView(fileURL: url) }
+}.applyGlobalTheme()
+}
             .sheet(isPresented: $showDuplicateFinder) {
-                DuplicateFinderView(baseDirectory: fileManager.baseDirectory)
-            }
+DuplicateFinderView(baseDirectory: fileManager.baseDirectory)
+.applyGlobalTheme()
+}
             .sheet(isPresented: $showLargeFileFinder) {
-                LargeFileFinderView(baseDirectory: fileManager.baseDirectory)
-            }
+LargeFileFinderView(baseDirectory: fileManager.baseDirectory)
+.applyGlobalTheme()
+}
             .sheet(isPresented: $showSymlinkEditor) {
-                if let url = urlToView { SymlinkEditorView(fileURL: url) }
-            }
+Group {
+if let url = urlToView { SymlinkEditorView(fileURL: url) }
+}.applyGlobalTheme()
+}
             .sheet(isPresented: $showDiskSpace) {
-                DiskSpaceView()
-            }
+DiskSpaceView()
+.applyGlobalTheme()
+}
             .sheet(isPresented: $showFontBrowser) {
-                if let url = urlToView { FontBrowserView(fileURL: url) }
-            }
+Group {
+if let url = urlToView { FontBrowserView(fileURL: url) }
+}.applyGlobalTheme()
+}
             .sheet(isPresented: $showSQLiteBrowser) {
-                if let url = urlToView { SQLiteBrowserView(fileURL: url) }
-            }
+Group {
+if let url = urlToView { SQLiteBrowserView(fileURL: url) }
+}.applyGlobalTheme()
+}
             .sheet(isPresented: $showGoToPath) {
-                GoToPathView { url in
+GoToPathView { url in
                     fileManager.navigateToDirectory(url)
                 }
-            }
+.applyGlobalTheme()
+}
             .alert(.localized("Rename File"), isPresented: $showRenameAlert) {
                 TextField(.localized("New Name"), text: $renameText)
                 Button(.localized("Cancel"), role: .cancel) { }
@@ -746,7 +821,8 @@ struct FilesView: View {
                     }
             }
         }
-        .listStyle(.insetGrouped)
+        .scrollContentBackground(.hidden)
+
         .environment(\.editMode, isSelectionMode ? .constant(.active) : .constant(.inactive))
     }
     

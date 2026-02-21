@@ -7,8 +7,8 @@ struct GlitchDeveloperModeView: View {
 
     var body: some View {
         ZStack {
-            Color.red.opacity(0.1).ignoresSafeArea()
-            Color.black.ignoresSafeArea()
+
+
 
             VStack(spacing: 20) {
                 Image(systemName: "exclamationmark.triangle.fill")

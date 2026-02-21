@@ -30,10 +30,12 @@ public struct NBList<Content>: View where Content: View {
 				Form {
 					_content
 				}
+				.scrollContentBackground(.hidden)
 			case .list:
 				List {
 					_content
 				}
+				.scrollContentBackground(.hidden)
 			}
 		}
 		.navigationTitle(_title)

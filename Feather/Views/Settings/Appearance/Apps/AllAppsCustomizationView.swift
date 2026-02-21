@@ -287,7 +287,7 @@ struct AllAppsCustomizationView: View {
             }
         }
             .scrollContentBackground(.hidden)
-        .listStyle(.insetGrouped)
+
         .navigationTitle("All Apps")
     }
     

@@ -141,8 +141,7 @@ struct AllAppsView: View {
     private var mainContent: some View {
         ZStack(alignment: .bottom) {
             // Background
-            Color.clear
-                .ignoresSafeArea()
+
 
             if _isSearching {
                 VStack {
@@ -331,7 +330,7 @@ struct AllAppsView: View {
                     Group {
                         if _useGlassEffects {
                             RoundedRectangle(cornerRadius: _searchBarStyle == 1 ? 20 : 14, style: .continuous)
-                                .fill(.ultraThinMaterial)
+                                .fill(Color.clear)
                         } else {
                             RoundedRectangle(cornerRadius: _searchBarStyle == 1 ? 20 : 14, style: .continuous)
                                 .fill(Color.clear)
@@ -866,7 +865,7 @@ struct AllAppsRowView: View {
             Group {
                 if rowStyle != .minimal {
                     if useGlassEffects {
-                        Rectangle().fill(.ultraThinMaterial)
+                        Rectangle().fill(Color.clear)
                     } else {
                         Color.clear
                     }
@@ -940,7 +939,7 @@ struct AllAppsRowView: View {
         .background(
             Group {
                 if useGlassEffects {
-                    Rectangle().fill(.ultraThinMaterial)
+                    Rectangle().fill(Color.clear)
                 } else {
                     Color.clear
                 }

@@ -379,7 +379,7 @@ struct SigningProcessView: View {
     private func stepRowBackground(index: Int) -> some View {
         if currentStepIndex == index {
             RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .fill(.ultraThinMaterial)
+                .fill(Color.clear)
         } else {
             Color.clear
         }

@@ -255,7 +255,7 @@ struct TunnelView: View {
 			}
 		}
 		.sheet(isPresented: $_isImportingPairingPresenting) {
-			FileImporterRepresentableView(
+FileImporterRepresentableView(
 				allowedContentTypes:  [.xmlPropertyList, .plist, .mobiledevicepairing],
 				onDocumentsPicked: { urls in
 					guard let selectedFileURL = urls.first else { return }
@@ -264,7 +264,8 @@ struct TunnelView: View {
 				}
 			)
 			.ignoresSafeArea()
-		}
+.applyGlobalTheme()
+}
 		.onAppear {
 			doesHavePairingFile = FileManager.default.fileExists(atPath: HeartbeatManager.pairingFile())
 			? true

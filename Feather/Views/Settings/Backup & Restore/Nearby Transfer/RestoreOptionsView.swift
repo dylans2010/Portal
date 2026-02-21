@@ -82,7 +82,7 @@ struct RestoreOptionsView: View {
             .overlay {
                 if isRestoring {
                     ZStack {
-                        Color.black.opacity(0.4).ignoresSafeArea()
+
                         VStack(spacing: 16) {
                             ProgressView()
                                 .scaleEffect(1.5)

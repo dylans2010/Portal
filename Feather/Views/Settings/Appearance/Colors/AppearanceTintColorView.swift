@@ -137,7 +137,7 @@ struct AppearanceTintColorView: View {
 		.buttonStyle(.plain)
 		.padding(.horizontal, 16)
 		.sheet(isPresented: $isCustomSheetPresented) {
-			ThemeColorPickerSheet(
+ThemeColorPickerSheet(
 				selectedColorHex: $selectedColorHex,
 				colorType: $colorType,
 				gradientStartHex: $gradientStartHex,
@@ -146,7 +146,8 @@ struct AppearanceTintColorView: View {
 			)
 			.presentationDetents([.medium, .large])
 			.presentationDragIndicator(.visible)
-		}
+.applyGlobalTheme()
+}
 	}
 
 	private var colorName: String {
@@ -243,13 +244,14 @@ struct ThemeColorPickerSheet: View {
 			}
 			.background(Color.clear)
 			.sheet(isPresented: $showCustomPicker) {
-				CustomColorPickerView(
+CustomColorPickerView(
 					colorType: $colorType,
 					selectedColorHex: $selectedColorHex,
 					gradientStartHex: $gradientStartHex,
 					gradientEndHex: $gradientEndHex
 				)
-			}
+.applyGlobalTheme()
+}
 		}
 	}
 }

@@ -197,7 +197,7 @@ struct StatusBarPreviewView: View {
                 Group {
                     if viewModel.blurBackground {
                         Capsule()
-                            .fill(.ultraThinMaterial)
+                            .fill(Color.clear)
                             .overlay(
                                 Capsule()
                                     .fill(Color(hex: viewModel.backgroundColorHex).opacity(viewModel.backgroundOpacity))

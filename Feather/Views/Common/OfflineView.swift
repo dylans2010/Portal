@@ -118,7 +118,7 @@ struct OfflineView: View {
                 .padding(.bottom, 40)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Color.clear.ignoresSafeArea())
+        .background(Color.clear)
         .onAppear {
             animateIcon = true
             AppLogManager.shared.warning("Offline view displayed - no internet connection available", category: "Network")

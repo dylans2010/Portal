@@ -108,7 +108,7 @@ struct CustomTabBarUI: View {
             ZStack {
                 // Frosted glass effect with enhanced blur
                 RoundedRectangle(cornerRadius: 24, style: .continuous)
-                    .fill(.ultraThinMaterial)
+                    .fill(Color.clear)
                 
                 // Enhanced inner glow
                 RoundedRectangle(cornerRadius: 24, style: .continuous)

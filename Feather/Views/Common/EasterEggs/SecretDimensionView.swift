@@ -8,7 +8,7 @@ struct SecretDimensionView: View {
 
     var body: some View {
         ZStack {
-            Color.black.ignoresSafeArea()
+
 
             // Animated background
             ZStack {

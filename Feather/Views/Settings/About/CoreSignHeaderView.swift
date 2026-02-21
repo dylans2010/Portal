@@ -22,11 +22,13 @@ struct CoreSignHeaderView: View {
                 rotateSubtitle()
             }
             .sheet(isPresented: $showCredits) {
-                CreditsView()
-            }
+CreditsView()
+.applyGlobalTheme()
+}
             .fullScreenCover(isPresented: $showSecretDimension) {
-                SecretDimensionView()
-            }
+SecretDimensionView()
+.applyGlobalTheme()
+}
     }
     
     // MARK: - Header Card

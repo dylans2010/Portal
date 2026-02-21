@@ -16,8 +16,7 @@ struct JSONViewerView: View {
     var body: some View {
         NBNavigationView(.localized("JSON Viewer"), displayMode: .inline) {
             ZStack {
-                Color.clear
-                    .ignoresSafeArea()
+
                 
                 VStack(spacing: 0) {
                     // Validation error banner

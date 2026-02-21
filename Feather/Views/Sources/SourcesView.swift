@@ -82,8 +82,7 @@ struct SourcesView: View {
         NavigationStack {
             ZStack {
                 // Simple background
-                Color.clear
-                    .ignoresSafeArea()
+
                 
                 ScrollView {
                     VStack(spacing: 0) {
@@ -114,16 +113,19 @@ struct SourcesView: View {
             }
             .navigationBarHidden(true)
             .fullScreenCover(isPresented: $_isAddingPresenting) {
-                SourcesAddView()
-            }
+SourcesAddView()
+.applyGlobalTheme()
+}
             .sheet(isPresented: $_showEditSourcesView) {
-                EditSourcesView(sources: _sources)
+EditSourcesView(sources: _sources)
                     .presentationDetents([.large])
                     .presentationDragIndicator(.visible)
-            }
+.applyGlobalTheme()
+}
             .sheet(isPresented: $_showCertificateTooltip) {
-                certificateTooltipView
-            }
+certificateTooltipView
+.applyGlobalTheme()
+}
         }
         .task(id: Array(_sources)) {
             await viewModel.fetchSources(_sources)

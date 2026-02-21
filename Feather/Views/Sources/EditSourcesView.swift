@@ -23,7 +23,7 @@ struct EditSourcesView: View {
                 .onMove(perform: moveSource)
             }
             .scrollContentBackground(.hidden)
-            .listStyle(.insetGrouped)
+
             .navigationTitle("Edit Sources")
             .navigationBarTitleDisplayMode(.inline)
             .environment(\.editMode, $editMode)

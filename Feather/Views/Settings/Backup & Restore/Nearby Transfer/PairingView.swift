@@ -179,7 +179,7 @@ struct PairingView: View {
             }
         }
         .sheet(isPresented: $showingProgress) {
-            NavigationStack {
+NavigationStack {
                 TransferProgressView(
                     service: service,
                     onCancel: { service.cancelTransfer() },
@@ -207,18 +207,20 @@ struct PairingView: View {
                     }
                 }
             }
-        }
+.applyGlobalTheme()
+}
         .sheet(isPresented: $showRestoreOptions) {
-            RestoreOptionsView(
+RestoreOptionsView(
                 onConflictResolution: { backupDir in
                     backupDirectory = backupDir
                     showConflictResolver = true
                 },
                 onHealthCheck: { showPostRestoreHealthCheck = true }
             )
-        }
+.applyGlobalTheme()
+}
         .sheet(isPresented: $showPreflightCheck) {
-            NavigationStack {
+NavigationStack {
                 PreflightCheckView {
                     showPreflightCheck = false
                     if let peer = selectedPeer {
@@ -226,9 +228,10 @@ struct PairingView: View {
                     }
                 }
             }
-        }
+.applyGlobalTheme()
+}
         .sheet(isPresented: $showConflictResolver) {
-            NavigationStack {
+NavigationStack {
                 if let backupDir = backupDirectory {
                     ConflictResolverView(backupDirectory: backupDir) { resolvedConflicts in
                         showConflictResolver = false
@@ -236,15 +239,17 @@ struct PairingView: View {
                     }
                 }
             }
-        }
+.applyGlobalTheme()
+}
         .sheet(isPresented: $showPostRestoreHealthCheck) {
-            NavigationStack {
+NavigationStack {
                 PostRestoreHealthCheckView {
                     showPostRestoreHealthCheck = false
                     showRestartCompletionScreen()
                 }
             }
-        }
+.applyGlobalTheme()
+}
         .onAppear {
             updateServiceMode()
         }

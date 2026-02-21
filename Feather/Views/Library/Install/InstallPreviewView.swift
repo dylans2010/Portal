@@ -111,8 +111,9 @@ struct InstallPreviewView: View {
             BackgroundAudioManager.shared.stop()
         }
         .sheet(isPresented: $_isWebviewPresenting) {
-            SafariRepresentableView(url: installer.pageEndpoint).ignoresSafeArea()
-        }
+SafariRepresentableView(url: installer.pageEndpoint).ignoresSafeArea()
+.applyGlobalTheme()
+}
         .onChange(of: viewModel.status) { newStatus in
             _handleStatusChange(newStatus)
         }

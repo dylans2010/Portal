@@ -22,8 +22,7 @@ struct AppLogsView: View {
     var body: some View {
         ZStack {
             // Modern Background
-            Color.clear
-                .ignoresSafeArea()
+
 
             VStack(spacing: 0) {
                 // Search and Filter Bar
@@ -97,7 +96,7 @@ struct AppLogsView: View {
                         Spacer()
                         ZStack {
                             Circle()
-                                .fill(.ultraThinMaterial)
+                                .fill(Color.clear)
                                 .frame(width: 100, height: 100)
 
                             Image(systemName: "doc.text.magnifyingglass")

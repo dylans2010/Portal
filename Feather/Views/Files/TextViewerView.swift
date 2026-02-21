@@ -202,8 +202,9 @@ struct TextViewerView: View {
                 }
             }
             .sheet(isPresented: $showEncodingPicker) {
-                encodingPickerSheet
-            }
+encodingPickerSheet
+.applyGlobalTheme()
+}
         }
         .onAppear {
             loadContent()

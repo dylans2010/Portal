@@ -152,9 +152,12 @@ struct SigningView: View {
 					appIcon = nil
 				}
 			}
-			.sheet(isPresented: $_isAltPickerPresenting) { SigningAlternativeIconView(app: app, appIcon: $appIcon, isModifing: .constant(true)) }
+			.sheet(isPresented: $_isAltPickerPresenting) {
+SigningAlternativeIconView(app: app, appIcon: $appIcon, isModifing: .constant(true))
+.applyGlobalTheme()
+}
 			.sheet(isPresented: $_isFilePickerPresenting) {
-				FileImporterRepresentableView(
+FileImporterRepresentableView(
 					allowedContentTypes:  [.image],
 					onDocumentsPicked: { urls in
 						guard let selectedFileURL = urls.first else { return }
@@ -162,7 +165,8 @@ struct SigningView: View {
 					}
 				)
 				.ignoresSafeArea()
-			}
+.applyGlobalTheme()
+}
 			.photosPicker(isPresented: $_isImagePickerPresenting, selection: $_selectedPhoto)
 			.onChange(of: _selectedPhoto) { newValue in
 				guard let newValue else { return }
@@ -177,7 +181,8 @@ struct SigningView: View {
 			.disabled(_isSigning)
 			.animation(animationForPlatform(), value: _isSigning)
             .fullScreenCover(isPresented: $_isSigningProcessPresented) {
-                if #available(iOS 17.0, *) {
+Group {
+if #available(iOS 17.0, *) {
                     SigningProcessView(
                         appName: _temporaryOptions.appName ?? app.name ?? "App",
                         appIcon: appIcon
@@ -192,11 +197,13 @@ struct SigningView: View {
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .background(Color.clear)
                 }
-            }
+}.applyGlobalTheme()
+}
 			.sheet(isPresented: $_isAddingCertificatePresenting) {
-				CertificatesAddView()
+CertificatesAddView()
 					.presentationDetents([.medium])
-			}
+.applyGlobalTheme()
+}
 		}
 		.alert(.localized("Name"), isPresented: $_isNameDialogPresenting) {
 			TextField(_temporaryOptions.appName ?? (app.name ?? ""), text: Binding(

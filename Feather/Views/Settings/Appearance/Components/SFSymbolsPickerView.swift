@@ -1077,7 +1077,7 @@ struct SFSymbolsPickerView: View {
                         .font(.system(size: 10, weight: .semibold))
                         .foregroundStyle(viewModel.isFavorite(symbol) ? .red : .secondary)
                         .padding(5)
-                        .background(Circle().fill(.ultraThinMaterial))
+                        .background(Circle().fill(Color.clear))
                 }
                 .buttonStyle(.plain)
                 .offset(x: 4, y: -4)
