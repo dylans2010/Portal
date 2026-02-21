@@ -455,9 +455,6 @@ struct LinkInsertDialog: View {
     
     var body: some View {
         ZStack {
-
-                .onTapGesture { dismissDialog() }
-            
             VStack(spacing: 0) {
                 // Header
                 VStack(spacing: 12) {
@@ -610,6 +607,7 @@ struct LinkInsertDialog: View {
             )
             .padding(.horizontal, 24)
         }
+        .onTapGesture { dismissDialog() }
         .onAppear { focusedField = .title }
     }
     
@@ -639,9 +637,6 @@ struct ScreenshotErrorDialog: View {
     
     var body: some View {
         ZStack {
-
-                .onTapGesture { dismissDialog() }
-            
             VStack(spacing: 0) {
                 // Header
                 VStack(spacing: 12) {
@@ -737,6 +732,7 @@ struct ScreenshotErrorDialog: View {
             )
             .padding(.horizontal, 24)
         }
+        .onTapGesture { dismissDialog() }
     }
     
     private func dismissDialog() {
