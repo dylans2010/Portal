@@ -317,16 +317,7 @@ struct ModernSigningView: View {
         ZStack {
             if #available(iOS 17.0, *) {
                 TimelineView(.animation) { timeline in
-                    Canvas { context, size in
-                        let time = timeline.date.timeIntervalSinceReferenceDate
-                        context.addFilter(.blur(radius: 60))
-                        for i in 0..<3 {
-                            let speed = Double(i + 1) * 0.2
-                            let x = (sin(time * speed) + 1) / 2 * size.width
-                            let y = (cos(time * speed * 0.7) + 1) / 2 * size.height
-                            let color = i == 0 ? Color.accentColor : (i == 1 ? Color.purple : Color.cyan)
-                            context.fill(Path(ellipseIn: CGRect(x: x - 150, y: y - 150, width: 300, height: 300)), with: .radialGradient(Gradient(colors: [color.opacity(0.15), .clear]), center: CGPoint(x: x, y: y), startRadius: 0, endRadius: 150))
-                        }
+                    Color.clear
                     }
                 }
                 .ignoresSafeArea()

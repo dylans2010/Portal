@@ -770,6 +770,7 @@ struct AppUpdateTrackingSettingsView: View {
     var body: some View {
         NavigationStack {
             List {
+.scrollContentBackground(.hidden)
                 // Fetch Sources Section
                 fetchSourcesSection
                 
@@ -1140,6 +1141,7 @@ struct SelectAppToTrackView: View {
     
     private var appListSection: some View {
         List {
+.scrollContentBackground(.hidden)
             if isLoading && updateManager.cachedApps.isEmpty {
                 loadingSection
             } else if filteredCachedApps.isEmpty {

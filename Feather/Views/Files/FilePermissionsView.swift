@@ -20,6 +20,7 @@ struct FilePermissionsView: View {
     var body: some View {
         NBNavigationView(.localized("File Permissions"), displayMode: .inline) {
             Form {
+.scrollContentBackground(.hidden)
                 if let error = errorMessage {
                     Section {
                         HStack {

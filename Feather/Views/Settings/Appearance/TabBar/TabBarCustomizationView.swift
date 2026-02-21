@@ -99,6 +99,7 @@ struct TabBarCustomizationView: View {
                             Divider().padding(.leading, 60)
 
                             List {
+.scrollContentBackground(.hidden)
                                 ForEach(orderedTabs, id: \.self) { tabId in
                                     reorderableTabRow(for: tabId)
                                 }

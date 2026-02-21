@@ -1227,6 +1227,7 @@ struct RestoreSelectionView: View {
     
     var body: some View {
         List {
+.scrollContentBackground(.hidden)
             ForEach(backups) { backup in
                 Button {
                     onRestore(backup)
@@ -1261,6 +1262,7 @@ struct ModernRestoreSelectionView: View {
     
     var body: some View {
         List {
+.scrollContentBackground(.hidden)
             if backups.isEmpty {
                 ContentUnavailableView(
                     "No Backups",
@@ -1336,6 +1338,7 @@ struct LegacyRestoreSelectionView: View {
     
     var body: some View {
         List {
+.scrollContentBackground(.hidden)
             if backups.isEmpty {
                 VStack(spacing: 16) {
                     Image(systemName: "archivebox")

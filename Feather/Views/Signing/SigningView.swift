@@ -588,7 +588,8 @@ extension SigningView {
 			Divider()
 			
 			NavigationLink {
-				Form { SigningOptionsView(
+				Form {
+.scrollContentBackground(.hidden) SigningOptionsView(
 					options: $_temporaryOptions,
 					temporaryOptions: _optionsManager.options
 				)}

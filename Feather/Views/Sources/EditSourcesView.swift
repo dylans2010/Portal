@@ -16,6 +16,7 @@ struct EditSourcesView: View {
     var body: some View {
         NavigationView {
             List {
+.scrollContentBackground(.hidden)
                 ForEach(Array(sources), id: \.objectID) { source in
                     sourceRow(source)
                 }

@@ -17,6 +17,7 @@ struct SearchReplaceView: View {
     var body: some View {
         NBNavigationView(.localized("Search & Replace"), displayMode: .inline) {
             Form {
+.scrollContentBackground(.hidden)
                 Section {
                     TextField(.localized("Search For..."), text: $searchText)
                         .textInputAutocapitalization(.never)

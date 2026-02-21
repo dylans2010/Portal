@@ -625,6 +625,7 @@ struct AddTweakUrlView: View {
     var body: some View {
         NavigationStack {
             Form {
+.scrollContentBackground(.hidden)
                 Section {
                     TextField("https://example.com/tweak.dylib", text: $urlString)
                         .autocorrectionDisabled()
@@ -690,6 +691,7 @@ struct ExtractTweaksView: View {
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
                     } else {
                         List {
+.scrollContentBackground(.hidden)
                             if !frameworks.isEmpty {
                                 Section("Frameworks") {
                                     ForEach(frameworks, id: \.self) { item in

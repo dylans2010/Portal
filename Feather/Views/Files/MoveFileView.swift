@@ -35,6 +35,7 @@ struct MoveFileView: View {
                 }
                 
                 Form {
+.scrollContentBackground(.hidden)
                     Section {
                         ForEach(files) { file in
                             HStack(spacing: 12) {

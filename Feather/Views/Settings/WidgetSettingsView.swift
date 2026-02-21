@@ -5,6 +5,7 @@ import NimbleViews
 struct WidgetSettingsView: View {
     var body: some View {
         List {
+.scrollContentBackground(.hidden)
             Section {
                 VStack(alignment: .leading, spacing: 12) {
                     HStack {

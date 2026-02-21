@@ -8,6 +8,7 @@ struct GoToPathView: View {
     var body: some View {
         NavigationStack {
             Form {
+.scrollContentBackground(.hidden)
                 Section(header: Text(.localized("Enter Path"))) {
                     TextField(.localized("/var/mobile/..."), text: $path)
                         .autocorrectionDisabled()

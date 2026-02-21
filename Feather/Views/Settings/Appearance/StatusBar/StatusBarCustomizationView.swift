@@ -113,6 +113,7 @@ private let presetColors: [Color] = [
 var body: some View {
 NavigationView {
 Form {
+.scrollContentBackground(.hidden)
 Section {
 ColorPicker(String.localized("Select Color"), selection: $tempColor, supportsOpacity: false)
 }

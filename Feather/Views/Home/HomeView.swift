@@ -2508,6 +2508,7 @@ struct AppUpdatesListSheet: View {
     var body: some View {
         NavigationStack {
             List {
+.scrollContentBackground(.hidden)
                 if updates.isEmpty {
                     Section {
                         VStack(spacing: 16) {

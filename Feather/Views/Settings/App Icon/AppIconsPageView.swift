@@ -11,6 +11,7 @@ struct AppIconsPageView: View {
 	var body: some View {
 		NBNavigationView(.localized("I'm Lost")) {
 			Form {
+.scrollContentBackground(.hidden)
 				Section {
 					VStack(spacing: 16) {
 						Image(systemName: "questionmark.circle.fill")

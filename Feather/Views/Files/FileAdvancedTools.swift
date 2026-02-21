@@ -705,6 +705,7 @@ struct FilePickerView: View {
     var body: some View {
         NavigationStack {
             List {
+.scrollContentBackground(.hidden)
                 // Parent directory
                 if currentPath.path != "/" {
                     Button {
@@ -830,6 +831,7 @@ struct BinaryAnalysisView: View {
     
     var body: some View {
         List {
+.scrollContentBackground(.hidden)
             if isAnalyzing {
                 Section {
                     HStack {

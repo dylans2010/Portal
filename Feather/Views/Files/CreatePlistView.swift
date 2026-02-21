@@ -28,6 +28,7 @@ struct CreatePlistView: View {
                 .ignoresSafeArea()
                 
                 Form {
+.scrollContentBackground(.hidden)
                     Section {
                         HStack(spacing: 12) {
                             ZStack {

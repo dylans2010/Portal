@@ -26,6 +26,7 @@ struct BatchRenameView: View {
     var body: some View {
         NBNavigationView(.localized("Batch Rename"), displayMode: .inline) {
             Form {
+.scrollContentBackground(.hidden)
                 Section {
                     Picker(.localized("Rename Method"), selection: $selectedMode) {
                         ForEach(RenameMode.allCases, id: \.self) { mode in

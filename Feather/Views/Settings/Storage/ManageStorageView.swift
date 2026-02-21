@@ -1587,6 +1587,7 @@ struct StorageAnalyzerView: View {
                     }
                 } else {
                     List {
+.scrollContentBackground(.hidden)
                         ForEach(analysisResults) { item in
                             HStack(spacing: 12) {
                                 Circle()
@@ -1693,6 +1694,7 @@ struct StorageDuplicateFinderView: View {
                     }
                 } else {
                     List {
+.scrollContentBackground(.hidden)
                         ForEach(duplicates.indices, id: \.self) { index in
                             Section("Group \(index + 1)") {
                                 ForEach(duplicates[index], id: \.absoluteString) { url in
@@ -1780,6 +1782,7 @@ struct LargeFilesFinderView: View {
                     }
                 } else {
                     List {
+.scrollContentBackground(.hidden)
                         ForEach(largeFiles, id: \.url.absoluteString) { file in
                             HStack {
                                 VStack(alignment: .leading, spacing: 4) {

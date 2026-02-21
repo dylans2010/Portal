@@ -18,6 +18,7 @@ struct ChecksumCalculatorView: View {
     var body: some View {
         NBNavigationView(.localized("File Checksums"), displayMode: .inline) {
             Form {
+.scrollContentBackground(.hidden)
                 Section {
                     HStack {
                         Image(systemName: "doc.fill")

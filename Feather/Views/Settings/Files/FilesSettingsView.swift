@@ -17,6 +17,7 @@ struct FilesSettingsView: View {
     var body: some View {
         NBNavigationView(.localized("Files Settings"), displayMode: .inline) {
             Form {
+.scrollContentBackground(.hidden)
                 // MARK: - View Style Section
                 NBSection(.localized("View Style")) {
                     Picker(selection: $viewStyle) {

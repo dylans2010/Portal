@@ -9,6 +9,7 @@ struct SymlinkEditorView: View {
     var body: some View {
         NavigationStack {
             Form {
+.scrollContentBackground(.hidden)
                 Section(header: Text(.localized("Current Link"))) {
                     Text(fileURL.path)
                         .font(.caption.monospaced())

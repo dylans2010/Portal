@@ -317,12 +317,7 @@ struct DynamicGradientView: View {
                 if manager.dynamicGradientNoiseOpacity > 0 {
                     Color.black.opacity(0.01)
                         .overlay(
-                            Canvas { context, size in
-                                for _ in 0..<1000 {
-                                    let x = CGFloat.random(in: 0...size.width)
-                                    let y = CGFloat.random(in: 0...size.height)
-                                    context.fill(Path(CGRect(x: x, y: y, width: 1, height: 1)), with: .color(.white.opacity(0.5)))
-                                }
+                            Color.clear
                             }
                         )
                         .blendMode(.overlay)

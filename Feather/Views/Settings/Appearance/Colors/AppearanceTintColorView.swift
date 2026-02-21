@@ -282,6 +282,7 @@ struct CustomColorPickerView: View {
 	var body: some View {
 		NavigationView {
 			Form {
+.scrollContentBackground(.hidden)
 				Section {
 					Picker("Type", selection: $colorType) {
 						Text("Solid").tag("solid")

@@ -42,6 +42,7 @@ struct ZipOperationView: View {
                 .ignoresSafeArea()
                 
                 Form {
+.scrollContentBackground(.hidden)
                     if operation == .zip {
                         zipConfigSection
                     } else {

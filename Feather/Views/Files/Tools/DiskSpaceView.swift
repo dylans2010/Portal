@@ -9,6 +9,7 @@ struct DiskSpaceView: View {
     var body: some View {
         NavigationStack {
             List {
+.scrollContentBackground(.hidden)
                 Section(header: Text(.localized("Storage Info"))) {
                     StorageRow(label: .localized("Total"), value: totalSpace, color: .gray)
                     StorageRow(label: .localized("Free"), value: freeSpace, color: .green)
