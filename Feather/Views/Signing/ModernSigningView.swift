@@ -5,7 +5,7 @@ import ImageIO
 
 // MARK: - Modern Full Screen Signing View
 struct ModernSigningView: View {
-    @Environment(\.dismiss) var dismiss
+    @Environment(\.dismiss) private var dismiss
     @Environment(\.colorScheme) var colorScheme
     @AppStorage("Feather.serverMethod") private var _serverMethod: Int = 0
     @AppStorage("Feather.signingButtonType") private var _signingButtonType: Int = 0
@@ -594,3 +594,89 @@ struct ModernSigningView: View {
             }
         }
     }
+}
+
+// MARK: - Helper Views
+struct ModernEditSheet: View {
+    let title: String
+    let icon: String
+    let iconColor: Color
+    let placeholder: String
+    @Binding var value: String
+    var keyboardType: UIKeyboardType = .default
+    let onSave: () -> Void
+    let onCancel: () -> Void
+
+    var body: some View {
+        VStack(spacing: 24) {
+            HStack(spacing: 16) {
+                ZStack {
+                    Circle()
+                        .fill(iconColor.opacity(0.15))
+                        .frame(width: 48, height: 48)
+                    Image(systemName: icon)
+                        .font(.title2)
+                        .foregroundStyle(iconColor)
+                }
+
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(title)
+                        .font(.headline)
+                    Text(placeholder)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+                Spacer()
+            }
+            .padding(.horizontal, 24)
+            .padding(.top, 24)
+
+            TextField(placeholder, text: $value)
+                .font(.body)
+                .padding()
+                .background(Color(.systemGray6))
+                .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 16, style: .continuous)
+                        .stroke(Color.accentColor.opacity(0.1), lineWidth: 1)
+                )
+                .padding(.horizontal, 24)
+                .keyboardType(keyboardType)
+                .autocorrectionDisabled()
+
+            HStack(spacing: 12) {
+                Button(action: onCancel) {
+                    Text("Cancel")
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(.primary)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 14)
+                        .background(Color(.systemGray6))
+                        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+                }
+
+                Button(action: onSave) {
+                    Text("Save")
+                        .font(.subheadline.weight(.bold))
+                        .foregroundStyle(.white)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 14)
+                        .background(Color.accentColor)
+                        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+                        .shadow(color: Color.accentColor.opacity(0.3), radius: 8, x: 0, y: 4)
+                }
+            }
+            .padding(.horizontal, 24)
+            .padding(.bottom, 24)
+        }
+    }
+}
+
+struct SignButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .scaleEffect(configuration.isPressed ? 0.97 : 1.0)
+            .opacity(configuration.isPressed ? 0.9 : 1.0)
+            .animation(.spring(response: 0.3, dampingFraction: 0.7), value: configuration.isPressed)
+    }
+}
