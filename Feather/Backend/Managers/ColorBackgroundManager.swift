@@ -16,7 +16,7 @@ class ColorBackgroundManager: ObservableObject {
         baseColor
     }
 
-    private init() {
+    init() {
         _loadBaseColor()
     }
 
