@@ -35,7 +35,6 @@ struct MoveFileView: View {
                 }
                 
                 Form {
-.scrollContentBackground(.hidden)
                     Section {
                         ForEach(files) { file in
                             HStack(spacing: 12) {
@@ -132,7 +131,7 @@ struct MoveFileView: View {
                         }
                     }
                 }
-            .scrollContentBackground(.hidden)
+            .hideScrollContentBackground()
             }
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {

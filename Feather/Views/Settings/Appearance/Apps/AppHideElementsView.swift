@@ -13,7 +13,6 @@ struct AppHideElementsView: View {
     var body: some View {
         NBNavigationView(.localized("Hide UI Elements")) {
             List {
-.scrollContentBackground(.hidden)
                 Section {
                     Button(role: .destructive) {
                         sourcesManager.resetToDefaults()
@@ -32,7 +31,7 @@ struct AppHideElementsView: View {
                 managerSection(title: "Guides", manager: guidesManager)
                 managerSection(title: "Settings", manager: settingsManager)
             }
-            .scrollContentBackground(.hidden)
+            .hideScrollContentBackground()
 
             .searchable(text: $searchText, prompt: "Search Items")
         }

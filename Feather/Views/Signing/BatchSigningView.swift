@@ -55,7 +55,6 @@ struct BatchSigningView: View {
         NavigationStack {
             ZStack {
                 List {
-.scrollContentBackground(.hidden)
                     // Custom Header
                     Section {
                         HStack {
@@ -220,7 +219,7 @@ struct BatchSigningView: View {
                         }
                     }
                 }
-            .scrollContentBackground(.hidden)
+            .hideScrollContentBackground()
                 
                 // Progress Overlay
                 if isSigningBatch {
@@ -702,7 +701,6 @@ struct BatchAppEditSheet: View {
     var body: some View {
         NavigationStack {
             Form {
-.scrollContentBackground(.hidden)
                 Section {
                     HStack {
                         Text("Edit App Information")
@@ -813,7 +811,7 @@ struct BatchAppEditSheet: View {
                     .listRowInsets(EdgeInsets())
                 }
             }
-            .scrollContentBackground(.hidden)
+            .hideScrollContentBackground()
             .navigationBarHidden(true)
             .onAppear {
                 // Initialize with current values

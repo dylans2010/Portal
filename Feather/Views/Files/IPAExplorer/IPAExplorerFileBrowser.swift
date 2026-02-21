@@ -9,7 +9,6 @@ struct IPAExplorerFileBrowser: View {
 
     var body: some View {
         List {
-.scrollContentBackground(.hidden)
             ForEach(items, id: \.self) { item in
                 if isDirectory(item) {
                     NavigationLink {
@@ -26,7 +25,7 @@ struct IPAExplorerFileBrowser: View {
                 }
             }
         }
-            .scrollContentBackground(.hidden)
+            .hideScrollContentBackground()
         .navigationTitle(currentURL == rootURL ? .localized("Payload") : currentURL.lastPathComponent)
         .onAppear {
             loadItems()

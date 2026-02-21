@@ -56,7 +56,7 @@ struct LibraryInfoView: View {
 					}
 					.padding(20)
 				}
-				.scrollContentBackground(.hidden)
+				.hideScrollContentBackground()
 				.toolbar {
 					NBToolbarButton(role: .close)
 				}

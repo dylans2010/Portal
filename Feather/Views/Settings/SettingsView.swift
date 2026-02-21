@@ -34,7 +34,6 @@ struct SettingsView: View {
     var body: some View {
         NBNavigationView(.localized("Settings")) {
             List {
-.scrollContentBackground(.hidden)
                 headerSection
                 preferencesSection
                 signingSection
@@ -44,7 +43,7 @@ struct SettingsView: View {
                 if !isEnterprise { appSection }
                 if isDeveloperModeEnabled { developerSection }
             }
-            .scrollContentBackground(.hidden)
+            .hideScrollContentBackground()
 
         }
         .fullScreenCover(isPresented: $_showAddSource) {

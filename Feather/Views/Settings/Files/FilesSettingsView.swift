@@ -17,7 +17,6 @@ struct FilesSettingsView: View {
     var body: some View {
         NBNavigationView(.localized("Files Settings"), displayMode: .inline) {
             Form {
-.scrollContentBackground(.hidden)
                 // MARK: - View Style Section
                 NBSection(.localized("View Style")) {
                     Picker(selection: $viewStyle) {
@@ -111,7 +110,7 @@ struct FilesSettingsView: View {
                     Text(.localized("Reset all Files settings to their default values."))
                 }
             }
-            .scrollContentBackground(.hidden)
+            .hideScrollContentBackground()
         }
     }
     

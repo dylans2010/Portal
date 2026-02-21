@@ -13,7 +13,6 @@ struct ImageConverterView: View {
     var body: some View {
         NavigationStack {
             Form {
-.scrollContentBackground(.hidden)
                 Section(.localized("Source File")) {
                     Text(fileURL.lastPathComponent)
                         .foregroundStyle(.secondary)
@@ -49,7 +48,7 @@ struct ImageConverterView: View {
                     .disabled(isConverting)
                 }
             }
-            .scrollContentBackground(.hidden)
+            .hideScrollContentBackground()
             .navigationTitle(.localized("Image Converter"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {

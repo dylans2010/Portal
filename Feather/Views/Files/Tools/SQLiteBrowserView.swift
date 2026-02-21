@@ -12,7 +12,6 @@ struct SQLiteBrowserView: View {
     var body: some View {
         NavigationStack {
             List {
-.scrollContentBackground(.hidden)
                 if let error = errorMessage {
                     Section {
                         Text(error).foregroundStyle(.red)
@@ -68,7 +67,7 @@ struct SQLiteBrowserView: View {
                     }
                 }
             }
-            .scrollContentBackground(.hidden)
+            .hideScrollContentBackground()
             .navigationTitle(fileURL.lastPathComponent)
             .onAppear {
                 loadTables()

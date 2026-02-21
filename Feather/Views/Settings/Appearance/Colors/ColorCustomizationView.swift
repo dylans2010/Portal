@@ -7,7 +7,6 @@ struct ColorCustomizationView: View {
 
     var body: some View {
         Form {
-.scrollContentBackground(.hidden)
             Section {
                 colorPickerRow(
                     title: "Main Color",
@@ -21,7 +20,7 @@ struct ColorCustomizationView: View {
         }
         .navigationTitle("Main Color")
         .navigationBarTitleDisplayMode(.inline)
-        .scrollContentBackground(.hidden)
+        .hideScrollContentBackground()
     }
 
     private func colorPickerRow(title: String, color: Binding<Color>, icon: String) -> some View {

@@ -114,7 +114,6 @@ struct GuidesView: View {
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
                 List {
-.scrollContentBackground(.hidden)
                     Section {
                         ForEach(guides) { guide in
                             NavigationLink(destination: GuideDetailView(guide: guide)) {
@@ -144,7 +143,7 @@ struct GuidesView: View {
                         Text("Read helpful tips, guides, and more.")
                     }
                 }
-            .scrollContentBackground(.hidden)
+            .hideScrollContentBackground()
                 .refreshable {
                     await fetchGuides()
                 }

@@ -10,7 +10,6 @@ struct CreateFolderView: View {
     var body: some View {
         NBNavigationView(.localized("Create Folder"), displayMode: .inline) {
             Form {
-.scrollContentBackground(.hidden)
                 Section {
                     HStack(spacing: 12) {
                         ZStack {
@@ -39,7 +38,7 @@ struct CreateFolderView: View {
                     Text(.localized("Enter a name for the new folder."))
                 }
             }
-            .scrollContentBackground(.hidden)
+            .hideScrollContentBackground()
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button(.localized("Cancel")) {

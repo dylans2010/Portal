@@ -21,7 +21,6 @@ struct AdvancedPermissionsView: View {
     var body: some View {
         NavigationStack {
             Form {
-.scrollContentBackground(.hidden)
                 Section(header: Text(.localized("Octal Permissions"))) {
                     HStack {
                         Text(String(format: "%o", calculateOctal()))
@@ -57,7 +56,7 @@ struct AdvancedPermissionsView: View {
                     }
                 }
             }
-            .scrollContentBackground(.hidden)
+            .hideScrollContentBackground()
             .navigationTitle(.localized("Advanced Permissions"))
             .navigationBarTitleDisplayMode(.inline)
             .onAppear {

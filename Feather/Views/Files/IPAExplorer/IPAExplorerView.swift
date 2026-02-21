@@ -53,7 +53,6 @@ struct IPAExplorerView: View {
 
     private var mainContent: some View {
         List {
-.scrollContentBackground(.hidden)
             if let summary = viewModel.summary {
                 Section {
                     IPAExplorerSummaryHeader(summary: summary, isModified: viewModel.isModified, isValid: viewModel.checkIntegrity())
@@ -109,7 +108,7 @@ struct IPAExplorerView: View {
                 }
             }
         }
-            .scrollContentBackground(.hidden)
+            .hideScrollContentBackground()
     }
 
     private func exportIPA() {

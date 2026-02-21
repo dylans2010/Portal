@@ -17,7 +17,6 @@ struct SearchReplaceView: View {
     var body: some View {
         NBNavigationView(.localized("Search & Replace"), displayMode: .inline) {
             Form {
-.scrollContentBackground(.hidden)
                 Section {
                     TextField(.localized("Search For..."), text: $searchText)
                         .textInputAutocapitalization(.never)
@@ -83,7 +82,7 @@ struct SearchReplaceView: View {
                     .disabled(searchText.isEmpty || matchCount == 0)
                 }
             }
-            .scrollContentBackground(.hidden)
+            .hideScrollContentBackground()
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button(.localized("Cancel")) {

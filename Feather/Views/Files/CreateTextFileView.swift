@@ -11,7 +11,6 @@ struct CreateTextFileView: View {
     var body: some View {
         NBNavigationView(.localized("Create Text File"), displayMode: .inline) {
             Form {
-.scrollContentBackground(.hidden)
                 Section {
                     TextField(.localized("File Name"), text: $fileName)
                         .textInputAutocapitalization(.never)
@@ -27,7 +26,7 @@ struct CreateTextFileView: View {
                     Text(.localized("Content"))
                 }
             }
-            .scrollContentBackground(.hidden)
+            .hideScrollContentBackground()
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button(.localized("Cancel")) {

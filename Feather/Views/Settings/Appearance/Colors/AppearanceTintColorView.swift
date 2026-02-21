@@ -282,7 +282,6 @@ struct CustomColorPickerView: View {
 	var body: some View {
 		NavigationView {
 			Form {
-.scrollContentBackground(.hidden)
 				Section {
 					Picker("Type", selection: $colorType) {
 						Text("Solid").tag("solid")
@@ -357,7 +356,7 @@ struct CustomColorPickerView: View {
 				}
 				.listRowBackground(Color.clear)
 			}
-            .scrollContentBackground(.hidden)
+            .hideScrollContentBackground()
 			.navigationTitle("Advanced Color")
 			.navigationBarTitleDisplayMode(.inline)
 			.toolbar {

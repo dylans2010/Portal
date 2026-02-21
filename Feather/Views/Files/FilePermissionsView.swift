@@ -20,7 +20,6 @@ struct FilePermissionsView: View {
     var body: some View {
         NBNavigationView(.localized("File Permissions"), displayMode: .inline) {
             Form {
-.scrollContentBackground(.hidden)
                 if let error = errorMessage {
                     Section {
                         HStack {
@@ -115,7 +114,7 @@ struct FilePermissionsView: View {
                     Text(.localized("Dates"))
                 }
             }
-            .scrollContentBackground(.hidden)
+            .hideScrollContentBackground()
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
                     Button(.localized("Done")) {

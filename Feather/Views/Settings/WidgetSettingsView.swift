@@ -5,7 +5,6 @@ import NimbleViews
 struct WidgetSettingsView: View {
     var body: some View {
         List {
-.scrollContentBackground(.hidden)
             Section {
                 VStack(alignment: .leading, spacing: 12) {
                     HStack {
@@ -78,7 +77,7 @@ struct WidgetSettingsView: View {
                 Text(.localized("Force an immediate refresh of all Portal widgets on your Home Screen and Lock Screen."))
             }
         }
-            .scrollContentBackground(.hidden)
+            .hideScrollContentBackground()
         .navigationTitle(.localized("Widgets"))
         .navigationBarTitleDisplayMode(.inline)
     }

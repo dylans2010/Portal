@@ -1512,7 +1512,6 @@ struct ModernMarkdownView: View {
                 } else {
                     // Start code block
                     if inList {
-.scrollContentBackground(.hidden)
                         elements.append(.bulletList(currentList))
                         currentList = []
                         inList = false
@@ -1530,7 +1529,6 @@ struct ModernMarkdownView: View {
             // Headers
             if line.hasPrefix("### ") {
                 if inList {
-.scrollContentBackground(.hidden)
                     elements.append(.bulletList(currentList))
                     currentList = []
                     inList = false
@@ -1539,7 +1537,6 @@ struct ModernMarkdownView: View {
                 continue
             } else if line.hasPrefix("## ") {
                 if inList {
-.scrollContentBackground(.hidden)
                     elements.append(.bulletList(currentList))
                     currentList = []
                     inList = false
@@ -1548,7 +1545,6 @@ struct ModernMarkdownView: View {
                 continue
             } else if line.hasPrefix("# ") {
                 if inList {
-.scrollContentBackground(.hidden)
                     elements.append(.bulletList(currentList))
                     currentList = []
                     inList = false
@@ -1571,7 +1567,6 @@ struct ModernMarkdownView: View {
             // Empty lines
             if line.trimmingCharacters(in: .whitespaces).isEmpty {
                 if inList {
-.scrollContentBackground(.hidden)
                     elements.append(.bulletList(currentList))
                     currentList = []
                     inList = false
@@ -1581,14 +1576,12 @@ struct ModernMarkdownView: View {
             
             // Regular paragraphs
             if !inList {
-.scrollContentBackground(.hidden)
                 elements.append(.paragraph(line))
             }
         }
         
         // Handle any remaining list items
         if inList {
-.scrollContentBackground(.hidden)
             elements.append(.bulletList(currentList))
         }
         

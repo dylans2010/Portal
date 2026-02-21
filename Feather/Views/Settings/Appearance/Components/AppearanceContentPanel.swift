@@ -17,7 +17,6 @@ struct AppearanceContentPanel: View {
     
     var body: some View {
         List {
-.scrollContentBackground(.hidden)
             // MARK: - Content Configuration
             contentConfigurationSection
             
@@ -39,7 +38,7 @@ struct AppearanceContentPanel: View {
             // MARK: - Reset
             resetSection
         }
-            .scrollContentBackground(.hidden)
+            .hideScrollContentBackground()
 
         .sheet(isPresented: $showColorPicker) {
 ColorPickerSheet(selectedColor: $viewModel.selectedColor, colorHex: $viewModel.colorHex)
@@ -706,7 +705,6 @@ struct GradientColorPickerSheet: View {
     var body: some View {
         NavigationView {
             Form {
-.scrollContentBackground(.hidden)
                 Section {
                     ColorPicker("Select Color", selection: $tempColor, supportsOpacity: false)
                 }
@@ -731,7 +729,7 @@ struct GradientColorPickerSheet: View {
                     .padding(.vertical, 8)
                 }
             }
-            .scrollContentBackground(.hidden)
+            .hideScrollContentBackground()
             .navigationTitle(title)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {

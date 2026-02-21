@@ -23,7 +23,6 @@ struct StructureVisibilityPanel: View {
     
     var body: some View {
         List {
-.scrollContentBackground(.hidden)
             Section {
                 Toggle(isOn: Binding(
                     get: { viewModel.showCustomText },
@@ -188,7 +187,7 @@ struct StructureVisibilityPanel: View {
                 Label("System", systemImage: "gearshape")
             }
         }
-            .scrollContentBackground(.hidden)
+            .hideScrollContentBackground()
 
         .sheet(isPresented: $showConfigureLayouts) {
 ConfigureLayoutsView(viewModel: viewModel)

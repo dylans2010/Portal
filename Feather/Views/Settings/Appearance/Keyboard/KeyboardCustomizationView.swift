@@ -15,7 +15,6 @@ struct KeyboardCustomizationView: View {
 
     var body: some View {
         List {
-.scrollContentBackground(.hidden)
             Section {
                 Toggle(isOn: $manager.isEnabled) {
                     AppearanceRowLabel(icon: "keyboard", title: "Enable Backdrop", color: .purple)
@@ -288,7 +287,7 @@ struct KeyboardCustomizationView: View {
                 }
             }
         }
-            .scrollContentBackground(.hidden)
+            .hideScrollContentBackground()
 
         .navigationTitle("Keyboard Backdrop")
         .fullScreenCover(isPresented: $showingAdvancedGradient) {

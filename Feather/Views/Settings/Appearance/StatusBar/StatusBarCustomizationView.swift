@@ -113,7 +113,6 @@ private let presetColors: [Color] = [
 var body: some View {
 NavigationView {
 Form {
-.scrollContentBackground(.hidden)
 Section {
 ColorPicker(String.localized("Select Color"), selection: $tempColor, supportsOpacity: false)
 }
@@ -138,7 +137,7 @@ Circle()
 .padding(.vertical, 8)
 }
 }
-            .scrollContentBackground(.hidden)
+            .hideScrollContentBackground()
 .navigationTitle(.localized("Choose Color"))
 .navigationBarTitleDisplayMode(.inline)
 .toolbar {

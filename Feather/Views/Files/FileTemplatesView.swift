@@ -293,7 +293,6 @@ struct FileTemplatesView: View {
     var body: some View {
         NBNavigationView(.localized("File Templates"), displayMode: .inline) {
             Form {
-.scrollContentBackground(.hidden)
                 if let error = errorMessage {
                     Section {
                         HStack {
@@ -359,7 +358,7 @@ struct FileTemplatesView: View {
                     }
                 }
             }
-            .scrollContentBackground(.hidden)
+            .hideScrollContentBackground()
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button(.localized("Cancel")) {

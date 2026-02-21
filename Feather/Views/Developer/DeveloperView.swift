@@ -1299,7 +1299,6 @@ struct HomeUITestingView: View {
     
     var body: some View {
         List {
-.scrollContentBackground(.hidden)
             Section {
                 Toggle(isOn: $showSimulatedUpdateBanner) {
                     HStack(spacing: 12) {
@@ -1414,7 +1413,7 @@ struct HomeUITestingView: View {
                 Text("Testing Actions")
             }
         }
-            .scrollContentBackground(.hidden)
+            .hideScrollContentBackground()
         .navigationTitle("Home UI Testing")
         .navigationBarTitleDisplayMode(.inline)
     }
@@ -1428,7 +1427,6 @@ struct DeveloperSecurityView: View {
     
     var body: some View {
         List {
-.scrollContentBackground(.hidden)
             Section(header: Text("Authentication")) {
                 HStack {
                     Text("Passcode")
@@ -1497,7 +1495,7 @@ struct DeveloperSecurityView: View {
                 }
             }
         }
-            .scrollContentBackground(.hidden)
+            .hideScrollContentBackground()
         .navigationTitle("Security Settings")
         .sheet(isPresented: $showChangePasscode) {
 ModernPasscodeSetupView(onComplete: { _ in })
@@ -1529,11 +1527,10 @@ ModernPasscodeSetupView(onComplete: { _ in })
 struct NetworkInspectorView: View {
     var body: some View {
         List {
-.scrollContentBackground(.hidden)
             Text("No Active Requests")
                 .foregroundStyle(.secondary)
         }
-            .scrollContentBackground(.hidden)
+            .hideScrollContentBackground()
         .navigationTitle("Network Inspector")
     }
 }
@@ -1541,7 +1538,6 @@ struct NetworkInspectorView: View {
 struct FileSystemBrowserView: View {
     var body: some View {
         List {
-.scrollContentBackground(.hidden)
             if let documentsPath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first {
                 Text(documentsPath.path)
                     .font(.caption)
@@ -1551,7 +1547,7 @@ struct FileSystemBrowserView: View {
             Text("Library")
             Text("tmp")
         }
-            .scrollContentBackground(.hidden)
+            .hideScrollContentBackground()
         .navigationTitle("File System")
     }
 }
@@ -1559,7 +1555,6 @@ struct FileSystemBrowserView: View {
 struct UserDefaultsEditorView: View {
     var body: some View {
         List {
-.scrollContentBackground(.hidden)
             ForEach(Array(UserDefaults.standard.dictionaryRepresentation().keys.sorted()), id: \.self) { key in
                 HStack {
                     Text(key)
@@ -1572,7 +1567,7 @@ struct UserDefaultsEditorView: View {
                 }
             }
         }
-            .scrollContentBackground(.hidden)
+            .hideScrollContentBackground()
         .navigationTitle("UserDefaults")
     }
 }
@@ -2180,7 +2175,6 @@ struct IPAInspectorView: View {
     
     var body: some View {
         List {
-.scrollContentBackground(.hidden)
             // Import Section
             Section(header: Text("Import")) {
                 Button(action: { isImporting = true }) {
@@ -2433,7 +2427,7 @@ struct IPAInspectorView: View {
                 }
             }
         }
-            .scrollContentBackground(.hidden)
+            .hideScrollContentBackground()
         .navigationTitle("IPA Inspector")
         .navigationBarTitleDisplayMode(.inline)
         .sheet(isPresented: $isImporting) {
@@ -2764,13 +2758,12 @@ struct ListDetailView: View {
     
     var body: some View {
         List {
-.scrollContentBackground(.hidden)
             ForEach(filteredItems, id: \.self) { item in
                 Text(item)
                     .font(.caption.monospaced())
             }
         }
-            .scrollContentBackground(.hidden)
+            .hideScrollContentBackground()
         .searchable(text: $searchText, prompt: "Search")
         .navigationTitle(title)
         .navigationBarTitleDisplayMode(.inline)
@@ -2792,7 +2785,6 @@ struct PlistViewer: View {
     
     var body: some View {
         List {
-.scrollContentBackground(.hidden)
             ForEach(filteredKeys, id: \.self) { key in
                 VStack(alignment: .leading, spacing: 4) {
                     Text(key)
@@ -2806,7 +2798,7 @@ struct PlistViewer: View {
                 .padding(.vertical, 4)
             }
         }
-            .scrollContentBackground(.hidden)
+            .hideScrollContentBackground()
         .searchable(text: $searchText, prompt: "Search Keys")
         .navigationTitle(title)
         .navigationBarTitleDisplayMode(.inline)
@@ -2842,7 +2834,6 @@ struct IPAIntegrityCheckerView: View {
     
     var body: some View {
         List {
-.scrollContentBackground(.hidden)
             // Import Section
             Section(header: Text("Import IPA")) {
                 Button(action: { isImporting = true }) {
@@ -2984,7 +2975,7 @@ struct IPAIntegrityCheckerView: View {
                 }
             }
         }
-            .scrollContentBackground(.hidden)
+            .hideScrollContentBackground()
         .navigationTitle("Integrity Checker")
         .navigationBarTitleDisplayMode(.inline)
         .sheet(isPresented: $isImporting) {
@@ -3252,14 +3243,13 @@ struct CheckRow: View {
 struct SourceDataView: View {
     var body: some View {
         List {
-.scrollContentBackground(.hidden)
             ForEach(Storage.shared.getSources(), id: \.self) { source in
                 NavigationLink(destination: JSONViewer(json: source.description)) {
                     Text(source.name ?? "Unknown")
                 }
             }
         }
-            .scrollContentBackground(.hidden)
+            .hideScrollContentBackground()
         .navigationTitle("Source Data")
     }
 }
@@ -3279,13 +3269,12 @@ struct JSONViewer: View {
 struct AppStateView: View {
     var body: some View {
         List {
-.scrollContentBackground(.hidden)
             Section(header: Text("Storage")) {
                 Text("Documents: \(getDocumentsSize())")
                 Text("Cache: \(getCacheSize())")
             }
         }
-            .scrollContentBackground(.hidden)
+            .hideScrollContentBackground()
         .navigationTitle("App State")
     }
     
@@ -3309,7 +3298,6 @@ struct FeatureFlagsView: View {
     
     var body: some View {
         List {
-.scrollContentBackground(.hidden)
             Section {
                 Toggle("Enhanced Animations", isOn: $enhancedAnimations)
             } header: {
@@ -3350,7 +3338,7 @@ struct FeatureFlagsView: View {
                 Text("Enables advanced file management features including binary analysis, hex editing, file forensics, metadata extraction, batch operations, and more powerful file manipulation tools.")
             }
         }
-            .scrollContentBackground(.hidden)
+            .hideScrollContentBackground()
         .navigationTitle("Feature Flags")
     }
 }
@@ -3360,7 +3348,6 @@ struct PerformanceMonitorView: View {
     
     var body: some View {
         List {
-.scrollContentBackground(.hidden)
             Section(header: Text("System Resources")) {
                 HStack {
                     Label("CPU Usage", systemImage: "cpu")
@@ -3412,7 +3399,7 @@ struct PerformanceMonitorView: View {
                 }
             }
         }
-            .scrollContentBackground(.hidden)
+            .hideScrollContentBackground()
         .navigationTitle("Performance Monitor")
         .onAppear {
             monitor.startMonitoring()
@@ -3529,7 +3516,6 @@ class PerformanceMonitor: ObservableObject {
 struct CoreDataInspectorView: View {
     var body: some View {
         List {
-.scrollContentBackground(.hidden)
             Section(header: Text("Entities")) {
                 NavigationLink("Certificates") {
                     EntityDetailView(entityName: "Certificate")
@@ -3566,7 +3552,7 @@ struct CoreDataInspectorView: View {
                 }
             }
         }
-            .scrollContentBackground(.hidden)
+            .hideScrollContentBackground()
         .navigationTitle("CoreData Inspector")
     }
 }
@@ -3576,13 +3562,12 @@ struct EntityDetailView: View {
     
     var body: some View {
         List {
-.scrollContentBackground(.hidden)
             Text("Entity: \(entityName)")
                 .font(.caption)
                 .foregroundStyle(.secondary)
             // Add more detailed entity inspection here
         }
-            .scrollContentBackground(.hidden)
+            .hideScrollContentBackground()
         .navigationTitle(entityName)
     }
 }
@@ -3598,7 +3583,6 @@ struct TestNotificationsView: View {
     
     var body: some View {
         List {
-.scrollContentBackground(.hidden)
             Section(header: Text("Test Notifications"), footer: Text("This will send a test notification after a 3 second countdown. Make sure notifications are enabled for Portal in Settings.")) {
                 Button {
                     startNotificationTest()
@@ -3633,7 +3617,7 @@ struct TestNotificationsView: View {
                 }
             }
         }
-            .scrollContentBackground(.hidden)
+            .hideScrollContentBackground()
         .navigationTitle("Test Notifications")
         .navigationBarTitleDisplayMode(.inline)
         .alert("Did you receive the notification?", isPresented: $showResultDialog) {
@@ -3850,7 +3834,6 @@ struct UpdatesReleasesView: View {
     
     var body: some View {
         List {
-.scrollContentBackground(.hidden)
             // Current Version Info
             Section(header: Text("Current Installed Version")) {
                 HStack {
@@ -4032,7 +4015,7 @@ struct UpdatesReleasesView: View {
                     .foregroundStyle(.secondary)
             }
         }
-            .scrollContentBackground(.hidden)
+            .hideScrollContentBackground()
         .navigationTitle("Updates & Releases")
         .onAppear {
             if allReleases.isEmpty {
@@ -4161,7 +4144,6 @@ struct ReleaseDetailView: View {
     
     var body: some View {
         List {
-.scrollContentBackground(.hidden)
             Section(header: Text("Release Info")) {
                 LabeledContent("Tag", value: release.tagName)
                 LabeledContent("Name", value: release.name)
@@ -4206,7 +4188,7 @@ struct ReleaseDetailView: View {
                 }
             }
         }
-            .scrollContentBackground(.hidden)
+            .hideScrollContentBackground()
         .navigationTitle(release.tagName)
     }
 }
@@ -4226,7 +4208,6 @@ struct SourcesLibraryDevView: View {
     
     var body: some View {
         List {
-.scrollContentBackground(.hidden)
             // Source Actions
             Section(header: Text("Source Actions")) {
                 Button {
@@ -4309,7 +4290,7 @@ struct SourcesLibraryDevView: View {
                 }
             }
         }
-            .scrollContentBackground(.hidden)
+            .hideScrollContentBackground()
         .navigationTitle("Sources & Library")
     }
     
@@ -4386,7 +4367,6 @@ struct SourceInspectorView: View {
     
     var body: some View {
         List {
-.scrollContentBackground(.hidden)
             Section(header: Text("Source Info")) {
                 LabeledContent("Name", value: source.name ?? "Unknown")
                 if let url = source.sourceURL {
@@ -4438,7 +4418,7 @@ struct SourceInspectorView: View {
                 }
             }
         }
-            .scrollContentBackground(.hidden)
+            .hideScrollContentBackground()
         .navigationTitle(source.name ?? "Source")
     }
     
@@ -4479,7 +4459,6 @@ struct InstallIPADevView: View {
     
     var body: some View {
         List {
-.scrollContentBackground(.hidden)
             // Install Queue
             Section(header: Text("Download Queue (\(downloadManager.downloads.count))")) {
                 if downloadManager.downloads.isEmpty {
@@ -4550,7 +4529,7 @@ struct InstallIPADevView: View {
                 }
             }
         }
-            .scrollContentBackground(.hidden)
+            .hideScrollContentBackground()
         .navigationTitle("Install & IPA")
         .fullScreenCover(isPresented: $showInstallModifyDialog) {
 Group {
@@ -4591,7 +4570,6 @@ struct UILayoutDevView: View {
     
     var body: some View {
         List {
-.scrollContentBackground(.hidden)
             // Appearance Overrides
             Section(header: Text("Appearance Overrides")) {
                 Toggle("Force Dark Mode", isOn: $forceDarkMode)
@@ -4675,7 +4653,7 @@ struct UILayoutDevView: View {
                 }
             }
         }
-            .scrollContentBackground(.hidden)
+            .hideScrollContentBackground()
         .navigationTitle("UI & Layout")
     }
     
@@ -4736,7 +4714,6 @@ struct NetworkSystemDevView: View {
     
     var body: some View {
         List {
-.scrollContentBackground(.hidden)
             // Network Simulation
             Section(header: Text("Network Simulation")) {
                 Toggle("Simulate Offline Mode", isOn: $simulateOffline)
@@ -4796,7 +4773,7 @@ struct NetworkSystemDevView: View {
                 }
             }
         }
-            .scrollContentBackground(.hidden)
+            .hideScrollContentBackground()
         .navigationTitle("Network & System")
         .onAppear {
             loadSystemInfo()
@@ -4870,7 +4847,6 @@ struct FailureInspectorView: View {
     
     var body: some View {
         List {
-.scrollContentBackground(.hidden)
             if failureLogs.isEmpty {
                 Text("No Failures Recorded")
                     .foregroundStyle(.secondary)
@@ -4892,7 +4868,7 @@ struct FailureInspectorView: View {
                 }
             }
         }
-            .scrollContentBackground(.hidden)
+            .hideScrollContentBackground()
         .navigationTitle("Failures")
     }
 }
@@ -4911,7 +4887,6 @@ struct StatePersistenceDevView: View {
     
     var body: some View {
         List {
-.scrollContentBackground(.hidden)
             // AppStorage / UserDefaults
             Section(header: Text("UserDefaults")) {
                 NavigationLink(destination: UserDefaultsEditorView()) {
@@ -4982,7 +4957,7 @@ struct StatePersistenceDevView: View {
                 }
             }
         }
-            .scrollContentBackground(.hidden)
+            .hideScrollContentBackground()
         .navigationTitle("State & Persistence")
         .onAppear {
             calculateCacheSize()
@@ -5097,7 +5072,6 @@ struct DeviceInfoView: View {
     
     var body: some View {
         List {
-.scrollContentBackground(.hidden)
             deviceSection
             hardwareSection
             storageSection
@@ -5105,7 +5079,7 @@ struct DeviceInfoView: View {
             appInfoSection
             exportSection
         }
-            .scrollContentBackground(.hidden)
+            .hideScrollContentBackground()
         .navigationTitle("Device Information")
         .onAppear {
             loadDeviceInfo()
@@ -5298,7 +5272,6 @@ struct EnvironmentInspectorView: View {
     
     var body: some View {
         List {
-.scrollContentBackground(.hidden)
             // Process Info Section
             Section(header: Text("Process Information")) {
                 LabeledContent("Process ID", value: "\(ProcessInfo.processInfo.processIdentifier)")
@@ -5342,7 +5315,7 @@ struct EnvironmentInspectorView: View {
                 }
             }
         }
-            .scrollContentBackground(.hidden)
+            .hideScrollContentBackground()
         .searchable(text: $searchText, prompt: "Search Environment")
         .navigationTitle("Environment Inspector")
         .onAppear {
@@ -5372,7 +5345,6 @@ struct CrashLogViewer: View {
     
     var body: some View {
         List {
-.scrollContentBackground(.hidden)
             if crashLogs.isEmpty {
                 Section {
                     VStack(spacing: 16) {
@@ -5436,7 +5408,7 @@ struct CrashLogViewer: View {
                 }
             }
         }
-            .scrollContentBackground(.hidden)
+            .hideScrollContentBackground()
         .navigationTitle("Crash Logs")
         .onAppear {
             loadCrashLogs()
@@ -5524,7 +5496,6 @@ struct QuickActionsDevView: View {
     
     var body: some View {
         List {
-.scrollContentBackground(.hidden)
             Section(header: Text("Cache Actions")) {
                 quickActionButton(.clearAllCaches)
                 quickActionButton(.clearImageCache)
@@ -5545,7 +5516,7 @@ struct QuickActionsDevView: View {
                 quickActionButton(.triggerMemoryWarning)
             }
         }
-            .scrollContentBackground(.hidden)
+            .hideScrollContentBackground()
         .navigationTitle("Quick Actions")
         .alert("Confirm Action", isPresented: $showConfirmation) {
             Button("Cancel", role: .cancel) { }
@@ -5650,7 +5621,6 @@ struct QuickActionsDevView: View {
 struct IPASigningDashboardView: View {
     var body: some View {
         List {
-.scrollContentBackground(.hidden)
             // Certificate & Profile Manager Section
             Section {
                 NavigationLink(destination: CertificateProfileManagerView()) {
@@ -5728,7 +5698,7 @@ struct IPASigningDashboardView: View {
                 Text("Configure external APIs and webhook notifications.")
             }
         }
-            .scrollContentBackground(.hidden)
+            .hideScrollContentBackground()
         .navigationTitle("IPA Signing Debugging")
     }
 }
@@ -5769,7 +5739,6 @@ struct CertificateProfileManagerView: View {
     
     var body: some View {
         List {
-.scrollContentBackground(.hidden)
             // Statistics Section
             Section {
                 HStack {
@@ -5862,7 +5831,7 @@ struct CertificateProfileManagerView: View {
                 Text("Actions")
             }
         }
-            .scrollContentBackground(.hidden)
+            .hideScrollContentBackground()
         .searchable(text: $searchText, prompt: "Search Certificates")
         .navigationTitle("Certificate Manager")
         .sheet(isPresented: $showAddCertificate) {
@@ -6059,12 +6028,11 @@ struct SigningLogsView: View {
                 }
             } else {
                 List {
-.scrollContentBackground(.hidden)
                     ForEach(filteredLogs) { log in
                         SigningLogRow(entry: log)
                     }
                 }
-            .scrollContentBackground(.hidden)
+            .hideScrollContentBackground()
             }
         }
         .searchable(text: $searchText, prompt: "Search Logs")
@@ -6200,7 +6168,6 @@ struct DeveloperBatchSigningView: View {
     var body: some View {
         ZStack {
             List {
-.scrollContentBackground(.hidden)
                 // Certificate Selection
                 Section {
                     if certificates.isEmpty {
@@ -6290,7 +6257,7 @@ struct DeveloperBatchSigningView: View {
                     }
                 }
             }
-            .scrollContentBackground(.hidden)
+            .hideScrollContentBackground()
             
             // Progress Overlay
             if isSigningBatch {
@@ -6461,7 +6428,6 @@ struct EntitlementsEditorTab: View {
     
     var body: some View {
         List {
-.scrollContentBackground(.hidden)
             // Common Entitlements Templates
             Section {
                 Button {
@@ -6512,7 +6478,7 @@ struct EntitlementsEditorTab: View {
                 Text("Export")
             }
         }
-            .scrollContentBackground(.hidden)
+            .hideScrollContentBackground()
         .alert("Add Entitlement", isPresented: $showAddEntitlement) {
             TextField("Key", text: $newKey)
             TextField("Value", text: $newValue)
@@ -6647,7 +6613,6 @@ struct InfoPlistEditorTab: View {
     
     var body: some View {
         List {
-.scrollContentBackground(.hidden)
             // Common Keys Section
             Section {
                 Button {
@@ -6690,7 +6655,7 @@ struct InfoPlistEditorTab: View {
                 }
             }
         }
-            .scrollContentBackground(.hidden)
+            .hideScrollContentBackground()
         .alert("Add Plist Key", isPresented: $showAddItem) {
             TextField("Key", text: $newKey)
             TextField("Value", text: $newValue)
@@ -6780,7 +6745,6 @@ struct SigningSecurityView: View {
     
     var body: some View {
         List {
-.scrollContentBackground(.hidden)
             // Certificate Validation Section
             Section {
                 Toggle("Validate Certificates Before Signing", isOn: $validateCertificates)
@@ -6836,7 +6800,7 @@ struct SigningSecurityView: View {
                 Text("Security Actions")
             }
         }
-            .scrollContentBackground(.hidden)
+            .hideScrollContentBackground()
         .navigationTitle("Security")
     }
     
@@ -6956,7 +6920,6 @@ struct SigningPerformanceMetricsView: View {
     
     var body: some View {
         List {
-.scrollContentBackground(.hidden)
             // Overview Statistics
             Section {
                 HStack {
@@ -7044,7 +7007,7 @@ struct SigningPerformanceMetricsView: View {
                 }
             }
         }
-            .scrollContentBackground(.hidden)
+            .hideScrollContentBackground()
         .navigationTitle("Performance Metrics")
         .onAppear {
             loadMetrics()
@@ -7159,7 +7122,6 @@ struct APIWebhookIntegrationView: View {
     
     var body: some View {
         List {
-.scrollContentBackground(.hidden)
             // API Configuration
             Section {
                 Toggle("Enable Remote Signing API (Beta)", isOn: $apiEnabled)
@@ -7261,7 +7223,7 @@ struct APIWebhookIntegrationView: View {
                 Text("Logs")
             }
         }
-            .scrollContentBackground(.hidden)
+            .hideScrollContentBackground()
         .navigationTitle("API & Webhooks")
     }
     
@@ -7334,7 +7296,6 @@ struct APILogsView: View {
     
     var body: some View {
         List {
-.scrollContentBackground(.hidden)
             if apiLogs.isEmpty {
                 if #available(iOS 17, *) {
                     ContentUnavailableView {
@@ -7375,7 +7336,7 @@ struct APILogsView: View {
                 }
             }
         }
-            .scrollContentBackground(.hidden)
+            .hideScrollContentBackground()
         .navigationTitle("API Logs")
     }
 }
