@@ -318,7 +318,6 @@ struct ModernSigningView: View {
             if #available(iOS 17.0, *) {
                 TimelineView(.animation) { timeline in
                     Color.clear
-                    }
                 }
                 .ignoresSafeArea()
             } else {
@@ -326,7 +325,8 @@ struct ModernSigningView: View {
                 GeometryReader { geo in
                     Circle().fill(RadialGradient(colors: [Color.accentColor.opacity(colorScheme == .dark ? 0.12 : 0.15), Color.accentColor.opacity(0.05), .clear], center: .center, startRadius: 0, endRadius: 160)).frame(width: 320, height: 320).blur(radius: 70).offset(x: _floatingAnimation ? -40 : 40, y: _floatingAnimation ? -25 : 25).position(x: geo.size.width * 0.15, y: geo.size.height * 0.12)
                     Circle().fill(RadialGradient(colors: [Color.purple.opacity(colorScheme == .dark ? 0.08 : 0.1), Color.purple.opacity(0.03), .clear], center: .center, startRadius: 0, endRadius: 130)).frame(width: 260, height: 260).blur(radius: 55).offset(x: _floatingAnimation ? 35 : -35, y: _floatingAnimation ? 15 : -15).position(x: geo.size.width * 0.88, y: geo.size.height * 0.65)
-                }.ignoresSafeArea()
+                }
+                .ignoresSafeArea()
             }
         }
         .onAppear {
