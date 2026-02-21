@@ -99,7 +99,6 @@ struct TabBarCustomizationView: View {
                             Divider().padding(.leading, 60)
 
                             List {
-.scrollContentBackground(.hidden)
                                 ForEach(orderedTabs, id: \.self) { tabId in
                                     reorderableTabRow(for: tabId)
                                 }
@@ -107,7 +106,7 @@ struct TabBarCustomizationView: View {
                                 .listRowBackground(Color.clear)
                                 .listRowInsets(EdgeInsets(top: 0, leading: 16, bottom: 0, trailing: 16))
                             }
-            .scrollContentBackground(.hidden)
+            .hideScrollContentBackground()
                             .listStyle(.plain)
                             .frame(height: CGFloat(orderedTabs.count * 44))
                             .environment(\.editMode, .constant(.active))

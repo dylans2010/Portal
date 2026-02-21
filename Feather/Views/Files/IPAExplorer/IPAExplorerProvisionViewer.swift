@@ -6,7 +6,6 @@ struct IPAExplorerProvisionViewer: View {
 
     var body: some View {
         List {
-.scrollContentBackground(.hidden)
             if let cert = certificate {
                 ProvisionMetadataSection(cert: cert)
                 ProvisionCapabilitiesSection(cert: cert)
@@ -17,7 +16,7 @@ struct IPAExplorerProvisionViewer: View {
                 Text(.localized("Loading..."))
             }
         }
-            .scrollContentBackground(.hidden)
+            .hideScrollContentBackground()
         .navigationTitle("embedded.mobileprovision")
         .onAppear {
             loadProvision()

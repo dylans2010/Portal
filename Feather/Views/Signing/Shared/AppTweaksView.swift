@@ -625,7 +625,6 @@ struct AddTweakUrlView: View {
     var body: some View {
         NavigationStack {
             Form {
-.scrollContentBackground(.hidden)
                 Section {
                     TextField("https://example.com/tweak.dylib", text: $urlString)
                         .autocorrectionDisabled()
@@ -648,7 +647,7 @@ struct AddTweakUrlView: View {
                 }
                 .disabled(urlString.isEmpty || URL(string: urlString) == nil)
             }
-            .scrollContentBackground(.hidden)
+            .hideScrollContentBackground()
             .navigationTitle("Add From URL")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -691,7 +690,6 @@ struct ExtractTweaksView: View {
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
                     } else {
                         List {
-.scrollContentBackground(.hidden)
                             if !frameworks.isEmpty {
                                 Section("Frameworks") {
                                     ForEach(frameworks, id: \.self) { item in
@@ -714,7 +712,7 @@ struct ExtractTweaksView: View {
                                 }
                             }
                         }
-            .scrollContentBackground(.hidden)
+            .hideScrollContentBackground()
 
                         Button {
                             performExtract()

@@ -13,7 +13,6 @@ struct IPAExplorerPlistViewer: View {
 
     var body: some View {
         List {
-.scrollContentBackground(.hidden)
             ForEach(keys.sorted(), id: \.self) { key in
                 let value = plistData[key]
                 PlistRow(key: key, value: value)
@@ -27,7 +26,7 @@ struct IPAExplorerPlistViewer: View {
                     }
             }
         }
-            .scrollContentBackground(.hidden)
+            .hideScrollContentBackground()
         .navigationTitle(fileURL.lastPathComponent)
         .onAppear {
             loadPlist()

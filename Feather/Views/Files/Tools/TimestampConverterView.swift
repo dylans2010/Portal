@@ -7,7 +7,6 @@ struct TimestampConverterView: View {
     var body: some View {
         NavigationStack {
             Form {
-.scrollContentBackground(.hidden)
                 Section(header: Text(.localized("Unix Timestamp to Date"))) {
                     TextField(.localized("Timestamp"), text: $timestamp)
                         .keyboardType(.numberPad)
@@ -39,7 +38,7 @@ struct TimestampConverterView: View {
                     }
                 }
             }
-            .scrollContentBackground(.hidden)
+            .hideScrollContentBackground()
             .navigationTitle(.localized("Timestamp Converter"))
             .navigationBarTitleDisplayMode(.inline)
         }

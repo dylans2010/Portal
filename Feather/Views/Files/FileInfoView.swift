@@ -21,7 +21,6 @@ struct FileInfoView: View {
                 .ignoresSafeArea()
                 
                 Form {
-.scrollContentBackground(.hidden)
                     // File icon and name header
                     Section {
                         HStack {
@@ -116,7 +115,7 @@ struct FileInfoView: View {
                         Label(.localized("Actions"), systemImage: "hand.tap.fill")
                     }
                 }
-                .scrollContentBackground(.hidden)
+                .hideScrollContentBackground()
             }
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {

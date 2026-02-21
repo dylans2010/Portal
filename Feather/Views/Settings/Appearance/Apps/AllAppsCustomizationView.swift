@@ -48,7 +48,6 @@ struct AllAppsCustomizationView: View {
 
     var body: some View {
         List {
-.scrollContentBackground(.hidden)
             Section {
                 Picker(selection: $rowStyle) {
                     ForEach(AllAppsView.AllAppsRowStyle.allCases) { style in
@@ -287,7 +286,7 @@ struct AllAppsCustomizationView: View {
                 Text("Customize every detail of the app list to match your preference.")
             }
         }
-            .scrollContentBackground(.hidden)
+            .hideScrollContentBackground()
 
         .navigationTitle("All Apps")
     }

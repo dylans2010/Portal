@@ -2508,7 +2508,6 @@ struct AppUpdatesListSheet: View {
     var body: some View {
         NavigationStack {
             List {
-.scrollContentBackground(.hidden)
                 if updates.isEmpty {
                     Section {
                         VStack(spacing: 16) {
@@ -2541,7 +2540,7 @@ struct AppUpdatesListSheet: View {
                     }
                 }
             }
-            .scrollContentBackground(.hidden)
+            .hideScrollContentBackground()
             .navigationTitle("App Updates")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {

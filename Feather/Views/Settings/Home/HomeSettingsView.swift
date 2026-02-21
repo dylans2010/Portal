@@ -770,7 +770,6 @@ struct AppUpdateTrackingSettingsView: View {
     var body: some View {
         NavigationStack {
             List {
-.scrollContentBackground(.hidden)
                 // Fetch Sources Section
                 fetchSourcesSection
                 
@@ -786,7 +785,7 @@ struct AppUpdateTrackingSettingsView: View {
                     availableUpdatesSection
                 }
             }
-            .scrollContentBackground(.hidden)
+            .hideScrollContentBackground()
             .navigationTitle("Tracked Apps")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -1141,7 +1140,6 @@ struct SelectAppToTrackView: View {
     
     private var appListSection: some View {
         List {
-.scrollContentBackground(.hidden)
             if isLoading && updateManager.cachedApps.isEmpty {
                 loadingSection
             } else if filteredCachedApps.isEmpty {
@@ -1150,7 +1148,7 @@ struct SelectAppToTrackView: View {
                 availableAppsSection
             }
         }
-            .scrollContentBackground(.hidden)
+            .hideScrollContentBackground()
         .searchable(text: $searchText, prompt: "Search Apps")
     }
     

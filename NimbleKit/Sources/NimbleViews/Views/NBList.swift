@@ -30,15 +30,26 @@ public struct NBList<Content>: View where Content: View {
 				Form {
 					_content
 				}
-				.scrollContentBackground(.hidden)
+				.hideScrollContentBackground()
 			case .list:
 				List {
 					_content
 				}
-				.scrollContentBackground(.hidden)
+				.hideScrollContentBackground()
 			}
 		}
 		.navigationTitle(_title)
 		.navigationBarTitleDisplayMode(_mode)
+	}
+}
+
+extension View {
+	@ViewBuilder
+	fileprivate func hideScrollContentBackground() -> some View {
+		if #available(iOS 16.0, *) {
+			self.scrollContentBackground(.hidden)
+		} else {
+			self
+		}
 	}
 }

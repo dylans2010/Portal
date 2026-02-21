@@ -25,7 +25,6 @@ struct DuplicateFinderView: View {
                     .padding()
                 } else {
                     List {
-.scrollContentBackground(.hidden)
                         ForEach(duplicates.keys.sorted(), id: \.self) { hash in
                             Section(header: Text("Hash: \(hash.prefix(8))...")) {
                                 ForEach(duplicates[hash]!, id: \.self) { url in
@@ -39,7 +38,7 @@ struct DuplicateFinderView: View {
                             }
                         }
                     }
-            .scrollContentBackground(.hidden)
+            .hideScrollContentBackground()
                 }
             }
             .navigationTitle(.localized("Duplicate Finder"))

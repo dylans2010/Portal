@@ -42,7 +42,6 @@ struct ZipOperationView: View {
                 .ignoresSafeArea()
                 
                 Form {
-.scrollContentBackground(.hidden)
                     if operation == .zip {
                         zipConfigSection
                     } else {
@@ -104,7 +103,7 @@ struct ZipOperationView: View {
                         }
                     }
                 }
-                .scrollContentBackground(.hidden)
+                .hideScrollContentBackground()
             }
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {

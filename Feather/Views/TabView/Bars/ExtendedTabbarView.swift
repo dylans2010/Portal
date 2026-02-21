@@ -163,7 +163,6 @@ SourcesAddView()
 	private var customiPadSourcesView: some View {
 		NavigationStack {
 			List {
-.scrollContentBackground(.hidden)
 				NavigationLink {
 					SourceAppsView(object: Array(_sources), viewModel: viewModel)
 				} label: {
@@ -178,7 +177,7 @@ SourcesAddView()
 					}
 				}
 			}
-            .scrollContentBackground(.hidden)
+            .hideScrollContentBackground()
 			.navigationTitle(.localized("Sources"))
 			.toolbar {
 				ToolbarItem(placement: .primaryAction) {

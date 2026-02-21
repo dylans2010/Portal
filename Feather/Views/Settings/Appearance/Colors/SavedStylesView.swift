@@ -268,7 +268,6 @@ struct SavedStylesView: View {
     var body: some View {
         NavigationView {
             List {
-.scrollContentBackground(.hidden)
                 Section(header: Text("Current Style")) {
                     Button {
                         showSaveDialog = true
@@ -363,7 +362,7 @@ struct SavedStylesView: View {
                     }
                 }
             }
-            .scrollContentBackground(.hidden)
+            .hideScrollContentBackground()
             .navigationTitle("Saved Styles")
             .navigationBarTitleDisplayMode(.inline)
             .alert("Save Style", isPresented: $showSaveDialog) {

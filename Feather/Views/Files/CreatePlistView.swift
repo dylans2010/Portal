@@ -28,7 +28,6 @@ struct CreatePlistView: View {
                 .ignoresSafeArea()
                 
                 Form {
-.scrollContentBackground(.hidden)
                     Section {
                         HStack(spacing: 12) {
                             ZStack {
@@ -94,7 +93,7 @@ struct CreatePlistView: View {
                         }
                     }
                 }
-                .scrollContentBackground(.hidden)
+                .hideScrollContentBackground()
             }
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {

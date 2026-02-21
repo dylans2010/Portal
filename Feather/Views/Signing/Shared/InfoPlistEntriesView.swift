@@ -1487,7 +1487,6 @@ FileImporterRepresentableView(
     private var searchReplaceSheet: some View {
         NavigationStack {
             Form {
-.scrollContentBackground(.hidden)
                 Section {
                     TextField(.localized("Find"), text: $searchReplaceTarget)
                         .autocorrectionDisabled()
@@ -1511,7 +1510,7 @@ FileImporterRepresentableView(
                 }
                 .disabled(searchReplaceTarget.isEmpty)
             }
-            .scrollContentBackground(.hidden)
+            .hideScrollContentBackground()
             .navigationTitle(.localized("Search And Replace"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -1549,7 +1548,6 @@ FileImporterRepresentableView(
     private var batchActionsSheet: some View {
         NavigationStack {
             List {
-.scrollContentBackground(.hidden)
                 Section {
                     Button(role: .destructive) {
                         withAnimation {
@@ -1562,7 +1560,7 @@ FileImporterRepresentableView(
                     }
                 }
             }
-            .scrollContentBackground(.hidden)
+            .hideScrollContentBackground()
             .navigationTitle(.localized("Batch Actions"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {

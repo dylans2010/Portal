@@ -213,7 +213,6 @@ struct AdvancedDebugToolsView: View {
 
     var body: some View {
         List {
-.scrollContentBackground(.hidden)
             // MARK: - App Info Section (Real Data)
             Section {
                 if isLoading {
@@ -715,7 +714,7 @@ struct AdvancedDebugToolsView: View {
                 .tint(.green)
             }
         }
-            .scrollContentBackground(.hidden)
+            .hideScrollContentBackground()
         .navigationTitle("Debug Tools")
         .navigationBarTitleDisplayMode(.inline)
         .onAppear {
@@ -918,7 +917,6 @@ struct BinaryInspectorView: View {
 
     var body: some View {
         List {
-.scrollContentBackground(.hidden)
             if isLoading {
                 Section {
                     HStack {
@@ -969,7 +967,7 @@ struct BinaryInspectorView: View {
                 }
             }
         }
-            .scrollContentBackground(.hidden)
+            .hideScrollContentBackground()
         .navigationTitle("Binary Inspector")
         .navigationBarTitleDisplayMode(.inline)
         .onAppear {
@@ -1023,7 +1021,6 @@ struct MachOAnalyzerView: View {
 
     var body: some View {
         List {
-.scrollContentBackground(.hidden)
             if isLoading {
                 Section {
                     HStack {
@@ -1077,7 +1074,7 @@ struct MachOAnalyzerView: View {
                 }
             }
         }
-            .scrollContentBackground(.hidden)
+            .hideScrollContentBackground()
         .navigationTitle("Mach-O Analyzer")
         .navigationBarTitleDisplayMode(.inline)
         .onAppear { loadMachOInfo() }
@@ -1110,7 +1107,6 @@ struct DylibDependenciesView: View {
 
     var body: some View {
         List {
-.scrollContentBackground(.hidden)
             if isLoading {
                 Section {
                     HStack {
@@ -1148,7 +1144,7 @@ struct DylibDependenciesView: View {
                 }
             }
         }
-            .scrollContentBackground(.hidden)
+            .hideScrollContentBackground()
         .navigationTitle("Dylib Dependencies")
         .navigationBarTitleDisplayMode(.inline)
         .onAppear { loadDependencies() }
@@ -1177,7 +1173,6 @@ struct SecurityScanView: View {
 
     var body: some View {
         List {
-.scrollContentBackground(.hidden)
             if isScanning {
                 Section {
                     VStack(spacing: 12) {
@@ -1214,7 +1209,7 @@ struct SecurityScanView: View {
                 }
             }
         }
-            .scrollContentBackground(.hidden)
+            .hideScrollContentBackground()
         .navigationTitle("Security Scan")
         .navigationBarTitleDisplayMode(.inline)
         .onAppear { performScan() }
@@ -1252,7 +1247,6 @@ struct EntitlementAnalyzerView: View {
 
     var body: some View {
         List {
-.scrollContentBackground(.hidden)
             if isLoading {
                 Section {
                     HStack {
@@ -1295,7 +1289,7 @@ struct EntitlementAnalyzerView: View {
                 }
             }
         }
-            .scrollContentBackground(.hidden)
+            .hideScrollContentBackground()
         .navigationTitle("Entitlement Analyzer")
         .navigationBarTitleDisplayMode(.inline)
         .onAppear { loadEntitlements() }
@@ -1343,7 +1337,6 @@ struct CodeSignatureView: View {
 
     var body: some View {
         List {
-.scrollContentBackground(.hidden)
             if isLoading {
                 Section {
                     HStack {
@@ -1370,7 +1363,7 @@ struct CodeSignatureView: View {
                 }
             }
         }
-            .scrollContentBackground(.hidden)
+            .hideScrollContentBackground()
         .navigationTitle("Code Signature")
         .navigationBarTitleDisplayMode(.inline)
         .onAppear { loadSignatureInfo() }
@@ -1665,7 +1658,6 @@ editEntrySheet
     // MARK: - Editor List View
     private var editorListView: some View {
         List {
-.scrollContentBackground(.hidden)
             // Multi-select actions
             if isMultiSelectMode && !selectedEntries.isEmpty {
                 Section {
@@ -1773,7 +1765,7 @@ editEntrySheet
                 .tint(.green)
             }
         }
-            .scrollContentBackground(.hidden)
+            .hideScrollContentBackground()
     }
 
     // MARK: - Raw Plist View
@@ -1842,7 +1834,6 @@ editEntrySheet
     private var addEntrySheet: some View {
         NavigationStack {
             Form {
-.scrollContentBackground(.hidden)
                 Section {
                     TextField("Key", text: $newKey)
                         .autocorrectionDisabled()
@@ -1909,7 +1900,7 @@ editEntrySheet
                     Text("Suggestions")
                 }
             }
-            .scrollContentBackground(.hidden)
+            .hideScrollContentBackground()
             .navigationTitle("Add Entry")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -1935,7 +1926,6 @@ editEntrySheet
     private var editEntrySheet: some View {
         NavigationStack {
             Form {
-.scrollContentBackground(.hidden)
                 Section {
                     TextField("Key", text: $editKey)
                         .autocorrectionDisabled()
@@ -1990,7 +1980,7 @@ editEntrySheet
                     }
                 }
             }
-            .scrollContentBackground(.hidden)
+            .hideScrollContentBackground()
             .navigationTitle("Edit Entry")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -2396,7 +2386,6 @@ struct EntitlementsDebugView: View {
 
     var body: some View {
         List {
-.scrollContentBackground(.hidden)
             Section {
                 ForEach(entitlements.indices, id: \.self) { index in
                     HStack {
@@ -2442,7 +2431,7 @@ struct EntitlementsDebugView: View {
                 Text("Quick Actions")
             }
         }
-            .scrollContentBackground(.hidden)
+            .hideScrollContentBackground()
         .navigationTitle("Entitlements Editor")
         .navigationBarTitleDisplayMode(.inline)
         .onAppear {
@@ -2451,12 +2440,11 @@ struct EntitlementsDebugView: View {
         .sheet(isPresented: $showAddEntitlement) {
 NavigationStack {
                 Form {
-.scrollContentBackground(.hidden)
                     TextField("Key", text: $newKey)
                         .autocapitalization(.none)
                     TextField("Value", text: $newValue)
                 }
-            .scrollContentBackground(.hidden)
+            .hideScrollContentBackground()
                 .navigationTitle("Add Entitlement")
                 .navigationBarTitleDisplayMode(.inline)
                 .toolbar {
@@ -2797,7 +2785,6 @@ ResourceStatisticsView(resources: resources)
     // MARK: - Resource List View
     private var resourceListView: some View {
         List {
-.scrollContentBackground(.hidden)
             // Multi-select actions
             if isMultiSelectMode && !selectedResources.isEmpty {
                 Section {
@@ -2876,7 +2863,7 @@ ResourceStatisticsView(resources: resources)
                 Text("Quick Actions")
             }
         }
-            .scrollContentBackground(.hidden)
+            .hideScrollContentBackground()
     }
 
     // MARK: - Helper Functions
@@ -3246,7 +3233,6 @@ struct ResourceDetailView: View {
     var body: some View {
         NavigationStack {
             List {
-.scrollContentBackground(.hidden)
                 // Preview Section (for images)
                 if ["png", "jpg", "jpeg", "heic", "webp", "gif"].contains(resource.type.lowercased()) {
                     Section {
@@ -3349,7 +3335,7 @@ struct ResourceDetailView: View {
                     Text("Actions")
                 }
             }
-            .scrollContentBackground(.hidden)
+            .hideScrollContentBackground()
             .navigationTitle(resource.name)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -3418,7 +3404,6 @@ struct ResourceStatisticsView: View {
     var body: some View {
         NavigationStack {
             List {
-.scrollContentBackground(.hidden)
                 Section {
                     HStack {
                         Text("Total Resources")
@@ -3482,7 +3467,7 @@ struct ResourceStatisticsView: View {
                     Text("Largest Resources")
                 }
             }
-            .scrollContentBackground(.hidden)
+            .hideScrollContentBackground()
             .navigationTitle("Statistics")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -3530,7 +3515,6 @@ struct SigningLogsDebugView: View {
 
             ScrollViewReader { proxy in
                 List {
-.scrollContentBackground(.hidden)
                     ForEach(filteredLogs.indices, id: \.self) { index in
                         let log = filteredLogs[index]
                         HStack(alignment: .top, spacing: 8) {
@@ -3555,7 +3539,7 @@ struct SigningLogsDebugView: View {
                         .id(index)
                     }
                 }
-            .scrollContentBackground(.hidden)
+            .hideScrollContentBackground()
                 .onChange(of: logs.count) { _ in
                     if autoScroll, let lastIndex = filteredLogs.indices.last {
                         withAnimation {

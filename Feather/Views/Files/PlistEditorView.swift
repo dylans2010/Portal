@@ -173,7 +173,6 @@ formatConversionSheet
     private var formatConversionSheet: some View {
         NBNavigationView(.localized("Convert Format"), displayMode: .inline) {
             Form {
-.scrollContentBackground(.hidden)
                 Section {
                     Picker(.localized("Target Format"), selection: $selectedFormat) {
                         ForEach(PlistFormat.allCases, id: \.self) { format in
@@ -197,7 +196,7 @@ formatConversionSheet
                     }
                 }
             }
-            .scrollContentBackground(.hidden)
+            .hideScrollContentBackground()
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button(.localized("Cancel")) {
@@ -410,10 +409,9 @@ struct PlistTreeView: View {
 
     var body: some View {
         List {
-.scrollContentBackground(.hidden)
             PlistNodeView(key: "Root", value: plist)
         }
-            .scrollContentBackground(.hidden)
+            .hideScrollContentBackground()
 
     }
 }

@@ -1735,7 +1735,6 @@ issue in
     
     private var mainScrollView: some View {
         Form {
-.scrollContentBackground(.hidden)
             Section {
                 Picker("Category", selection: $feedbackCategory) {
                     ForEach(FeedbackCategory.allCases, id: \.self) { category in
@@ -1809,7 +1808,7 @@ issue in
                 .disabled(!isFormValid || isSubmitting)
             }
         }
-            .scrollContentBackground(.hidden)
+            .hideScrollContentBackground()
     }
     
     
@@ -2239,7 +2238,7 @@ struct CodeEditorSheet: View {
             // Code editor
             TextEditor(text: $localCode)
                 .font(.system(size: 14, design: .monospaced))
-                .scrollContentBackground(.hidden)
+                .hideScrollContentBackground()
                 .padding(.leading, 52)
                 .padding(.top, 4)
                 .background(Color.clear)

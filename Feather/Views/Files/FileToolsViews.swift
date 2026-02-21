@@ -13,7 +13,6 @@ struct CreateJSONFileView: View {
     var body: some View {
         NavigationStack {
             Form {
-.scrollContentBackground(.hidden)
                 Section {
                     TextField(.localized("File Name"), text: $fileName)
                         .autocorrectionDisabled()
@@ -31,7 +30,7 @@ struct CreateJSONFileView: View {
                     Text(.localized("Content"))
                 }
             }
-            .scrollContentBackground(.hidden)
+            .hideScrollContentBackground()
             .navigationTitle(.localized("Create JSON File"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -67,7 +66,6 @@ struct CreateXMLFileView: View {
     var body: some View {
         NavigationStack {
             Form {
-.scrollContentBackground(.hidden)
                 Section {
                     TextField(.localized("File Name"), text: $fileName)
                         .autocorrectionDisabled()
@@ -85,7 +83,7 @@ struct CreateXMLFileView: View {
                     Text(.localized("Content"))
                 }
             }
-            .scrollContentBackground(.hidden)
+            .hideScrollContentBackground()
             .navigationTitle(.localized("Create XML File"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -124,7 +122,6 @@ struct URLImportView: View {
     var body: some View {
         NavigationStack {
             Form {
-.scrollContentBackground(.hidden)
                 Section {
                     TextField(.localized("Enter URL"), text: $urlString)
                         .keyboardType(.URL)
@@ -159,7 +156,7 @@ struct URLImportView: View {
                     }
                 }
             }
-            .scrollContentBackground(.hidden)
+            .hideScrollContentBackground()
             .navigationTitle(.localized("Import from URL"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -230,7 +227,6 @@ struct ClipboardImportView: View {
     var body: some View {
         NavigationStack {
             Form {
-.scrollContentBackground(.hidden)
                 Section {
                     TextField(.localized("File Name"), text: $fileName)
                         .autocorrectionDisabled()
@@ -259,7 +255,7 @@ struct ClipboardImportView: View {
                     }
                 }
             }
-            .scrollContentBackground(.hidden)
+            .hideScrollContentBackground()
             .navigationTitle(.localized("Import from Clipboard"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -1058,7 +1054,6 @@ struct FileHasherView: View {
     var body: some View {
         NavigationStack {
             Form {
-.scrollContentBackground(.hidden)
                 Section {
                     Button {
                         isImporting = true
@@ -1088,7 +1083,7 @@ struct FileHasherView: View {
                     }
                 }
             }
-            .scrollContentBackground(.hidden)
+            .hideScrollContentBackground()
             .navigationTitle(.localized("Hash Calculator"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -1542,7 +1537,6 @@ struct SymlinkCreatorView: View {
     var body: some View {
         NavigationStack {
             Form {
-.scrollContentBackground(.hidden)
                 Section {
                     TextField(.localized("Link Name"), text: $linkName)
                         .autocorrectionDisabled()
@@ -1567,7 +1561,7 @@ struct SymlinkCreatorView: View {
                     }
                 }
             }
-            .scrollContentBackground(.hidden)
+            .hideScrollContentBackground()
             .navigationTitle(.localized("Create Symlink"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {

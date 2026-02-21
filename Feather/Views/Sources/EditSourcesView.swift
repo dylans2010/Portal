@@ -16,14 +16,13 @@ struct EditSourcesView: View {
     var body: some View {
         NavigationView {
             List {
-.scrollContentBackground(.hidden)
                 ForEach(Array(sources), id: \.objectID) { source in
                     sourceRow(source)
                 }
                 .onDelete(perform: deleteSource)
                 .onMove(perform: moveSource)
             }
-            .scrollContentBackground(.hidden)
+            .hideScrollContentBackground()
 
             .navigationTitle("Edit Sources")
             .navigationBarTitleDisplayMode(.inline)

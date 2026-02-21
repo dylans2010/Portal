@@ -10,7 +10,6 @@ struct LanguageSettingsView: View {
     var body: some View {
         NBNavigationView(.localized("Translation")) {
             List {
-.scrollContentBackground(.hidden)
                 // Button to open iOS Settings
                 Section {
                     Button {
@@ -45,7 +44,7 @@ struct LanguageSettingsView: View {
                 }
                 
             }
-            .scrollContentBackground(.hidden)
+            .hideScrollContentBackground()
 
         }
         .alert(.localized("Restart Required"), isPresented: $showRestartAlert) {

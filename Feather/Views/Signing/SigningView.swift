@@ -589,11 +589,11 @@ extension SigningView {
 			
 			NavigationLink {
 				Form {
-.scrollContentBackground(.hidden) SigningOptionsView(
+SigningOptionsView(
 					options: $_temporaryOptions,
 					temporaryOptions: _optionsManager.options
 				)}
-            .scrollContentBackground(.hidden)
+            .hideScrollContentBackground()
 				.navigationTitle(.localized("Properties"))
 			} label: {
 				HStack {

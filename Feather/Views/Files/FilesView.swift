@@ -821,7 +821,7 @@ GoToPathView { url in
                     }
             }
         }
-        .scrollContentBackground(.hidden)
+        .hideScrollContentBackground()
 
         .environment(\.editMode, isSelectionMode ? .constant(.active) : .constant(.inactive))
     }

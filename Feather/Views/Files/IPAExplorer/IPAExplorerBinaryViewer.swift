@@ -7,7 +7,6 @@ struct IPAExplorerBinaryViewer: View {
 
     var body: some View {
         List {
-.scrollContentBackground(.hidden)
             Section(.localized("File Info")) {
                 BinaryInfoRow(label: .localized("Name"), value: fileURL.lastPathComponent)
                 BinaryInfoRow(label: .localized("Size"), value: ByteCountFormatter.string(fromByteCount: fileSize, countStyle: .file))
@@ -26,7 +25,7 @@ struct IPAExplorerBinaryViewer: View {
                 Text(.localized("Analyzing..."))
             }
         }
-            .scrollContentBackground(.hidden)
+            .hideScrollContentBackground()
         .navigationTitle(.localized("Binary Info"))
         .onAppear {
             analyze()

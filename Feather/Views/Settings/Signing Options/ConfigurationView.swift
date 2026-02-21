@@ -10,7 +10,6 @@ struct InstallationOptionsSplashView: View {
     var body: some View {
         NavigationStack {
             Form {
-.scrollContentBackground(.hidden)
                 Section {
                     VStack(spacing: 16) {
                         Image(systemName: "gearshape.arrow.trianglehead.2.clockwise.rotate.90")
@@ -50,7 +49,7 @@ struct InstallationOptionsSplashView: View {
                     }
                 }
             }
-            .scrollContentBackground(.hidden)
+            .hideScrollContentBackground()
             .navigationTitle("Installation")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -75,7 +74,6 @@ struct ConfigurationView: View {
     
     var body: some View {
         List {
-.scrollContentBackground(.hidden)
             Section("Quick Actions") {
                 Button {
                     showInstallationOptions = true
@@ -116,7 +114,7 @@ struct ConfigurationView: View {
                 }
             }
         }
-            .scrollContentBackground(.hidden)
+            .hideScrollContentBackground()
         .navigationTitle("Signing Options")
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {

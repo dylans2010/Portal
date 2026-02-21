@@ -220,7 +220,6 @@ encodingPickerSheet
     private var encodingPickerSheet: some View {
         NBNavigationView(.localized("Text Encoding"), displayMode: .inline) {
             Form {
-.scrollContentBackground(.hidden)
                 Section {
                     ForEach(availableEncodings, id: \.name) { item in
                         Button {
@@ -245,7 +244,7 @@ encodingPickerSheet
                     Text(.localized("Choose the character encoding for this file"))
                 }
             }
-            .scrollContentBackground(.hidden)
+            .hideScrollContentBackground()
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button(.localized("Cancel")) {

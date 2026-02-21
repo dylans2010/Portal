@@ -20,7 +20,6 @@ struct HashVerifierView: View {
     var body: some View {
         NavigationStack {
             Form {
-.scrollContentBackground(.hidden)
                 Section(header: Text(.localized("Expected Hash"))) {
                     TextField(.localized("Paste expected hash here"), text: $expectedHash)
                         .autocorrectionDisabled()
@@ -68,7 +67,7 @@ struct HashVerifierView: View {
                     }
                 }
             }
-            .scrollContentBackground(.hidden)
+            .hideScrollContentBackground()
             .navigationTitle(.localized("Hash Verifier"))
             .navigationBarTitleDisplayMode(.inline)
         }
