@@ -34,6 +34,7 @@ struct SettingsView: View {
     var body: some View {
         NBNavigationView(.localized("Settings")) {
             List {
+.scrollContentBackground(.hidden)
                 headerSection
                 preferencesSection
                 signingSection

@@ -17,6 +17,7 @@ struct AppearanceContentPanel: View {
     
     var body: some View {
         List {
+.scrollContentBackground(.hidden)
             // MARK: - Content Configuration
             contentConfigurationSection
             
@@ -705,6 +706,7 @@ struct GradientColorPickerSheet: View {
     var body: some View {
         NavigationView {
             Form {
+.scrollContentBackground(.hidden)
                 Section {
                     ColorPicker("Select Color", selection: $tempColor, supportsOpacity: false)
                 }

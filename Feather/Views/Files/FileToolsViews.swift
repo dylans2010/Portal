@@ -13,6 +13,7 @@ struct CreateJSONFileView: View {
     var body: some View {
         NavigationStack {
             Form {
+.scrollContentBackground(.hidden)
                 Section {
                     TextField(.localized("File Name"), text: $fileName)
                         .autocorrectionDisabled()
@@ -66,6 +67,7 @@ struct CreateXMLFileView: View {
     var body: some View {
         NavigationStack {
             Form {
+.scrollContentBackground(.hidden)
                 Section {
                     TextField(.localized("File Name"), text: $fileName)
                         .autocorrectionDisabled()
@@ -122,6 +124,7 @@ struct URLImportView: View {
     var body: some View {
         NavigationStack {
             Form {
+.scrollContentBackground(.hidden)
                 Section {
                     TextField(.localized("Enter URL"), text: $urlString)
                         .keyboardType(.URL)
@@ -227,6 +230,7 @@ struct ClipboardImportView: View {
     var body: some View {
         NavigationStack {
             Form {
+.scrollContentBackground(.hidden)
                 Section {
                     TextField(.localized("File Name"), text: $fileName)
                         .autocorrectionDisabled()
@@ -1054,6 +1058,7 @@ struct FileHasherView: View {
     var body: some View {
         NavigationStack {
             Form {
+.scrollContentBackground(.hidden)
                 Section {
                     Button {
                         isImporting = true
@@ -1537,6 +1542,7 @@ struct SymlinkCreatorView: View {
     var body: some View {
         NavigationStack {
             Form {
+.scrollContentBackground(.hidden)
                 Section {
                     TextField(.localized("Link Name"), text: $linkName)
                         .autocorrectionDisabled()

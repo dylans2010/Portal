@@ -32,13 +32,7 @@ struct OfflineView: View {
                 
                 Image(systemName: "wifi.slash")
                     .font(.system(size: 50, weight: .medium))
-                    .foregroundStyle(
-                        LinearGradient(
-                            colors: [Color.orange, Color.red],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        )
-                    )
+                    .foregroundStyle(Color.accentColor)
             }
             .shadow(color: Color.orange.opacity(0.3), radius: 20, x: 0, y: 10)
             

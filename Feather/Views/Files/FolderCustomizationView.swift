@@ -17,6 +17,7 @@ struct FolderCustomizationView: View {
     var body: some View {
         NBNavigationView(.localized("Customize Folder"), displayMode: .inline) {
             Form {
+.scrollContentBackground(.hidden)
                 Section {
                     Text(folderURL.lastPathComponent)
                         .font(.headline)

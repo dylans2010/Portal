@@ -268,6 +268,7 @@ struct SavedStylesView: View {
     var body: some View {
         NavigationView {
             List {
+.scrollContentBackground(.hidden)
                 Section(header: Text("Current Style")) {
                     Button {
                         showSaveDialog = true

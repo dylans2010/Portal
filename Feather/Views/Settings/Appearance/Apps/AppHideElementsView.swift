@@ -13,6 +13,7 @@ struct AppHideElementsView: View {
     var body: some View {
         NBNavigationView(.localized("Hide UI Elements")) {
             List {
+.scrollContentBackground(.hidden)
                 Section {
                     Button(role: .destructive) {
                         sourcesManager.resetToDefaults()

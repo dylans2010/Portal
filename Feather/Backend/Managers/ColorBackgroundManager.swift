@@ -6,7 +6,7 @@ class ColorBackgroundManager: ObservableObject {
 
     @AppStorage("Feather.appearance.baseColorData") private var baseColorData: Data = Data()
 
-    @Published var baseColor: Color = Color(hex: Color.defaultBackground) {
+    @Published var baseColor: Color = Color(hex: "#F2F2F7") {
         didSet {
             _saveBaseColor()
         }
@@ -24,7 +24,7 @@ class ColorBackgroundManager: ObservableObject {
         if let uiColor = try? NSKeyedUnarchiver.unarchivedObject(ofClass: UIColor.self, from: baseColorData) {
             baseColor = Color(uiColor)
         } else {
-            baseColor = Color(hex: Color.defaultBackground)
+            baseColor = Color(hex: "#F2F2F7")
         }
     }
 

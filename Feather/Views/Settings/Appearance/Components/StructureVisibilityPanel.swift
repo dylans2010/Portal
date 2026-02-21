@@ -23,6 +23,7 @@ struct StructureVisibilityPanel: View {
     
     var body: some View {
         List {
+.scrollContentBackground(.hidden)
             Section {
                 Toggle(isOn: Binding(
                     get: { viewModel.showCustomText },

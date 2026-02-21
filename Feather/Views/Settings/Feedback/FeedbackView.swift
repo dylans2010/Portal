@@ -1735,6 +1735,7 @@ issue in
     
     private var mainScrollView: some View {
         Form {
+.scrollContentBackground(.hidden)
             Section {
                 Picker("Category", selection: $feedbackCategory) {
                     ForEach(FeedbackCategory.allCases, id: \.self) { category in

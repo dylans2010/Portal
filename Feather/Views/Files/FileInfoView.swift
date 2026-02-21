@@ -21,6 +21,7 @@ struct FileInfoView: View {
                 .ignoresSafeArea()
                 
                 Form {
+.scrollContentBackground(.hidden)
                     // File icon and name header
                     Section {
                         HStack {

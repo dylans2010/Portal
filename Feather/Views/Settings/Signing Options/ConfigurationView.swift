@@ -10,6 +10,7 @@ struct InstallationOptionsSplashView: View {
     var body: some View {
         NavigationStack {
             Form {
+.scrollContentBackground(.hidden)
                 Section {
                     VStack(spacing: 16) {
                         Image(systemName: "gearshape.arrow.trianglehead.2.clockwise.rotate.90")
@@ -74,6 +75,7 @@ struct ConfigurationView: View {
     
     var body: some View {
         List {
+.scrollContentBackground(.hidden)
             Section("Quick Actions") {
                 Button {
                     showInstallationOptions = true

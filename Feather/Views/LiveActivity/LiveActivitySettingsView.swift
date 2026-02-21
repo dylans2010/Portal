@@ -19,6 +19,7 @@ struct LiveActivitySettingsView: View {
     var body: some View {
         NBNavigationView("Live Activities") {
             List {
+.scrollContentBackground(.hidden)
                 enabledSection
                 appearanceSection
                 advancedStylingSection
@@ -533,6 +534,7 @@ struct ColorPickerView: View {
     var body: some View {
         NavigationStack {
             List {
+.scrollContentBackground(.hidden)
                 Section {
                     ColorPicker("Custom Color", selection: $color, supportsOpacity: false)
                 } header: {

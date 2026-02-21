@@ -802,13 +802,7 @@ struct InteractiveTransferView: View {
         let xPosition = startX + (endX - startX) * packet.progress
         
         return Circle()
-            .fill(
-                LinearGradient(
-                    colors: [Color.purple, Color.blue],
-                    startPoint: .leading,
-                    endPoint: .trailing
-                )
-            )
+            .fill(Color.blue)
             .frame(width: 8, height: 8)
             .position(x: xPosition, y: geometry.size.height / 2.0)
             .opacity(1.0 - packet.progress)
@@ -924,13 +918,7 @@ struct SimplifiedTransferView: View {
                 // Transfer arrow
                 Image(systemName: "arrow.right")
                     .font(.system(size: 24, weight: .bold))
-                    .foregroundStyle(
-                        LinearGradient(
-                            colors: [Color.purple, Color.blue],
-                            startPoint: .leading,
-                            endPoint: .trailing
-                        )
-                    )
+                    .foregroundStyle(Color.accentColor)
                     .scaleEffect(isAnimating ? 1.1 : 0.9)
                     .opacity(isAnimating ? 1.0 : 0.7)
                     .position(x: geometry.size.width / 2.0, y: geometry.size.height / 2.0)

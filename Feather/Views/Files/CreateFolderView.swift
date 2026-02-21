@@ -10,6 +10,7 @@ struct CreateFolderView: View {
     var body: some View {
         NBNavigationView(.localized("Create Folder"), displayMode: .inline) {
             Form {
+.scrollContentBackground(.hidden)
                 Section {
                     HStack(spacing: 12) {
                         ZStack {

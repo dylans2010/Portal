@@ -15,6 +15,7 @@ struct CertificateQuickAddView: View {
     var body: some View {
         NBNavigationView(.localized("Add Certificate"), displayMode: .inline) {
             Form {
+.scrollContentBackground(.hidden)
                 Section {
                     HStack {
                         Image(systemName: "doc.fill")

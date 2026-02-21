@@ -9,6 +9,7 @@ struct EXIFViewerView: View {
     var body: some View {
         NavigationStack {
             List {
+.scrollContentBackground(.hidden)
                 if isLoading {
                     ProgressView(.localized("Loading Metadata..."))
                 } else if metadata.isEmpty {

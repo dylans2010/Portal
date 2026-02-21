@@ -7,6 +7,7 @@ struct UUIDGeneratorView: View {
     var body: some View {
         NavigationStack {
             Form {
+.scrollContentBackground(.hidden)
                 Section {
                     Stepper(.localized("Count: \(count)"), value: $count, in: 1...100)
                     Button(.localized("Generate")) {

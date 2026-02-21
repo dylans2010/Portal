@@ -7,6 +7,7 @@ struct HapticsView: View {
     
     var body: some View {
         Form {
+.scrollContentBackground(.hidden)
             enableHapticsSection
             
             if hapticsManager.isEnabled {

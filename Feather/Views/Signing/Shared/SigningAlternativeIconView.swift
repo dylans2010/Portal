@@ -15,6 +15,7 @@ struct SigningAlternativeIconView: View {
 	var body: some View {
 		NBNavigationView(.localized("Alternative Icons"), displayMode: .inline) {
 			List {
+.scrollContentBackground(.hidden)
 				if !_alternateIcons.isEmpty {
 					ForEach(_alternateIcons, id: \.name) { icon in
 						Button {

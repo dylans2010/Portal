@@ -213,6 +213,7 @@ struct AdvancedDebugToolsView: View {
 
     var body: some View {
         List {
+.scrollContentBackground(.hidden)
             // MARK: - App Info Section (Real Data)
             Section {
                 if isLoading {
@@ -917,6 +918,7 @@ struct BinaryInspectorView: View {
 
     var body: some View {
         List {
+.scrollContentBackground(.hidden)
             if isLoading {
                 Section {
                     HStack {
@@ -1021,6 +1023,7 @@ struct MachOAnalyzerView: View {
 
     var body: some View {
         List {
+.scrollContentBackground(.hidden)
             if isLoading {
                 Section {
                     HStack {
@@ -1107,6 +1110,7 @@ struct DylibDependenciesView: View {
 
     var body: some View {
         List {
+.scrollContentBackground(.hidden)
             if isLoading {
                 Section {
                     HStack {
@@ -1173,6 +1177,7 @@ struct SecurityScanView: View {
 
     var body: some View {
         List {
+.scrollContentBackground(.hidden)
             if isScanning {
                 Section {
                     VStack(spacing: 12) {
@@ -1247,6 +1252,7 @@ struct EntitlementAnalyzerView: View {
 
     var body: some View {
         List {
+.scrollContentBackground(.hidden)
             if isLoading {
                 Section {
                     HStack {
@@ -1337,6 +1343,7 @@ struct CodeSignatureView: View {
 
     var body: some View {
         List {
+.scrollContentBackground(.hidden)
             if isLoading {
                 Section {
                     HStack {
@@ -1658,6 +1665,7 @@ editEntrySheet
     // MARK: - Editor List View
     private var editorListView: some View {
         List {
+.scrollContentBackground(.hidden)
             // Multi-select actions
             if isMultiSelectMode && !selectedEntries.isEmpty {
                 Section {
@@ -1834,6 +1842,7 @@ editEntrySheet
     private var addEntrySheet: some View {
         NavigationStack {
             Form {
+.scrollContentBackground(.hidden)
                 Section {
                     TextField("Key", text: $newKey)
                         .autocorrectionDisabled()
@@ -1926,6 +1935,7 @@ editEntrySheet
     private var editEntrySheet: some View {
         NavigationStack {
             Form {
+.scrollContentBackground(.hidden)
                 Section {
                     TextField("Key", text: $editKey)
                         .autocorrectionDisabled()
@@ -2386,6 +2396,7 @@ struct EntitlementsDebugView: View {
 
     var body: some View {
         List {
+.scrollContentBackground(.hidden)
             Section {
                 ForEach(entitlements.indices, id: \.self) { index in
                     HStack {
@@ -2440,6 +2451,7 @@ struct EntitlementsDebugView: View {
         .sheet(isPresented: $showAddEntitlement) {
 NavigationStack {
                 Form {
+.scrollContentBackground(.hidden)
                     TextField("Key", text: $newKey)
                         .autocapitalization(.none)
                     TextField("Value", text: $newValue)
@@ -2785,6 +2797,7 @@ ResourceStatisticsView(resources: resources)
     // MARK: - Resource List View
     private var resourceListView: some View {
         List {
+.scrollContentBackground(.hidden)
             // Multi-select actions
             if isMultiSelectMode && !selectedResources.isEmpty {
                 Section {
@@ -3233,6 +3246,7 @@ struct ResourceDetailView: View {
     var body: some View {
         NavigationStack {
             List {
+.scrollContentBackground(.hidden)
                 // Preview Section (for images)
                 if ["png", "jpg", "jpeg", "heic", "webp", "gif"].contains(resource.type.lowercased()) {
                     Section {
@@ -3404,6 +3418,7 @@ struct ResourceStatisticsView: View {
     var body: some View {
         NavigationStack {
             List {
+.scrollContentBackground(.hidden)
                 Section {
                     HStack {
                         Text("Total Resources")
@@ -3515,6 +3530,7 @@ struct SigningLogsDebugView: View {
 
             ScrollViewReader { proxy in
                 List {
+.scrollContentBackground(.hidden)
                     ForEach(filteredLogs.indices, id: \.self) { index in
                         let log = filteredLogs[index]
                         HStack(alignment: .top, spacing: 8) {

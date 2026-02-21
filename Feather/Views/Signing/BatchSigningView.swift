@@ -55,6 +55,7 @@ struct BatchSigningView: View {
         NavigationStack {
             ZStack {
                 List {
+.scrollContentBackground(.hidden)
                     // Custom Header
                     Section {
                         HStack {
@@ -701,6 +702,7 @@ struct BatchAppEditSheet: View {
     var body: some View {
         NavigationStack {
             Form {
+.scrollContentBackground(.hidden)
                 Section {
                     HStack {
                         Text("Edit App Information")

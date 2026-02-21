@@ -94,6 +94,6 @@ struct CertificatesInfoEntitlementView: View {
 				.padding(.vertical, 20)
 			}
 		}
-		.listStyle(.insetGrouped)
+
 	}
 }

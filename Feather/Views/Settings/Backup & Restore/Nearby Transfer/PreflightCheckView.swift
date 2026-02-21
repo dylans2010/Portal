@@ -305,7 +305,8 @@ class PreflightCheckViewModel: ObservableObject {
         
         itemsList.append(PreflightItem(category: "Settings", count: 1, size: "Included", icon: "gearshape.fill", issues: []))
         
-        for item in itemsList { issuesList.append(contentsOf: item.issues) }
+        for item in itemsList {
+.scrollContentBackground(.hidden) issuesList.append(contentsOf: item.issues) }
         
         self.items = itemsList
         self.totalSize = formatBytes(totalBytes)

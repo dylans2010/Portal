@@ -8,7 +8,7 @@ import OSLog
 struct FeatherApp: App {
     @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
 
-    @StateObject private var backgroundManager = ColorBackgroundManager.shared
+    @StateObject private var backgroundManager = ColorBackgroundManager()
 
     let heartbeat = HeartbeatManager.shared
 

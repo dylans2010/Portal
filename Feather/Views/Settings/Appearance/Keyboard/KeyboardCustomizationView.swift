@@ -15,6 +15,7 @@ struct KeyboardCustomizationView: View {
 
     var body: some View {
         List {
+.scrollContentBackground(.hidden)
             Section {
                 Toggle(isOn: $manager.isEnabled) {
                     AppearanceRowLabel(icon: "keyboard", title: "Enable Backdrop", color: .purple)

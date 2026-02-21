@@ -48,6 +48,7 @@ struct AllAppsCustomizationView: View {
 
     var body: some View {
         List {
+.scrollContentBackground(.hidden)
             Section {
                 Picker(selection: $rowStyle) {
                     ForEach(AllAppsView.AllAppsRowStyle.allCases) { style in

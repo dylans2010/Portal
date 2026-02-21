@@ -6,6 +6,7 @@ struct IPAExplorerProvisionViewer: View {
 
     var body: some View {
         List {
+.scrollContentBackground(.hidden)
             if let cert = certificate {
                 ProvisionMetadataSection(cert: cert)
                 ProvisionCapabilitiesSection(cert: cert)

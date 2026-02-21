@@ -11,6 +11,7 @@ struct CreateTextFileView: View {
     var body: some View {
         NBNavigationView(.localized("Create Text File"), displayMode: .inline) {
             Form {
+.scrollContentBackground(.hidden)
                 Section {
                     TextField(.localized("File Name"), text: $fileName)
                         .textInputAutocapitalization(.never)

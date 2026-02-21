@@ -220,6 +220,7 @@ encodingPickerSheet
     private var encodingPickerSheet: some View {
         NBNavigationView(.localized("Text Encoding"), displayMode: .inline) {
             Form {
+.scrollContentBackground(.hidden)
                 Section {
                     ForEach(availableEncodings, id: \.name) { item in
                         Button {

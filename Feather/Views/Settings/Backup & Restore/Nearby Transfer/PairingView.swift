@@ -335,7 +335,7 @@ NavigationStack {
                         .foregroundStyle(.white)
                         .padding(.horizontal, 6)
                         .padding(.vertical, 2)
-                        .background(LinearGradient(colors: gradientColors, startPoint: .leading, endPoint: .trailing))
+                        .background(Color.clear)
                         .clipShape(Capsule())
                 }
                 
