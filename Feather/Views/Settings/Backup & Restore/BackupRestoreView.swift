@@ -1,5 +1,4 @@
 import SwiftUI
-import NimbleViews
 import ZIPFoundation
 import UniformTypeIdentifiers
 import CoreData
@@ -39,12 +38,12 @@ struct BackupRestoreView: View {
 
     // MARK: Body
     var body: some View {
-        NBList(.localized("Backup & Restore")) {
-            _headerSection
+        List {
             _nearbyTransferSection
             _advancedToolsSection
             _aboutSection
         }
+        .navigationTitle(.localized("Backup & Restore"))
         .sheet(isPresented: $isBackupOptionsPresented) {
             BackupOptionsView(
                 options: $backupOptions,
@@ -129,87 +128,22 @@ struct BackupRestoreView: View {
     }
 
     @ViewBuilder
-    private var _headerSection: some View {
-        Section {
-            ZStack {
-                LinearGradient(colors: [Color.green.opacity(0.1), Color.blue.opacity(0.1)], startPoint: .topLeading, endPoint: .bottomTrailing)
-                    .cornerRadius(20)
-
-                VStack(spacing: 12) {
-                    Image(systemName: "arrow.counterclockwise.icloud.fill")
-                        .font(.system(size: 40))
-                        .foregroundStyle(LinearGradient(colors: [.green, .blue], startPoint: .topLeading, endPoint: .bottomTrailing))
-
-                    Text(.localized("Secure your data by creating a backup of your apps and settings."))
-                        .font(.system(.subheadline, design: .rounded))
-                        .multilineTextAlignment(.center)
-                        .foregroundStyle(.secondary)
-                        .padding(.horizontal)
-                }
-                .padding(.vertical, 30)
-            }
-            .listRowBackground(Color.clear)
-            .listRowInsets(EdgeInsets())
-        }
-    }
-
-    @ViewBuilder
     private var _nearbyTransferSection: some View {
-        Section {
-            HStack(spacing: 16) {
-                NavigationLink(destination: NearbyTransferView()) {
-                    VStack(spacing: 12) {
-                        ZStack {
-                            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                                .fill(Color.purple.opacity(0.15))
-                                .frame(width: 54, height: 54)
-                            Image(systemName: "network.badge.shield.half.filled")
-                                .font(.title2)
-                                .foregroundStyle(.purple)
-                        }
-                        Text(.localized("Nearby Transfer"))
-                            .font(.system(size: 15, weight: .bold, design: .rounded))
-                            .foregroundStyle(.purple)
-                    }
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 20)
-                    .background(Color.purple.opacity(0.05))
-                    .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
-                }
-                .buttonStyle(.plain)
-
-                NavigationLink(destination: SelfBackupRestoreView()) {
-                    VStack(spacing: 12) {
-                        ZStack {
-                            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                                .fill(Color.green.opacity(0.15))
-                                .frame(width: 54, height: 54)
-                            Image(systemName: "externaldrive.fill")
-                                .font(.title2)
-                                .foregroundStyle(.green)
-                        }
-                        Text(.localized("Self Backup"))
-                            .font(.system(size: 15, weight: .bold, design: .rounded))
-                            .foregroundStyle(.green)
-                    }
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 20)
-                    .background(Color.green.opacity(0.05))
-                    .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
-                }
-                .buttonStyle(.plain)
+        Section(.localized("Wireless Transfer")) {
+            NavigationLink(destination: NearbyTransferView()) {
+                Label(.localized("Nearby Transfer"), systemImage: "antenna.radiowaves.left.and.right")
             }
-            .listRowBackground(Color.clear)
-            .listRowInsets(EdgeInsets(top: 10, leading: 0, bottom: 10, trailing: 0))
-        } header: {
-            AppearanceSectionHeader(title: String.localized("Wireless Transfer"), icon: "wifi")
+
+            NavigationLink(destination: SelfBackupRestoreView()) {
+                Label(.localized("Self Backup"), systemImage: "externaldrive.fill")
+            }
         }
     }
 
     @ViewBuilder
     private var _advancedToolsSection: some View {
         if advancedBackupTools {
-            Section {
+            Section(.localized("Advanced Tools")) {
                 Button {
                     handleExportFullDatabase()
                 } label: {
@@ -253,30 +187,42 @@ struct BackupRestoreView: View {
                 } label: {
                     Label(.localized("View Pairing Status"), systemImage: "link.circle.fill")
                 }
-            } header: {
-                AppearanceSectionHeader(title: String.localized("Advanced Tools"), icon: "wrench.and.screwdriver.fill")
             }
         }
     }
 
     @ViewBuilder
     private var _aboutSection: some View {
-        Section {
-            infoCard(
-                icon: "checkmark.shield.fill",
-                iconColor: .blue,
-                title: .localized("What's Included"),
-                description: .localized("Backups can include certificates, provisioning profiles, signed apps, imported apps, sources, and all app settings.")
-            )
+        Section(.localized("About Backups")) {
+            VStack(alignment: .leading, spacing: 8) {
+                Label {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(.localized("What's Included"))
+                            .font(.headline)
+                        Text(.localized("Backups can include certificates, provisioning profiles, signed apps, imported apps, sources, and all app settings."))
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                    }
+                } icon: {
+                    Image(systemName: "checkmark.shield.fill")
+                        .foregroundStyle(.blue)
+                }
+                .padding(.vertical, 4)
 
-            infoCard(
-                icon: "exclamationmark.triangle.fill",
-                iconColor: .orange,
-                title: .localized("Important"),
-                description: .localized("Restoring requires the app to restart. Certificate restoration preserves files for manual re-import if needed.")
-            )
-        } header: {
-            AppearanceSectionHeader(title: String.localized("About Backups"), icon: "info.circle.fill")
+                Label {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(.localized("Important"))
+                            .font(.headline)
+                        Text(.localized("Restoring requires the app to restart. Certificate restoration preserves files for manual re-import if needed."))
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                    }
+                } icon: {
+                    Image(systemName: "exclamationmark.triangle.fill")
+                        .foregroundStyle(.orange)
+                }
+                .padding(.vertical, 4)
+            }
         }
     }
 
@@ -539,37 +485,6 @@ struct BackupRestoreView: View {
                 }
             }
         }
-    }
-
-    // MARK: - Info Card View
-    @ViewBuilder
-    private func infoCard(icon: String, iconColor: Color, title: LocalizedStringKey, description: LocalizedStringKey) -> some View {
-        HStack(alignment: .top, spacing: 16) {
-            ZStack {
-                Circle()
-                    .fill(iconColor.opacity(0.15))
-                    .frame(width: 44, height: 44)
-
-                Image(systemName: icon)
-                    .font(.system(size: 20, weight: .bold))
-                    .foregroundStyle(iconColor)
-            }
-
-            VStack(alignment: .leading, spacing: 4) {
-                Text(title)
-                    .font(.system(.headline, design: .rounded))
-                    .foregroundStyle(.primary)
-
-                Text(description)
-                    .font(.system(.subheadline, design: .rounded))
-                    .foregroundStyle(.secondary)
-                    .fixedSize(horizontal: false, vertical: true)
-            }
-        }
-        .padding(16)
-        .background(Color.secondary.opacity(0.08))
-        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
-        .padding(.vertical, 4)
     }
 
     // MARK: - Advanced Tools Functions
