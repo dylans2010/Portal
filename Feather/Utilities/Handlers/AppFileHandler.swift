@@ -61,9 +61,20 @@ final class AppFileHandler: NSObject, @unchecked Sendable {
 						overwrite: true,
 						password: nil,
 						progress: { progress in
-							if let download = download {
-								DispatchQueue.main.async {
+							DispatchQueue.main.async {
+								if let download = download {
 									download.unpackageProgress = progress
+								}
+
+								if #available(iOS 16.2, *), UserDefaults.standard.bool(forKey: "Feather.liveActivityEnabled") {
+									Task {
+										await LiveActivityManager.shared.updateActivity(
+											progress: Double(progress),
+											bytesDownloaded: 0,
+											totalBytes: 0,
+											status: .unzipping
+										)
+									}
 								}
 							}
 						}

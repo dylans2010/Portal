@@ -74,14 +74,21 @@ fragment float4 fragment_main(float4 position [[stage_in]],
         float2 p0 = p;
         float3 finalColor = float3(0.0);
 
-        for (float i = 0.0; i < 3.0; i++) {
-            p = fract(p * 1.5) - 0.5;
-            float d = length(p) * exp(-length(p0));
-            float3 col = palette(length(p0) + i * 0.4 + uniforms.time * 0.4);
-            d = sin(d * 8.0 + uniforms.time) / 8.0;
+        for (float i = 0.0; i < 12.0; i++) { // Increased to over 10 subtle colors
+            float2 p_mod = fract(p * (1.2 + i * 0.1)) - 0.5;
+            float d = length(p_mod) * exp(-length(p0));
+
+            // Generate a more diverse set of subtle colors using i
+            float t = length(p0) + i * 0.15 + uniforms.time * 0.2;
+            float3 col = palette(t);
+
+            // Tweak the palette output to be more "subtle"
+            col = mix(col, float3(0.5, 0.7, 1.0), 0.3); // Mix with a base soft blue
+
+            d = sin(d * (6.0 + i * 0.5) + uniforms.time) / (6.0 + i * 0.5);
             d = abs(d);
-            d = pow(0.01 / d, 1.2);
-            finalColor += col * d;
+            d = pow(0.008 / d, 1.1);
+            finalColor += col * d * 0.4; // Reduced intensity per color layer
         }
 
         // Add a central rotating geometric shape

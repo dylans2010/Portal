@@ -4,22 +4,23 @@ import NimbleViews
 // MARK: - Nearby Transfer View
 struct NearbyTransferView: View {
     @Environment(\.dismiss) var dismiss
+    @State private var appearAnimation = false
     
     var body: some View {
-        NBList(.localized("Nearby Transfer")) {
+        List {
             // Header Section
             Section {
-                ZStack {
-                    LinearGradient(
-                        colors: [Color.indigo.opacity(0.15), Color.purple.opacity(0.1)],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    )
-                    .cornerRadius(22)
-                    
-                    VStack(spacing: 16) {
+                VStack(spacing: 24) {
+                    ZStack {
+                        // Animated background glow
+                        Circle()
+                            .fill(Color.indigo.opacity(0.15))
+                            .frame(width: 120, height: 120)
+                            .blur(radius: 20)
+                            .scaleEffect(appearAnimation ? 1.2 : 0.8)
+
                         Image(systemName: "antenna.radiowaves.left.and.right")
-                            .font(.system(size: 54))
+                            .font(.system(size: 64))
                             .foregroundStyle(
                                 LinearGradient(
                                     colors: [.indigo, .purple, .blue],
@@ -27,59 +28,59 @@ struct NearbyTransferView: View {
                                     endPoint: .bottomTrailing
                                 )
                             )
-                            .ifAvailableiOS18SymbolPulse()
-                        
-                        VStack(spacing: 8) {
-                            Text(.localized("Wireless Transfer"))
-                                .font(.system(.title2, design: .rounded, weight: .bold))
-
-                            Text(.localized("Move your backups between devices instantly using a secure, direct connection."))
-                                .font(.system(.subheadline, design: .rounded))
-                                .multilineTextAlignment(.center)
-                                .foregroundStyle(.secondary)
-                                .padding(.horizontal, 20)
-                        }
+                            .pulseEffect(appearAnimation)
                     }
-                    .padding(.vertical, 40)
+                    .padding(.top, 20)
+
+                    VStack(spacing: 10) {
+                        Text(.localized("Portal Transfer"))
+                            .font(.system(.title, design: .rounded, weight: .bold))
+                        
+                        Text(.localized("Move your data between devices instantly using a secure, direct connection."))
+                            .font(.system(.subheadline, design: .rounded))
+                            .multilineTextAlignment(.center)
+                            .foregroundStyle(.secondary)
+                            .padding(.horizontal, 30)
+                    }
                 }
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 32)
                 .listRowBackground(Color.clear)
-                .listRowInsets(EdgeInsets(top: 10, leading: 16, bottom: 10, trailing: 16))
             }
             
             // Quick Start Section
             Section {
                 NavigationLink(destination: PairingView()) {
-                    HStack(spacing: 18) {
+                    HStack(spacing: 16) {
                         ZStack {
-                            RoundedRectangle(cornerRadius: 16, style: .continuous)
-                                .fill(
-                                    LinearGradient(
-                                        colors: [.blue.opacity(0.2), .blue.opacity(0.1)],
-                                        startPoint: .topLeading,
-                                        endPoint: .bottomTrailing
-                                    )
-                                )
-                                .frame(width: 56, height: 56)
+                            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                                .fill(LinearGradient(colors: [.blue, .cyan], startPoint: .topLeading, endPoint: .bottomTrailing).opacity(0.1))
+                                .frame(width: 48, height: 48)
                             
                             Image(systemName: "bolt.fill")
-                                .font(.title2)
+                                .font(.title3)
                                 .foregroundStyle(.blue)
                         }
                         
                         VStack(alignment: .leading, spacing: 4) {
                             Text(.localized("Start New Transfer"))
                                 .font(.system(.headline, design: .rounded))
-                            Text(.localized("Send or receive a backup securely."))
+                            Text(.localized("Send or receive data securely"))
                                 .font(.system(.caption, design: .rounded))
                                 .foregroundStyle(.secondary)
                         }
                         
                         Spacer()
                     }
-                    .padding(.vertical, 10)
+                    .padding(.vertical, 4)
                 }
+                .listRowBackground(
+                    RoundedRectangle(cornerRadius: 20, style: .continuous)
+                        .fill(Color.clear)
+                        .padding(.horizontal, 8)
+                )
             } header: {
-                AppearanceSectionHeader(title: String.localized("Actions"), icon: "play.fill")
+                Text(.localized("Actions"))
             }
             
             // How It Works Section
@@ -105,7 +106,7 @@ struct NearbyTransferView: View {
                     description: .localized("High-speed data transfer with real-time progress monitoring, speed reporting, and automatic error recovery.")
                 )
             } header: {
-                AppearanceSectionHeader(title: String.localized("Why Nearby Transfer?"), icon: "sparkles")
+                Text(.localized("Why Portal Transfer?"))
             }
             
             // Requirements Section
@@ -125,7 +126,7 @@ struct NearbyTransferView: View {
                     text: .localized("Power: Ensure sufficient battery or connect to power for large backup transfers.")
                 )
             } header: {
-                AppearanceSectionHeader(title: String.localized("Requirements"), icon: "checklist")
+                Text(.localized("Requirements"))
             }
             
             // About Section
@@ -145,10 +146,15 @@ struct NearbyTransferView: View {
                 }
                 .padding(.vertical, 12)
             } header: {
-                AppearanceSectionHeader(title: String.localized("Details"), icon: "info.circle.fill")
+                Text(.localized("Details"))
             }
         }
         .navigationBarTitleDisplayMode(.inline)
+        .onAppear {
+            withAnimation(.spring(response: 0.6, dampingFraction: 0.7)) {
+                appearAnimation = true
+            }
+        }
     }
     
     // MARK: - Helper Views

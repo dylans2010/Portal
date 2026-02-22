@@ -75,7 +75,14 @@ struct ManageStorageView: View {
                         }
                         Spacer()
                         if isCalculating {
-                            ProgressView()
+                            VStack(spacing: 8) {
+                                ProgressView()
+                                    .tint(.accentColor)
+                                Text("Calculating...")
+                                    .font(.caption2)
+                                    .foregroundStyle(.secondary)
+                            }
+                            .frame(width: 80)
                         } else {
                             Button {
                                 calculateStorageData()

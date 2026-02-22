@@ -217,9 +217,13 @@ struct ModernSigningView: View {
             }
         }
         .overlay {
-            FullScreenMetalStateView(state: $_metalState, errorMessage: _errorMessage)
-                .ignoresSafeArea()
-                .zIndex(100)
+            FullScreenMetalStateView(
+                state: $_metalState,
+                errorMessage: _errorMessage,
+                appName: _temporaryOptions.appName ?? app.name ?? "App"
+            )
+            .ignoresSafeArea()
+            .zIndex(100)
         }
         .handleStatusBarHiding()
     }
@@ -604,6 +608,58 @@ struct ModernSigningView: View {
                     
                     cleanEditableRow(title: "Version", value: _temporaryOptions.appVersion ?? app.version ?? "1.0", icon: "tag") {
                         _isVersionDialogPresenting = true
+                    }
+
+                    Divider().padding(.leading, 52)
+
+                    VStack(spacing: 0) {
+                        Toggle(isOn: $_temporaryOptions.cloneApp) {
+                            HStack(spacing: 14) {
+                                Image(systemName: "plus.square.on.square")
+                                    .font(.system(size: 16, weight: .medium))
+                                    .foregroundStyle(.secondary)
+                                    .frame(width: 24)
+
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text("Clone App")
+                                        .font(.system(size: 15, weight: .medium))
+                                        .foregroundStyle(.primary)
+                                    Text("Add random string to Bundle ID")
+                                        .font(.system(size: 12, weight: .medium))
+                                        .foregroundStyle(.secondary)
+                                }
+                            }
+                        }
+                        .padding(.horizontal, 14)
+                        .padding(.vertical, 12)
+                        .tint(.accentColor)
+
+                        if _temporaryOptions.cloneApp {
+                            HStack(spacing: 12) {
+                                Spacer().frame(width: 38)
+
+                                Text(_temporaryOptions.cloneString)
+                                    .font(.system(size: 14, weight: .bold, design: .monospaced))
+                                    .padding(.horizontal, 12)
+                                    .padding(.vertical, 6)
+                                    .background(Capsule().fill(Color.accentColor.opacity(0.1)))
+
+                                Button {
+                                    _temporaryOptions.cloneString = Options.randomCloneString()
+                                    HapticsManager.shared.softImpact()
+                                } label: {
+                                    Image(systemName: "shuffle")
+                                        .font(.system(size: 14, weight: .bold))
+                                        .foregroundStyle(.accentColor)
+                                        .padding(8)
+                                        .background(Circle().fill(Color.accentColor.opacity(0.1)))
+                                }
+
+                                Spacer()
+                            }
+                            .padding(.bottom, 12)
+                            .transition(.move(edge: .top).combined(with: .opacity))
+                        }
                     }
                 }
                 .background(
@@ -1393,17 +1449,6 @@ struct ModernSigningOptionsView: View {
                     } label: {
                         Label("Minimum Requirement", systemImage: "ruler.fill")
                     }
-
-                    Toggle(isOn: $options.cloneApp) {
-                        VStack(alignment: .leading, spacing: 4) {
-                            Label("Clone App", systemImage: "plus.square.on.square")
-                                .font(.headline)
-                            Text("Automatically adds a random string to the Bundle ID.")
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                        }
-                    }
-                    .tint(.accentColor)
                 } header: {
                     Label("General", systemImage: "gearshape.2.fill")
                 }

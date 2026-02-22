@@ -51,17 +51,6 @@ class AutoSignManager {
         var options = OptionsManager.shared.options
         options.post_installAppAfterSigned = true // Force install after signing
 
-        // Start Live Activity if enabled
-        if #available(iOS 16.2, *), UserDefaults.standard.bool(forKey: "Feather.liveActivityEnabled") {
-            LiveActivityManager.shared.startActivity(appName: app.name ?? "App", bundleId: app.identifier ?? "unknown")
-            await LiveActivityManager.shared.updateActivity(
-                progress: 0.1,
-                bytesDownloaded: 0,
-                totalBytes: 0,
-                status: .signing
-            )
-        }
-
         // Perform signing
         FR.signPackageFile(
             app,
@@ -83,9 +72,6 @@ class AutoSignManager {
                 }
 
 
-                if #available(iOS 16.2, *) {
-                    LiveActivityManager.shared.endActivityWithSuccess()
-                }
             }
         }
     }
