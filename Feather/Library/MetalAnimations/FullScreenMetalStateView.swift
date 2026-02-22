@@ -11,6 +11,7 @@ enum MetalAnimationState: Int, CaseIterable {
 struct FullScreenMetalStateView: View {
     @Binding var state: MetalAnimationState
     var errorMessage: String?
+    var appName: String?
     var onDismissError: (() -> Void)?
 
     var body: some View {
@@ -21,6 +22,11 @@ struct FullScreenMetalStateView: View {
                     .transition(.opacity)
                     .zIndex(0)
 
+                if state == .loading {
+                    loadingOverlay
+                        .zIndex(1)
+                }
+
                 if state == .error {
                     errorOverlay
                         .zIndex(1)
@@ -29,6 +35,33 @@ struct FullScreenMetalStateView: View {
         }
         .animation(.easeInOut(duration: 0.3), value: state)
         .allowsHitTesting(state != .idle)
+    }
+
+    private var loadingOverlay: some View {
+        VStack(spacing: 24) {
+            Spacer()
+
+            ProgressView()
+                .scaleEffect(1.5)
+                .tint(.white)
+
+            VStack(spacing: 8) {
+                Text("Signing App")
+                    .font(.headline)
+                    .foregroundStyle(.white)
+
+                if let appName = appName {
+                    Text("Please wait while \(appName) gets signed...")
+                        .font(.subheadline)
+                        .foregroundStyle(.white.opacity(0.8))
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal, 40)
+                }
+            }
+
+            Spacer()
+        }
+        .transition(.opacity.combined(with: .scale))
     }
 
     private var errorOverlay: some View {

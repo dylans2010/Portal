@@ -513,7 +513,7 @@ struct SourcesAddView: View {
 		HStack(spacing: 12) {
 			Button {
 				withAnimation(.spring(response: 0.3)) {
-					_selectedSourcesForExport = Set(sources.compactMap { $0.sourceURL?.absoluteString })
+					_selectedSourcesForExport = Set(sources.compactMap { $0.identifier })
 				}
 				HapticsManager.shared.softImpact()
 			} label: {
@@ -547,22 +547,22 @@ struct SourcesAddView: View {
 	@ViewBuilder
 	private func _exportSectionSourceList(sources: [AltSource]) -> some View {
 		VStack(spacing: 0) {
-			ForEach(sources, id: \.sourceURL?.absoluteString) { source in
-				if let urlString = source.sourceURL?.absoluteString {
+			ForEach(sources, id: \.identifier) { source in
+				if let identifier = source.identifier {
 					ExportSourceRow(
 						source: source,
-						isSelected: _selectedSourcesForExport.contains(urlString),
+						isSelected: _selectedSourcesForExport.contains(identifier),
 						toggleSelect: {
-							if _selectedSourcesForExport.contains(urlString) {
-								_selectedSourcesForExport.remove(urlString)
+							if _selectedSourcesForExport.contains(identifier) {
+								_selectedSourcesForExport.remove(identifier)
 							} else {
-								_selectedSourcesForExport.insert(urlString)
+								_selectedSourcesForExport.insert(identifier)
 							}
 							HapticsManager.shared.selectionChanged()
 						}
 					)
 
-					if sources.last?.sourceURL?.absoluteString != urlString {
+					if sources.last?.identifier != identifier {
 						Divider()
 							.padding(.leading, 56)
 					}
@@ -637,7 +637,14 @@ struct PlainGroupBoxStyle: GroupBoxStyle {
 	
 	// MARK: - Export through Portal
 	private func _exportThroughPortal() {
-		let selectedUrls = Array(_selectedSourcesForExport)
+		let sources = Storage.shared.getSources().filter { source in
+			if let id = source.identifier {
+				return _selectedSourcesForExport.contains(id)
+			}
+			return false
+		}
+		let selectedUrls = sources.compactMap { $0.sourceURL?.absoluteString }
+
 		let exportData = PortalSourceExport.encode(urls: selectedUrls)
 		_portalExportData = exportData
 		_showPortalExport = true
@@ -822,13 +829,12 @@ struct PortalExportData: Codable {
 // MARK: - Portal Export View
 struct PortalExportView: View {
 	@Environment(\.dismiss) private var dismiss
-	@Environment(\.colorScheme) private var colorScheme
 	@Binding var exportData: String
 	@State private var showCopiedFeedback = false
 	@State private var importText = ""
 	@State private var isImportMode = false
 	@State private var importResult: ImportResult?
-	@State private var isEncodedDataExpanded = true
+	@State private var appearAnimation = false
 	
 	enum ImportResult {
 		case success(count: Int)
@@ -837,32 +843,65 @@ struct PortalExportView: View {
 	
 	var body: some View {
 		NavigationStack {
-			ScrollView {
-				VStack(spacing: 24) {
-					headerSection
+			List {
+				Section {
+					VStack(spacing: 20) {
+						Image(systemName: isImportMode ? "arrow.down.doc.fill" : "arrow.up.doc.fill")
+							.font(.system(size: 64))
+							.foregroundStyle(isImportMode ? .cyan : .purple)
+							.pulseEffect(appearAnimation)
 
+						VStack(spacing: 8) {
+							Text(isImportMode ? .localized("Import Sources") : .localized("Export Sources"))
+								.font(.system(.title2, design: .rounded, weight: .bold))
+
+							Text(isImportMode ? .localized("Paste your Portal Transfer code to import.") : .localized("Share your sources with a Portal Transfer code."))
+								.font(.system(.subheadline, design: .rounded))
+								.multilineTextAlignment(.center)
+								.foregroundStyle(.secondary)
+								.padding(.horizontal, 20)
+						}
+					}
+					.frame(maxWidth: .infinity)
+					.padding(.vertical, 24)
+				}
+				.listRowBackground(Color.clear)
+
+				Section {
 					Picker("Mode", selection: $isImportMode) {
-						Label(.localized("Export"), systemImage: "arrow.up.circle").tag(false)
-						Label(.localized("Import"), systemImage: "arrow.down.circle").tag(true)
+						Text(.localized("Export")).tag(false)
+						Text(.localized("Import")).tag(true)
 					}
 					.pickerStyle(.segmented)
-					.padding(.horizontal)
 					.onChange(of: isImportMode) { _ in
 						importResult = nil
 						HapticsManager.shared.softImpact()
 					}
-
-					if isImportMode {
-						importSection
-					} else {
-						exportSection
-					}
-
-					quickTipsSection
 				}
-				.padding(.vertical, 20)
+				.listRowBackground(Color.clear)
+
+				if isImportMode {
+					importSection
+				} else {
+					exportSection
+				}
+
+				Section {
+					VStack(alignment: .leading, spacing: 12) {
+						Label(.localized("Quick Tips"), systemImage: "lightbulb.fill")
+							.font(.headline)
+							.foregroundStyle(.orange)
+
+						VStack(alignment: .leading, spacing: 10) {
+							tipRow(icon: "1.circle.fill", text: isImportMode ? .localized("Paste the Portal code you received") : .localized("Copy the transfer code to share"))
+							tipRow(icon: "2.circle.fill", text: isImportMode ? .localized("Tap Import to add the sources") : .localized("Send it to friends or save it"))
+						}
+					}
+					.padding(.vertical, 8)
+				} header: {
+					Text(.localized("Tips"))
+				}
 			}
-			.background(Color.clear)
 			.navigationTitle(.localized("Portal Transfer"))
 			.navigationBarTitleDisplayMode(.inline)
 			.toolbar {
@@ -870,88 +909,70 @@ struct PortalExportView: View {
 					Button(.localized("Done")) { dismiss() }
 				}
 			}
+			.onAppear {
+				withAnimation { appearAnimation = true }
+			}
 		}
-	}
-	
-	private var headerSection: some View {
-		VStack(spacing: 12) {
-				Image(systemName: isImportMode ? "arrow.down.doc.fill" : "arrow.up.doc.fill")
-					.font(.system(size: 48))
-					.foregroundStyle(isImportMode ? .cyan : .purple)
-					.bounceEffect(isImportMode)
-			
-			Text(isImportMode ? .localized("Import Sources") : .localized("Export Sources"))
-				.font(.title2.bold())
-
-			Text(isImportMode ? .localized("Paste your Portal Transfer code to import.") : .localized("Share your sources with a Portal Transfer code."))
-				.font(.subheadline)
-				.foregroundStyle(.secondary)
-				.multilineTextAlignment(.center)
-				.padding(.horizontal)
-		}
-		.padding(.top)
 	}
 	
 	private var exportSection: some View {
-		VStack(spacing: 16) {
-			GroupBox {
+		Section {
+			if !exportData.isEmpty {
 				VStack(alignment: .leading, spacing: 12) {
 					HStack {
 						Label(.localized("Transfer Code"), systemImage: "key.fill")
 							.font(.headline)
 							.foregroundStyle(.purple)
 						Spacer()
-						if !exportData.isEmpty {
-							Button {
-								UIPasteboard.general.string = exportData
-								HapticsManager.shared.success()
-								withAnimation { showCopiedFeedback = true }
-								DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
-									withAnimation { showCopiedFeedback = false }
-								}
-							} label: {
-								Label(showCopiedFeedback ? .localized("Copied") : .localized("Copy"), systemImage: showCopiedFeedback ? "checkmark" : "doc.on.doc")
-									.font(.caption.bold())
+						Button {
+							UIPasteboard.general.string = exportData
+							HapticsManager.shared.success()
+							withAnimation { showCopiedFeedback = true }
+							DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+								withAnimation { showCopiedFeedback = false }
 							}
-							.buttonStyle(.bordered)
-							.tint(.purple)
+						} label: {
+							Label(showCopiedFeedback ? .localized("Copied") : .localized("Copy"), systemImage: showCopiedFeedback ? "checkmark" : "doc.on.doc")
+								.font(.caption.bold())
 						}
+						.buttonStyle(.bordered)
+						.tint(.purple)
 					}
 					
-					if !exportData.isEmpty {
-						Text(exportData)
-							.font(.system(.caption2, design: .monospaced))
-							.textSelection(.enabled)
-							.padding(12)
-							.frame(maxWidth: .infinity, alignment: .leading)
-							.background(Color.clear)
-							.cornerRadius(12)
-					} else {
-						if #available(iOS 17.0, *) {
-							ContentUnavailableView(.localized("No Data"), systemImage: "exclamationmark.triangle")
-						} else {
-							VStack(spacing: 16) {
-								Image(systemName: "exclamationmark.triangle")
-									.font(.system(size: 48))
-									.foregroundStyle(.secondary)
-								Text(.localized("No Data"))
-									.font(.headline)
-									.foregroundStyle(.secondary)
-							}
-							.padding()
-							.frame(maxWidth: .infinity)
-						}
+					Text(exportData)
+						.font(.system(.caption2, design: .monospaced))
+						.textSelection(.enabled)
+						.foregroundStyle(.secondary)
+						.padding(12)
+						.frame(maxWidth: .infinity, alignment: .leading)
+						.background(Color.secondary.opacity(0.05))
+						.cornerRadius(12)
+				}
+				.padding(.vertical, 8)
+			} else {
+				if #available(iOS 17.0, *) {
+					ContentUnavailableView(.localized("No Data"), systemImage: "exclamationmark.triangle")
+				} else {
+					VStack(spacing: 12) {
+						Image(systemName: "exclamationmark.triangle")
+							.font(.title)
+							.foregroundStyle(.secondary)
+						Text(.localized("No Data"))
+							.font(.headline)
+							.foregroundStyle(.secondary)
 					}
+					.frame(maxWidth: .infinity)
+					.padding()
 				}
 			}
-			.padding(.horizontal)
-			.groupBoxStyle(ModernGroupBoxStyle())
+		} header: {
+			Text(.localized("Transfer Data"))
 		}
 	}
 	
 	private var importSection: some View {
-		VStack(spacing: 16) {
-			GroupBox {
+		Group {
+			Section {
 				VStack(alignment: .leading, spacing: 12) {
 					HStack {
 						Label(.localized("Portal Code"), systemImage: "square.and.pencil")
@@ -975,69 +996,55 @@ struct PortalExportView: View {
 						.font(.system(.caption, design: .monospaced))
 						.frame(minHeight: 120)
 						.padding(8)
-						.background(Color.clear)
+						.background(Color.secondary.opacity(0.05))
 						.cornerRadius(12)
 				}
+				.padding(.vertical, 8)
+			} header: {
+				Text(.localized("Import Data"))
 			}
-			.padding(.horizontal)
-			.groupBoxStyle(ModernGroupBoxStyle())
-			
-			Button {
-				performImport()
-			} label: {
-				Label(.localized("Import Sources"), systemImage: "arrow.down.circle.fill")
+
+			Section {
+				Button {
+					performImport()
+				} label: {
+					HStack {
+						Image(systemName: "arrow.down.circle.fill")
+						Text(.localized("Import Sources"))
+					}
+					.font(.headline)
 					.frame(maxWidth: .infinity)
+					.padding(.vertical, 12)
+				}
+				.buttonStyle(.borderedProminent)
+				.tint(.cyan)
+				.disabled(importText.isEmpty)
 			}
-			.buttonStyle(.borderedProminent)
-			.controlSize(.large)
-			.padding(.horizontal)
-			.disabled(importText.isEmpty)
+			.listRowBackground(Color.clear)
+			.listRowInsets(EdgeInsets())
 			
 			if let result = importResult {
-				resultCard(result: result)
-					.padding(.horizontal)
-			}
-		}
-	}
-	
-	private func resultCard(result: ImportResult) -> some View {
-		GroupBox {
-			HStack {
-				switch result {
-				case .success(let count):
-					Label(.localized("\(count) Sources Added"), systemImage: "checkmark.circle.fill")
-						.foregroundStyle(.green)
-				case .error(let message):
-					Label(message, systemImage: "xmark.circle.fill")
-						.foregroundStyle(.red)
-				}
-				Spacer()
-			}
-		}
-		.groupBoxStyle(ModernGroupBoxStyle())
-	}
-	
-	private var quickTipsSection: some View {
-		GroupBox {
-			VStack(alignment: .leading, spacing: 10) {
-				Label(.localized("Quick Tips"), systemImage: "lightbulb.fill")
-					.font(.headline)
-					.foregroundStyle(.orange)
-
-				VStack(alignment: .leading, spacing: 8) {
-					tipRow(icon: "1.circle.fill", text: isImportMode ? .localized("Paste the Portal code you received") : .localized("Copy the transfer code to share"))
-					tipRow(icon: "2.circle.fill", text: isImportMode ? .localized("Tap Import to add the sources") : .localized("Send it to friends or save it"))
+				Section {
+					HStack {
+						switch result {
+						case .success(let count):
+							Label(.localized("\(count) Sources Added"), systemImage: "checkmark.circle.fill")
+								.foregroundStyle(.green)
+						case .error(let message):
+							Label(message, systemImage: "xmark.circle.fill")
+								.foregroundStyle(.red)
+						}
+						Spacer()
+					}
 				}
 			}
 		}
-		.padding(.horizontal)
-		.groupBoxStyle(ModernGroupBoxStyle())
 	}
 	
 	private func tipRow(icon: String, text: String) -> some View {
-		HStack(spacing: 8) {
+		HStack(spacing: 10) {
 			Image(systemName: icon).foregroundStyle(.orange)
-			Text(text).font(.caption).foregroundStyle(.secondary)
+			Text(text).font(.subheadline).foregroundStyle(.secondary)
 		}
 	}
 	
@@ -1057,18 +1064,6 @@ struct PortalExportView: View {
 		
 		withAnimation { importResult = .success(count: addedCount) }
 		HapticsManager.shared.success()
-	}
-}
-
-struct ModernGroupBoxStyle: GroupBoxStyle {
-	func makeBody(configuration: Configuration) -> some View {
-		VStack(alignment: .leading) {
-			configuration.label
-			configuration.content
-		}
-		.padding()
-		.background(Color.clear)
-		.cornerRadius(16)
 	}
 }
 

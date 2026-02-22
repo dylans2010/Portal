@@ -12,6 +12,14 @@ enum FR {
 		completion: @escaping (Error?) -> Void
 	) {
 		Task.detached {
+			// Start Live Activity for manual imports if not already started by download
+			if download == nil {
+				if #available(iOS 16.2, *), UserDefaults.standard.bool(forKey: "Feather.liveActivityEnabled") {
+					let appName = ipa.deletingPathExtension().lastPathComponent
+					LiveActivityManager.shared.startActivity(appName: appName, bundleId: "unknown")
+				}
+			}
+
 			let handler = AppFileHandler(file: ipa, download: download)
 			
 			do {
@@ -20,6 +28,11 @@ enum FR {
 				try await handler.move()
 				try await handler.addToDatabase()
 				try? await handler.clean()
+
+				if #available(iOS 16.2, *) {
+					LiveActivityManager.shared.endActivityWithSuccess()
+				}
+
 				await MainActor.run {
 					completion(nil)
 				}

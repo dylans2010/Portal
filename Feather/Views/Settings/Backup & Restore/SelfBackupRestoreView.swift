@@ -10,6 +10,7 @@ struct SelfBackupRestoreView: View {
     @StateObject private var viewModel = SelfBackupRestoreViewModel()
     @State private var showingBackupOptions = false
     @State private var showingRestoreList = false
+    @State private var showingBackupContents = false
     @State private var backupOptions = BackupOptions()
     @State private var showingDocumentPicker = false
     @State private var showingRenameAlert = false
@@ -162,6 +163,36 @@ struct SelfBackupRestoreView: View {
                     .padding(.vertical, 8)
                 }
                 .disabled(viewModel.isCreatingBackup || viewModel.isRestoring)
+
+                // View Backup Contents
+                Button {
+                    showingBackupContents = true
+                } label: {
+                    HStack(spacing: 16) {
+                        ZStack {
+                            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                .fill(Color.orange.opacity(0.15))
+                                .frame(width: 50, height: 50)
+
+                            Image(systemName: "doc.text.magnifyingglass")
+                                .font(.title2)
+                                .foregroundStyle(.orange)
+                        }
+
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text(.localized("View Backup Contents"))
+                                .font(.headline)
+                                .foregroundStyle(.primary)
+                            Text(.localized("Inspect Backup Data"))
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+
+                        Spacer()
+                    }
+                    .padding(.vertical, 8)
+                }
+                .disabled(viewModel.isCreatingBackup || viewModel.isRestoring)
             } header: {
                 AppearanceSectionHeader(title: String.localized("Quick Actions"), icon: "bolt.fill")
             }
@@ -256,6 +287,9 @@ struct SelfBackupRestoreView: View {
         }
         .navigationTitle("Self Backup & Restore")
         .navigationBarTitleDisplayMode(.inline)
+        .sheet(isPresented: $showingBackupContents) {
+            BackupContentsView()
+        }
         .sheet(isPresented: $showingBackupOptions) {
             BackupOptionsView(
                 options: $backupOptions,
