@@ -36,4 +36,14 @@ extension FileManager {
 	func certificates(_ uuid: String) -> URL {
 		certificates.appendingPathComponent(uuid)
 	}
+
+	func allocatedSizeOfDirectory(at directoryURL: URL) throws -> Int64 {
+		let filesArray = try contentsOfDirectory(at: directoryURL, includingPropertiesForKeys: [.fileAllocatedSizeKey], options: [])
+		var total: Int64 = 0
+		for fileURL in filesArray {
+			let resourceValues = try fileURL.resourceValues(forKeys: [.fileAllocatedSizeKey])
+			total += Int64(resourceValues.fileAllocatedSize ?? 0)
+		}
+		return total
+	}
 }
