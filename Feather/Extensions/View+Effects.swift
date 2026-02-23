@@ -34,27 +34,21 @@ struct PulseEffectModifier<T: Equatable>: ViewModifier {
     }
 }
 
-/// A modifier that applies a one-time bounce symbol effect on iOS 17+.
+/// A modifier that applies a one-time bounce symbol effect on iOS 18+.
+@available(iOS 18.0, *)
 struct BounceOnceModifier: ViewModifier {
     func body(content: Content) -> some View {
-        if #available(iOS 17.0, *) {
-            content.symbolEffect(.bounce, options: .nonRepeating)
-        } else {
-            content
-        }
+        content.symbolEffect(.bounce, options: .nonRepeating)
     }
 }
 
-/// A modifier that applies an appear symbol effect on iOS 17+.
+/// A modifier that applies an appear symbol effect on iOS 18+.
+@available(iOS 18.0, *)
 struct AppearEffectModifier: ViewModifier {
     let when: Bool
 
     func body(content: Content) -> some View {
-        if #available(iOS 17.0, *) {
-            content.symbolEffect(.appear, when: when)
-        } else {
-            content
-        }
+        content.symbolEffect(.appear, value: when)
     }
 }
 
@@ -71,10 +65,10 @@ extension View {
         }
     }
 
-    /// Applies a repeating bounce symbol effect on iOS 17+.
+    /// Applies a repeating bounce symbol effect on iOS 18+.
     @ViewBuilder
     func bounceEffect() -> some View {
-        if #available(iOS 17.0, *) {
+        if #available(iOS 18.0, *) {
             self.symbolEffect(.bounce, options: .repeating)
         } else {
             self
@@ -91,14 +85,24 @@ extension View {
         self.modifier(PulseEffectModifier(value: value))
     }
 
-    /// Applies a one-time bounce symbol effect on iOS 17+.
+    /// Applies a one-time bounce symbol effect on iOS 18+.
+    @ViewBuilder
     func bounceEffectOnce() -> some View {
-        self.modifier(BounceOnceModifier())
+        if #available(iOS 18.0, *) {
+            self.modifier(BounceOnceModifier())
+        } else {
+            self
+        }
     }
 
-    /// Applies an appear symbol effect on iOS 17+ when the provided condition is met.
+    /// Applies an appear symbol effect on iOS 18+ when the provided condition is met.
+    @ViewBuilder
     func appearEffect(when: Bool) -> some View {
-        self.modifier(AppearEffectModifier(when: when))
+        if #available(iOS 18.0, *) {
+            self.modifier(AppearEffectModifier(when: when))
+        } else {
+            self
+        }
     }
 
     /// Applies a pulse symbol effect on iOS 18+.
