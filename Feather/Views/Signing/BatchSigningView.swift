@@ -52,7 +52,7 @@ struct BatchSigningView: View {
     struct BatchSignResult: Identifiable {
         let id = UUID()
         let appName: String
-        let success: Bool
+        var success: Bool
         let message: String
         let itmsLink: String?
     }
@@ -179,7 +179,7 @@ struct BatchSigningView: View {
                 } label: {
                     HStack {
                         Image(systemName: "certificate.fill")
-                            .foregroundStyle(.accent)
+                            .foregroundStyle(.accentColor)
                         Text(certificates[selectedCertificateIndex].nickname ?? "Certificate \(selectedCertificateIndex + 1)")
                             .foregroundStyle(.primary)
                         Spacer()
@@ -291,7 +291,7 @@ struct BatchSigningView: View {
                                 }
                             } label: {
                                 Image(systemName: "arrow.down.circle.fill")
-                                    .foregroundStyle(.accent)
+                                    .foregroundStyle(.accentColor)
                             }
                         }
                     }
@@ -532,5 +532,126 @@ struct BatchSigningView: View {
     
     private func cleanupSignedApps() async {
         // Clean up temporary IPA files if needed
+    }
+}
+
+// MARK: - Supporting Views
+
+struct BatchAppRow: View {
+    let app: AppInfoPresentable
+    let isSelected: Bool
+    let hasCustomOptions: Bool
+    let onToggle: () -> Void
+    let onEdit: () -> Void
+
+    var body: some View {
+        HStack(spacing: 12) {
+            Button(action: onToggle) {
+                HStack(spacing: 12) {
+                    Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
+                        .font(.title2)
+                        .foregroundStyle(isSelected ? Color.accentColor : Color.secondary)
+
+                    FRAppIconView(app: app, size: 40)
+
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(app.name ?? "Unknown App")
+                            .font(.subheadline.bold())
+                            .foregroundStyle(.primary)
+
+                        Text(app.identifier ?? "Unknown Bundle ID")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+
+                    Spacer()
+                }
+            }
+            .buttonStyle(.plain)
+
+            if isSelected {
+                Button(action: onEdit) {
+                    Image(systemName: "slider.horizontal.3")
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundStyle(hasCustomOptions ? Color.accentColor : .secondary)
+                        .padding(8)
+                        .background(Color.accentColor.opacity(hasCustomOptions ? 0.1 : 0.05))
+                        .clipShape(Circle())
+                }
+                .buttonStyle(.plain)
+            }
+        }
+        .padding(.horizontal)
+        .padding(.vertical, 8)
+    }
+}
+
+struct BatchAppEditSheet: View {
+    let app: AppInfoPresentable
+    @Binding var options: Options
+    let onDismiss: () -> Void
+
+    var body: some View {
+        NavigationStack {
+            Form {
+                Section {
+                    HStack(spacing: 16) {
+                        FRAppIconView(app: app, size: 60)
+
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text(app.name ?? "Unknown")
+                                .font(.headline)
+                            Text(app.identifier ?? "Unknown")
+                                .font(.subheadline)
+                                .foregroundStyle(.secondary)
+                            Text(app.version ?? "Unknown")
+                                .font(.caption)
+                                .foregroundStyle(.tertiary)
+                        }
+                    }
+                    .padding(.vertical, 8)
+                } header: {
+                    Text("App Information")
+                }
+
+                Section {
+                    TextField("App Name", text: Binding(
+                        get: { options.appName ?? "" },
+                        set: { options.appName = $0 }
+                    ))
+
+                    TextField("Bundle Identifier", text: Binding(
+                        get: { options.appIdentifier ?? "" },
+                        set: { options.appIdentifier = $0 }
+                    ))
+
+                    TextField("Version", text: Binding(
+                        get: { options.appVersion ?? "" },
+                        set: { options.appVersion = $0 }
+                    ))
+                } header: {
+                    Text("Custom Signing Options")
+                } footer: {
+                    Text("These values will be used when signing this specific app in the batch.")
+                }
+
+                Section {
+                    Button("Reset to Defaults", role: .destructive) {
+                        options.appName = app.name
+                        options.appIdentifier = app.identifier
+                        options.appVersion = app.version
+                    }
+                }
+            }
+            .navigationTitle("Edit Signing Options")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Done") {
+                        onDismiss()
+                    }
+                }
+            }
+        }
     }
 }
