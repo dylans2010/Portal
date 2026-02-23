@@ -2018,7 +2018,7 @@ extension View {
     /// Applies AI button effect with iOS version checks
     @ViewBuilder
     func aiButtonEffect(isActive: Bool) -> some View {
-        if #available(iOS 17.0, *) {
+        if #available(iOS 18.0, *) {
             self.symbolEffect(.pulse, options: .repeating, isActive: isActive)
         } else {
             self

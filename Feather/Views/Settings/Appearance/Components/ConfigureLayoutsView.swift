@@ -472,7 +472,7 @@ struct ConfigureBounceEffectModifier: ViewModifier {
     let trigger: Bool
     
     func body(content: Content) -> some View {
-        if #available(iOS 17.0, *) {
+        if #available(iOS 18.0, *) {
             content.symbolEffect(.bounce, value: trigger)
         } else {
             content
