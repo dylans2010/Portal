@@ -78,7 +78,7 @@ struct PortalTransferView: View {
                 Image(systemName: isImportMode ? "arrow.down.doc.fill" : "arrow.up.doc.fill")
                     .font(.system(size: 40, weight: .semibold))
                     .foregroundStyle(isImportMode ? .cyan : .purple)
-                    .symbolEffect(.bounce, value: isImportMode)
+                    .bounceEffect(isImportMode)
             }
             .padding(.top, 24)
 
@@ -208,7 +208,7 @@ struct PortalTransferView: View {
                     case .success(let count):
                         Label(.localized("\(count) Sources Added"), systemImage: "checkmark.circle.fill")
                             .foregroundStyle(.green)
-                            .symbolEffect(.appear, when: true)
+                            .appearEffect(when: true)
                     case .error(let message):
                         Label(message, systemImage: "xmark.circle.fill")
                             .foregroundStyle(.red)

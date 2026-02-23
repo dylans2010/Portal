@@ -125,7 +125,7 @@ struct CertificatesAddView: View {
             Image(systemName: "checkmark.seal.fill")
                 .font(.system(size: 48))
                 .foregroundStyle(.blue)
-                .symbolEffect(.bounce, value: _p12URL != nil)
+                .bounceEffect(_p12URL != nil)
             
             Text("Import Certificate")
                 .font(.title2.bold())
@@ -144,7 +144,7 @@ struct CertificatesAddView: View {
                 Image(systemName: "checkmark.circle.fill")
                     .font(.system(size: 60))
                     .foregroundStyle(.green)
-                    .symbolEffect(.bounce, options: .nonRepeating)
+                    .bounceEffectOnce()
                 
                 Text("Certificate Added!")
                     .font(.title2.bold())
@@ -336,7 +336,7 @@ struct CertificatesAddView: View {
                     .font(.system(size: 20))
                     .frame(width: 30)
                     .foregroundColor(.accentColor)
-                    .symbolEffect(.bounce, value: subtitle != nil)
+                    .bounceEffect(subtitle != nil)
 
                 VStack(alignment: .leading, spacing: 2) {
                     Text(title)
