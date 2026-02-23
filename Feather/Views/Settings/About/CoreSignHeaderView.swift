@@ -89,7 +89,7 @@ struct CoreSignHeaderView: View {
                 .clipShape(Capsule())
 
                 // Release Label (Modern capsule badge)
-                Text("RELEASE")
+                Text("Release")
                     .font(.system(size: 10, weight: .bold))
                     .kerning(1.0)
                     .padding(.horizontal, 10)

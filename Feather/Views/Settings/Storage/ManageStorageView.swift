@@ -72,7 +72,7 @@ struct ManageStorageView: View {
                         VStack(alignment: .leading, spacing: 4) {
                             Text(formatBytes(usedSpace))
                                 .font(.title.bold())
-                            Text(.localized("Used of \(formatBytes(totalSpace))"))
+                            Text(.localized("Used Of \(formatBytes(totalSpace))"))
                                 .font(.subheadline)
                                 .foregroundStyle(.secondary)
                         }

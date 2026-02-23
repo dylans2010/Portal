@@ -31,7 +31,7 @@ struct AppAddView: View {
                     .font(.system(size: 28, weight: .black, design: .rounded))
                     .foregroundStyle(.primary)
 
-                Text(String.localized("Choose a method to import your application"))
+                Text(String.localized("Choose a action to import an app."))
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
                     .multilineTextAlignment(.center)
@@ -40,7 +40,7 @@ struct AppAddView: View {
 
             HStack(spacing: 20) {
                 ImportOptionButton(
-                    title: String.localized("From Files"),
+                    title: String.localized("Files"),
                     icon: "folder.fill.badge.plus",
                     color: .blue,
                     action: {
@@ -49,7 +49,7 @@ struct AppAddView: View {
                 )
 
                 ImportOptionButton(
-                    title: String.localized("From URL"),
+                    title: String.localized("URL"),
                     icon: "link.badge.plus",
                     color: .purple,
                     action: {

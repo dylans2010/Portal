@@ -1,3 +1,5 @@
+// Made by dylan on 2/22/26
+
 import SwiftUI
 
 struct PortalTopView: View {
@@ -9,7 +11,6 @@ struct PortalTopView: View {
                 HStack {
                     Spacer()
 
-                    // Premium Floating Pill
                     HStack(spacing: 10) {
                         if let iconName = Bundle.main.iconFileName,
                            let icon = UIImage(named: iconName) {
@@ -39,7 +40,6 @@ struct PortalTopView: View {
                             Capsule()
                                 .fill(.ultraThinMaterial)
 
-                            // Subtle Depth Layer
                             Capsule()
                                 .fill(LinearGradient(colors: [Color.accentColor.opacity(0.05), Color.blue.opacity(0.05)], startPoint: .topLeading, endPoint: .bottomTrailing))
                         }
@@ -56,7 +56,7 @@ struct PortalTopView: View {
                         }
                     }
                     .shadow(color: .black.opacity(0.12), radius: 12, x: 0, y: 6)
-                    .offset(y: 2) // Better positioning relative to the notch/dynamic island
+                    .offset(y: 2)
 
                     Spacer()
                 }

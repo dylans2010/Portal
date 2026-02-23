@@ -534,7 +534,7 @@ struct ErrorCodeDetailView: View {
                     VStack(alignment: .leading, spacing: 20) {
                         // Description
                         VStack(alignment: .leading, spacing: 8) {
-                            Label("DESCRIPTION", systemImage: "text.alignleft")
+                            Label("Description", systemImage: "text.alignleft")
                                 .font(.system(size: 12, weight: .black))
                                 .foregroundStyle(.secondary)
 
@@ -549,7 +549,7 @@ struct ErrorCodeDetailView: View {
 
                         // Suggestion
                         VStack(alignment: .leading, spacing: 8) {
-                            Label("SUGGESTION", systemImage: "lightbulb.fill")
+                            Label("Suggestion", systemImage: "lightbulb.fill")
                                 .font(.system(size: 12, weight: .black))
                                 .foregroundStyle(.orange)
 
@@ -569,7 +569,7 @@ struct ErrorCodeDetailView: View {
                     Button {
                         dismiss()
                     } label: {
-                        Text("Got it")
+                        Text("Got It")
                             .font(.headline)
                             .foregroundStyle(.white)
                             .frame(maxWidth: .infinity)
@@ -623,7 +623,7 @@ struct LogInfoView: View {
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
 
-                Text("Sharing these logs when reporting a bug helps developers identify and fix the issue much faster.")
+                Text("Sharing these logs when reporting a bug helps me to dentify and fix the issue much faster.")
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
             }
@@ -709,7 +709,7 @@ struct LogErrorCodeRow: View {
 
             if isExpanded {
                 VStack(alignment: .leading, spacing: 4) {
-                    Text("SUGGESTION")
+                    Text("Suggestion")
                         .font(.system(size: 10, weight: .black))
                         .foregroundStyle(.secondary)
                     Text(info.suggestion)
@@ -722,7 +722,7 @@ struct LogErrorCodeRow: View {
                 .cornerRadius(8)
                 .transition(.opacity.combined(with: .move(edge: .top)))
             } else {
-                Text("Click to see suggestion")
+                Text("Click To See Suggestion")
                     .font(.system(size: 10, weight: .bold))
                     .foregroundStyle(Color.accentColor)
                     .padding(.vertical, 4)

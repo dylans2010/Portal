@@ -625,7 +625,7 @@ struct LibraryDownloadHeaderView: View {
                     if downloadManager.manualDownloads.count > 1 {
                         HStack {
                             Spacer()
-                            Text(verbatim: "+\(downloadManager.manualDownloads.count - 1) more")
+                            Text(verbatim: "+\(downloadManager.manualDownloads.count - 1) More")
                                 .font(.caption2.bold())
                                 .foregroundColor(.secondary)
                                 .padding(.horizontal, 8)
