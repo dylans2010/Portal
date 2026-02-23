@@ -171,11 +171,19 @@ struct PortalTransferView: View {
             Section {
                 ZStack(alignment: .topLeading) {
                     if importText.isEmpty {
-                        Text("Paste code here...")
-                            .font(.system(.caption, design: .monospaced))
-                            .foregroundStyle(.placeholder)
-                            .padding(.top, 8)
-                            .padding(.leading, 4)
+                        if #available(iOS 17.0, *) {
+                            Text("Paste code here...")
+                                .font(.system(.caption, design: .monospaced))
+                                .foregroundStyle(.placeholder)
+                                .padding(.top, 8)
+                                .padding(.leading, 4)
+                        } else {
+                            Text("Paste code here...")
+                                .font(.system(.caption, design: .monospaced))
+                                .foregroundColor(.secondary)
+                                .padding(.top, 8)
+                                .padding(.leading, 4)
+                        }
                     }
                     TextEditor(text: $importText)
                         .font(.system(.caption, design: .monospaced))
