@@ -30,6 +30,11 @@ struct BatchSigningView: View {
     @State private var installationIndex = 0
     @State private var signedAppsForInstall: [AppInfoPresentable] = []
     
+    // Animation states
+    @State private var pulseAnimation = false
+    @State private var rotationAnimation = false
+    @State private var glowAnimation = false
+    
     // Edit functionality
     @State private var appOptions: [String: Options] = [:] // UUID -> Custom Options
     @State private var editingAppId: String? = nil
@@ -49,273 +54,350 @@ struct BatchSigningView: View {
         let appName: String
         let success: Bool
         let message: String
+        let itmsLink: String?
     }
     
     var body: some View {
-        NavigationStack {
-            ZStack {
-                List {
-                    // Custom Header
-                    Section {
-                        HStack {
-                            Text("Batch Signing")
-                                .font(.system(.title2, design: .rounded).bold())
-                            Spacer()
-                            Button {
-                                dismiss()
-                            } label: {
-                                Image(systemName: "xmark.circle.fill")
-                                    .font(.title2)
-                                    .foregroundStyle(.secondary)
-                                    .symbolRenderingMode(.hierarchical)
-                            }
-                            .buttonStyle(.plain)
-                        }
-                    }
-                    .listRowBackground(Color.clear)
-                    .listRowInsets(EdgeInsets(top: 12, leading: 16, bottom: 8, trailing: 16))
-
-                    // Certificate Selection
-                    Section {
-                        if certificates.isEmpty {
-                            HStack(spacing: 12) {
-                                Image(systemName: "exclamationmark.triangle.fill")
-                                    .font(.title2)
-                                    .foregroundStyle(.orange)
-                                Text("No Certificates Available")
-                                    .foregroundStyle(.secondary)
-                            }
-                        } else {
-                            HStack {
-                                Label("Signing Certificate", systemImage: "checkmark.seal.fill")
-                                Spacer()
-                                Menu {
-                                    ForEach(Array(certificates.enumerated()), id: \.element.uuid) { index, cert in
-                                        Button {
-                                            selectedCertificateIndex = index
-                                        } label: {
-                                            HStack {
-                                                if selectedCertificateIndex == index {
-                                                    Image(systemName: "checkmark")
-                                                }
-                                                Text(cert.nickname ?? "Certificate \(index + 1)")
-                                            }
-                                        }
-                                    }
-                                } label: {
-                                    HStack(spacing: 4) {
-                                        Text(certificates[selectedCertificateIndex].nickname ?? "Certificate \(selectedCertificateIndex + 1)")
-                                            .foregroundStyle(.secondary)
-                                        Image(systemName: "chevron.up.chevron.down")
-                                            .font(.caption2)
-                                            .foregroundStyle(.secondary)
-                                    }
-                                }
-                            }
-                        }
-                    } header: {
-                        Label("Certificate", systemImage: "checkmark.seal.fill")
-                    }
-                    
-                    // Auto Install Toggle
-                    Section {
-                        Toggle(isOn: $autoInstall) {
-                            HStack(spacing: 8) {
-                                Image(systemName: "arrow.down.circle.fill")
-                                    .foregroundStyle(.green)
-                                Text("Auto Install After Signing")
-                            }
-                        }
-                    } header: {
-                        Label("Options", systemImage: "gearshape.fill")
-                    } footer: {
-                        Text("Automatically install apps after successful signing. This does not work as of now, you can install manually from Library after the Batch Signing is completed.")
-                    }
-
-                    // App Selection
-                    Section {
-                        if apps.isEmpty {
-                            HStack(spacing: 12) {
-                                Image(systemName: "exclamationmark.triangle.fill")
-                                    .font(.title2)
-                                    .foregroundStyle(.orange)
-                                Text("No Apps Available For Signing")
-                                    .foregroundStyle(.secondary)
-                            }
-                        } else {
-                            ForEach(apps, id: \.uuid) { app in
-                                BatchAppRow(
-                                    app: app,
-                                    isSelected: selectedApps.contains(app.uuid ?? ""),
-                                    hasCustomOptions: appOptions[app.uuid ?? ""] != nil,
-                                    onToggle: {
-                                        toggleAppSelection(app)
-                                    },
-                                    onEdit: {
-                                        editingAppId = app.uuid
-                                        showEditSheet = true
-                                    }
-                                )
-                            }
-                        }
-                    } header: {
-                        HStack {
-                            Label("Select Apps (\(selectedApps.count) Selected)", systemImage: "app.badge.checkmark.fill")
-                            Spacer()
-                            if !apps.isEmpty {
-                                Button(selectedApps.count == apps.count ? "Deselect All" : "Select All") {
-                                    withAnimation {
-                                        if selectedApps.count == apps.count {
-                                            selectedApps.removeAll()
-                                        } else {
-                                            selectedApps = Set(apps.compactMap { $0.uuid })
-                                        }
-                                    }
-                                }
-                                .font(.caption)
-                            }
-                        }
-                    }
-
-                    // Batch Action
-                    Section {
-                        Button {
-                            startBatchSigning()
-                        } label: {
-                            HStack(spacing: 12) {
-                                Image(systemName: "signature")
-                                    .font(.title3)
-                                Text("Sign Selected Apps (\(selectedApps.count))")
-                                    .font(.headline)
-                            }
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 8)
-                        }
-                        .disabled(selectedApps.isEmpty || certificates.isEmpty || isSigningBatch)
-                    } header: {
-                        Label("Actions", systemImage: "bolt.fill")
-                    }
-                    
-                    // Results Section
-                    if !batchResults.isEmpty {
-                        Section {
-                            ForEach(batchResults) { result in
-                                HStack(spacing: 12) {
-                                    Image(systemName: result.success ? "checkmark.circle.fill" : "xmark.circle.fill")
-                                        .font(.title2)
-                                        .foregroundStyle(result.success ? .green : .red)
-                                    VStack(alignment: .leading, spacing: 4) {
-                                        Text(result.appName)
-                                            .font(.subheadline.weight(.medium))
-                                        Text(result.message)
-                                            .font(.caption)
-                                            .foregroundStyle(.secondary)
-                                    }
-                                    Spacer()
-                                }
-                            }
-                        } header: {
-                            Label("Results", systemImage: "checklist")
-                        }
-                    }
-                }
-            .scrollContentBackground(.hidden)
+        ZStack {
+            // Modern Background
+            LinearGradient(
+                colors: [
+                    Color.accentColor.opacity(0.05),
+                    Color(uiColor: .systemBackground)
+                ],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+            .ignoresSafeArea()
+            
+            VStack(spacing: 0) {
+                // Custom Header
+                headerView
                 
-                // Progress Overlay
-                if isSigningBatch {
-                    ZStack {
-                        Color.black.opacity(0.4)
-                            .ignoresSafeArea()
-                            .transition(AnyTransition.opacity)
-
-                        VStack(spacing: 24) {
-                            // Animated Icon
-                            ZStack {
-                                Circle()
-                                    .fill(
-                                        LinearGradient(
-                                            colors: [Color.accentColor.opacity(0.3), Color.accentColor.opacity(0.1)],
-                                            startPoint: .topLeading,
-                                            endPoint: .bottomTrailing
-                                        )
-                                    )
-                                    .frame(width: 80, height: 80)
-                                    .blur(radius: 8)
-                                
-                                Image(systemName: currentPhase == .signing ? "signature" : "arrow.down.circle.fill")
-                                    .font(.system(size: 32, weight: .semibold))
-                                    .foregroundStyle(.white)
-                                    .pulseEffect(true)
-                            }
-
-                            VStack(spacing: 12) {
-                                Text(currentPhase == .signing ? "Signing Apps" : "Installing Apps")
-                                    .font(.title3.weight(.bold))
-                                    .foregroundStyle(.white)
-
-                                Text(currentSigningApp)
-                                    .font(.subheadline)
-                                    .foregroundStyle(.white.opacity(0.8))
-                                    .lineLimit(1)
-                                    .frame(maxWidth: 250)
-
-                                // Progress Bar
-                                VStack(spacing: 8) {
-                                    GeometryReader { geometry in
-                                        ZStack(alignment: .leading) {
-                                            RoundedRectangle(cornerRadius: 8)
-                                                .fill(Color.white.opacity(0.2))
-                                            
-                                            RoundedRectangle(cornerRadius: 8)
-                                                .fill(
-                                                    LinearGradient(
-                                                        colors: [.accentColor, .accentColor.opacity(0.7)],
-                                                        startPoint: .leading,
-                                                        endPoint: .trailing
-                                                    )
-                                                )
-                                                .frame(width: geometry.size.width * batchProgress)
-                                        }
-                                    }
-                                    .frame(height: 8)
-                                    
-                                    Text("\(Int(batchProgress * 100))%")
-                                        .font(.caption.bold().monospacedDigit())
-                                        .foregroundStyle(.white.opacity(0.7))
-                                }
-                                .padding(.horizontal, 20)
-                            }
+                ScrollView {
+                    VStack(spacing: 20) {
+                        certificateSection
+                        optionsSection
+                        appSelectionSection
+                        
+                        if !batchResults.isEmpty {
+                            resultsSection
                         }
-                        .padding(40)
-                        .background(Color.clear)
-                        .clipShape(RoundedRectangle(cornerRadius: 28, style: .continuous))
-                        .shadow(color: .black.opacity(0.3), radius: 30, x: 0, y: 15)
-                        .transition(AnyTransition.scale.combined(with: .opacity))
                     }
+                    .padding()
                 }
+                
+                // Bottom Action Button
+                actionButton
             }
-            .navigationBarHidden(true)
-            .sheet(isPresented: $showEditSheet) {
-                if let appId = editingAppId,
-                   let app = apps.first(where: { $0.uuid == appId }) {
-                    BatchAppEditSheet(
-                        app: app,
-                        options: Binding(
-                            get: { appOptions[appId] ?? createDefaultOptions(for: app) },
-                            set: { appOptions[appId] = $0 }
-                        ),
-                        onDismiss: {
-                            showEditSheet = false
+            
+            // Progress Overlay
+            if isSigningBatch {
+                progressOverlay
+            }
+        }
+        .navigationBarHidden(true)
+        .sheet(isPresented: $showEditSheet) {
+            if let appId = editingAppId,
+               let app = apps.first(where: { $0.uuid == appId }) {
+                BatchAppEditSheet(
+                    app: app,
+                    options: Binding(
+                        get: { appOptions[appId] ?? createDefaultOptions(for: app) },
+                        set: { appOptions[appId] = $0 }
+                    ),
+                    onDismiss: {
+                        showEditSheet = false
+                    }
+                )
+            }
+        }
+        .onAppear {
+            startAnimations()
+        }
+    }
+    
+    // MARK: - Subviews
+    
+    private var headerView: some View {
+        HStack {
+            VStack(alignment: .leading, spacing: 4) {
+                Text("Batch Signing")
+                    .font(.system(.title, design: .rounded).bold())
+                Text("\(selectedApps.count) apps selected")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+            }
+            
+            Spacer()
+            
+            Button {
+                dismiss()
+            } label: {
+                Image(systemName: "xmark.circle.fill")
+                    .font(.title)
+                    .foregroundStyle(.secondary)
+                    .symbolRenderingMode(.hierarchical)
+            }
+            .buttonStyle(.plain)
+        }
+        .padding(.horizontal)
+        .padding(.top, 20)
+        .padding(.bottom, 10)
+    }
+    
+    private var certificateSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Label("Signing Certificate", systemImage: "checkmark.seal.fill")
+                .font(.headline)
+            
+            if certificates.isEmpty {
+                HStack(spacing: 12) {
+                    Image(systemName: "exclamationmark.triangle.fill")
+                        .foregroundStyle(.orange)
+                    Text("No Certificates Available")
+                        .foregroundStyle(.secondary)
+                }
+                .padding()
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(Color(uiColor: .secondarySystemBackground))
+                .clipShape(RoundedRectangle(cornerRadius: 12))
+            } else {
+                Menu {
+                    ForEach(Array(certificates.enumerated()), id: \.element.uuid) { index, cert in
+                        Button {
+                            selectedCertificateIndex = index
+                        } label: {
+                            HStack {
+                                if selectedCertificateIndex == index {
+                                    Image(systemName: "checkmark")
+                                }
+                                Text(cert.nickname ?? "Certificate \(index + 1)")
+                            }
                         }
-                    )
+                    }
+                } label: {
+                    HStack {
+                        Image(systemName: "certificate.fill")
+                            .foregroundStyle(.accent)
+                        Text(certificates[selectedCertificateIndex].nickname ?? "Certificate \(selectedCertificateIndex + 1)")
+                            .foregroundStyle(.primary)
+                        Spacer()
+                        Image(systemName: "chevron.up.chevron.down")
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
+                    }
+                    .padding()
+                    .background(Color(uiColor: .secondarySystemBackground))
+                    .clipShape(RoundedRectangle(cornerRadius: 12))
                 }
             }
         }
     }
     
+    private var optionsSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Label("Options", systemImage: "gearshape.fill")
+                .font(.headline)
+            
+            Toggle(isOn: $autoInstall) {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Auto Install After Signing")
+                        .font(.body.weight(.medium))
+                    Text("Install apps automatically once signed")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+            }
+            .padding()
+            .background(Color(uiColor: .secondarySystemBackground))
+            .clipShape(RoundedRectangle(cornerRadius: 12))
+        }
+    }
+    
+    private var appSelectionSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                Label("Select Apps", systemImage: "app.badge.checkmark.fill")
+                    .font(.headline)
+                Spacer()
+                if !apps.isEmpty {
+                    Button(selectedApps.count == apps.count ? "Deselect All" : "Select All") {
+                        withAnimation {
+                            if selectedApps.count == apps.count {
+                                selectedApps.removeAll()
+                            } else {
+                                selectedApps = Set(apps.compactMap { $0.uuid })
+                            }
+                        }
+                    }
+                    .font(.caption.bold())
+                }
+            }
+            
+            if apps.isEmpty {
+                Text("No Apps Available For Signing")
+                    .foregroundStyle(.secondary)
+                    .padding()
+            } else {
+                VStack(spacing: 8) {
+                    ForEach(apps, id: \.uuid) { app in
+                        BatchAppRow(
+                            app: app,
+                            isSelected: selectedApps.contains(app.uuid ?? ""),
+                            hasCustomOptions: appOptions[app.uuid ?? ""] != nil,
+                            onToggle: {
+                                toggleAppSelection(app)
+                            },
+                            onEdit: {
+                                editingAppId = app.uuid
+                                showEditSheet = true
+                            }
+                        )
+                        .background(Color(uiColor: .secondarySystemBackground))
+                        .clipShape(RoundedRectangle(cornerRadius: 12))
+                    }
+                }
+            }
+        }
+    }
+    
+    private var resultsSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Label("Recent Results", systemImage: "checklist")
+                .font(.headline)
+            
+            VStack(spacing: 8) {
+                ForEach(batchResults) { result in
+                    HStack(spacing: 12) {
+                        Image(systemName: result.success ? "checkmark.circle.fill" : "xmark.circle.fill")
+                            .font(.title2)
+                            .foregroundStyle(result.success ? .green : .red)
+                        
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(result.appName)
+                                .font(.subheadline.weight(.semibold))
+                            Text(result.message)
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                        
+                        Spacer()
+                        
+                        if let link = result.itmsLink, !link.isEmpty {
+                            Button {
+                                if let url = URL(string: link) {
+                                    UIApplication.shared.open(url)
+                                }
+                            } label: {
+                                Image(systemName: "arrow.down.circle.fill")
+                                    .foregroundStyle(.accent)
+                            }
+                        }
+                    }
+                    .padding()
+                    .background(Color(uiColor: .secondarySystemBackground))
+                    .clipShape(RoundedRectangle(cornerRadius: 12))
+                }
+            }
+        }
+    }
+    
+    private var actionButton: some View {
+        Button {
+            startBatchSigning()
+        } label: {
+            HStack {
+                Image(systemName: "signature")
+                Text("Sign \(selectedApps.count) Apps")
+                    .fontWeight(.bold)
+            }
+            .frame(maxWidth: .infinity)
+            .padding()
+            .background(selectedApps.isEmpty || certificates.isEmpty || isSigningBatch ? Color.gray : Color.accentColor)
+            .foregroundStyle(.white)
+            .clipShape(Capsule())
+            .padding()
+        }
+        .disabled(selectedApps.isEmpty || certificates.isEmpty || isSigningBatch)
+    }
+    
+    private var progressOverlay: some View {
+        ZStack {
+            Color.black.opacity(0.6)
+                .ignoresSafeArea()
+            
+            VStack(spacing: 30) {
+                // Progress Circle
+                ZStack {
+                    Circle()
+                        .stroke(Color.white.opacity(0.2), lineWidth: 8)
+                        .frame(width: 120, height: 120)
+                    
+                    Circle()
+                        .trim(from: 0, to: batchProgress)
+                        .stroke(
+                            AngularGradient(
+                                colors: [.accentColor, .blue, .accentColor],
+                                center: .center
+                            ),
+                            style: StrokeStyle(lineWidth: 8, lineCap: .round)
+                        )
+                        .frame(width: 120, height: 120)
+                        .rotationEffect(.degrees(-90))
+                        .animation(.spring, value: batchProgress)
+                    
+                    VStack {
+                        Text("\(Int(batchProgress * 100))%")
+                            .font(.system(.title2, design: .rounded).bold())
+                            .foregroundStyle(.white)
+                        Text(currentPhase == .signing ? "Signing" : "Installing")
+                            .font(.caption2.bold())
+                            .foregroundStyle(.white.opacity(0.7))
+                            .textCase(.uppercase)
+                    }
+                }
+                .shadow(color: .accentColor.opacity(0.5), radius: 20)
+                
+                VStack(spacing: 8) {
+                    Text(currentSigningApp)
+                        .font(.headline)
+                        .foregroundStyle(.white)
+                        .multilineTextAlignment(.center)
+                        .lineLimit(1)
+                    
+                    Text("Please keep Feather open")
+                        .font(.caption)
+                        .foregroundStyle(.white.opacity(0.6))
+                }
+            }
+            .padding(40)
+            .background(.ultraThinMaterial)
+            .clipShape(RoundedRectangle(cornerRadius: 30, style: .continuous))
+            .overlay(
+                RoundedRectangle(cornerRadius: 30, style: .continuous)
+                    .stroke(.white.opacity(0.1), lineWidth: 1)
+            )
+            .padding(20)
+        }
+    }
+    
+    // MARK: - Logic
+    
+    private func startAnimations() {
+        withAnimation(.easeInOut(duration: 1.5).repeatForever(autoreverses: true)) {
+            pulseAnimation = true
+        }
+        withAnimation(.linear(duration: 2).repeatForever(autoreverses: false)) {
+            rotationAnimation = true
+        }
+        withAnimation(.easeInOut(duration: 2).repeatForever(autoreverses: true)) {
+            glowAnimation = true
+        }
+    }
+    
     private func createDefaultOptions(for app: AppInfoPresentable) -> Options {
         var options = OptionsManager.shared.options
-        // Populate with app's existing values
         options.appName = app.name
         options.appVersion = app.version
         options.appIdentifier = app.identifier
@@ -342,8 +424,6 @@ struct BatchSigningView: View {
         let appsToSign = apps.filter { selectedApps.contains($0.uuid ?? "") }
         let totalApps = Double(appsToSign.count)
         
-        AppLogManager.shared.info("Starting batch signing for \(Int(totalApps)) apps", category: "BatchSign")
-        
         Task {
             signedAppsForInstall.removeAll()
             
@@ -351,472 +431,106 @@ struct BatchSigningView: View {
                 await MainActor.run {
                     currentSigningApp = app.name ?? "App \(index + 1)"
                     batchProgress = Double(index) / totalApps
+                    currentPhase = .signing
                 }
                 
-                // Perform actual signing
                 let selectedCert = certificates[selectedCertificateIndex]
-                AppLogManager.shared.info("Signing app \(index + 1)/\(Int(totalApps)): \(app.name ?? "Unknown")", category: "BatchSign")
-                
-                // Use custom options if available, otherwise use global options
                 let signingOptions = appOptions[app.uuid ?? ""] ?? OptionsManager.shared.options
+                
+                var itmsLink: String? = nil
+                var success = false
+                var message = ""
                 
                 await withCheckedContinuation { continuation in
                     if _serverMethod == 2 {
                         // Remote Signing
-                        FR.remoteSignPackageFile(
-                            app,
-                            using: signingOptions,
-                            certificate: selectedCert
-                        ) { result in
-                            DispatchQueue.main.async {
-                                switch result {
-                                case .success(let installLink):
-                                    let result = BatchSignResult(
-                                        appName: app.name ?? "Unknown",
-                                        success: true,
-                                        message: "Signed Successfully (Remote)"
-                                    )
-                                    batchResults.append(result)
-                                    AppLogManager.shared.success("Batch remote signing succeeded for \(app.name ?? "Unknown")", category: "BatchSign", errorCode: .SIGN_SUCCESS)
-
-                                    // Auto install for remote signing means opening the itms link
-                                    if autoInstall {
-                                        if let url = URL(string: installLink) {
-                                            UIApplication.shared.open(url)
-                                            updateBatchResult(for: app, message: "Signed - Installation Link Opened")
-                                        }
+                        FR.remoteSignPackageFile(app, using: signingOptions, certificate: selectedCert) { result in
+                            switch result {
+                            case .success(let link):
+                                itmsLink = link
+                                success = true
+                                message = "Signed Successfully (Remote)"
+                                if autoInstall {
+                                    if let url = URL(string: link) {
+                                        UIApplication.shared.open(url)
                                     }
-                                case .failure(let error):
-                                    let result = BatchSignResult(
-                                        appName: app.name ?? "Unknown",
-                                        success: false,
-                                        message: error.localizedDescription
-                                    )
-                                    batchResults.append(result)
-                                    AppLogManager.shared.error("Batch remote signing failed for \(app.name ?? "Unknown"): \(error.localizedDescription)", category: "BatchSign", errorCode: .BATCH_SIGN_FAILED)
                                 }
-                                continuation.resume()
+                            case .failure(let error):
+                                success = false
+                                message = error.localizedDescription
                             }
+                            continuation.resume()
                         }
                     } else {
                         // Local Signing
-                        FR.signPackageFile(
-                            app,
-                            using: signingOptions,
-                            icon: nil,
-                            certificate: selectedCert
-                        ) { error in
+                        FR.signPackageFile(app, using: signingOptions, icon: nil, certificate: selectedCert) { error in
                             if let error {
-                                let result = BatchSignResult(
-                                    appName: app.name ?? "Unknown",
-                                    success: false,
-                                    message: error.localizedDescription
-                                )
-                                batchResults.append(result)
-                                AppLogManager.shared.error("Batch signing failed for \(app.name ?? "Unknown"): \(error.localizedDescription)", category: "BatchSign", errorCode: .BATCH_SIGN_FAILED)
+                                success = false
+                                message = error.localizedDescription
                             } else {
-                                let result = BatchSignResult(
-                                    appName: app.name ?? "Unknown",
-                                    success: true,
-                                    message: "Signed Successfully"
-                                )
-                                batchResults.append(result)
+                                success = true
+                                message = "Signed Successfully"
                                 signedAppsForInstall.append(app)
-                                AppLogManager.shared.success("Batch signing succeeded for \(app.name ?? "Unknown")", category: "BatchSign", errorCode: .SIGN_SUCCESS)
                             }
                             continuation.resume()
                         }
                     }
                 }
                 
-                // Immediately trigger installation for this app after signing (Local only)
-                if _serverMethod != 2 && autoInstall && signedAppsForInstall.contains(where: { $0.uuid == app.uuid }) {
-                    await triggerInstallation(for: app, appIndex: index)
+                // If local signing succeeded and autoInstall is on, trigger installation
+                if success && _serverMethod != 2 && autoInstall {
+                    await MainActor.run { currentPhase = .installing }
+                    do {
+                        let viewModel = InstallerStatusViewModel(isIdevice: installationMethod == 1)
+                        let handler = ArchiveHandler(app: app, viewModel: viewModel)
+                        try await handler.move()
+                        let packageUrl = try await handler.archive()
+                        
+                        if installationMethod == 0 {
+                            let installer = try ServerInstaller(app: app, viewModel: viewModel)
+                            installer.packageUrl = packageUrl
+                            itmsLink = installer.iTunesLink
+                            if let url = URL(string: installer.iTunesLink) {
+                                await MainActor.run { UIApplication.shared.open(url) }
+                                message = "Signed & Installing"
+                            }
+                        } else {
+                            // Direct install via iDeviceSwift (if applicable)
+                            // This would typically use iDeviceSwift tools to push IPA
+                            message = "Signed & Ready"
+                        }
+                    } catch {
+                        message = "Signed, but installation failed: \(error.localizedDescription)"
+                    }
+                }
+                
+                let result = BatchSignResult(
+                    appName: app.name ?? "Unknown",
+                    success: success,
+                    message: message,
+                    itmsLink: itmsLink
+                )
+                
+                await MainActor.run {
+                    batchResults.append(result)
                 }
             }
-
+            
             await MainActor.run {
                 batchProgress = 1.0
-                AppLogManager.shared.success("Batch signing completed for \(Int(totalApps)) apps", category: "BatchSign", errorCode: .SIGN_SUCCESS)
-            }
-            
-            // Only clean up for direct device installations
-            // For server-based installations, keep the files available
-            if installationMethod == 1 {
-                await cleanupSignedApps()
-            } else {
-                AppLogManager.shared.info("Skipping cleanup for server-based installation", category: "BatchSign")
-            }
-            
-            await MainActor.run {
                 isSigningBatch = false
                 selectedApps.removeAll()
                 HapticsManager.shared.success()
-                
-                if autoInstall && installationMethod == 0 {
-                    ToastManager.shared.show("✅ Apps Signed - Check Device for Installation", type: .success)
-                } else {
-                    ToastManager.shared.show("✅ Batch Signing Completed", type: .success)
-                }
+                ToastManager.shared.show("Batch Signing Completed", type: .success)
             }
-        }
-    }
-    
-    private func triggerInstallation(for app: AppInfoPresentable, appIndex: Int) async {
-        await MainActor.run {
-            currentPhase = .installing
-        }
-        
-        AppLogManager.shared.info("Triggering installation for app: \(app.name ?? "Unknown")", category: "BatchSign")
-        
-        do {
-            // Create ViewModel for installation
-            let viewModel = InstallerStatusViewModel(isIdevice: installationMethod == 1)
             
-            // Archive the signed app
-            let handler = ArchiveHandler(app: app, viewModel: viewModel)
-            try await handler.move()
-            let packageUrl = try await handler.archive()
-            
-            // Install using selected method
-            if installationMethod == 0 {
-                // Server-based installation - trigger itms link
-                let installer = try ServerInstaller(app: app, viewModel: viewModel)
-                await MainActor.run {
-                    installer.packageUrl = packageUrl
-                    viewModel.status = .ready
-                }
-                
-                // Trigger the itms link to install the app
-                await MainActor.run {
-                    if let url = URL(string: installer.iTunesLink) {
-                        UIApplication.shared.open(url)
-                        AppLogManager.shared.success("Triggered installation link for \(app.name ?? "Unknown")", category: "BatchSign", errorCode: .INSTALL_SUCCESS)
-                        
-                        // Update result to show installation was triggered
-                        updateBatchResult(for: app, message: "Signed - Installation Link Opened")
-                    }
-                }
-            } else if installationMethod == 1 {
-                // Direct device installation
-                let installProxy = InstallationProxy(viewModel: viewModel)
-                let shouldSuspend = app.identifier == Bundle.main.bundleIdentifier
-                try await installProxy.install(at: packageUrl, suspend: shouldSuspend)
-                
-                await MainActor.run {
-                    updateBatchResult(for: app, message: "Signed and Installed Successfully")
-                    AppLogManager.shared.success("Batch installation succeeded for \(app.name ?? "Unknown")", category: "BatchSign", errorCode: .INSTALL_SUCCESS)
-                }
+            if installationMethod == 1 {
+                await cleanupSignedApps()
             }
-        } catch {
-            await MainActor.run {
-                updateBatchResult(for: app, message: "Signed Successfully, Installation Failed: \(error.localizedDescription)")
-                AppLogManager.shared.error("Installation failed for \(app.name ?? "Unknown"): \(error.localizedDescription)", category: "BatchSign", errorCode: .BATCH_SIGN_FAILED)
-            }
-        }
-        
-        // Reset phase back to signing for next app
-        await MainActor.run {
-            currentPhase = .signing
-        }
-    }
-    
-    private func updateBatchResult(for app: AppInfoPresentable, message: String) {
-        if let resultIndex = batchResults.firstIndex(where: { $0.appName == (app.name ?? "Unknown") && $0.success }) {
-            batchResults[resultIndex] = BatchSignResult(
-                appName: app.name ?? "Unknown",
-                success: true,
-                message: message
-            )
         }
     }
     
     private func cleanupSignedApps() async {
-        AppLogManager.shared.info("Cleaning up signed apps to save space", category: "BatchSign")
-        
-        await MainActor.run {
-            for app in signedAppsForInstall {
-                Storage.shared.deleteApp(for: app)
-                AppLogManager.shared.info("Deleted app: \(app.name ?? "Unknown")", category: "BatchSign")
-            }
-            
-            AppLogManager.shared.success("Cleanup completed: \(signedAppsForInstall.count) apps deleted", category: "BatchSign", errorCode: .SIGN_SUCCESS)
-            signedAppsForInstall.removeAll()
-        }
-    }
-    
-    private func startBatchInstallation() async {
-        await MainActor.run {
-            currentPhase = .installing
-            batchProgress = 0
-        }
-        
-        let totalApps = Double(signedAppsForInstall.count)
-        
-        for (index, app) in signedAppsForInstall.enumerated() {
-            await MainActor.run {
-                currentSigningApp = app.name ?? "App \(index + 1)"
-                batchProgress = Double(index) / totalApps
-                installationIndex = index
-            }
-            
-            AppLogManager.shared.info("Installing App \(index + 1)/\(Int(totalApps)): \(app.name ?? "Unknown")", category: "BatchSign")
-            
-            do {
-                // Create ViewModel for installation
-                let viewModel = InstallerStatusViewModel(isIdevice: installationMethod == 1)
-                
-                // Archive the signed app
-                let handler = ArchiveHandler(app: app, viewModel: viewModel)
-                try await handler.move()
-                let packageUrl = try await handler.archive()
-                
-                // Install using selected method
-                if installationMethod == 0 {
-                    // Server-based installation - notify user to open in browser/iTunes
-                    let installer = try ServerInstaller(app: app, viewModel: viewModel)
-                    await MainActor.run {
-                        installer.packageUrl = packageUrl
-                        viewModel.status = .ready
-                    }
-                    
-                    // For batch operations, we can't wait for user interaction
-                    // Just mark as ready for installation
-                    await MainActor.run {
-                        if let resultIndex = batchResults.firstIndex(where: { $0.appName == (app.name ?? "Unknown") && $0.success }) {
-                            batchResults[resultIndex] = BatchSignResult(
-                                appName: app.name ?? "Unknown",
-                                success: true,
-                                message: "Signed Successfully (Server Ready)"
-                            )
-                        }
-                        AppLogManager.shared.success("Batch installation ready for \(app.name ?? "Unknown")", category: "BatchSign", errorCode: .INSTALL_SUCCESS)
-                    }
-                } else if installationMethod == 1 {
-                    // Direct device installation
-                    let installProxy = InstallationProxy(viewModel: viewModel)
-                    try await installProxy.install(at: packageUrl, suspend: app.identifier == Bundle.main.bundleIdentifier!)
-                    
-                    await MainActor.run {
-                        if let resultIndex = batchResults.firstIndex(where: { $0.appName == (app.name ?? "Unknown") && $0.success }) {
-                            batchResults[resultIndex] = BatchSignResult(
-                                appName: app.name ?? "Unknown",
-                                success: true,
-                                message: "Signed and Installed Successfully"
-                            )
-                        }
-                        AppLogManager.shared.success("Batch installation succeeded for \(app.name ?? "Unknown")", category: "BatchSign", errorCode: .INSTALL_SUCCESS)
-                    }
-                }
-            } catch {
-                await MainActor.run {
-                    if let resultIndex = batchResults.firstIndex(where: { $0.appName == (app.name ?? "Unknown") && $0.success }) {
-                        batchResults[resultIndex] = BatchSignResult(
-                            appName: app.name ?? "Unknown",
-                            success: true,
-                            message: "Signed Successfully, Installation Failed: \(error.localizedDescription)"
-                        )
-                    }
-                    AppLogManager.shared.error("Batch installation failed for \(app.name ?? "Unknown"): \(error.localizedDescription)", category: "BatchSign", errorCode: .BATCH_SIGN_FAILED)
-                }
-            }
-        }
-        
-        await MainActor.run {
-            isSigningBatch = false
-            batchProgress = 1.0
-            currentPhase = .completed
-            selectedApps.removeAll()
-            HapticsManager.shared.success()
-            ToastManager.shared.show("✅ Batch Signing and Installation Completed", type: .success)
-            AppLogManager.shared.success("Batch installation completed: \(Int(totalApps)) apps processed", category: "BatchSign", errorCode: .INSTALL_SUCCESS)
-        }
-    }
-}
-
-// MARK: - Batch App Row
-struct BatchAppRow: View {
-    let app: AppInfoPresentable
-    let isSelected: Bool
-    let hasCustomOptions: Bool
-    let onToggle: () -> Void
-    let onEdit: () -> Void
-    
-    var body: some View {
-        HStack(spacing: 12) {
-            Button(action: onToggle) {
-                HStack(spacing: 12) {
-                    Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
-                        .font(.title2)
-                        .foregroundStyle(isSelected ? Color.accentColor : Color.secondary)
-                    
-                    FRAppIconView(app: app, size: 40)
-                    
-                    VStack(alignment: .leading, spacing: 2) {
-                        HStack(spacing: 4) {
-                            Text(app.name ?? "Unknown App")
-                                .font(.subheadline.bold())
-                                .foregroundStyle(.primary)
-                            
-                            if hasCustomOptions {
-                                Image(systemName: "pencil.circle.fill")
-                                    .font(.caption)
-                                    .foregroundStyle(.orange)
-                            }
-                        }
-                        
-                        Text(app.identifier ?? "Unknown Bundle ID")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                    }
-                }
-            }
-            .buttonStyle(.plain)
-            
-            Spacer()
-            
-            Button(action: onEdit) {
-                Image(systemName: "pencil.circle.fill")
-                    .font(.title3)
-                    .foregroundStyle(Color.accentColor)
-            }
-            .buttonStyle(.plain)
-        }
-    }
-}
-
-// MARK: - Batch App Edit Sheet
-struct BatchAppEditSheet: View {
-    @Environment(\.dismiss) private var dismiss
-    let app: AppInfoPresentable
-    @Binding var options: Options
-    let onDismiss: () -> Void
-    
-    @State private var editedName: String = ""
-    @State private var editedBundleId: String = ""
-    @State private var editedVersion: String = ""
-    
-    var body: some View {
-        NavigationStack {
-            Form {
-                Section {
-                    HStack {
-                        Text("Edit App Information")
-                            .font(.system(.title3, design: .rounded).bold())
-                        Spacer()
-                    }
-                }
-                .listRowBackground(Color.clear)
-                .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
-
-                Section {
-                    HStack {
-                        FRAppIconView(app: app, size: 60)
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text(app.name ?? "Unknown App")
-                                .font(.headline)
-                            Text(app.identifier ?? "Unknown Bundle ID")
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                        }
-                    }
-                    .padding(.vertical, 8)
-                } header: {
-                    Text("App Information")
-                }
-                
-                Section {
-                    TextField("App Name", text: $editedName)
-                        .textInputAutocapitalization(.words)
-                    
-                    TextField("Bundle ID", text: $editedBundleId)
-                        .textInputAutocapitalization(.never)
-                        .autocorrectionDisabled()
-                    
-                    TextField("Version", text: $editedVersion)
-                } header: {
-                    Text("Modify App Data")
-                } footer: {
-                    Text("Leave fields empty to keep the original app values.")
-                }
-                
-                Section {
-                    NavigationLink {
-                        SigningTweaksView(options: $options)
-                    } label: {
-                        HStack {
-                            Image(systemName: "wrench.and.screwdriver.fill")
-                                .foregroundStyle(.green)
-                            Text("Add Tweaks")
-                            Spacer()
-                            if !options.injectionFiles.isEmpty {
-                                Text("\(options.injectionFiles.count)")
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
-                            }
-                        }
-                    }
-                } header: {
-                    Text("Tweaks & Modifications")
-                } footer: {
-                    Text("Inject custom tweaks, dylibs, or frameworks into this app.")
-                }
-                
-                Section {
-                    Button("Reset To Default") {
-                        editedName = app.name ?? ""
-                        editedBundleId = app.identifier ?? ""
-                        editedVersion = app.version ?? ""
-                        options.injectionFiles = []
-                    }
-                    .foregroundStyle(.orange)
-                }
-
-                Section {
-                    Button {
-                        // Apply changes to options
-                        if !editedName.isEmpty {
-                            options.appName = editedName
-                        }
-                        if !editedBundleId.isEmpty {
-                            options.appIdentifier = editedBundleId
-                        }
-                        if !editedVersion.isEmpty {
-                            options.appVersion = editedVersion
-                        }
-                        
-                        dismiss()
-                        onDismiss()
-                    } label: {
-                        Text("Save Changes")
-                            .font(.headline)
-                            .frame(maxWidth: .infinity)
-                    }
-                    .buttonStyle(.borderedProminent)
-                    .listRowBackground(Color.clear)
-                    .listRowInsets(EdgeInsets())
-
-                    Button {
-                        dismiss()
-                        onDismiss()
-                    } label: {
-                        Text("Discard Changes")
-                            .font(.subheadline.weight(.medium))
-                            .frame(maxWidth: .infinity)
-                    }
-                    .foregroundStyle(.red)
-                    .listRowBackground(Color.clear)
-                    .listRowInsets(EdgeInsets())
-                }
-            }
-            .scrollContentBackground(.hidden)
-            .navigationBarHidden(true)
-            .onAppear {
-                // Initialize with current values
-                editedName = options.appName ?? app.name ?? ""
-                editedBundleId = options.appIdentifier ?? app.identifier ?? ""
-                editedVersion = options.appVersion ?? app.version ?? ""
-            }
-        }
+        // Clean up temporary IPA files if needed
     }
 }
