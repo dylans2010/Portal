@@ -49,9 +49,23 @@ struct CoreSignHeaderView: View {
                 )
             
             // App Name
-            Text("Portal")
-                .font(.title2).bold()
-                .foregroundStyle(Color.accentColor)
+            ZStack(alignment: .leading) {
+                Text("Portal")
+                    .font(.system(size: 28, weight: .black, design: .rounded))
+                    .offset(x: 2, y: 2)
+                    .foregroundStyle(Color.accentColor.opacity(0.15))
+                    .blur(radius: 1)
+
+                Text("Portal")
+                    .font(.system(size: 28, weight: .black, design: .rounded))
+                    .foregroundStyle(
+                        LinearGradient(
+                            colors: [.accentColor, .accentColor.opacity(0.7)],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+            }
                 .simultaneousGesture(
                     TapGesture(count: 3)
                         .onEnded {
@@ -90,25 +104,44 @@ struct CoreSignHeaderView: View {
 
                 // Release Label (Modern capsule badge)
                 Text("RELEASE")
-                    .font(.system(size: 10, weight: .bold))
-                    .kerning(1.0)
+                    .font(.system(size: 10, weight: .black))
+                    .kerning(1.2)
                     .padding(.horizontal, 10)
                     .padding(.vertical, 4)
-                    .background(.ultraThinMaterial)
+                    .background(
+                        Capsule()
+                            .fill(Color.accentColor.opacity(0.1))
+                    )
                     .clipShape(Capsule())
                     .foregroundStyle(Color.accentColor)
                     .overlay(
                         Capsule()
-                            .stroke(Color.accentColor.opacity(0.2), lineWidth: 0.5)
+                            .stroke(
+                                LinearGradient(
+                                    colors: [Color.accentColor.opacity(0.5), .clear],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                ),
+                                lineWidth: 1
+                            )
                     )
             }
 
             // Subtexts (Secondary Text)
-            Text(currentSubtitle)
-                .font(.subheadline)
-                .foregroundStyle(Color.accentColor.opacity(0.7))
-                .transition(.opacity)
+            ModernShufflingText(text: currentSubtitle)
+                .font(.system(size: 14, weight: .bold, design: .monospaced))
+                .foregroundStyle(
+                    LinearGradient(
+                        colors: [Color.accentColor.opacity(0.9), Color.accentColor.opacity(0.5)],
+                        startPoint: .leading,
+                        endPoint: .trailing
+                    )
+                )
                 .id(currentSubtitleIndex)
+                .padding(.vertical, 6)
+                .padding(.horizontal, 10)
+                .background(Color.accentColor.opacity(0.05))
+                .cornerRadius(8)
                 .padding(.top, 4)
             
             // Action Buttons
@@ -119,12 +152,21 @@ struct CoreSignHeaderView: View {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(24)
-        .background(Color(white: 0.12))
-        .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
-        .shadow(color: .black.opacity(0.05), radius: 15, x: 0, y: 8)
+        .background(
+            RoundedRectangle(cornerRadius: 24, style: .continuous)
+                .fill(Color(white: 0.12))
+                .shadow(color: .black.opacity(0.2), radius: 20, x: 0, y: 10)
+        )
         .overlay(
             RoundedRectangle(cornerRadius: 24, style: .continuous)
-                .stroke(Color.primary.opacity(0.08), lineWidth: 0.5)
+                .stroke(
+                    LinearGradient(
+                        colors: [.white.opacity(0.1), .clear, .white.opacity(0.05)],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    ),
+                    lineWidth: 1
+                )
         )
     }
     
@@ -149,11 +191,18 @@ struct CoreSignHeaderView: View {
             }
         }
         .frame(width: 60, height: 60)
-        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
-        .shadow(color: .black.opacity(0.1), radius: 10, x: 0, y: 5)
+        .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+        .shadow(color: Color.accentColor.opacity(0.2), radius: 12, x: 0, y: 6)
         .overlay(
-            RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .strokeBorder(Color.white.opacity(0.15), lineWidth: 0.5)
+            RoundedRectangle(cornerRadius: 18, style: .continuous)
+                .strokeBorder(
+                    LinearGradient(
+                        colors: [.white.opacity(0.3), .clear, .white.opacity(0.1)],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    ),
+                    lineWidth: 1
+                )
         )
     }
     
@@ -218,50 +267,36 @@ struct CoreSignHeaderView: View {
 // MARK: - easy to add header subtitles because i cbf to find the localizedstrings lmao
 enum HeaderSubtitle {
     /// Default subtitle shown if array is empty
-    static let defaultSubtitle = "the modern signer"
+    static let defaultSubtitle = "the modern signer ✦"
 
     static var allSubtitles: [String] = [
-        "the modern signer",
-        "no competition",
+        "the modern signer ✦",
+        "no competition ⚡️",
         "Are you using the latest Portal version?",
-        "Built with Swift",
-        "what feature would you like to see here?",
-        "listen to Junior H",
-        "latinas on top",
-        "OTRA RUPTURA MAS AL CORAZON",
-        "Kravashit are a scam",
-        "Just Works™",
-        "Portal in full Spanish?? maybe...",
-        "should i put my instagram here??",
+        "Built with Swift 🐦",
+        "vibe coded project 🌊",
+        "latinas on top 💅",
+        "Just Works™ ✅",
         "Portal made by dylan lol",
-        "5-7, 7-3, elite ball knowledge needed to understand",
-        "why do I encounter stupid people ffs",
-        "S on S tier, get it? probably not",
-        "easter eggs hidden",
+        "5-7, 7-3, elite ball knowledge needed",
+        "easter eggs hidden 🥚",
         "where tf is QuickSign at??",
-        "Porque la vida es asi -Peso Pluma",
-        "made with some crashouts",
+        "made with some crashouts 💀",
         "When is DRUNK releasing omg",
-        "girls want girls -drake",
-        "this Portal is WAY better",
-        "vibe coded project lol",
-        "playing hard to get is NOT cool S...",
-        "greatest signer",
-        "Use Portal gng",
-        "Random project",
-        "if you want something custom here, ping dylan in the WSF server",
-        "my grades are so fucked",
-        "need me some Chrome Hearts",
-        "coding ts on a mfucking chromebook",
-        "WSF On Top",
-        "feature rich signer",
-        "Kravashit",
-        "Just When You Thought",
-        "love ragebaiting",
-        "drizzy > kendrick",
-        "love my future gf S ❤️",
-        "Kravasigner Who?",
-        "other forgotten signers",
+        "this Portal is WAY better 💎",
+        "greatest signer of all time 🐐",
+        "Use Portal gng 🚀",
+        "WSF On Top 🔝",
+        "feature rich signer ✨",
+        "Kravasigner Who? 🤔",
+        "stay ahead of the game 🎮",
+        "unmatched performance 🔋",
+        "crafted with care ❤️",
+        "your apps, your way 🛠️",
+        "pure innovation 🌌",
+        "redefining excellence 🏆",
+        "signed, sealed, delivered 📦",
+        "no limits, just portal 🚪",
     ]
     
     /// Add a new subtitle at runtime
