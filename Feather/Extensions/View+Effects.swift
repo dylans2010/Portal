@@ -1,6 +1,8 @@
 import SwiftUI
 
 // MARK: - iOS 17 Symbol Effect Compatibility Modifiers
+
+/// A modifier that applies a bounce symbol effect on iOS 17+ when a value changes.
 struct BounceEffectModifier<T: Equatable>: ViewModifier {
     let value: T
 
@@ -13,6 +15,7 @@ struct BounceEffectModifier<T: Equatable>: ViewModifier {
     }
 }
 
+/// A modifier that applies a pulse symbol effect on iOS 17+ when a value changes.
 struct PulseEffectModifier<T: Equatable>: ViewModifier {
     let value: T
 
@@ -31,7 +34,34 @@ struct PulseEffectModifier<T: Equatable>: ViewModifier {
     }
 }
 
+/// A modifier that applies a one-time bounce symbol effect on iOS 17+.
+struct BounceOnceModifier: ViewModifier {
+    func body(content: Content) -> some View {
+        if #available(iOS 17.0, *) {
+            content.symbolEffect(.bounce, options: .nonRepeating)
+        } else {
+            content
+        }
+    }
+}
+
+/// A modifier that applies an appear symbol effect on iOS 17+.
+struct AppearEffectModifier: ViewModifier {
+    let when: Bool
+
+    func body(content: Content) -> some View {
+        if #available(iOS 17.0, *) {
+            content.symbolEffect(.appear, when: when)
+        } else {
+            content
+        }
+    }
+}
+
+// MARK: - View Extensions
+
 extension View {
+    /// Applies a repeating pulse symbol effect on iOS 17+.
     @ViewBuilder
     func pulseEffect() -> some View {
         if #available(iOS 17.0, *) {
@@ -41,6 +71,7 @@ extension View {
         }
     }
 
+    /// Applies a repeating bounce symbol effect on iOS 17+.
     @ViewBuilder
     func bounceEffect() -> some View {
         if #available(iOS 17.0, *) {
@@ -50,14 +81,27 @@ extension View {
         }
     }
 
+    /// Applies a bounce symbol effect on iOS 17+ when the provided value changes.
     func bounceEffect<T: Equatable>(_ value: T) -> some View {
         self.modifier(BounceEffectModifier(value: value))
     }
 
+    /// Applies a pulse symbol effect on iOS 17+ when the provided value changes.
     func pulseEffect<T: Equatable>(_ value: T) -> some View {
         self.modifier(PulseEffectModifier(value: value))
     }
 
+    /// Applies a one-time bounce symbol effect on iOS 17+.
+    func bounceEffectOnce() -> some View {
+        self.modifier(BounceOnceModifier())
+    }
+
+    /// Applies an appear symbol effect on iOS 17+ when the provided condition is met.
+    func appearEffect(when: Bool) -> some View {
+        self.modifier(AppearEffectModifier(when: when))
+    }
+
+    /// Applies a pulse symbol effect on iOS 18+.
     @ViewBuilder
     func ifAvailableiOS18SymbolPulse() -> some View {
         if #available(iOS 18, *) {
