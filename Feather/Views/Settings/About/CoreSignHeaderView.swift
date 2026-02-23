@@ -30,7 +30,7 @@ struct CoreSignHeaderView: View {
     
     // MARK: - Header Card
     private var headerCard: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: 16) {
             // App Icon
             appIcon
                 .rotationEffect(.degrees(iconRotationAngle))
@@ -49,9 +49,23 @@ struct CoreSignHeaderView: View {
                 )
             
             // App Name
-            Text("Portal")
-                .font(.title2).bold()
-                .foregroundStyle(Color.accentColor)
+            ZStack(alignment: .leading) {
+                Text("Portal")
+                    .font(.system(size: 32, weight: .black, design: .rounded))
+                    .offset(x: 2, y: 2)
+                    .foregroundStyle(Color.black.opacity(0.2))
+                    .blur(radius: 2)
+
+                Text("Portal")
+                    .font(.system(size: 32, weight: .black, design: .rounded))
+                    .foregroundStyle(
+                        LinearGradient(
+                            colors: [Color.accentColor, Color.accentColor.opacity(0.7)],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+            }
                 .simultaneousGesture(
                     TapGesture(count: 3)
                         .onEnded {
@@ -104,11 +118,9 @@ struct CoreSignHeaderView: View {
             }
 
             // Subtexts (Secondary Text)
-            Text(currentSubtitle)
-                .font(.subheadline)
-                .foregroundStyle(Color.accentColor.opacity(0.7))
-                .transition(.opacity)
+            ModernShufflingText(text: currentSubtitle)
                 .id(currentSubtitleIndex)
+                .transition(.asymmetric(insertion: .scale(scale: 0.95).combined(with: .opacity), removal: .opacity))
                 .padding(.top, 4)
             
             // Action Buttons
@@ -119,9 +131,9 @@ struct CoreSignHeaderView: View {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(24)
-        .background(Color(white: 0.12))
+        .background(Color(white: 0.08))
         .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
-        .shadow(color: .black.opacity(0.05), radius: 15, x: 0, y: 8)
+        .shadow(color: .black.opacity(0.2), radius: 20, x: 0, y: 10)
         .overlay(
             RoundedRectangle(cornerRadius: 24, style: .continuous)
                 .stroke(Color.primary.opacity(0.08), lineWidth: 0.5)
@@ -149,10 +161,10 @@ struct CoreSignHeaderView: View {
             }
         }
         .frame(width: 60, height: 60)
-        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
-        .shadow(color: .black.opacity(0.1), radius: 10, x: 0, y: 5)
+        .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+        .shadow(color: Color.accentColor.opacity(0.3), radius: 15, x: 0, y: 8)
         .overlay(
-            RoundedRectangle(cornerRadius: 16, style: .continuous)
+            RoundedRectangle(cornerRadius: 18, style: .continuous)
                 .strokeBorder(Color.white.opacity(0.15), lineWidth: 0.5)
         )
     }
@@ -275,6 +287,57 @@ enum HeaderSubtitle {
     }
 }
 
+
+struct ModernShufflingText: View {
+    let text: String
+    @State private var displayedText: String = ""
+    @State private var isShuffling = false
+
+    var body: some View {
+        Text(displayedText)
+            .font(.system(.subheadline, design: .monospaced))
+            .fontWeight(.bold)
+            .foregroundStyle(Color.accentColor.opacity(0.8))
+            .onAppear {
+                displayedText = text
+            }
+            .onChange(of: text) { newValue in
+                withAnimation(.spring()) {
+                    isShuffling = true
+                }
+                shuffleTo(newValue)
+            }
+            .scaleEffect(isShuffling ? 0.95 : 1.0)
+            .opacity(isShuffling ? 0.7 : 1.0)
+    }
+
+    private func shuffleTo(_ targetText: String) {
+        let characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()_+"
+        var iteration = 0
+        let maxIterations = 15
+
+        Timer.scheduledTimer(withTimeInterval: 0.03, repeats: true) { timer in
+            iteration += 1
+
+            if iteration >= maxIterations {
+                displayedText = targetText
+                withAnimation(.spring()) {
+                    isShuffling = false
+                }
+                timer.invalidate()
+            } else {
+                let shuffled = targetText.enumerated().map { index, char -> String in
+                    if Double.random(in: 0...1) > Double(iteration) / Double(maxIterations) {
+                        return String(characters.randomElement()!)
+                    } else {
+                        return String(char)
+                    }
+                }.joined()
+                displayedText = shuffled
+            }
+        }
+    }
+}
 // MARK: - Safe Array Access
 private extension Array {
     subscript(safe index: Int) -> Element? {
