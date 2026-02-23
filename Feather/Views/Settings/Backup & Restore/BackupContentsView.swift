@@ -13,6 +13,8 @@ struct BackupContentsView: View {
     @State private var sources: [SourceMetadata] = []
     @State private var signedApps: [AppMetadata] = []
     @State private var importedApps: [AppMetadata] = []
+    @State private var archives: [ArchiveMetadata] = []
+    @State private var frameworks: [FrameworkMetadata] = []
     @State private var errorMessage: String?
 
     @State private var showDiffViewer = false
@@ -27,18 +29,23 @@ struct BackupContentsView: View {
         let ppQCheck: Bool
     }
 
-    struct SourceMetadata: Codable, Identifiable {
-        var id: String { url }
-        let url: String
-        let name: String
-    }
-
     struct AppMetadata: Codable, Identifiable {
         var id: String { uuid }
         let uuid: String
         let name: String
         let identifier: String
         let version: String
+    }
+
+    struct ArchiveMetadata: Codable, Identifiable {
+        var id: String { name }
+        let name: String
+        let size: Int64
+    }
+
+    struct FrameworkMetadata: Codable, Identifiable {
+        var id: String { name }
+        let name: String
     }
 
     var body: some View {
@@ -117,24 +124,38 @@ struct BackupContentsView: View {
                         }
                     }
 
-                    if !sources.isEmpty {
+                    if !frameworks.isEmpty {
                         Section {
-                            ForEach(sources) { source in
+                            ForEach(frameworks) { framework in
                                 Label {
-                                    VStack(alignment: .leading) {
-                                        Text(source.name).font(.headline)
-                                        Text(source.url).font(.caption).foregroundStyle(.secondary)
-                                    }
+                                    Text(framework.name).font(.headline)
                                 } icon: {
-                                    Image(systemName: "globe").foregroundStyle(.purple)
+                                    Image(systemName: "square.stack.3d.up.fill").foregroundStyle(.purple)
                                 }
                             }
                         } header: {
-                            headerView(title: "Sources", icon: "globe", color: .purple)
+                            headerView(title: "Default Frameworks", icon: "square.stack.3d.up.fill", color: .purple)
                         }
                     }
 
-                    if certificates.isEmpty && signedApps.isEmpty && importedApps.isEmpty && sources.isEmpty {
+                    if !archives.isEmpty {
+                        Section {
+                            ForEach(archives) { archive in
+                                Label {
+                                    VStack(alignment: .leading) {
+                                        Text(archive.name).font(.headline)
+                                        Text(ByteCountFormatter.string(fromByteCount: archive.size, countStyle: .file)).font(.caption).foregroundStyle(.secondary)
+                                    }
+                                } icon: {
+                                    Image(systemName: "archivebox.fill").foregroundStyle(.brown)
+                                }
+                            }
+                        } header: {
+                            headerView(title: "Archives", icon: "archivebox.fill", color: .brown)
+                        }
+                    }
+
+                    if certificates.isEmpty && signedApps.isEmpty && importedApps.isEmpty && frameworks.isEmpty && archives.isEmpty {
                         Section {
                             Text("No recognizable metadata found in backup.")
                                 .foregroundStyle(.secondary)
@@ -184,9 +205,10 @@ struct BackupContentsView: View {
     private var collectedMetadata: [String: Any] {
         var metadata: [String: Any] = [:]
         metadata["certificates"] = certificates.map { ["uuid": $0.uuid, "name": $0.name ?? ""] }
-        metadata["sources"] = sources.map { ["url": $0.url, "name": $0.name] }
         metadata["signed_apps"] = signedApps.map { ["uuid": $0.uuid, "name": $0.name] }
         metadata["imported_apps"] = importedApps.map { ["uuid": $0.uuid, "name": $0.name] }
+        metadata["archives"] = archives.map { ["name": $0.name, "size": $0.size] }
+        metadata["frameworks"] = frameworks.map { ["name": $0.name] }
         metadata["profiles"] = [] // Simplified
         metadata["settings"] = ["status": "present"] // Simplified
         return metadata
@@ -277,12 +299,6 @@ struct BackupContentsView: View {
                 certificates = (try? JSONDecoder().decode([CertMetadata].self, from: data)) ?? []
             }
 
-            // Load Sources
-            let sourcesURL = tempDir.appendingPathComponent("sources.json")
-            if let data = try? Data(contentsOf: sourcesURL) {
-                sources = (try? JSONDecoder().decode([SourceMetadata].self, from: data)) ?? []
-            }
-
             // Load Signed Apps
             let signedURL = tempDir.appendingPathComponent("signed_apps_metadata.json")
             if let data = try? Data(contentsOf: signedURL) {
@@ -293,6 +309,22 @@ struct BackupContentsView: View {
             let importedURL = tempDir.appendingPathComponent("imported_apps_metadata.json")
             if let data = try? Data(contentsOf: importedURL) {
                 importedApps = (try? JSONDecoder().decode([AppMetadata].self, from: data)) ?? []
+            }
+
+            // Load Archives
+            let archivesDir = tempDir.appendingPathComponent("archives")
+            if let contents = try? FileManager.default.contentsOfDirectory(at: archivesDir, includingPropertiesForKeys: [.fileSizeKey]) {
+                archives = contents.map { url in
+                    let attr = try? FileManager.default.attributesOfItem(atPath: url.path)
+                    let size = attr?[.size] as? Int64 ?? 0
+                    return ArchiveMetadata(name: url.lastPathComponent, size: size)
+                }
+            }
+
+            // Load Frameworks
+            let frameworksURL = tempDir.appendingPathComponent("frameworks.json")
+            if let data = try? Data(contentsOf: frameworksURL) {
+                frameworks = (try? JSONDecoder().decode([FrameworkMetadata].self, from: data)) ?? []
             }
 
             try? FileManager.default.removeItem(at: tempDir)

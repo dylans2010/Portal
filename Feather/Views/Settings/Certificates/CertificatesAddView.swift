@@ -23,65 +23,86 @@ struct CertificatesAddView: View {
     @State private var _isImportingZipPresenting = false
     @State private var _isImportingPortalCertPresenting = false
     
+    @State private var _addedCertificate: Certificate? = nil
+    @State private var _showSuccessCard = false
+    
     var saveButtonDisabled: Bool {
         _p12URL == nil || _provisionURL == nil
     }
     
     var body: some View {
         NavigationStack {
-            List {
-                Section {
-                    HStack(spacing: 0) {
-                        methodButton(title: "Manual", icon: "hand.tap.fill", tag: 0)
-                        methodButton(title: "Portal Cert", icon: "shippingbox.fill", tag: 1, disabled: !usePortalCert)
-                        methodButton(title: "ZIP File", icon: "doc.zipper", tag: 2)
+            ZStack {
+                List {
+                    Section {
+                        headerSection
+                            .listRowBackground(Color.clear)
+                            .listRowInsets(EdgeInsets())
                     }
-                    .padding(4)
-                    .background(Color(UIColor.secondarySystemFill).opacity(0.5))
-                    .clipShape(Capsule())
+
+                    Section {
+                        HStack(spacing: 0) {
+                            methodButton(title: "Manual", icon: "hand.tap.fill", tag: 0)
+                            methodButton(title: "Portal Cert", icon: "shippingbox.fill", tag: 1, disabled: !usePortalCert)
+                            methodButton(title: "ZIP File", icon: "doc.zipper", tag: 2)
+                        }
+                        .padding(4)
+                        .background(Color(UIColor.secondarySystemFill).opacity(0.5))
+                        .clipShape(Capsule())
+                    }
+                    .listRowBackground(Color.clear)
+                    .listRowInsets(EdgeInsets(top: 0, leading: 10, bottom: 0, trailing: 10))
+                    .onChange(of: _selectedMethod) { newValue in
+                        withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+                            if newValue == 1 && !usePortalCert {
+                                _selectedMethod = 0
+                            }
+                        }
+                    }
+
+                    Group {
+                        if _selectedMethod == 0 {
+                            manualFilesSection
+                        } else if _selectedMethod == 1 {
+                            portalCertSection
+                        } else {
+                            zipSection
+                        }
+                    }
+
+                    Section {
+                        passwordFieldSection
+                        nicknameFieldSection
+                        defaultSection
+                    } footer: {
+                        Text("Default certificate will be automatically selected when signing apps")
+                    }
+
+                    Section {
+                        saveButton
+                    }
+                    .listRowBackground(Color.clear)
+                    .listRowInsets(EdgeInsets(top: 10, leading: 10, bottom: 10, trailing: 10))
                 }
-                .listRowBackground(Color.clear)
-                .listRowInsets(EdgeInsets(top: 0, leading: 10, bottom: 0, trailing: 10))
-                .onChange(of: _selectedMethod) { newValue in
-                    withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
-                        if newValue == 1 && !usePortalCert {
-                            _selectedMethod = 0
+                .listStyle(.insetGrouped)
+                .navigationTitle("Add Certificate")
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbar {
+                    ToolbarItem(placement: .navigationBarLeading) {
+                        Button("Cancel") {
+                            dismiss()
                         }
                     }
                 }
-
-                Group {
-                    if _selectedMethod == 0 {
-                        manualFilesSection
-                    } else if _selectedMethod == 1 {
-                        portalCertSection
-                    } else {
-                        zipSection
-                    }
-                }
-
-                Section {
-                    passwordFieldSection
-                    nicknameFieldSection
-                    defaultSection
-                } footer: {
-                    Text("Default certificate will be automatically selected when signing apps")
-                }
-
-                Section {
-                    saveButton
-                }
-                .listRowBackground(Color.clear)
-                .listRowInsets(EdgeInsets(top: 10, leading: 10, bottom: 10, trailing: 10))
-            }
-            .listStyle(.insetGrouped)
-            .navigationTitle("Add Certificate")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button("Cancel") {
-                        dismiss()
-                    }
+                
+                if _showSuccessCard, let cert = _addedCertificate {
+                    Color.black.opacity(0.4)
+                        .ignoresSafeArea()
+                        .transition(.opacity)
+                    
+                    successCard(cert: cert)
+                        .transition(.move(edge: .bottom).combined(with: .opacity))
+                        .zIndex(1)
                 }
             }
             .sheet(isPresented: $_isImportingP12Presenting) {
@@ -97,6 +118,77 @@ struct CertificatesAddView: View {
                 portalCertImportSheet
             }
         }
+    }
+    
+    private var headerSection: some View {
+        VStack(spacing: 12) {
+            Image(systemName: "checkmark.seal.fill")
+                .font(.system(size: 48))
+                .foregroundStyle(.blue)
+                .symbolEffect(.bounce, value: _p12URL != nil)
+            
+            Text("Import Certificate")
+                .font(.title2.bold())
+            
+            Text("Add your signing certificate to start sideloading.")
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 20)
+    }
+
+    private func successCard(cert: Certificate) -> some View {
+        VStack(spacing: 20) {
+            VStack(spacing: 8) {
+                Image(systemName: "checkmark.circle.fill")
+                    .font(.system(size: 60))
+                    .foregroundStyle(.green)
+                    .symbolEffect(.bounce, options: .nonRepeating)
+                
+                Text("Certificate Added!")
+                    .font(.title2.bold())
+            }
+            
+            VStack(alignment: .leading, spacing: 12) {
+                infoRow(label: "Team ID", value: cert.TeamIdentifier.first ?? "Unknown")
+                infoRow(label: "Devices", value: "\(cert.ProvisionedDevices?.count ?? 0) Devices")
+                infoRow(label: "Expiry", value: cert.ExpirationDate.formatted(date: .abbreviated, time: .omitted))
+                infoRow(label: "PPQ Status", value: (cert.PPQCheck ?? false) ? "Required" : "Not Required")
+            }
+            .padding()
+            .background(Color(UIColor.secondarySystemBackground))
+            .cornerRadius(12)
+            
+            Button {
+                withAnimation {
+                    _showSuccessCard = false
+                    dismiss()
+                }
+            } label: {
+                Text("Continue")
+                    .fontWeight(.bold)
+                    .frame(maxWidth: .infinity)
+            }
+            .buttonStyle(.borderedProminent)
+            .controlSize(.large)
+        }
+        .padding(24)
+        .background(Color(UIColor.systemBackground))
+        .cornerRadius(24)
+        .shadow(radius: 20)
+        .padding(30)
+    }
+    
+    private func infoRow(label: String, value: String) -> some View {
+        HStack {
+            Text(label)
+                .foregroundStyle(.secondary)
+            Spacer()
+            Text(value)
+                .fontWeight(.medium)
+        }
+        .font(.subheadline)
     }
     
     // MARK: - Sections
@@ -195,7 +287,6 @@ struct CertificatesAddView: View {
                         .tint(.white)
                 } else {
                     Image(systemName: "checkmark.circle.fill")
-                        .pulseEffect(_isSaving)
                 }
                 Text(_isSaving ? "Saving..." : "Save Certificate")
                     .fontWeight(.semibold)
@@ -245,6 +336,7 @@ struct CertificatesAddView: View {
                     .font(.system(size: 20))
                     .frame(width: 30)
                     .foregroundColor(.accentColor)
+                    .symbolEffect(.bounce, value: subtitle != nil)
 
                 VStack(alignment: .leading, spacing: 2) {
                     Text(title)
@@ -285,22 +377,16 @@ struct CertificatesAddView: View {
             try FileManager.default.copyItem(at: p12URL, to: newP12URL)
             try FileManager.default.copyItem(at: provisionURL, to: newProvisionURL)
             
-            _p12URL = newP12URL
-            _provisionURL = newProvisionURL
-            
-            if let nickname = metadata.nickname {
-                _certificateName = nickname
+            withAnimation(.spring()) {
+                _p12URL = newP12URL
+                _provisionURL = newProvisionURL
+                
+                if let nickname = metadata.nickname {
+                    _certificateName = nickname
+                }
             }
             
-            var message = String.localized("Certificate files extracted successfully from .portalcert bundle.")
-            if metadata.hasPassword {
-                message += " " + String.localized("This certificate requires a password.")
-            }
-            
-            UIAlertController.showAlertWithOk(
-                title: .localized("Success"),
-                message: message
-            )
+            HapticsManager.shared.success()
             
         } catch let error as PortalCertHandler.PortalCertError {
             UIAlertController.showAlertWithOk(
@@ -321,7 +407,10 @@ struct CertificatesAddView: View {
             allowedContentTypes: [.p12],
             onDocumentsPicked: { urls in
                 guard let selectedFileURL = urls.first else { return }
-                self._p12URL = selectedFileURL
+                withAnimation(.spring()) {
+                    self._p12URL = selectedFileURL
+                }
+                HapticsManager.shared.softImpact()
             }
         )
         .ignoresSafeArea()
@@ -332,7 +421,10 @@ struct CertificatesAddView: View {
             allowedContentTypes: [.mobileProvision],
             onDocumentsPicked: { urls in
                 guard let selectedFileURL = urls.first else { return }
-                self._provisionURL = selectedFileURL
+                withAnimation(.spring()) {
+                    self._provisionURL = selectedFileURL
+                }
+                HapticsManager.shared.softImpact()
             }
         )
         .ignoresSafeArea()
@@ -363,124 +455,133 @@ struct CertificatesAddView: View {
 
 // MARK: - Extension: View (import)
 extension CertificatesAddView {
-	private func _saveCertificate() {
-		guard
-			let p12URL = _p12URL,
-			let provisionURL = _provisionURL,
-			FR.checkPasswordForCertificate(for: p12URL, with: _p12Password, using: provisionURL)
-		else {
+        private func _saveCertificate() {
+                guard
+                        let p12URL = _p12URL,
+                        let provisionURL = _provisionURL,
+                        FR.checkPasswordForCertificate(for: p12URL, with: _p12Password, using: provisionURL)
+                else {
             withAnimation { _isSaving = false }
-			UIAlertController.showAlertWithOk(
-				title: .localized("Error"),
-				message: .localized("The password you entered is wrong, please try again to add this certificate. If the password from this certificate is WSF, restart Portal and try again.")
-			)
-			return
-		}
-		
-		FR.handleCertificateFiles(
-			p12URL: p12URL,
-			provisionURL: provisionURL,
-			p12Password: _p12Password,
-			certificateName: _certificateName,
-			isDefault: _isDefault
-		) { _ in
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                _isSaving = false
-                dismiss()
-            }
-		}
-	}
-	
-	private func _handleZipImport(_ zipURL: URL) {
-		let tempDir = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
-		
-		do {
-			try FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
-			try FileManager.default.unzipItem(at: zipURL, to: tempDir)
-			
-			var foundP12: URL?
-			var foundProvision: URL?
-			
-			func searchDirectory(_ directory: URL) throws {
-				let items = try FileManager.default.contentsOfDirectory(
-					at: directory,
-					includingPropertiesForKeys: [.isDirectoryKey],
-					options: [.skipsHiddenFiles]
-				)
-				
-				for item in items {
-					let resourceValues = try item.resourceValues(forKeys: [.isDirectoryKey])
-					if resourceValues.isDirectory == true {
-						try searchDirectory(item)
-					} else {
-						let ext = item.pathExtension.lowercased()
-						if ext == "p12" && foundP12 == nil {
-							foundP12 = item
-						} else if ext == "mobileprovision" && foundProvision == nil {
-							foundProvision = item
-						}
-					}
-				}
-			}
-			
-			try searchDirectory(tempDir)
-			
-			guard let p12URL = foundP12, let provisionURL = foundProvision else {
-				var missingFiles: [String] = []
-				if foundP12 == nil { missingFiles.append(".p12") }
-				if foundProvision == nil { missingFiles.append(".mobileprovision") }
-				throw CertificateImportError.missingCertificateFiles(missingFiles.joined(separator: " and "))
-			}
-			
-			let persistentTempDir = FileManager.default.temporaryDirectory.appendingPathComponent("certificates-\(UUID().uuidString)")
-			try FileManager.default.createDirectory(at: persistentTempDir, withIntermediateDirectories: true)
-			
-			let newP12URL = persistentTempDir.appendingPathComponent(p12URL.lastPathComponent)
-			let newProvisionURL = persistentTempDir.appendingPathComponent(provisionURL.lastPathComponent)
-			
-			try FileManager.default.copyItem(at: p12URL, to: newP12URL)
-			try FileManager.default.copyItem(at: provisionURL, to: newProvisionURL)
-			
-			_p12URL = newP12URL
-			_provisionURL = newProvisionURL
-			
-			try? FileManager.default.removeItem(at: tempDir)
-			
-			UIAlertController.showAlertWithOk(
-				title: .localized("Success"),
-				message: .localized("Certificate files extracted successfully from ZIP. Please enter the password now.")
-			)
-			
-		} catch let error as CertificateImportError {
-			try? FileManager.default.removeItem(at: tempDir)
-			UIAlertController.showAlertWithOk(
-				title: .localized("Import Failed"),
-				message: error.localizedDescription
-			)
-		} catch {
-			try? FileManager.default.removeItem(at: tempDir)
-			UIAlertController.showAlertWithOk(
-				title: .localized("Import Failed"),
-				message: .localized("Failed to extract ZIP file: \(error.localizedDescription)")
-			)
-		}
-	}
+                        UIAlertController.showAlertWithOk(
+                                title: .localized("Error"),
+                                message: .localized("The password you entered is wrong, please try again to add this certificate. If the password from this certificate is WSF, restart Portal and try again.")
+                        )
+                        return
+                }
+                
+                let reader = CertificateReader(provisionURL)
+                _addedCertificate = reader.decoded
+                
+                FR.handleCertificateFiles(
+                        p12URL: p12URL,
+                        provisionURL: provisionURL,
+                        p12Password: _p12Password,
+                        certificateName: _certificateName,
+                        isDefault: _isDefault
+                ) { _ in
+                    if #available(iOS 17.0, *) {
+                        withAnimation(.spring(response: 0.6, dampingFraction: 0.7)) {
+                            _isSaving = false
+                            _showSuccessCard = true
+                        }
+                    } else {
+                        withAnimation {
+                            _isSaving = false
+                            _showSuccessCard = true
+                        }
+                    }
+                    HapticsManager.shared.success()
+                }
+        }
+        
+        private func _handleZipImport(_ zipURL: URL) {
+                let tempDir = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+                
+                do {
+                        try FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
+                        try FileManager.default.unzipItem(at: zipURL, to: tempDir)
+                        
+                        var foundP12: URL?
+                        var foundProvision: URL?
+                        
+                        func searchDirectory(_ directory: URL) throws {
+                                let items = try FileManager.default.contentsOfDirectory(
+                                        at: directory,
+                                        includingPropertiesForKeys: [.isDirectoryKey],
+                                        options: [.skipsHiddenFiles]
+                                )
+                                
+                                for item in items {
+                                        let resourceValues = try item.resourceValues(forKeys: [.isDirectoryKey])
+                                        if resourceValues.isDirectory == true {
+                                                try searchDirectory(item)
+                                        } else {
+                                                let ext = item.pathExtension.lowercased()
+                                                if ext == "p12" && foundP12 == nil {
+                                                        foundP12 = item
+                                                } else if ext == "mobileprovision" && foundProvision == nil {
+                                                        foundProvision = item
+                                                }
+                                        }
+                                }
+                        }
+                        
+                        try searchDirectory(tempDir)
+                        
+                        guard let p12URL = foundP12, let provisionURL = foundProvision else {
+                                var missingFiles: [String] = []
+                                if foundP12 == nil { missingFiles.append(".p12") }
+                                if foundProvision == nil { missingFiles.append(".mobileprovision") }
+                                throw CertificateImportError.missingCertificateFiles(missingFiles.joined(separator: " and "))
+                        }
+                        
+                        let persistentTempDir = FileManager.default.temporaryDirectory.appendingPathComponent("certificates-\(UUID().uuidString)")
+                        try FileManager.default.createDirectory(at: persistentTempDir, withIntermediateDirectories: true)
+                        
+                        let newP12URL = persistentTempDir.appendingPathComponent(p12URL.lastPathComponent)
+                        let newProvisionURL = persistentTempDir.appendingPathComponent(provisionURL.lastPathComponent)
+                        
+                        try FileManager.default.copyItem(at: p12URL, to: newP12URL)
+                        try FileManager.default.copyItem(at: provisionURL, to: newProvisionURL)
+                        
+                        withAnimation(.spring()) {
+                            _p12URL = newP12URL
+                            _provisionURL = newProvisionURL
+                        }
+                        
+                        try? FileManager.default.removeItem(at: tempDir)
+                        HapticsManager.shared.success()
+                        
+                } catch let error as CertificateImportError {
+                        try? FileManager.default.removeItem(at: tempDir)
+                        UIAlertController.showAlertWithOk(
+                                title: .localized("Import Failed"),
+                                message: error.localizedDescription
+                        )
+                } catch {
+                        try? FileManager.default.removeItem(at: tempDir)
+                        UIAlertController.showAlertWithOk(
+                                title: .localized("Import Failed"),
+                                message: .localized("Failed to extract ZIP file: \(error.localizedDescription)")
+                        )
+                }
+        }
 }
 
 // MARK: - Certificate Import Errors
 enum CertificateImportError: LocalizedError {
-	case invalidZipFile
-	case missingCertificateFiles(String)
-	case extractionFailed
-	
-	var errorDescription: String? {
-		switch self {
-		case .invalidZipFile:
-			return NSLocalizedString("The selected file is not a valid ZIP archive.", comment: "")
-		case .missingCertificateFiles(let files):
-			return String(format: NSLocalizedString("Cannot find certificate files in uploaded ZIP. Missing: %@", comment: ""), files)
-		case .extractionFailed:
-			return NSLocalizedString("Failed to extract the ZIP file. The file may be corrupted or password protected.", comment: "")
-		}
-	}
+        case invalidZipFile
+        case missingCertificateFiles(String)
+        case extractionFailed
+        
+        var errorDescription: String? {
+                switch self {
+                case .invalidZipFile:
+                        return NSLocalizedString("The selected file is not a valid ZIP archive.", comment: "")
+                case .missingCertificateFiles(let files):
+                        return String(format: NSLocalizedString("Cannot find certificate files in uploaded ZIP. Missing: %@", comment: ""), files)
+                case .extractionFailed:
+                        return NSLocalizedString("Failed to extract the ZIP file. The file may be corrupted or password protected.", comment: "")
+                }
+        }
 }
