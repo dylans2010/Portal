@@ -48,6 +48,13 @@ struct BackupContentsView: View {
         let name: String
     }
 
+    struct SourceMetadata: Codable, Identifiable {
+        var id: String { identifier }
+        let url: String
+        let name: String
+        let identifier: String
+    }
+
     var body: some View {
         NavigationStack {
             List {
@@ -138,6 +145,23 @@ struct BackupContentsView: View {
                         }
                     }
 
+                    if !sources.isEmpty {
+                        Section {
+                            ForEach(sources) { source in
+                                Label {
+                                    VStack(alignment: .leading) {
+                                        Text(source.name).font(.headline)
+                                        Text(source.url).font(.caption).foregroundStyle(.secondary)
+                                    }
+                                } icon: {
+                                    Image(systemName: "globe").foregroundStyle(.indigo)
+                                }
+                            }
+                        } header: {
+                            headerView(title: "Sources", icon: "globe", color: .indigo)
+                        }
+                    }
+
                     if !archives.isEmpty {
                         Section {
                             ForEach(archives) { archive in
@@ -155,7 +179,7 @@ struct BackupContentsView: View {
                         }
                     }
 
-                    if certificates.isEmpty && signedApps.isEmpty && importedApps.isEmpty && frameworks.isEmpty && archives.isEmpty {
+                    if certificates.isEmpty && signedApps.isEmpty && importedApps.isEmpty && frameworks.isEmpty && archives.isEmpty && sources.isEmpty {
                         Section {
                             Text("No recognizable metadata found in backup.")
                                 .foregroundStyle(.secondary)
@@ -209,6 +233,7 @@ struct BackupContentsView: View {
         metadata["imported_apps"] = importedApps.map { ["uuid": $0.uuid, "name": $0.name] }
         metadata["archives"] = archives.map { ["name": $0.name, "size": $0.size] }
         metadata["frameworks"] = frameworks.map { ["name": $0.name] }
+        metadata["sources"] = sources.map { ["name": $0.name, "url": $0.url] }
         metadata["profiles"] = [] // Simplified
         metadata["settings"] = ["status": "present"] // Simplified
         return metadata
@@ -325,6 +350,12 @@ struct BackupContentsView: View {
             let frameworksURL = tempDir.appendingPathComponent("frameworks.json")
             if let data = try? Data(contentsOf: frameworksURL) {
                 frameworks = (try? JSONDecoder().decode([FrameworkMetadata].self, from: data)) ?? []
+            }
+
+            // Load Sources
+            let sourcesURL = tempDir.appendingPathComponent("sources.json")
+            if let data = try? Data(contentsOf: sourcesURL) {
+                sources = (try? JSONDecoder().decode([SourceMetadata].self, from: data)) ?? []
             }
 
             try? FileManager.default.removeItem(at: tempDir)
