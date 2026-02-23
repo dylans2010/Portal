@@ -1,0 +1,17 @@
+            // App Name
+            Text("Portal")
+                .font(.system(size: 28, weight: .black, design: .rounded))
+                .foregroundStyle(
+                    LinearGradient(
+                        colors: [Color.accentColor, Color.accentColor.opacity(0.8)],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                )
+                .background(
+                    Text("Portal")
+                        .font(.system(size: 28, weight: .black, design: .rounded))
+                        .offset(x: 2, y: 2)
+                        .foregroundStyle(Color.black.opacity(0.2))
+                        .blur(radius: 2)
+                )

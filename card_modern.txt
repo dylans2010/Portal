@@ -1,0 +1,25 @@
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(24)
+        .background(
+            ZStack {
+                Color(white: 0.12)
+                LinearGradient(
+                    colors: [Color.white.opacity(0.03), Color.clear],
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                )
+            }
+        )
+        .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
+        .shadow(color: .black.opacity(0.2), radius: 20, x: 0, y: 10)
+        .overlay(
+            RoundedRectangle(cornerRadius: 24, style: .continuous)
+                .stroke(
+                    LinearGradient(
+                        colors: [.white.opacity(0.15), .white.opacity(0.05)],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    ),
+                    lineWidth: 0.5
+                )
+        )

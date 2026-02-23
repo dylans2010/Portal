@@ -1,0 +1,12 @@
+            // Subtexts (Secondary Text)
+            ModernShufflingText(
+                text: currentSubtitle,
+                font: .system(.subheadline, design: .rounded, weight: .medium),
+                color: Color.accentColor.opacity(0.8)
+            )
+            .id(currentSubtitleIndex)
+            .transition(.asymmetric(
+                insertion: .opacity.combined(with: .move(edge: .bottom)).combined(with: .scale(scale: 0.9)),
+                removal: .opacity.combined(with: .move(edge: .top)).combined(with: .scale(scale: 1.1))
+            ))
+            .padding(.top, 4)

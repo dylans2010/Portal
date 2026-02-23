@@ -30,7 +30,7 @@ struct CoreSignHeaderView: View {
     
     // MARK: - Header Card
     private var headerCard: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: 16) {
             // App Icon
             appIcon
                 .rotationEffect(.degrees(iconRotationAngle))
@@ -48,10 +48,23 @@ struct CoreSignHeaderView: View {
                         }
                 )
             
-            // App Name
+// App Name
             Text("Portal")
-                .font(.title2).bold()
-                .foregroundStyle(Color.accentColor)
+                .font(.system(size: 28, weight: .black, design: .rounded))
+                .foregroundStyle(
+                    LinearGradient(
+                        colors: [Color.accentColor, Color.accentColor.opacity(0.8)],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                )
+                .background(
+                    Text("Portal")
+                        .font(.system(size: 28, weight: .black, design: .rounded))
+                        .offset(x: 2, y: 2)
+                        .foregroundStyle(Color.black.opacity(0.2))
+                        .blur(radius: 2)
+                )
                 .simultaneousGesture(
                     TapGesture(count: 3)
                         .onEnded {
@@ -103,13 +116,18 @@ struct CoreSignHeaderView: View {
                     )
             }
 
-            // Subtexts (Secondary Text)
-            Text(currentSubtitle)
-                .font(.subheadline)
-                .foregroundStyle(Color.accentColor.opacity(0.7))
-                .transition(.opacity)
-                .id(currentSubtitleIndex)
-                .padding(.top, 4)
+// Subtexts (Secondary Text)
+            ModernShufflingText(
+                text: currentSubtitle,
+                font: .system(.subheadline, design: .rounded, weight: .medium),
+                color: Color.accentColor.opacity(0.8)
+            )
+            .id(currentSubtitleIndex)
+            .transition(.asymmetric(
+                insertion: .opacity.combined(with: .move(edge: .bottom)).combined(with: .scale(scale: 0.9)),
+                removal: .opacity.combined(with: .move(edge: .top)).combined(with: .scale(scale: 1.1))
+            ))
+            .padding(.top, 4)
             
             // Action Buttons
             if !hideAboutButton {
@@ -117,14 +135,30 @@ struct CoreSignHeaderView: View {
                     .padding(.top, 4)
             }
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
+.frame(maxWidth: .infinity, alignment: .leading)
         .padding(24)
-        .background(Color(white: 0.12))
+        .background(
+            ZStack {
+                Color(white: 0.12)
+                LinearGradient(
+                    colors: [Color.white.opacity(0.03), Color.clear],
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                )
+            }
+        )
         .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
-        .shadow(color: .black.opacity(0.05), radius: 15, x: 0, y: 8)
+        .shadow(color: .black.opacity(0.2), radius: 20, x: 0, y: 10)
         .overlay(
             RoundedRectangle(cornerRadius: 24, style: .continuous)
-                .stroke(Color.primary.opacity(0.08), lineWidth: 0.5)
+                .stroke(
+                    LinearGradient(
+                        colors: [.white.opacity(0.15), .white.opacity(0.05)],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    ),
+                    lineWidth: 0.5
+                )
         )
     }
     
@@ -149,10 +183,10 @@ struct CoreSignHeaderView: View {
             }
         }
         .frame(width: 60, height: 60)
-        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
-        .shadow(color: .black.opacity(0.1), radius: 10, x: 0, y: 5)
+        .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+        .shadow(color: Color.accentColor.opacity(0.2), radius: 12, x: 0, y: 6)
         .overlay(
-            RoundedRectangle(cornerRadius: 16, style: .continuous)
+            RoundedRectangle(cornerRadius: 18, style: .continuous)
                 .strokeBorder(Color.white.opacity(0.15), lineWidth: 0.5)
         )
     }
@@ -204,7 +238,7 @@ struct CoreSignHeaderView: View {
             }
         }
 
-        withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) {
+        withAnimation(.spring(response: 0.6, dampingFraction: 0.7)) {
             currentSubtitleIndex = newIndex
         }
     }
@@ -286,4 +320,47 @@ private extension Array {
 #Preview {
     CoreSignHeaderView()
         .padding()
+}
+
+// MARK: - Modern Shuffling Text
+struct ModernShufflingText: View {
+    let text: String
+    let font: Font
+    let color: Color
+
+    @State private var displayedText: String = ""
+    @State private var timer: Timer?
+
+    var body: some View {
+        Text(displayedText)
+            .font(font)
+            .foregroundStyle(color)
+            .onAppear {
+                displayedText = text
+            }
+            .onChange(of: text) { newValue in
+                runShuffle(to: newValue)
+            }
+    }
+
+    private func runShuffle(to newText: String) {
+        timer?.invalidate()
+        let characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*"
+        var iteration = 0
+        let maxIterations = 12
+
+        timer = Timer.scheduledTimer(withTimeInterval: 0.05, repeats: true) { t in
+            iteration += 1
+            if iteration >= maxIterations {
+                displayedText = newText
+                t.invalidate()
+            } else {
+                let result = newText.enumerated().map { index, char in
+                    if char == " " { return " " }
+                    return characters.randomElement()!
+                }
+                displayedText = String(result)
+            }
+        }
+    }
 }
