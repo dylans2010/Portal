@@ -66,6 +66,7 @@ struct AppAddView: View {
             FileImporterRepresentableView(
                 allowedContentTypes: [.ipa, .tipa],
                 allowsMultipleSelection: true,
+                asCopy: false,
                 onDocumentsPicked: { urls in
                     guard !urls.isEmpty else { return }
 

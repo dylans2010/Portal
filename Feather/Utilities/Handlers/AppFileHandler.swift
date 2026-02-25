@@ -53,6 +53,14 @@ final class AppFileHandler: NSObject, @unchecked Sendable {
 
 		try _fileManager.removeFileIfNeeded(at: destinationURL)
 		
+		// Handle security-scoped resources for non-copied files (e.g., from UIDocumentPicker)
+		let shouldStopAccessing = _ipa.startAccessingSecurityScopedResource()
+		defer {
+			if shouldStopAccessing {
+				_ipa.stopAccessingSecurityScopedResource()
+			}
+		}
+
 		try _fileManager.copyItem(at: _ipa, to: destinationURL)
 		_ipa = destinationURL
 		Logger.misc.info("[\(self._uuid)] File copied to: \(self._ipa.path)")

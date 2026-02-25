@@ -1,5 +1,6 @@
 import SwiftUI
 import NimbleViews
+import UniformTypeIdentifiers
 
 struct RepoMeta: Codable {
     var repoName: String
@@ -219,6 +220,28 @@ struct RepoSource: Codable {
     }
 }
 
+struct SourceDocument: FileDocument {
+    static var readableContentTypes: [UTType] { [.json] }
+    var json: String
+
+    init(json: String = "{}") {
+        self.json = json
+    }
+
+    init(configuration: ReadConfiguration) throws {
+        if let data = configuration.file.regularFileContents {
+            json = String(data: data, encoding: .utf8) ?? "{}"
+        } else {
+            json = "{}"
+        }
+    }
+
+    func fileWrapper(configuration: WriteConfiguration) throws -> FileWrapper {
+        let data = json.data(using: .utf8) ?? Data()
+        return FileWrapper(regularFileWithContents: data)
+    }
+}
+
 struct RepoBuilder: View {
     @State private var repoName = ""
     @State private var repoIdentifier = ""
@@ -234,6 +257,9 @@ struct RepoBuilder: View {
     @State private var showingGuide = false
 
     @State private var generatedJSON = ""
+    @State private var showGeneratedSource = false
+    @State private var isImportingJSON = false
+    @State private var isExportingJSON = false
     @State private var showingSuccessAlert = false
 
     var body: some View {
@@ -291,6 +317,37 @@ struct RepoBuilder: View {
                     .listRowBackground(Color.clear)
                     .listRowInsets(EdgeInsets())
                 }
+
+                if showGeneratedSource && !generatedJSON.isEmpty {
+                    Section(header: Text(String.localized("New Source"))) {
+                        TextEditor(text: .constant(generatedJSON))
+                            .frame(minHeight: 200)
+                            .font(.system(.caption, design: .monospaced))
+
+                        Button {
+                            UIPasteboard.general.string = generatedJSON
+                            ToastManager.shared.show(String.localized("Copied to clipboard!"), type: .success)
+                        } label: {
+                            Label(String.localized("Copy JSON"), systemImage: "doc.on.clipboard")
+                        }
+                    }
+                }
+
+                Section {
+                    Button {
+                        isImportingJSON = true
+                    } label: {
+                        Label(String.localized("Import JSON"), systemImage: "square.and.arrow.down")
+                    }
+
+                    if !generatedJSON.isEmpty {
+                        Button {
+                            isExportingJSON = true
+                        } label: {
+                            Label(String.localized("Save JSON"), systemImage: "square.and.arrow.up")
+                        }
+                    }
+                }
             }
             .scrollContentBackground(.hidden)
             .toolbar {
@@ -319,6 +376,61 @@ struct RepoBuilder: View {
             } message: {
                 Text(String.localized("The source JSON has been generated and copied to your clipboard. You can now host it on GitHub or any other service."))
             }
+            .sheet(isPresented: $isImportingJSON) {
+                FileImporterRepresentableView(
+                    allowedContentTypes: [.json],
+                    allowsMultipleSelection: false,
+                    onDocumentsPicked: { urls in
+                        if let url = urls.first {
+                            importJSON(from: url)
+                        }
+                    }
+                )
+                .ignoresSafeArea()
+            }
+            .fileExporter(
+                isPresented: $isExportingJSON,
+                document: SourceDocument(json: generatedJSON),
+                contentType: .json,
+                defaultFilename: "repo.json"
+            ) { result in
+                switch result {
+                case .success(let url):
+                    ToastManager.shared.show(String.localized("Saved to \(url.lastPathComponent)"), type: .success)
+                case .failure(let error):
+                    ToastManager.shared.show(String.localized("Failed to save: \(error.localizedDescription)"), type: .error)
+                }
+            }
+        }
+    }
+
+    private func importJSON(from url: URL) {
+        let shouldStopAccessing = url.startAccessingSecurityScopedResource()
+        defer {
+            if shouldStopAccessing {
+                url.stopAccessingSecurityScopedResource()
+            }
+        }
+
+        do {
+            let data = try Data(contentsOf: url)
+            let source = try JSONDecoder().decode(RepoSource.self, from: data)
+
+            repoName = source.name
+            repoIdentifier = source.identifier
+            sourceURL = source.sourceURL
+            iconURL = source.iconURL
+            website = source.website
+            subtitle = source.subtitle
+            description = source.description
+            apps = source.apps
+            isAltSource = source.isAltSource
+
+            ToastManager.shared.show(String.localized("Source JSON imported successfully!"), type: .success)
+            HapticsManager.shared.success()
+        } catch {
+            print("Import error: \(error)")
+            ToastManager.shared.show(String.localized("Failed to import JSON: \(error.localizedDescription)"), type: .error)
         }
     }
 
@@ -360,6 +472,7 @@ struct RepoBuilder: View {
             if let jsonString = String(data: data, encoding: .utf8) {
                 generatedJSON = jsonString
                 UIPasteboard.general.string = jsonString
+                showGeneratedSource = true
                 showingSuccessAlert = true
                 ToastManager.shared.show(String.localized("Source JSON copied to clipboard!"), type: .success)
                 HapticsManager.shared.success()
