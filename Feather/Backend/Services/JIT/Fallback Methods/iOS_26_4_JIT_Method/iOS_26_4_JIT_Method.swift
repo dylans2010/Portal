@@ -225,12 +225,6 @@ struct iOS_26_4_JIT_Method: JITFallbackStrategy {
     }
 
     private func maskToCIDR(_ mask: UInt32) -> Int {
-        var bits = 0
-        var m = mask
-        while m != 0 {
-            bits += Int(m & 1)
-            m >>= 1
-        }
-        return bits
+        return 32 - mask.trailingZeroBitCount
     }
 }
