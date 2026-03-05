@@ -77,7 +77,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		3371F6492DA92A1800281AC6 /* Exceptions for "Feather" folder in "Feather" target */ = {
+		3371F6492DA92A1800281AC6 /* Exceptions for "Portal" folder in "Feather" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Resources/ellekit.deb,
@@ -96,7 +96,7 @@
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet section */
-		33CF134C2DB5B9BC0021D4C5 /* Exceptions for "Feather" folder in "Copy Bundle Resources" phase from "Feather" target */ = {
+		33CF134C2DB5B9BC0021D4C5 /* Exceptions for "Portal" folder in "Copy Bundle Resources" phase from "Portal" target */ = {
 			isa = PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet;
 			buildPhase = 3379C1B72DA869A1004372DA /* Resources */;
 			membershipExceptions = (
@@ -109,10 +109,10 @@
 		3379C1BB2DA869A1004372DA /* Feather */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
-				3371F6492DA92A1800281AC6 /* Exceptions for "Feather" folder in "Feather" target */,
-				33CF134C2DB5B9BC0021D4C5 /* Exceptions for "Feather" folder in "Copy Bundle Resources" phase from "Feather" target */,
+				3371F6492DA92A1800281AC6 /* Exceptions for "Portal" folder in "Feather" target */,
+				33CF134C2DB5B9BC0021D4C5 /* Exceptions for "Portal" folder in "Copy Bundle Resources" phase from "Portal" target */,
 			);
-			path = Feather;
+			path = Portal;
 			sourceTree = "<group>";
 		};
 		AABA5D1A2DB3C87800BFCD2C /* FeatherTests */ = {
@@ -563,7 +563,7 @@
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
 				CLANG_CXX_LIBRARY = "libc++";
 				CLANG_ENABLE_MODULES = YES;
-				CODE_SIGN_ENTITLEMENTS = "Feather/Supporting Files/Feather.entitlements";
+				CODE_SIGN_ENTITLEMENTS = "Portal/Supporting Files/Feather.entitlements";
 				CODE_SIGN_IDENTITY = "";
 				CODE_SIGN_STYLE = Manual;
 				COMPRESS_PNG_FILES = NO;
@@ -577,7 +577,7 @@
 					"$(inherited)",
 				);
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = Feather/Resources/Info.plist;
+				INFOPLIST_FILE = Portal/Resources/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Portal;
 				INFOPLIST_KEY_LSSupportsOpeningDocumentsInPlace = NO;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "Copyright (c) 2024 Samara M";
@@ -596,8 +596,8 @@
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
-					"$(PROJECT_DIR)/Feather/Resources",
-					"$(PROJECT_DIR)/Feather/Resources/idevice",
+					"$(PROJECT_DIR)/Portal/Resources",
+					"$(PROJECT_DIR)/Portal/Resources/idevice",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 15.2;
 				MARKETING_VERSION = 3.0;
@@ -612,7 +612,7 @@
 				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_OBJC_BRIDGING_HEADER = "Feather/Supporting Files/Feather-Bridging-Header.h";
+				SWIFT_OBJC_BRIDGING_HEADER = "Portal/Supporting Files/Feather-Bridging-Header.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2,3";
@@ -631,7 +631,7 @@
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
 				CLANG_CXX_LIBRARY = "libc++";
 				CLANG_ENABLE_MODULES = YES;
-				CODE_SIGN_ENTITLEMENTS = "Feather/Supporting Files/Feather.entitlements";
+				CODE_SIGN_ENTITLEMENTS = "Portal/Supporting Files/Feather.entitlements";
 				CODE_SIGN_IDENTITY = "";
 				CODE_SIGN_STYLE = Manual;
 				COMPRESS_PNG_FILES = NO;
@@ -644,7 +644,7 @@
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GCC_PREPROCESSOR_DEFINITIONS = "";
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = Feather/Resources/Info.plist;
+				INFOPLIST_FILE = Portal/Resources/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Portal;
 				INFOPLIST_KEY_LSSupportsOpeningDocumentsInPlace = NO;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "Copyright (c) 2024 Samara M";
@@ -663,8 +663,8 @@
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
-					"$(PROJECT_DIR)/Feather/Resources",
-					"$(PROJECT_DIR)/Feather/Resources/idevice",
+					"$(PROJECT_DIR)/Portal/Resources",
+					"$(PROJECT_DIR)/Portal/Resources/idevice",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 15.2;
 				MARKETING_VERSION = 3.0;
@@ -679,7 +679,7 @@
 				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "";
 				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_OBJC_BRIDGING_HEADER = "Feather/Supporting Files/Feather-Bridging-Header.h";
+				SWIFT_OBJC_BRIDGING_HEADER = "Portal/Supporting Files/Feather-Bridging-Header.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2,3";
@@ -692,7 +692,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
-				CODE_SIGN_ENTITLEMENTS = "Feather/Supporting Files/Feather.entitlements";
+				CODE_SIGN_ENTITLEMENTS = "Portal/Supporting Files/Feather.entitlements";
 				CODE_SIGN_IDENTITY = "";
 				CODE_SIGN_STYLE = Manual;
 				COMPRESS_PNG_FILES = NO;
@@ -717,7 +717,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
-				CODE_SIGN_ENTITLEMENTS = "Feather/Supporting Files/Feather.entitlements";
+				CODE_SIGN_ENTITLEMENTS = "Portal/Supporting Files/Feather.entitlements";
 				CODE_SIGN_IDENTITY = "";
 				CODE_SIGN_STYLE = Manual;
 				COMPRESS_PNG_FILES = NO;
