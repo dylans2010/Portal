@@ -287,6 +287,8 @@
 	</array>
 	<key>NSLocalNetworkUsageDescription</key>
 	<string>Portal needs access to your local network to discover nearby devices for wireless backup transfer.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Portal requires access to your camera so you can scan QR codes to import your sources.</string>
 	<key>NSSupportsLiveActivities</key>
 	<true/>
 	<key>NSUserActivityTypes</key>
