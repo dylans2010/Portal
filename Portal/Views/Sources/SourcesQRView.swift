@@ -81,9 +81,21 @@ struct SourcesQRView: View {
                 }
             }
             .sheet(isPresented: $_isScanning) {
-                QRScannerView { result in
-                    _isScanning = false
-                    _handleScannedResult(result)
+                NavigationStack {
+                    QRScannerView { result in
+                        _isScanning = false
+                        _handleScannedResult(result)
+                    }
+                    .navigationTitle("Scan QR Code")
+                    .navigationBarTitleDisplayMode(.inline)
+                    .toolbar {
+                        ToolbarItem(placement: .cancellationAction) {
+                            Button("Cancel") {
+                                _isScanning = false
+                            }
+                        }
+                    }
+                    .ignoresSafeArea(.container, edges: .bottom)
                 }
             }
         }
