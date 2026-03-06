@@ -4,7 +4,7 @@ import AVFoundation
 // MARK: - Pair Code Scanner View
 /// A fully custom camera scanning view designed exclusively to detect Pairing Codes.
 ///
-/// Unlike the general-purpose `QRCodeScannerView`, this scanner:
+/// This scanner:
 /// - Presents a centered circular scanning frame as the visual target zone.
 /// - Restricts metadata detection to the bounding box of the circular region via
 ///   `AVCaptureMetadataOutput.rectOfInterest` so the entire camera frame is never
@@ -304,7 +304,7 @@ final class PairCodeCameraUIView: UIView {
 
 /// Draws a semi-transparent dimmed overlay over the full screen with a circular
 /// cutout centred in the view.  An animated gradient-stroke circle highlights the
-/// scanning zone, consistent with the pulsing corner brackets in `QRCodeScannerView`.
+/// scanning zone.
 private struct CircularScanOverlay: View {
 
     let circleSize: CGFloat

@@ -89,8 +89,19 @@ struct PairingView: View {
             }
         }
         .sheet(isPresented: $viewModel.showScanSheet) {
-            QRCodeScannerSheet { code in
-                connectWithScannedCode(code)
+            NavigationStack {
+                PairCodeScannerView { code in
+                    connectWithScannedCode(code)
+                }
+                .navigationTitle(.localized("Scan Pairing Code"))
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbar {
+                    ToolbarItem(placement: .cancellationAction) {
+                        Button(.localized("Cancel")) {
+                            viewModel.showScanSheet = false
+                        }
+                    }
+                }
             }
         }
         .sheet(isPresented: $showHistory) {

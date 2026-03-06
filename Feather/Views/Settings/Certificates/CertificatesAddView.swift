@@ -407,7 +407,7 @@ struct CertificatesAddView: View {
     }
 
     // MARK: - Handle Portal Cert Import
-    private func _handlePortalCertImport(_ url: URL) {
+    private func _handlePortalCertImport(_ url: URL) async {
         Logger.misc.info("[PortalCert Import] Starting import from: \(url.lastPathComponent)")
         
         do {
@@ -450,7 +450,7 @@ struct CertificatesAddView: View {
     
     private func portalCertImportSheet_picked(_ url: URL) {
         Task.detached {
-            _handlePortalCertImport(url)
+            await _handlePortalCertImport(url)
         }
     }
 }
@@ -462,7 +462,7 @@ extension CertificatesAddView {
 
         Task.detached {
             // Perform password check in background
-            let isPasswordCorrect = FR.checkPasswordForCertificate(for: p12URL, with: _p12Password, using: provisionURL)
+            let isPasswordCorrect = await FR.checkPasswordForCertificate(for: p12URL, with: _p12Password, using: provisionURL)
 
             await MainActor.run {
                 if !isPasswordCorrect {

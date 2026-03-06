@@ -57,31 +57,37 @@ class BackgroundRefreshManager: ObservableObject {
         let connectionPreference = UserDefaults.standard.integer(forKey: "Feather.backgroundRefreshConnection")
         // 0: Both, 1: WiFi, 2: Cellular
 
-        let pathMonitor = NWPathMonitor()
-        let semaphore = DispatchSemaphore(value: 0)
-        var isAllowed = false
+        let isAllowed = await withTimeout(seconds: 2.0) {
+            let pathStream = AsyncStream<NWPath> { continuation in
+                let pathMonitor = NWPathMonitor()
+                pathMonitor.pathUpdateHandler = { path in
+                    continuation.yield(path)
+                }
+                continuation.onTermination = { _ in
+                    pathMonitor.cancel()
+                }
+                let queue = DispatchQueue(label: "BackgroundRefreshNetworkMonitor")
+                pathMonitor.start(queue: queue)
+            }
 
-        pathMonitor.pathUpdateHandler = { path in
-            if path.status == .satisfied {
-                switch connectionPreference {
-                case 0: // Both
-                    isAllowed = true
-                case 1: // WiFi
-                    isAllowed = path.usesInterfaceType(.wifi)
-                case 2: // Cellular
-                    isAllowed = path.usesInterfaceType(.cellular)
-                default:
-                    isAllowed = true
+            for await path in pathStream {
+                if path.status == .satisfied {
+                    switch connectionPreference {
+                    case 0: // Both
+                        return true
+                    case 1: // WiFi
+                        return path.usesInterfaceType(.wifi)
+                    case 2: // Cellular
+                        return path.usesInterfaceType(.cellular)
+                    default:
+                        return true
+                    }
+                } else if path.status == .unsatisfied {
+                    return false
                 }
             }
-            semaphore.signal()
-        }
-
-        let queue = DispatchQueue(label: "BackgroundRefreshNetworkMonitor")
-        pathMonitor.start(queue: queue)
-
-        _ = semaphore.wait(timeout: .now() + 2.0)
-        pathMonitor.cancel()
+            return false
+        } ?? false
 
         if !isAllowed {
             logger.info("Background refresh skipped: Connection does not match user preference (\(connectionPreference))")
@@ -103,6 +109,22 @@ class BackgroundRefreshManager: ObservableObject {
         } catch {
             logger.error("Background refresh failed: \(error.localizedDescription)")
             return false
+        }
+    }
+
+    private func withTimeout<T>(seconds: TimeInterval, operation: @escaping @Sendable () async -> T) async -> T? {
+        await withTaskGroup(of: T?.self) { group in
+            group.addTask {
+                await operation()
+            }
+            group.addTask {
+                try? await Task.sleep(nanoseconds: UInt64(seconds * 1_000_000_000))
+                return nil
+            }
+
+            let result = await group.next()
+            group.cancelAll()
+            return result ?? nil
         }
     }
 }

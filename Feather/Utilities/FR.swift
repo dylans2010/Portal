@@ -146,7 +146,7 @@ enum FR {
 		for key: URL,
 		with password: String,
 		using provision: URL
-	) -> Bool {
+	) async -> Bool {
 		defer {
 			password_check_fix_WHAT_THE_FUCK_free(provision.path)
 		}

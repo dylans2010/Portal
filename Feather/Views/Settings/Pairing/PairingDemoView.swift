@@ -298,7 +298,7 @@ private struct SenderPage: View {
                 VStack(spacing: 8) {
                     Text(.localized("Animated Pairing Code"))
                         .font(.headline).foregroundStyle(.white)
-                    Text(.localized("Tap "Pair Devices" — a unique QR code\nappears in the corner of the animation."))
+                    Text(.localized("Tap \"Pair Devices\" — a unique QR code\nappears in the corner of the animation."))
                         .font(.subheadline)
                         .foregroundStyle(.white.opacity(0.65))
                         .multilineTextAlignment(.center)
@@ -395,7 +395,7 @@ private struct ReceiverPage: View {
                 VStack(spacing: 8) {
                     Text(.localized("Scan with Camera"))
                         .font(.headline).foregroundStyle(.white)
-                    Text(.localized("Tap "Scan Pairing Code" on the other device —\npoint your camera at the animated code."))
+                    Text(.localized("Tap \"Scan Pairing Code\" on the other device —\npoint your camera at the animated code."))
                         .font(.subheadline)
                         .foregroundStyle(.white.opacity(0.65))
                         .multilineTextAlignment(.center)

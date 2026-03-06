@@ -269,6 +269,7 @@ struct CustomAnimationView: View {
 extension View {
     @ViewBuilder
     func applySymbolEffect() -> some View {
+        #if canImport(SwiftUI) && os(iOS)
         if #available(iOS 18.0, *) {
             self.symbolEffect(.bounce, options: .repeating)
         } else if #available(iOS 17.0, *) {
@@ -276,6 +277,9 @@ extension View {
         } else {
             self
         }
+        #else
+        self
+        #endif
     }
 }
 
