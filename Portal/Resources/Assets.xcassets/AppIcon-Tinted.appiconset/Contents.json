@@ -1,7 +1,6 @@
 {
   "images": [
     {
-      "filename": "WSF-Icon-iOS-TintedLight-1024x1024@2x.png",
       "idiom": "universal",
       "platform": "ios",
       "size": "1024x1024"
@@ -13,7 +12,6 @@
           "value": "dark"
         }
       ],
-      "filename": "WSF-Icon-iOS-TintedDark-1024x1024@2x.png",
       "idiom": "universal",
       "platform": "ios",
       "size": "1024x1024"
