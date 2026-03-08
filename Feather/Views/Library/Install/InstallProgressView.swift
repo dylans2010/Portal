@@ -40,7 +40,7 @@ struct InstallProgressView<Footer: View>: View {
 
     var body: some View {
         ZStack {
-            Color.black.opacity(0.001)
+            Color.black.opacity(0.15)
                 .ignoresSafeArea()
                 .onTapGesture {}
 
@@ -76,8 +76,8 @@ struct InstallProgressView<Footer: View>: View {
         .padding(.horizontal, 16)
         .padding(.top, 24)
         .padding(.bottom, 30)
-        .background(Color.clear)
-        .clipShape(RoundedRectangle(cornerRadius: 30, style: .continuous))
+        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 30, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: 30, style: .continuous).stroke(Color.primary.opacity(0.1), lineWidth: 0.5))
     }
 
     @ViewBuilder
@@ -131,8 +131,7 @@ struct InstallProgressView<Footer: View>: View {
             Spacer(minLength: 0)
         }
         .padding(16)
-        .background(Color.clear)
-        .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+        .background(Color.primary.opacity(0.05), in: RoundedRectangle(cornerRadius: 20, style: .continuous))
     }
 
     @ViewBuilder

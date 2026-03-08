@@ -112,8 +112,8 @@ struct InstallPreviewView: View {
                 .font(.system(size: 14, weight: .bold))
                 .foregroundColor(.secondary)
                 .frame(width: 36, height: 36)
-                .background(Color.clear)
-                .clipShape(Circle())
+                .background(.ultraThinMaterial, in: Circle())
+                .overlay(Circle().stroke(Color.primary.opacity(0.1), lineWidth: 0.5))
         }
     }
 
