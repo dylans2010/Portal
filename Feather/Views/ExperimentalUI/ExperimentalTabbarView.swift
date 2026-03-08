@@ -84,6 +84,11 @@ struct ExperimentalTabbarView: View {
                 AppStateManager.shared.hasSelectedInitialTab = true
             }
         }
+        .onReceive(NotificationCenter.default.publisher(for: Notification.Name("Feather.SwitchTab"))) { notification in
+            if let tab = notification.object as? TabEnum {
+                selectedTab = tab
+            }
+        }
     }
 }
 
