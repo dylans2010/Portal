@@ -2,6 +2,37 @@ import SwiftUI
 import ActivityKit
 import WidgetKit
 
+private func fontDesign(for family: LiveActivitySettings.FontFamily) -> Font.Design {
+    switch family {
+    case .system: return .default
+    case .rounded: return .rounded
+    case .monospaced: return .monospaced
+    }
+}
+
+private func fontFor(_ textStyle: Font.TextStyle, settings: LiveActivitySettings) -> Font {
+    let weight = settings.fontWeight.fontWeight
+    switch settings.fontFamily {
+    case .system:
+        return .system(textStyle, design: .default, weight: weight)
+    case .rounded:
+        return .system(textStyle, design: .rounded, weight: weight)
+    case .monospaced:
+        return .system(textStyle, design: .monospaced, weight: weight)
+    }
+}
+
+private func animationFor(_ style: LiveActivitySettings.AnimationStyle) -> Animation? {
+    switch style {
+    case .none:
+        return nil
+    case .smooth:
+        return .easeInOut(duration: 0.3)
+    case .spring:
+        return .spring(response: 0.3, dampingFraction: 0.8)
+    }
+}
+
 @available(iOS 16.1, *)
 struct InstallationLiveActivityView: View {
     let context: ActivityViewContext<InstallationActivityAttributes>
@@ -162,37 +193,6 @@ struct InstallationLiveActivityView: View {
                 }
             }
         }
-    }
-}
-
-private func fontDesign(for family: LiveActivitySettings.FontFamily) -> Font.Design {
-    switch family {
-    case .system: return .default
-    case .rounded: return .rounded
-    case .monospaced: return .monospaced
-    }
-}
-
-private func fontFor(_ textStyle: Font.TextStyle, settings: LiveActivitySettings) -> Font {
-    let weight = settings.fontWeight.fontWeight
-    switch settings.fontFamily {
-    case .system:
-        return .system(textStyle, design: .default, weight: weight)
-    case .rounded:
-        return .system(textStyle, design: .rounded, weight: weight)
-    case .monospaced:
-        return .system(textStyle, design: .monospaced, weight: weight)
-    }
-}
-
-private func animationFor(_ style: LiveActivitySettings.AnimationStyle) -> Animation? {
-    switch style {
-    case .none:
-        return nil
-    case .smooth:
-        return .easeInOut(duration: 0.3)
-    case .spring:
-        return .spring(response: 0.3, dampingFraction: 0.8)
     }
 }
 
