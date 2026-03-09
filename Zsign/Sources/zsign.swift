@@ -113,4 +113,24 @@ public enum Zsign {
 			completionHandler(status, expirationDate, error)
 		}
 	}
+
+	/// Changes the password of a PKCS#12 (.p12) file using OpenSSL.
+	/// This operation is performed entirely in memory and is compatible with iOS.
+	/// - Parameters:
+	///   - data: The raw bytes of the .p12 file
+	///   - oldPassword: The current password protecting the file
+	///   - newPassword: The new password to apply
+	/// - Returns: The re-encrypted .p12 data
+	/// - Throws: An `NSError` describing what went wrong
+	static public func changeP12Password(data: Data, oldPassword: String, newPassword: String) throws -> Data {
+		var err: NSError?
+		guard let result = ChangeP12Password(data as NSData, oldPassword as NSString, newPassword as NSString, &err) else {
+			throw err ?? NSError(
+				domain: "PasswordChangerError",
+				code: -99,
+				userInfo: [NSLocalizedDescriptionKey: "Unknown error while changing P12 password"]
+			)
+		}
+		return result as Data
+	}
 }

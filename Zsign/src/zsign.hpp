@@ -42,6 +42,13 @@ int checkCert(
 	void(^completionHandler)(int status, NSDate* expirationDate, NSString *error)
 );
 
+NSData * _Nullable ChangeP12Password(
+	NSData *p12Data,
+	NSString *oldPassword,
+	NSString *newPassword,
+	NSError * _Nullable * _Nullable error
+);
+
 #ifdef __cplusplus
 }
 #endif

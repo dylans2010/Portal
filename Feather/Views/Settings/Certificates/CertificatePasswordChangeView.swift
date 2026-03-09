@@ -13,13 +13,16 @@ struct CertificatePasswordChangeView: View {
     @State private var _isImportingP12Presenting = false
     @State private var _isProcessing = false
     @State private var _errorMessage: String? = nil
+    @State private var _successMessage: String? = nil
+
+    private static let _p12Extensions: Set<String> = ["p12", "pfx"]
 
     private var _passwordsMatch: Bool {
         _newPassword.trimmingCharacters(in: .whitespacesAndNewlines) == _confirmPassword.trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
     var processButtonDisabled: Bool {
-        _p12URL == nil || _newPassword.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || !_passwordsMatch || _isProcessing
+        _p12URL == nil || !_passwordsMatch || _isProcessing
     }
 
     var body: some View {
@@ -35,6 +38,14 @@ struct CertificatePasswordChangeView: View {
                             .padding(.vertical, 8)
 
                         passwordFieldsSection
+
+                        if let successMessage = _successMessage {
+                            Text(successMessage)
+                                .font(.system(size: 13))
+                                .foregroundStyle(.green)
+                                .multilineTextAlignment(.center)
+                                .padding(.horizontal, 20)
+                        }
 
                         if let errorMessage = _errorMessage {
                             Text(errorMessage)
@@ -238,6 +249,13 @@ struct CertificatePasswordChangeView: View {
             allowedContentTypes: [.p12],
             onDocumentsPicked: { urls in
                 guard let selectedFileURL = urls.first else { return }
+                let ext = selectedFileURL.pathExtension.lowercased()
+                guard CertificatePasswordChangeView._p12Extensions.contains(ext) else {
+                    self._errorMessage = "Please select a valid .p12 or .pfx certificate file."
+                    return
+                }
+                self._errorMessage = nil
+                self._successMessage = nil
                 self._p12URL = selectedFileURL
             }
         )
@@ -250,6 +268,12 @@ struct CertificatePasswordChangeView: View {
             return
         }
 
+        let ext = p12URL.pathExtension.lowercased()
+        guard CertificatePasswordChangeView._p12Extensions.contains(ext) else {
+            _errorMessage = "The selected file is not a valid PKCS#12 file. Please select a .p12 or .pfx file."
+            return
+        }
+
         let trimmedNew = _newPassword.trimmingCharacters(in: .whitespacesAndNewlines)
         let trimmedConfirm = _confirmPassword.trimmingCharacters(in: .whitespacesAndNewlines)
 
@@ -259,6 +283,7 @@ struct CertificatePasswordChangeView: View {
         }
 
         _errorMessage = nil
+        _successMessage = nil
         _isProcessing = true
 
         // Start accessing the security scoped resource for files from Document Picker
@@ -301,17 +326,22 @@ struct CertificatePasswordChangeView: View {
 
     private func _handleSuccess(newData: Data, originalName: String) {
         let tempDir = FileManager.default.temporaryDirectory
-        let fileName = originalName.replacingOccurrences(of: ".p12", with: "_new.p12")
-        let fileURL = tempDir.appendingPathComponent(fileName)
+        let baseName = (originalName as NSString).deletingPathExtension
+        let fileURL = tempDir.appendingPathComponent("\(baseName)_new.p12")
 
         do {
             try newData.write(to: fileURL)
 
             // Present UIActivityViewController directly to set completion handler for cleanup
             let controller = UIActivityViewController(activityItems: [fileURL], applicationActivities: nil)
-            controller.completionWithItemsHandler = { _, _, _, _ in
+            controller.completionWithItemsHandler = { _, completed, _, _ in
                 // Cleanup the temporary file after sharing is done
                 try? FileManager.default.removeItem(at: fileURL)
+                if completed {
+                    DispatchQueue.main.async {
+                        self._successMessage = "Password changed successfully. The updated certificate has been exported."
+                    }
+                }
             }
 
             if let topVC = UIApplication.topViewController() {
@@ -322,8 +352,6 @@ struct CertificatePasswordChangeView: View {
                 }
                 topVC.present(controller, animated: true)
             }
-
-            dismiss()
         } catch {
             _errorMessage = "Failed to save the new certificate: \(error.localizedDescription)"
         }

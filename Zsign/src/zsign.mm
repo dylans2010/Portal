@@ -21,6 +21,7 @@
 #include <openssl/ssl.h>
 #include <openssl/err.h>
 #include <openssl/asn1.h>
+#include <openssl/pkcs12.h>
 
 extern "C" {
 
@@ -386,6 +387,122 @@ int checkCert(
 	return 1;
 }
 
+NSData * _Nullable ChangeP12Password(
+	NSData *p12Data,
+	NSString *oldPassword,
+	NSString *newPassword,
+	NSError * _Nullable * _Nullable error
+) {
+	@autoreleasepool {
+		if (!p12Data || p12Data.length == 0) {
+			if (error) {
+				*error = [NSError errorWithDomain:@"PasswordChangerError" code:-1
+						  userInfo:@{NSLocalizedDescriptionKey: @"Invalid P12 data"}];
+			}
+			return nil;
+		}
 
+		// Load legacy provider so older PKCS12 files (3DES, RC2) can be parsed
+		OSSL_PROVIDER_load(NULL, "legacy");
+		ERR_clear_error();
+
+		const unsigned char *bytes = (const unsigned char *)[p12Data bytes];
+		int len = (int)[p12Data length];
+
+		// Decode the DER-encoded PKCS12 structure
+		PKCS12 *p12 = d2i_PKCS12(NULL, &bytes, len);
+		if (!p12) {
+			if (error) {
+				*error = [NSError errorWithDomain:@"PasswordChangerError" code:-2
+						  userInfo:@{NSLocalizedDescriptionKey: @"The file could not be decoded. It may be malformed or not a valid PKCS#12 file."}];
+			}
+			return nil;
+		}
+
+		EVP_PKEY *pkey = NULL;
+		X509 *cert = NULL;
+		STACK_OF(X509) *ca = NULL;
+
+		const char *oldPwd = [oldPassword UTF8String];
+		if (!PKCS12_parse(p12, oldPwd, &pkey, &cert, &ca)) {
+			PKCS12_free(p12);
+			if (error) {
+				*error = [NSError errorWithDomain:@"PasswordChangerError" code:-3
+						  userInfo:@{NSLocalizedDescriptionKey: @"Incorrect password or unsupported encryption algorithm"}];
+			}
+			return nil;
+		}
+		PKCS12_free(p12);
+
+		if (!pkey || !cert) {
+			if (pkey) EVP_PKEY_free(pkey);
+			if (cert) X509_free(cert);
+			if (ca) sk_X509_pop_free(ca, X509_free);
+			if (error) {
+				*error = [NSError errorWithDomain:@"PasswordChangerError" code:-4
+						  userInfo:@{NSLocalizedDescriptionKey: @"No certificate or private key found in the P12 file"}];
+			}
+			return nil;
+		}
+
+		// Validate that the private key matches the certificate
+		if (!X509_check_private_key(cert, pkey)) {
+			EVP_PKEY_free(pkey);
+			X509_free(cert);
+			if (ca) sk_X509_pop_free(ca, X509_free);
+			if (error) {
+				*error = [NSError errorWithDomain:@"PasswordChangerError" code:-5
+						  userInfo:@{NSLocalizedDescriptionKey: @"Private key does not match the certificate"}];
+			}
+			return nil;
+		}
+
+		// Re-create PKCS12 container with the new password
+		const char *newPwd = [newPassword UTF8String];
+		PKCS12 *newP12 = PKCS12_create(
+			newPwd,  // new passphrase
+			NULL,    // friendly name (NULL = keep existing)
+			pkey,    // private key
+			cert,    // certificate
+			ca,      // CA certificate chain
+			0,       // key nid (0 = default AES-256-CBC)
+			0,       // cert nid (0 = default)
+			0,       // iterations (0 = default PKCS12_DEFAULT_ITER)
+			0,       // mac iterations (0 = default)
+			0        // keytype (0 = default)
+		);
+
+		EVP_PKEY_free(pkey);
+		X509_free(cert);
+		if (ca) sk_X509_pop_free(ca, X509_free);
+
+		if (!newP12) {
+			if (error) {
+				*error = [NSError errorWithDomain:@"PasswordChangerError" code:-6
+						  userInfo:@{NSLocalizedDescriptionKey: @"Failed to create new P12 container with the new password"}];
+			}
+			return nil;
+		}
+
+		// Serialize the new PKCS12 to DER
+		unsigned char *outBuf = NULL;
+		int outLen = i2d_PKCS12(newP12, &outBuf);
+		PKCS12_free(newP12);
+
+		if (outLen <= 0 || !outBuf) {
+			if (outBuf) OPENSSL_free(outBuf);
+			if (error) {
+				*error = [NSError errorWithDomain:@"PasswordChangerError" code:-7
+						  userInfo:@{NSLocalizedDescriptionKey: @"Failed to serialize the new P12 file"}];
+			}
+			return nil;
+		}
+
+		NSData *result = [NSData dataWithBytes:outBuf length:outLen];
+		OPENSSL_free(outBuf);
+
+		return result;
+	}
+}
 
 }
