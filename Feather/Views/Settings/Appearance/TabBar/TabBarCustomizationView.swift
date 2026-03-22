@@ -17,6 +17,8 @@ struct TabBarCustomizationView: View {
     
     @State private var showMinimumWarning = false
     @State private var orderedTabs: [String] = []
+
+    private let allTabIDs = ["dashboard", "sources", "guides", "library", "files", "allapps", "settings"]
     @State private var isReordering = false
     
     private var availableDefaultTabs: [String] {
@@ -346,18 +348,27 @@ struct TabBarCustomizationView: View {
     }
     
     private func loadTabOrder() {
-        var tabs = tabOrder.split(separator: ",").map(String.init)
+        var tabs = tabOrder.split(separator: ",").map(String.init).filter { allTabIDs.contains($0) }
         if tabs.isEmpty {
-            tabs = ["sources", "library", "settings"]
-        } else if !tabs.contains("allapps") {
-            // Add allapps if missing, usually before settings
+            tabs = ["dashboard", "sources", "guides", "library", "files", "allapps", "settings"]
+        }
+
+        for tab in allTabIDs where tab != "settings" && !tabs.contains(tab) {
             if let settingsIndex = tabs.firstIndex(of: "settings") {
-                tabs.insert("allapps", at: settingsIndex)
+                tabs.insert(tab, at: settingsIndex)
             } else {
-                tabs.append("allapps")
+                tabs.append(tab)
             }
         }
+
+        if !tabs.contains("settings") {
+            tabs.append("settings")
+        }
+
+        tabs.removeAll { $0 == "settings" }
+        tabs.append("settings")
         orderedTabs = tabs
+        saveTabOrder()
     }
     
     private func moveTab(from source: IndexSet, to destination: Int) {
@@ -388,11 +399,12 @@ struct TabBarCustomizationView: View {
     }
     
     private func resetTabOrder() {
-        orderedTabs = ["sources", "library", "settings"]
+        orderedTabs = ["dashboard", "sources", "guides", "library", "files", "allapps", "settings"]
         saveTabOrder()
     }
     
     private func validateMinimumTabs() {
+        loadTabOrder()
         let visibleCount = [showDashboard, showSources, showLibrary, showFiles, showGuides, showAllApps].filter { $0 }.count + 1 // +1 for Settings
         if visibleCount < 2 {
             showMinimumWarning = true

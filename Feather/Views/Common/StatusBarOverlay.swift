@@ -69,6 +69,10 @@ struct StatusBarOverlay: View {
     @AppStorage("statusBar.networkIconStyle") private var networkIconStyle: String = "bars"
     @AppStorage("statusBar.showMemoryUsage") private var showMemoryUsage: Bool = false
     @AppStorage("statusBar.memoryDisplayStyle") private var memoryDisplayStyle: String = "percentage"
+    @AppStorage("statusBar.showDate") private var showDate: Bool = false
+    @AppStorage("statusBar.dateFormat") private var dateFormat: String = "short"
+    @AppStorage("statusBar.customDateFormat") private var customDateFormat: String = "MMM d"
+    @AppStorage("statusBar.showWeekday") private var showWeekday: Bool = false
     
     // MARK: - State Properties
     @State private var isVisible = false
@@ -137,7 +141,22 @@ struct StatusBarOverlay: View {
     }
     
     private var hasContent: Bool {
-        showCustomText || showSFSymbol || showTime || showBattery || showNetworkStatus || showMemoryUsage || widgetType != .none
+        showCustomText || showSFSymbol || showTime || showBattery || showNetworkStatus || showMemoryUsage || showDate || widgetType != .none
+    }
+
+    private var dateString: String {
+        let formatter = DateFormatter()
+        switch dateFormat {
+        case "medium": formatter.dateStyle = .medium
+        case "long": formatter.dateStyle = .long
+        case "custom": formatter.dateFormat = customDateFormat
+        default: formatter.dateStyle = .short
+        }
+
+        let value = formatter.string(from: currentTime)
+        guard showWeekday else { return value }
+        let weekday = DateFormatter().weekdaySymbols[Calendar.current.component(.weekday, from: currentTime) - 1]
+        return "\(weekday.prefix(3)) \(value)"
     }
     
     private var batteryIconName: String {
@@ -245,9 +264,6 @@ struct StatusBarOverlay: View {
             if showBattery && getAlignment(for: batteryAlignment) == .leading {
                 batteryView
             }
-            if showNetworkStatus {
-                networkStatusView
-            }
         }
     }
     
@@ -265,9 +281,6 @@ struct StatusBarOverlay: View {
             }
             if showBattery && getAlignment(for: batteryAlignment) == .center {
                 batteryView
-            }
-            if showMemoryUsage {
-                memoryUsageView
             }
             if widgetType != .none {
                 buildWidget()
@@ -289,6 +302,15 @@ struct StatusBarOverlay: View {
             }
             if showBattery && getAlignment(for: batteryAlignment) == .trailing {
                 batteryView
+            }
+            if showDate {
+                dateView
+            }
+            if showNetworkStatus {
+                networkStatusView
+            }
+            if showMemoryUsage {
+                memoryUsageView
             }
         }
     }
@@ -323,6 +345,10 @@ struct StatusBarOverlay: View {
         .padding(.bottom, batteryBottomPadding)
     }
     
+    private var dateView: some View {
+        styledText(dateString)
+    }
+
     // MARK: - Network Status View
     @ViewBuilder
     private var networkStatusView: some View {

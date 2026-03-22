@@ -61,6 +61,7 @@ struct PortalTopView: View {
                     // Threshold: midpoint between notch (~44 pt) and Dynamic Island (~59 pt).
                     let dynamicIslandThreshold: CGFloat = 54
                     let hasDynamicIsland = safeAreaTop >= dynamicIslandThreshold
+                    let topClearance = hasDynamicIsland ? safeAreaTop + 14 : max((safeAreaTop - 30) / 2, 6)
 
                     VStack(spacing: 0) {
                         Spacer(minLength: 0)
@@ -147,8 +148,8 @@ struct PortalTopView: View {
                     // On Dynamic Island devices the pill sits below the island;
                     // on notch / no-notch devices it is vertically centred inside
                     // the top inset as before.
-                    .frame(height: hasDynamicIsland ? 52 : max(safeAreaTop, 20))
-                    .offset(y: hasDynamicIsland ? safeAreaTop + 4 : 0)
+                    .frame(height: max(safeAreaTop + 70, 88))
+                    .padding(.top, topClearance)
 
                     Spacer()
                 }
