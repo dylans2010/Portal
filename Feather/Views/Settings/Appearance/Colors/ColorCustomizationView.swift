@@ -12,7 +12,6 @@ struct ColorTheme: Identifiable, Codable, Equatable {
     var cardRadius: Double?
     var fontDesign: String?
 
-    // New fields
     var navBarColor: String?
     var tabBarColor: String?
     var dividerColor: String?
@@ -26,6 +25,24 @@ struct ColorTheme: Identifiable, Codable, Equatable {
 }
 
 struct ColorCustomizationView: View {
+    private enum EditorSection: String, CaseIterable, Identifiable {
+        case overview = "Overview"
+        case colors = "Colors"
+        case styling = "Styling"
+        case sections = "Sections"
+
+        var id: String { rawValue }
+
+        var icon: String {
+            switch self {
+            case .overview: return "sparkles"
+            case .colors: return "paintpalette.fill"
+            case .styling: return "slider.horizontal.3"
+            case .sections: return "square.grid.2x2.fill"
+            }
+        }
+    }
+
     @EnvironmentObject private var backgroundManager: ColorBackgroundManager
     @AppStorage("Feather.animateBackground") private var animateBackground: Bool = false
 
@@ -55,7 +72,6 @@ struct ColorCustomizationView: View {
     @State private var textColor: Color = .black
     @State private var secondaryTextColor: Color = .gray
     @State private var tintColor: Color = .blue
-
     @State private var navBarColor: Color = .white
     @State private var tabBarColor: Color = .white
     @State private var dividerColor: Color = .gray
@@ -63,7 +79,7 @@ struct ColorCustomizationView: View {
     @State private var successColor: Color = .green
     @State private var warningColor: Color = .orange
     @State private var errorColor: Color = .red
-
+    @State private var selectedSection: EditorSection = .overview
     @State private var showAllThemes = false
     @State private var themeName: String = ""
     @State private var showSaveAlert = false
@@ -99,9 +115,7 @@ struct ColorCustomizationView: View {
         }
     }
 
-    private var allThemes: [ColorTheme] {
-        presetThemes + userThemes
-    }
+    private var allThemes: [ColorTheme] { presetThemes + userThemes }
 
     var body: some View {
         List {
@@ -113,105 +127,29 @@ struct ColorCustomizationView: View {
                 }
             }
 
-            // MARK: - Custom Colors
             Section {
-                colorPickerRow(title: "Background", subtext: "Main app background color", color: $backgroundManager.baseColor, icon: "square.fill")
-                colorPickerRow(title: "UI Elements", subtext: "Cards and buttons color", color: $uiElementColor, icon: "app.fill")
-                colorPickerRow(title: "Primary Text", subtext: "Titles and body text color", color: $textColor, icon: "textformat")
-                colorPickerRow(title: "Secondary Text", subtext: "Descriptions and hints color", color: $secondaryTextColor, icon: "textformat.size")
-                colorPickerRow(title: "Accent", subtext: "Interactive elements highlights", color: $tintColor, icon: "sparkles")
-                colorPickerRow(title: "Nav Bar", subtext: "Navigation bar color", color: $navBarColor, icon: "menubar.rectangle")
-                colorPickerRow(title: "Tab Bar", subtext: "Tab bar color", color: $tabBarColor, icon: "dock.rectangle")
-                colorPickerRow(title: "Divider", subtext: "Lines color", color: $dividerColor, icon: "minus")
-                colorPickerRow(title: "Sheet BG", subtext: "Sheet background color", color: $sheetBackgroundColor, icon: "square.stack")
-                colorPickerRow(title: "Success", subtext: "Success indicators color", color: $successColor, icon: "checkmark.circle")
-                colorPickerRow(title: "Warning", subtext: "Warning alerts color", color: $warningColor, icon: "exclamationmark.triangle")
-                colorPickerRow(title: "Error", subtext: "Error messages color", color: $errorColor, icon: "xmark.circle")
-            } header: {
-                Text("Custom Colors")
-            }
-
-            // MARK: - Advanced Styling
-            Section {
-                VStack(alignment: .leading, spacing: 8) {
-                    HStack {
-                        Label("Fonts", systemImage: "text.cursor")
-                        Spacer()
-                        Picker("Design", selection: $fontDesign) {
-                            Text("Default").tag("default")
-                            Text("Rounded").tag("rounded")
-                            Text("Serif").tag("serif")
-                            Text("Monospaced").tag("monospaced")
-                        }
-                        .pickerStyle(.menu)
+                Picker("Section", selection: $selectedSection) {
+                    ForEach(EditorSection.allCases) { section in
+                        Label(section.rawValue, systemImage: section.icon).tag(section)
                     }
                 }
-                .padding(.vertical, 4)
-
-                advancedSliderRow(title: "Card Corners", value: $cardCornerRadius, range: 0...40, step: 2, unit: "pt", icon: "square.dashed")
-                advancedSliderRow(title: "Button Corners", value: $buttonCornerRadius, range: 0...20, step: 1, unit: "pt", icon: "rectangle.roundedbottom")
-                advancedSliderRow(title: "Shadow Intensity", value: $shadowIntensity, range: 0...20, step: 1, icon: "shadow")
-                advancedSliderRow(title: "Blur Opacity", value: $blurOpacity, range: 0...1, step: 0.05, isPercent: true, icon: "drop.halffull")
-                advancedSliderRow(title: "Glow Intensity", value: $glowIntensity, range: 0...30, step: 1, icon: "sun.max.fill")
-                advancedSliderRow(title: "Border Width", value: $borderWidth, range: 0...5, step: 0.5, unit: "pt", icon: "square.and.line.vertical.and.square")
-                advancedSliderRow(title: "Card Opacity", value: $cardOpacity, range: 0.1...1, step: 0.05, isPercent: true, icon: "square.stack.3d.down.right")
-
-                Toggle(isOn: $animateBackground) {
-                    Label("Animate Background", systemImage: "sparkles")
-                }
-            } header: {
-                Text("Advanced Styling")
+                .pickerStyle(.segmented)
             }
 
-            // MARK: - Customization
-            Section {
-                NavigationLink(destination: AllAppsCustomizationView()) {
-                    Label("All Apps", systemImage: "square.grid.2x2.fill")
-                        .foregroundStyle(Color.accentColor)
-                }
-                NavigationLink(destination: AppHideElementsView()) {
-                    Label("Hide UI Elements", systemImage: "eye.slash.fill")
-                        .foregroundStyle(Color.accentColor)
-                }
-                NavigationLink(destination: StatusBarCustomizationView()) {
-                    Label("Status Bar", systemImage: "rectangle.topthird.inset.filled")
-                        .foregroundStyle(Color.accentColor)
-                }
-                NavigationLink(destination: TabBarCustomizationView()) {
-                    Label("Tab Bar", systemImage: "dock.rectangle")
-                        .foregroundStyle(Color.accentColor)
-                }
-                if ProcessInfo.processInfo.operatingSystemVersion.majorVersion >= 16 {
-                    NavigationLink(destination: KeyboardCustomizationView()) {
-                        Label("Keyboard Backdrop", systemImage: "keyboard")
-                            .foregroundStyle(Color.accentColor)
-                    }
-                }
-                NavigationLink(destination: TopViewAppearance()) {
-                    Label("Top View", systemImage: "uiwindow.split.2x1")
-                        .foregroundStyle(Color.accentColor)
-                }
-            } header: {
-                Label("Customization", systemImage: "slider.horizontal.3")
+            switch selectedSection {
+            case .overview:
+                overviewSection
+            case .colors:
+                paletteSection
+                semanticColorsSection
+            case .styling:
+                stylingSection
+                advancedEffectsSection
+            case .sections:
+                customizationLinksSection
             }
 
-            // MARK: - Actions
-            Section {
-                Button {
-                    showSaveAlert = true
-                } label: {
-                    Label("Save Current Style", systemImage: "plus.circle.fill")
-                        .foregroundStyle(Color.accentColor)
-                }
-                .disabled(appState.isSigning)
-
-                Button(role: .destructive) {
-                    showResetAlert = true
-                } label: {
-                    Label("Reset To Defaults", systemImage: "arrow.counterclockwise")
-                }
-                .disabled(appState.isSigning)
-            }
+            actionsSection
         }
         .navigationTitle("Visual Design")
         .navigationBarTitleDisplayMode(.inline)
@@ -225,9 +163,7 @@ struct ColorCustomizationView: View {
                 }
             }
         }
-        .onAppear {
-            loadColors()
-        }
+        .onAppear(perform: loadColors)
         .sheet(isPresented: $showAllThemes) {
             ThemeLibraryView(themes: allThemes) { theme in
                 applyTheme(theme)
@@ -255,20 +191,252 @@ struct ColorCustomizationView: View {
         } message: {
             Text("This will restore all colors to their original system defaults. Your saved custom themes will not be deleted.")
         }
-        .onChange(of: uiElementColor) { newValue in uiElementColorHex = newValue.toHex() ?? Color.defaultUIElement }
-        .onChange(of: textColor) { newValue in textColorHex = newValue.toHex() ?? Color.defaultText }
-        .onChange(of: secondaryTextColor) { newValue in secondaryTextColorHex = newValue.toHex() ?? "#8E8E93" }
-        .onChange(of: tintColor) { newValue in tintColorHex = newValue.toHex() ?? "#0077BE" }
-        .onChange(of: navBarColor) { newValue in navBarColorHex = newValue.toHex() ?? "#FFFFFF" }
-        .onChange(of: tabBarColor) { newValue in tabBarColorHex = newValue.toHex() ?? "#FFFFFF" }
-        .onChange(of: dividerColor) { newValue in dividerColorHex = newValue.toHex() ?? "#E5E5EA" }
-        .onChange(of: sheetBackgroundColor) { newValue in sheetBackgroundColorHex = newValue.toHex() ?? "#FFFFFF" }
-        .onChange(of: successColor) { newValue in successColorHex = newValue.toHex() ?? "#34C759" }
-        .onChange(of: warningColor) { newValue in warningColorHex = newValue.toHex() ?? "#FF9500" }
-        .onChange(of: errorColor) { newValue in errorColorHex = newValue.toHex() ?? "#FF3B30" }
+        .onChange(of: uiElementColor) { uiElementColorHex = $0.toHex() ?? Color.defaultUIElement }
+        .onChange(of: textColor) { textColorHex = $0.toHex() ?? Color.defaultText }
+        .onChange(of: secondaryTextColor) { secondaryTextColorHex = $0.toHex() ?? "#8E8E93" }
+        .onChange(of: tintColor) { tintColorHex = $0.toHex() ?? "#0077BE" }
+        .onChange(of: navBarColor) { navBarColorHex = $0.toHex() ?? "#FFFFFF" }
+        .onChange(of: tabBarColor) { tabBarColorHex = $0.toHex() ?? "#FFFFFF" }
+        .onChange(of: dividerColor) { dividerColorHex = $0.toHex() ?? "#E5E5EA" }
+        .onChange(of: sheetBackgroundColor) { sheetBackgroundColorHex = $0.toHex() ?? "#FFFFFF" }
+        .onChange(of: successColor) { successColorHex = $0.toHex() ?? "#34C759" }
+        .onChange(of: warningColor) { warningColorHex = $0.toHex() ?? "#FF9500" }
+        .onChange(of: errorColor) { errorColorHex = $0.toHex() ?? "#FF3B30" }
     }
 
-    // MARK: - Component Views
+    private var overviewSection: some View {
+        Group {
+            Section {
+                appearancePreviewCard
+                quickActionsRow
+            } header: {
+                Text("Live Preview")
+            } footer: {
+                Text("Use the quick actions to instantly sync surfaces, soften the interface, or add a more vivid look without leaving this screen.")
+            }
+
+            Section {
+                themeGallerySection
+            } header: {
+                Text("Theme Shortcuts")
+            }
+        }
+    }
+
+    private var paletteSection: some View {
+        Section {
+            colorPickerRow(title: "Background", subtext: "Main app background color", color: $backgroundManager.baseColor, icon: "square.fill")
+            colorPickerRow(title: "UI Elements", subtext: "Cards, panels, and controls", color: $uiElementColor, icon: "app.fill")
+            colorPickerRow(title: "Primary Text", subtext: "Titles and body text", color: $textColor, icon: "textformat")
+            colorPickerRow(title: "Secondary Text", subtext: "Descriptions and helper labels", color: $secondaryTextColor, icon: "textformat.size")
+            colorPickerRow(title: "Accent", subtext: "Interactive highlights and focus", color: $tintColor, icon: "sparkles")
+        } header: {
+            Text("Core Palette")
+        }
+    }
+
+    private var semanticColorsSection: some View {
+        Section {
+            colorPickerRow(title: "Navigation Bar", subtext: "Top navigation chrome", color: $navBarColor, icon: "menubar.rectangle")
+            colorPickerRow(title: "Tab Bar", subtext: "Bottom tab bar surface", color: $tabBarColor, icon: "dock.rectangle")
+            colorPickerRow(title: "Sheet Background", subtext: "Presented sheets and popovers", color: $sheetBackgroundColor, icon: "square.stack")
+            colorPickerRow(title: "Divider", subtext: "Lines and separators", color: $dividerColor, icon: "minus")
+            colorPickerRow(title: "Success", subtext: "Positive states and confirmations", color: $successColor, icon: "checkmark.circle")
+            colorPickerRow(title: "Warning", subtext: "Caution states and prompts", color: $warningColor, icon: "exclamationmark.triangle")
+            colorPickerRow(title: "Error", subtext: "Errors and destructive alerts", color: $errorColor, icon: "xmark.circle")
+        } header: {
+            Text("Semantic Colors")
+        }
+    }
+
+    private var stylingSection: some View {
+        Section {
+            Picker("Font Design", selection: $fontDesign) {
+                Text("Default").tag("default")
+                Text("Rounded").tag("rounded")
+                Text("Serif").tag("serif")
+                Text("Monospaced").tag("monospaced")
+            }
+            advancedSliderRow(title: "Card Corners", value: $cardCornerRadius, range: 0...40, step: 2, unit: "pt", icon: "square.dashed")
+            advancedSliderRow(title: "Button Corners", value: $buttonCornerRadius, range: 0...24, step: 1, unit: "pt", icon: "button.programmable")
+            advancedSliderRow(title: "Card Opacity", value: $cardOpacity, range: 0.1...1.0, step: 0.05, isPercent: true, icon: "square.stack.3d.down.right")
+            advancedSliderRow(title: "Border Width", value: $borderWidth, range: 0...5, step: 0.5, unit: "pt", icon: "square.and.line.vertical.and.square")
+            advancedSliderRow(title: "Shadow Intensity", value: $shadowIntensity, range: 0...20, step: 1, icon: "shadow")
+        } header: {
+            Text("Surfaces & Typography")
+        }
+    }
+
+    private var advancedEffectsSection: some View {
+        Section {
+            advancedSliderRow(title: "Blur Opacity", value: $blurOpacity, range: 0...1, step: 0.05, isPercent: true, icon: "drop.halffull")
+            advancedSliderRow(title: "Glow Intensity", value: $glowIntensity, range: 0...30, step: 1, icon: "sun.max.fill")
+            Toggle(isOn: $animateBackground) {
+                Label("Animate Background", systemImage: "sparkles")
+            }
+            Button {
+                syncBarsWithBackground()
+            } label: {
+                Label("Match Navigation + Tab Bars", systemImage: "arrow.triangle.2.circlepath")
+            }
+            Button {
+                applyHighContrastPreset()
+            } label: {
+                Label("Apply High Contrast Boost", systemImage: "circle.lefthalf.filled")
+            }
+        } header: {
+            Text("Effects & Shortcuts")
+        }
+    }
+
+    private var customizationLinksSection: some View {
+        Section {
+            NavigationLink(destination: AllAppsCustomizationView()) {
+                Label("All Apps", systemImage: "square.grid.2x2.fill")
+                    .foregroundStyle(Color.accentColor)
+            }
+            NavigationLink(destination: AppHideElementsView()) {
+                Label("Hide UI Elements", systemImage: "eye.slash.fill")
+                    .foregroundStyle(Color.accentColor)
+            }
+            NavigationLink(destination: StatusBarCustomizationView()) {
+                Label("Status Bar", systemImage: "rectangle.topthird.inset.filled")
+                    .foregroundStyle(Color.accentColor)
+            }
+            NavigationLink(destination: TabBarCustomizationView()) {
+                Label("Tab Bar", systemImage: "dock.rectangle")
+                    .foregroundStyle(Color.accentColor)
+            }
+            if ProcessInfo.processInfo.operatingSystemVersion.majorVersion >= 16 {
+                NavigationLink(destination: KeyboardCustomizationView()) {
+                    Label("Keyboard Backdrop", systemImage: "keyboard")
+                        .foregroundStyle(Color.accentColor)
+                }
+            }
+            NavigationLink(destination: TopViewAppearance()) {
+                Label("Top View", systemImage: "uiwindow.split.2x1")
+                    .foregroundStyle(Color.accentColor)
+            }
+        } header: {
+            Label("Customization", systemImage: "slider.horizontal.3")
+        }
+    }
+
+    private var actionsSection: some View {
+        Section {
+            Button {
+                showSaveAlert = true
+            } label: {
+                Label("Save Current Style", systemImage: "plus.circle.fill")
+                    .foregroundStyle(Color.accentColor)
+            }
+            .disabled(appState.isSigning)
+
+            Button(role: .destructive) {
+                showResetAlert = true
+            } label: {
+                Label("Reset To Defaults", systemImage: "arrow.counterclockwise")
+            }
+            .disabled(appState.isSigning)
+        }
+    }
+
+    private var appearancePreviewCard: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            HStack(alignment: .top) {
+                VStack(alignment: .leading, spacing: 6) {
+                    Text("Portal Preview")
+                        .font(.system(size: 20, weight: .bold, design: selectedDesign))
+                        .foregroundStyle(textColor)
+                    Text("See your palette, card styling, and semantic colors together before you save it.")
+                        .font(.system(size: 12, design: selectedDesign))
+                        .foregroundStyle(secondaryTextColor)
+                }
+                Spacer()
+                Circle()
+                    .fill(tintColor)
+                    .frame(width: 14, height: 14)
+                    .shadow(color: tintColor.opacity(0.5), radius: glowIntensity / 6)
+            }
+
+            HStack(spacing: 12) {
+                previewPill(title: "Success", color: successColor, icon: "checkmark")
+                previewPill(title: "Warn", color: warningColor, icon: "exclamationmark")
+                previewPill(title: "Error", color: errorColor, icon: "xmark")
+            }
+
+            VStack(spacing: 12) {
+                RoundedRectangle(cornerRadius: cardCornerRadius, style: .continuous)
+                    .fill(uiElementColor.opacity(cardOpacity))
+                    .overlay(
+                        HStack {
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text("Main Card")
+                                    .font(.system(size: 16, weight: .semibold, design: selectedDesign))
+                                    .foregroundStyle(textColor)
+                                Text("Buttons, cards, and content containers will follow this styling.")
+                                    .font(.system(size: 11, design: selectedDesign))
+                                    .foregroundStyle(secondaryTextColor)
+                            }
+                            Spacer()
+                            RoundedRectangle(cornerRadius: buttonCornerRadius, style: .continuous)
+                                .fill(tintColor)
+                                .frame(width: 74, height: 34)
+                                .overlay {
+                                    Text("Action")
+                                        .font(.system(size: 12, weight: .bold, design: selectedDesign))
+                                        .foregroundStyle(Color.white)
+                                }
+                        }
+                        .padding(14)
+                    )
+                    .overlay(
+                        RoundedRectangle(cornerRadius: cardCornerRadius, style: .continuous)
+                            .stroke(dividerColor.opacity(max(0.2, borderWidth / 5)), lineWidth: max(1, borderWidth))
+                    )
+                    .shadow(color: .black.opacity(shadowIntensity / 40), radius: shadowIntensity, y: 4)
+                    .frame(height: 110)
+
+                HStack(spacing: 10) {
+                    previewBar(title: "Nav", color: navBarColor)
+                    previewBar(title: "Tab", color: tabBarColor)
+                    previewBar(title: "Sheet", color: sheetBackgroundColor)
+                }
+            }
+        }
+        .padding(18)
+        .background(
+            RoundedRectangle(cornerRadius: 24, style: .continuous)
+                .fill(backgroundManager.baseColor)
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 24, style: .continuous)
+                .stroke(dividerColor.opacity(0.35), lineWidth: 1)
+        )
+    }
+
+    private var quickActionsRow: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 10) {
+                quickActionButton(title: "Sync Bars", icon: "rectangle.2.swap", tint: navBarColor) {
+                    syncBarsWithBackground()
+                }
+                quickActionButton(title: "Soft Glass", icon: "drop", tint: sheetBackgroundColor) {
+                    blurOpacity = 0.75
+                    cardOpacity = 0.88
+                    borderWidth = max(borderWidth, 1)
+                }
+                quickActionButton(title: "Pop Accent", icon: "sparkles", tint: tintColor) {
+                    glowIntensity = min(30, glowIntensity + 6)
+                    shadowIntensity = min(20, shadowIntensity + 2)
+                }
+                quickActionButton(title: "Contrast", icon: "circle.lefthalf.filled", tint: textColor) {
+                    applyHighContrastPreset()
+                }
+            }
+            .padding(.vertical, 4)
+        }
+    }
 
     private var themeGallerySection: some View {
         ScrollView(.horizontal, showsIndicators: false) {
@@ -283,7 +451,7 @@ struct ColorCustomizationView: View {
                     .opacity(appState.isSigning ? 0.6 : 1.0)
                 }
             }
-            .padding(.horizontal, 16)
+            .padding(.horizontal, 4)
             .padding(.vertical, 8)
         }
     }
@@ -293,40 +461,91 @@ struct ColorCustomizationView: View {
             HStack(spacing: 12) {
                 ZStack {
                     RoundedRectangle(cornerRadius: 10)
-                        .fill(color.wrappedValue.opacity(0.1))
-                        .frame(width: 36, height: 36)
+                        .fill(color.wrappedValue.opacity(0.12))
+                        .frame(width: 38, height: 38)
                     Image(systemName: icon)
-                        .font(.system(size: 16))
+                        .font(.system(size: 16, weight: .semibold))
                         .foregroundStyle(color.wrappedValue)
                 }
-                VStack(alignment: .leading, spacing: 2) {
+                VStack(alignment: .leading, spacing: 3) {
                     Text(title)
                         .font(.system(size: 16, weight: .semibold, design: .rounded))
                     Text(subtext)
                         .font(.system(size: 11))
                         .foregroundStyle(.secondary)
                         .lineLimit(2)
-                        .fixedSize(horizontal: false, vertical: true)
                 }
+                Spacer()
+                Text(color.wrappedValue.toHex() ?? "—")
+                    .font(.system(size: 11, weight: .semibold, design: .monospaced))
+                    .foregroundStyle(.secondary)
             }
+            .padding(.vertical, 4)
         }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 12)
     }
 
     @ViewBuilder
     private func advancedSliderRow(title: String, value: Binding<Double>, range: ClosedRange<Double>, step: Double, unit: String = "", isPercent: Bool = false, icon: String) -> some View {
-        VStack(alignment: .leading, spacing: 4) {
+        VStack(alignment: .leading, spacing: 6) {
             HStack {
                 Label(title, systemImage: icon)
                 Spacer()
-                Text(isPercent ? "\(Int(value.wrappedValue * 100))%" : "\(Int(value.wrappedValue))\(unit)")
+                Text(isPercent ? "\(Int(value.wrappedValue * 100))%" : "\(String(format: value.wrappedValue.truncatingRemainder(dividingBy: 1) == 0 ? "%.0f" : "%.1f", value.wrappedValue))\(unit)")
                     .font(.system(.caption, design: .monospaced))
                     .foregroundStyle(.secondary)
             }
             Slider(value: value, in: range, step: step)
         }
+        .padding(.vertical, 4)
+    }
+
+    private func quickActionButton(title: String, icon: String, tint: Color, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            VStack(alignment: .leading, spacing: 8) {
+                Image(systemName: icon)
+                    .font(.system(size: 14, weight: .bold))
+                    .foregroundStyle(tint)
+                Text(title)
+                    .font(.system(size: 12, weight: .semibold, design: .rounded))
+                    .foregroundStyle(.primary)
+            }
+            .frame(width: 88, alignment: .leading)
+            .padding(12)
+            .background(Color.clear)
+            .overlay(
+                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .stroke(tint.opacity(0.25), lineWidth: 1)
+            )
+        }
+        .buttonStyle(.plain)
+    }
+
+    private func previewPill(title: String, color: Color, icon: String) -> some View {
+        HStack(spacing: 6) {
+            Image(systemName: icon)
+            Text(title)
+        }
+        .font(.system(size: 12, weight: .semibold, design: selectedDesign))
+        .foregroundStyle(color)
+        .padding(.horizontal, 10)
         .padding(.vertical, 8)
+        .background(color.opacity(0.12), in: Capsule())
+    }
+
+    private func previewBar(title: String, color: Color) -> some View {
+        VStack(spacing: 8) {
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                .fill(color)
+                .frame(height: 28)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                        .stroke(dividerColor.opacity(0.25), lineWidth: 1)
+                )
+            Text(title)
+                .font(.system(size: 11, weight: .medium, design: selectedDesign))
+                .foregroundStyle(secondaryTextColor)
+        }
+        .frame(maxWidth: .infinity)
     }
 
     private var selectedDesign: Font.Design {
@@ -338,21 +557,32 @@ struct ColorCustomizationView: View {
         }
     }
 
-    // MARK: - Helper Methods
+    private func syncBarsWithBackground() {
+        navBarColor = backgroundManager.baseColor
+        tabBarColor = backgroundManager.baseColor
+        sheetBackgroundColor = backgroundManager.baseColor
+        dividerColor = uiElementColor.opacity(0.6)
+        HapticsManager.shared.softImpact()
+    }
+
+    private func applyHighContrastPreset() {
+        textColor = colorScheme == .dark ? .white : .black
+        secondaryTextColor = colorScheme == .dark ? Color.white.opacity(0.72) : Color.black.opacity(0.62)
+        borderWidth = max(borderWidth, 1)
+        shadowIntensity = max(shadowIntensity, 8)
+        glowIntensity = min(max(glowIntensity, 8), 20)
+        HapticsManager.shared.success()
+    }
 
     private func loadColors() {
         uiElementColor = Color(hex: uiElementColorHex)
-
-        // Handle dark mode default text color specifically in UI
         if colorScheme == .dark && (textColorHex == Color.defaultText || textColorHex == "#000000") {
             textColor = .white
         } else {
             textColor = Color(hex: textColorHex)
         }
-
         secondaryTextColor = Color(hex: secondaryTextColorHex)
         tintColor = Color(hex: tintColorHex)
-
         navBarColor = Color(hex: navBarColorHex)
         tabBarColor = Color(hex: tabBarColorHex)
         dividerColor = Color(hex: dividerColorHex)
@@ -367,11 +597,9 @@ struct ColorCustomizationView: View {
         uiElementColorHex = theme.ui
         textColorHex = theme.text
         tintColorHex = theme.tint
-
         if let st = theme.secondaryText { secondaryTextColorHex = st }
         if let cr = theme.cardRadius { cardCornerRadius = cr }
         if let fd = theme.fontDesign { fontDesign = fd }
-
         if let nb = theme.navBarColor { navBarColorHex = nb }
         if let tb = theme.tabBarColor { tabBarColorHex = tb }
         if let dc = theme.dividerColor { dividerColorHex = dc }
@@ -382,7 +610,6 @@ struct ColorCustomizationView: View {
         if let gi = theme.glowIntensity { glowIntensity = gi }
         if let bw = theme.borderWidth { borderWidth = bw }
         if let co = theme.cardOpacity { cardOpacity = co }
-
         loadColors()
         HapticsManager.shared.success()
     }
@@ -440,8 +667,6 @@ struct ColorCustomizationView: View {
     }
 }
 
-// MARK: - Modern Theme Card
-
 struct ModernThemeCard: View {
     let theme: ColorTheme
     let action: () -> Void
@@ -457,14 +682,9 @@ struct ModernThemeCard: View {
 
                     VStack(spacing: 8) {
                         HStack(spacing: 8) {
-                            Circle()
-                                .fill(Color(hex: theme.ui))
-                                .frame(width: 16, height: 16)
-                            Circle()
-                                .fill(Color(hex: theme.tint))
-                                .frame(width: 16, height: 16)
+                            Circle().fill(Color(hex: theme.ui)).frame(width: 16, height: 16)
+                            Circle().fill(Color(hex: theme.tint)).frame(width: 16, height: 16)
                         }
-
                         RoundedRectangle(cornerRadius: 3)
                             .fill(Color(hex: theme.text))
                             .frame(width: 50, height: 6)
@@ -481,8 +701,6 @@ struct ModernThemeCard: View {
         .buttonStyle(.plain)
     }
 }
-
-// MARK: - Theme Library View
 
 struct ThemeLibraryView: View {
     @Environment(\.dismiss) var dismiss

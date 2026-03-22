@@ -6,6 +6,7 @@ struct StatusBarPreviewView: View {
     @State private var currentTime = Date()
     @State private var batteryLevel: Float = 0.0
     @State private var batteryState: UIDevice.BatteryState = .unknown
+    @State private var memoryUsage: Double = 0
     
     private let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
     
@@ -175,6 +176,7 @@ struct StatusBarPreviewView: View {
         .onAppear {
             BatteryMonitoringService.shared.startMonitoring()
             updateBatteryInfo()
+            updateMemoryUsage()
         }
         .onDisappear {
             BatteryMonitoringService.shared.stopMonitoring()
@@ -182,6 +184,7 @@ struct StatusBarPreviewView: View {
         .onReceive(timer) { _ in
             currentTime = Date()
             updateBatteryInfo()
+            updateMemoryUsage()
         }
     }
     
@@ -279,6 +282,15 @@ struct StatusBarPreviewView: View {
                 if viewModel.showBattery && viewModel.batteryAlignment == "right" {
                     batteryWidget
                 }
+                if viewModel.showDate {
+                    dateWidget
+                }
+                if viewModel.showNetworkStatus {
+                    networkWidget
+                }
+                if viewModel.showMemoryUsage {
+                    memoryWidget
+                }
             }
             .frame(maxWidth: .infinity, alignment: .trailing)
         }
@@ -358,6 +370,78 @@ struct StatusBarPreviewView: View {
     private func updateBatteryInfo() {
         batteryLevel = UIDevice.current.batteryLevel
         batteryState = UIDevice.current.batteryState
+    }
+
+    private var dateWidget: some View {
+        Text(dateString)
+            .font(.system(size: viewModel.fontSize * 0.75, weight: viewModel.isBold ? .bold : .regular, design: selectedFontDesign))
+            .foregroundStyle(Color(hex: viewModel.colorHex))
+            .lineLimit(1)
+    }
+
+    private var networkWidget: some View {
+        Group {
+            switch viewModel.networkIconStyle {
+            case "dot":
+                Circle()
+                    .fill(Color.green)
+                    .frame(width: 8, height: 8)
+            case "text":
+                Text("Online")
+                    .font(.system(size: viewModel.fontSize * 0.7, weight: viewModel.isBold ? .bold : .regular, design: selectedFontDesign))
+            default:
+                Image(systemName: "wifi")
+                    .font(.system(size: viewModel.fontSize * 0.85, weight: .medium))
+            }
+        }
+        .foregroundStyle(Color(hex: viewModel.colorHex))
+    }
+
+    private var memoryWidget: some View {
+        Text(memoryString)
+            .font(.system(size: viewModel.fontSize * 0.72, weight: viewModel.isBold ? .bold : .regular, design: selectedFontDesign))
+            .foregroundStyle(Color(hex: viewModel.colorHex))
+            .lineLimit(1)
+    }
+
+    private var dateString: String {
+        let formatter = DateFormatter()
+        switch viewModel.dateFormat {
+        case "medium": formatter.dateStyle = .medium
+        case "long": formatter.dateStyle = .long
+        case "custom": formatter.dateFormat = viewModel.customDateFormat
+        default: formatter.dateStyle = .short
+        }
+        let value = formatter.string(from: currentTime)
+        guard viewModel.showWeekday else { return value }
+        let weekday = DateFormatter().weekdaySymbols[Calendar.current.component(.weekday, from: currentTime) - 1]
+        return "\(weekday.prefix(3)) \(value)"
+    }
+
+    private var memoryString: String {
+        let totalMemoryMB = max(Double(ProcessInfo.processInfo.physicalMemory) / 1024 / 1024, 1)
+        switch viewModel.memoryDisplayStyle {
+        case "mb":
+            return "\(Int(memoryUsage)) MB"
+        case "both":
+            return "\(Int(memoryUsage / totalMemoryMB * 100))% · \(Int(memoryUsage)) MB"
+        default:
+            return "\(Int(memoryUsage / totalMemoryMB * 100))%"
+        }
+    }
+
+    private func updateMemoryUsage() {
+        var info = mach_task_basic_info()
+        var count = mach_msg_type_number_t(MemoryLayout<mach_task_basic_info>.size) / 4
+        let result = withUnsafeMutablePointer(to: &info) {
+            $0.withMemoryRebound(to: integer_t.self, capacity: 1) {
+                task_info(mach_task_self_, task_flavor_t(MACH_TASK_BASIC_INFO), $0, &count)
+            }
+        }
+
+        if result == KERN_SUCCESS {
+            memoryUsage = Double(info.resident_size) / 1024.0 / 1024.0
+        }
     }
 }
 
