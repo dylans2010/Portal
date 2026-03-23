@@ -2,6 +2,7 @@ import SwiftUI
 import IDeviceSwift
 
 struct AdvancedInfoDisplayView<Footer: View>: View {
+    @EnvironmentObject var themeManager: ThemeManager
     @Environment(\.dismiss) var dismiss
     @AppStorage("Feather.installationMethod") private var _installationMethod: Int = 0
     @AppStorage("Feather.serverMethod") private var _serverMethod: Int = 0
@@ -102,13 +103,14 @@ struct AdvancedInfoDisplayView<Footer: View>: View {
                 VStack(alignment: .leading, spacing: 4) {
                     Text(app.name ?? "Unknown App")
                         .font(.headline)
+                        .foregroundStyle(themeManager.primaryTextColor)
                     Text(app.identifier ?? "unknown.bundle.id")
                         .font(.caption)
-                        .foregroundColor(.secondary)
+                        .foregroundStyle(themeManager.secondaryTextColor)
 
                     Text("v\(app.version ?? "0.0") (\(_buildNumber))")
                         .font(.caption2)
-                        .foregroundColor(.secondary)
+                        .foregroundStyle(themeManager.secondaryTextColor)
                 }
             }
             .padding(.vertical, 4)
@@ -129,7 +131,7 @@ struct AdvancedInfoDisplayView<Footer: View>: View {
                 }
 
                 ProgressView(value: viewModel.overallProgress)
-                    .tint(viewModel.statusColor)
+                    .tint(themeManager.accentColor)
 
                 if _installationMethod == 1 {
                     VStack(spacing: 8) {
@@ -165,10 +167,10 @@ struct AdvancedInfoDisplayView<Footer: View>: View {
                 VStack(alignment: .leading, spacing: 4) {
                     Text("Source Path")
                         .font(.caption)
-                        .foregroundColor(.secondary)
+                        .foregroundStyle(themeManager.secondaryTextColor)
                     Text(archiveURL.path)
                         .font(.system(size: 10, design: .monospaced))
-                        .foregroundColor(.primary)
+                        .foregroundStyle(themeManager.primaryTextColor)
                 }
             }
         }
@@ -188,7 +190,7 @@ struct AdvancedInfoDisplayView<Footer: View>: View {
                 }
             } else {
                 Text("No signing information available")
-                    .foregroundColor(.secondary)
+                    .foregroundStyle(themeManager.secondaryTextColor)
             }
         }
     }
@@ -204,19 +206,19 @@ struct AdvancedInfoDisplayView<Footer: View>: View {
                 VStack(alignment: .leading, spacing: 4) {
                     Text("Manifest URL")
                         .font(.caption)
-                        .foregroundColor(.secondary)
+                        .foregroundStyle(themeManager.secondaryTextColor)
                     Text(installer.plistEndpoint.absoluteString)
                         .font(.system(size: 10, design: .monospaced))
-                        .foregroundColor(.primary)
+                        .foregroundStyle(themeManager.primaryTextColor)
                 }
 
                 VStack(alignment: .leading, spacing: 4) {
                     Text("IPA URL")
                         .font(.caption)
-                        .foregroundColor(.secondary)
+                        .foregroundStyle(themeManager.secondaryTextColor)
                     Text(installer.payloadEndpoint.absoluteString)
                         .font(.system(size: 10, design: .monospaced))
-                        .foregroundColor(.primary)
+                        .foregroundStyle(themeManager.primaryTextColor)
                 }
             }
         }
@@ -239,7 +241,7 @@ struct AdvancedInfoDisplayView<Footer: View>: View {
                         .padding(8)
                     }
                     .frame(height: 180)
-                    .background(Color(UIColor.secondarySystemBackground))
+                    .background(themeManager.cardBackgroundColor)
                     .clipShape(RoundedRectangle(cornerRadius: 12))
                     .onChange(of: appLogManager.logs.count) { _ in
                         if _autoScroll, let last = appLogManager.logs.last {
@@ -347,25 +349,25 @@ struct AdvancedInfoDisplayView<Footer: View>: View {
             HStack {
                 Text(label)
                     .font(.system(size: 10, weight: .medium))
-                    .foregroundColor(.secondary)
+                    .foregroundStyle(themeManager.secondaryTextColor)
                 Spacer()
                 Text("\(Int(progress * 100))%")
                     .font(.system(size: 10, design: .monospaced))
-                    .foregroundColor(.secondary)
+                    .foregroundStyle(themeManager.secondaryTextColor)
             }
             ProgressView(value: progress)
                 .scaleEffect(x: 1, y: 0.5, anchor: .center)
-                .tint(progress >= 1.0 ? .green : .blue)
+                .tint(themeManager.accentColor)
         }
     }
 
     private func _logColor(for level: LogEntry.LogLevel) -> Color {
         switch level {
-        case .debug: return .gray
-        case .info: return .blue
-        case .success: return .green
-        case .warning: return .orange
-        case .error, .critical: return .red
+        case .debug: return themeManager.secondaryTextColor
+        case .info: return themeManager.accentColor
+        case .success: return themeManager.selectionColor
+        case .warning: return Color(hex: "#FF9500")
+        case .error, .critical: return themeManager.destructiveColor
         }
     }
 

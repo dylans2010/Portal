@@ -488,14 +488,14 @@ struct HomeView: View {
         VStack(spacing: 20) {
             Image(systemName: "app.badge.fill")
                 .font(.system(size: 60))
-                .foregroundStyle(.secondary)
+                .foregroundStyle(themeManager.secondaryTextColor)
             
             Text("No Apps To Sign")
                 .font(.title2.bold())
             
             Text("Import an app first to sign and install it.")
                 .font(.subheadline)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(themeManager.secondaryTextColor)
                 .multilineTextAlignment(.center)
         }
         .padding()
@@ -619,10 +619,10 @@ struct HomeView: View {
             HStack(spacing: 8) {
                 Image(systemName: "clock.arrow.circlepath")
                     .font(.system(size: 14))
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(themeManager.secondaryTextColor)
                 Text("No Signing History")
                     .font(.caption)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(themeManager.secondaryTextColor)
             }
             .padding(.horizontal, 12)
             .padding(.vertical, 8)
@@ -635,7 +635,7 @@ struct HomeView: View {
                     .foregroundStyle(.secondary.opacity(0.6))
                 Text("No Signing History")
                     .font(size == .large ? .headline : .subheadline)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(themeManager.secondaryTextColor)
                 Text("Apps you sign will appear here on this widget.")
                     .font(.caption)
                     .foregroundStyle(.tertiary)
@@ -759,11 +759,11 @@ struct HomeView: View {
         VStack(spacing: 12) {
             Image(systemName: "app.badge.fill")
                 .font(.system(size: 32))
-                .foregroundStyle(.secondary)
+                .foregroundStyle(themeManager.secondaryTextColor)
             
             Text("No Recent Apps")
                 .font(.subheadline.bold())
-                .foregroundStyle(.secondary)
+                .foregroundStyle(themeManager.secondaryTextColor)
             
             Text("Import or sign an app to see it here.")
                 .font(.caption)
@@ -836,7 +836,7 @@ struct HomeView: View {
                     HStack(spacing: 16) {
                         ZStack {
                             Circle()
-                                .fill(cert.revoked ? Color.red.opacity(0.15) : Color.green.opacity(0.15))
+                                .fill(cert.revoked ? themeManager.destructiveColor.opacity(0.15) : themeManager.selectionColor.opacity(0.15))
                                 .frame(width: 56, height: 56)
                             
                             Image(systemName: cert.revoked ? "xmark.seal.fill" : "checkmark.seal.fill")
@@ -932,7 +932,7 @@ struct HomeView: View {
                     if _sources.count > 4 {
                         Text("+ \(_sources.count - 4) More Sources")
                             .font(.caption)
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(themeManager.secondaryTextColor)
                             .frame(maxWidth: .infinity, alignment: .center)
                     }
                 }
@@ -956,7 +956,7 @@ struct HomeView: View {
         VStack(spacing: 12) {
             Image(systemName: "globe.desk.fill")
                 .font(.system(size: 32))
-                .foregroundStyle(.secondary)
+                .foregroundStyle(themeManager.secondaryTextColor)
             
             Text("No Sources Added")
                 .font(.subheadline.bold())
@@ -988,7 +988,7 @@ struct HomeView: View {
             HStack(spacing: 16) {
                 ZStack {
                     Circle()
-                        .fill(_networkMonitor.isConnected ? Color.green.opacity(0.15) : Color.red.opacity(0.15))
+                        .fill(_networkMonitor.isConnected ? themeManager.selectionColor.opacity(0.15) : themeManager.destructiveColor.opacity(0.15))
                         .frame(width: 56, height: 56)
                     
                     Image(systemName: _networkMonitor.isConnected ? "wifi" : "wifi.slash")
@@ -1002,7 +1002,7 @@ struct HomeView: View {
                     
                     Text(_networkMonitor.isConnected ? "You're online and ready to go!" : "Check your internet connection to avoid any network errors.")
                         .font(.subheadline)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(themeManager.secondaryTextColor)
                 }
                 
                 Spacer()
@@ -1036,7 +1036,7 @@ struct HomeView: View {
                 
                 Text(_tips[_currentTipIndex])
                     .font(.system(size: _compactMode ? 13 : 14))
-                    .foregroundStyle(.primary)
+                    .foregroundStyle(themeManager.primaryTextColor)
                     .fixedSize(horizontal: false, vertical: true)
                 
                 Spacer()
@@ -1068,12 +1068,12 @@ struct HomeView: View {
                     HStack {
                         Image(systemName: "number")
                             .font(.system(size: 16, weight: .medium))
-                            .foregroundStyle(Color.purple)
+                            .foregroundStyle(themeManager.accentColor)
                             .frame(width: 24)
 
                         Text(_deviceUDIDLabel)
                             .font(.system(size: 14, weight: .regular))
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(themeManager.secondaryTextColor)
 
                         Spacer()
 
@@ -1087,16 +1087,16 @@ struct HomeView: View {
                                 Text("Copy")
                                     .font(.system(size: 12, weight: .bold))
                             }
-                            .foregroundStyle(.white)
+                            .foregroundStyle(themeManager.buttonTextColor)
                             .padding(.horizontal, 10)
                             .padding(.vertical, 5)
-                            .background(Capsule().fill(Color.purple))
+                            .background(Capsule().fill(themeManager.accentColor))
                         }
                     }
 
                     Text(_deviceUDID)
                         .font(.system(size: 12, weight: .medium, design: .monospaced))
-                        .foregroundStyle(.primary)
+                        .foregroundStyle(themeManager.primaryTextColor)
                         .padding(.leading, 36)
                         .lineLimit(1)
                         .truncationMode(.middle)
@@ -1167,10 +1167,10 @@ struct HomeView: View {
                 HStack {
                     Image(systemName: "arrow.down.circle")
                         .font(.system(size: 18))
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(themeManager.secondaryTextColor)
                     Text("No Active Downloads")
                         .font(.subheadline)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(themeManager.secondaryTextColor)
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(size == .compact ? 12 : 16)
@@ -1229,7 +1229,7 @@ struct HomeView: View {
 
                     Text("Battery")
                         .font(.system(size: 10, weight: .medium))
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(themeManager.secondaryTextColor)
                 }
                 .frame(maxWidth: .infinity)
 
@@ -1246,7 +1246,7 @@ struct HomeView: View {
 
                     Text("Thermal")
                         .font(.system(size: 10, weight: .medium))
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(themeManager.secondaryTextColor)
                 }
                 .frame(maxWidth: .infinity)
 
@@ -1254,16 +1254,16 @@ struct HomeView: View {
                 VStack(spacing: 8) {
                     ZStack {
                         Circle()
-                            .fill(Color.blue.opacity(0.12))
+                            .fill(themeManager.accentColor.opacity(0.12))
                         Image(systemName: "memorychip")
                             .font(.system(size: 20))
-                            .foregroundStyle(.blue)
+                            .foregroundStyle(themeManager.accentColor)
                     }
                     .frame(width: 44, height: 44)
 
                     Text("Memory")
                         .font(.system(size: 10, weight: .medium))
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(themeManager.secondaryTextColor)
                 }
                 .frame(maxWidth: .infinity)
             }
@@ -1276,18 +1276,18 @@ struct HomeView: View {
 
     private var batteryColor: Color {
         let level = UIDevice.current.batteryLevel
-        if level > 0.6 { return .green }
-        if level > 0.2 { return .orange }
-        return .red
+        if level > 0.6 { return themeManager.selectionColor }
+        if level > 0.2 { return Color(hex: "#FF9500") }
+        return themeManager.destructiveColor
     }
 
     private var thermalColor: Color {
         switch ProcessInfo.processInfo.thermalState {
-        case .nominal: return .green
-        case .fair: return .yellow
-        case .serious: return .orange
-        case .critical: return .red
-        @unknown default: return .green
+        case .nominal: return themeManager.selectionColor
+        case .fair: return Color(hex: "#FFD60A")
+        case .serious: return Color(hex: "#FF9500")
+        case .critical: return themeManager.destructiveColor
+        @unknown default: return themeManager.selectionColor
         }
     }
 
@@ -1308,7 +1308,7 @@ struct HomeView: View {
                     VStack(alignment: .leading, spacing: 4) {
                         Text("Used Space")
                             .font(.caption)
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(themeManager.secondaryTextColor)
                         Text(ByteCountFormatter.string(fromByteCount: used, countStyle: .file))
                             .font(.system(size: 18, weight: .bold, design: .rounded))
                     }
@@ -1316,7 +1316,7 @@ struct HomeView: View {
                     VStack(alignment: .trailing, spacing: 4) {
                         Text("Free Space")
                             .font(.caption)
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(themeManager.secondaryTextColor)
                         Text(ByteCountFormatter.string(fromByteCount: free, countStyle: .file))
                             .font(.system(size: 18, weight: .bold, design: .rounded))
                             .foregroundStyle(themeManager.accentColor)
@@ -1336,7 +1336,7 @@ struct HomeView: View {
 
                 Text("\(Int(percent * 100))% Capacity Used")
                     .font(.system(size: 10, weight: .medium))
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(themeManager.secondaryTextColor)
             }
             .padding(16)
             .background(RoundedRectangle(cornerRadius: 16).fill(Color.clear))
@@ -1363,11 +1363,11 @@ struct HomeView: View {
             HStack(spacing: 14) {
                 ZStack {
                     RoundedRectangle(cornerRadius: 12)
-                        .fill(Color.orange.opacity(0.15))
+                        .fill(Color(hex: "#FF9500").opacity(0.15))
                         .frame(width: 50, height: 50)
                     Image(systemName: "lightbulb.fill")
                         .font(.system(size: 24))
-                        .foregroundStyle(.orange)
+                        .foregroundStyle(Color(hex: "#FF9500"))
                 }
 
                 VStack(alignment: .leading, spacing: 4) {
@@ -1375,7 +1375,7 @@ struct HomeView: View {
                         .font(.system(size: 16, weight: .bold))
                     Text("Learn how to manage and use signing certificates effectively.")
                         .font(.system(size: 13))
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(themeManager.secondaryTextColor)
                         .lineLimit(2)
                 }
 
@@ -1436,11 +1436,11 @@ struct HomeView: View {
                 HStack {
                     Image(systemName: "star")
                         .font(.system(size: 20))
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(themeManager.secondaryTextColor)
                     
                     Text("No apps yet. Import or sign an app to get started.")
                         .font(.system(size: 14))
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(themeManager.secondaryTextColor)
                     
                     Spacer()
                 }
@@ -1582,7 +1582,7 @@ struct CompactQuickActionButton: View {
                 
                 Text(title)
                     .font(.system(size: 10, weight: .medium))
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(themeManager.secondaryTextColor)
             }
             .frame(width: 56)
         }
@@ -1680,7 +1680,7 @@ struct SigningHistoryRow: View {
         HStack(spacing: 12) {
             ZStack {
                 RoundedRectangle(cornerRadius: isLarge ? 12 : 10)
-                    .fill(Color.purple.opacity(0.12))
+                    .fill(themeManager.accentColor.opacity(0.12))
                     .frame(width: isLarge ? 48 : 40, height: isLarge ? 48 : 40)
                 
                 Image(systemName: "signature")
@@ -1722,7 +1722,7 @@ struct SigningHistoryRow: View {
                 VStack(alignment: .trailing, spacing: 2) {
                     Text(appSize)
                         .font(.system(size: 12, weight: .medium))
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(themeManager.secondaryTextColor)
                     
                     Image(systemName: "checkmark.circle.fill")
                         .font(.system(size: 14))
@@ -1754,7 +1754,7 @@ struct CompactHistoryItem: View {
         VStack(spacing: 6) {
             ZStack {
                 RoundedRectangle(cornerRadius: 10)
-                    .fill(Color.purple.opacity(0.12))
+                    .fill(themeManager.accentColor.opacity(0.12))
                     .frame(width: 44, height: 44)
                 
                 Image(systemName: "signature")
@@ -1886,7 +1886,7 @@ struct FavoriteAppCard: View {
                 
                 Image(systemName: isSigned ? "checkmark.seal.fill" : "app.fill")
                     .font(.system(size: compact ? 18 : 24))
-                    .foregroundStyle(isSigned ? Color.green : Color.orange)
+                    .foregroundStyle(isSigned ? themeManager.selectionColor : Color(hex: "#FF9500"))
             }
             
             Text(name)
@@ -1910,12 +1910,12 @@ struct RecentAppRow: View {
         HStack(spacing: 12) {
             ZStack {
                 RoundedRectangle(cornerRadius: 10, style: .continuous)
-                    .fill(isSigned ? Color.green.opacity(0.15) : Color.orange.opacity(0.15))
+                    .fill(isSigned ? themeManager.selectionColor.opacity(0.15) : Color(hex: "#FF9500").opacity(0.15))
                     .frame(width: 40, height: 40)
                 
                 Image(systemName: isSigned ? "checkmark.seal.fill" : "square.and.arrow.down.fill")
                     .font(.system(size: 18))
-                    .foregroundStyle(isSigned ? Color.green : Color.orange)
+                    .foregroundStyle(isSigned ? themeManager.selectionColor : Color(hex: "#FF9500"))
             }
             
             VStack(alignment: .leading, spacing: 2) {
@@ -1927,7 +1927,7 @@ struct RecentAppRow: View {
                 HStack(spacing: 4) {
                     Text(isSigned ? "Signed" : "Imported")
                         .font(.system(size: 11, weight: .medium))
-                        .foregroundStyle(isSigned ? Color.green : Color.orange)
+                        .foregroundStyle(isSigned ? themeManager.selectionColor : Color(hex: "#FF9500"))
                     
                     if let date = date {
                         Text("•")
@@ -2027,7 +2027,7 @@ struct CertificateExpirationBar: View {
             HStack {
                 Text("Time Remaining")
                     .font(.caption)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(themeManager.secondaryTextColor)
                 
                 Spacer()
                 
@@ -2063,7 +2063,7 @@ struct SourceOverviewRow: View {
         HStack(spacing: 12) {
             ZStack {
                 RoundedRectangle(cornerRadius: 8, style: .continuous)
-                    .fill(Color.cyan.opacity(0.15))
+                    .fill(themeManager.accentColor.opacity(0.15))
                     .frame(width: 36, height: 36)
                 
                 if let iconURL = iconURL {
@@ -2136,7 +2136,7 @@ struct SignAndInstallPickerView: View {
                             Circle()
                                 .fill(
                                     LinearGradient(
-                                        colors: [Color.purple.opacity(0.3), Color.purple.opacity(0.1)],
+                                        colors: [themeManager.accentColor.opacity(0.3), themeManager.accentColor.opacity(0.1)],
                                         startPoint: .topLeading,
                                         endPoint: .bottomTrailing
                                     )
@@ -2154,7 +2154,7 @@ struct SignAndInstallPickerView: View {
                             
                             Text("Select an IPA file or import from URL.")
                                 .font(.subheadline)
-                                .foregroundStyle(.secondary)
+                                .foregroundStyle(themeManager.secondaryTextColor)
                                 .multilineTextAlignment(.center)
                         }
                     }
@@ -2164,17 +2164,17 @@ struct SignAndInstallPickerView: View {
                         VStack(spacing: 16) {
                             ZStack {
                                 Circle()
-                                    .fill(Color.purple.opacity(0.15))
+                                    .fill(themeManager.accentColor.opacity(0.15))
                                     .frame(width: 80, height: 80)
                                 
                                 if _importStatus == .downloading {
                                     Circle()
-                                        .stroke(Color.purple.opacity(0.3), lineWidth: 4)
+                                        .stroke(themeManager.accentColor.opacity(0.3), lineWidth: 4)
                                         .frame(width: 70, height: 70)
                                     
                                     Circle()
                                         .trim(from: 0, to: _downloadProgress)
-                                        .stroke(Color.purple, style: StrokeStyle(lineWidth: 4, lineCap: .round))
+                                        .stroke(themeManager.accentColor, style: StrokeStyle(lineWidth: 4, lineCap: .round))
                                         .frame(width: 70, height: 70)
                                         .rotationEffect(.degrees(-90))
                                         .animation(.easeInOut(duration: 0.2), value: _downloadProgress)
@@ -2195,7 +2195,7 @@ struct SignAndInstallPickerView: View {
                             
                             Text(_importStatus == .downloading ? "Downloading IPA..." : "Processing IPA...")
                                 .font(.subheadline)
-                                .foregroundStyle(.secondary)
+                                .foregroundStyle(themeManager.secondaryTextColor)
                         }
                         .padding(.vertical, 40)
                     } else {
@@ -2204,12 +2204,12 @@ struct SignAndInstallPickerView: View {
                             VStack(alignment: .leading, spacing: 8) {
                                 Text("Import From URL")
                                     .font(.system(size: 14, weight: .semibold))
-                                    .foregroundStyle(.secondary)
+                                    .foregroundStyle(themeManager.secondaryTextColor)
                                 
                                 HStack(spacing: 8) {
                                     HStack(spacing: 10) {
                                         Image(systemName: "link")
-                                            .foregroundStyle(.secondary)
+                                            .foregroundStyle(themeManager.secondaryTextColor)
                                             .font(.system(size: 16))
                                         
                                         TextField("Enter IPA URL", text: $_urlText)
@@ -2230,7 +2230,7 @@ struct SignAndInstallPickerView: View {
                                     )
                                     .overlay(
                                         RoundedRectangle(cornerRadius: 12, style: .continuous)
-                                            .stroke(_showURLError ? Color.red : (_isURLFieldFocused ? Color.purple : Color.clear), lineWidth: 2)
+                                            .stroke(_showURLError ? themeManager.destructiveColor : (_isURLFieldFocused ? themeManager.accentColor : Color.clear), lineWidth: 2)
                                     )
                                     
                                     // Paste Button
@@ -2246,7 +2246,7 @@ struct SignAndInstallPickerView: View {
                                             .frame(width: 44, height: 44)
                                             .background(
                                                 RoundedRectangle(cornerRadius: 12, style: .continuous)
-                                                    .fill(Color.purple.opacity(0.15))
+                                                    .fill(themeManager.accentColor.opacity(0.15))
                                             )
                                     }
                                 }
@@ -2302,7 +2302,7 @@ struct SignAndInstallPickerView: View {
                                 
                                 Text("Or")
                                     .font(.caption)
-                                    .foregroundStyle(.secondary)
+                                    .foregroundStyle(themeManager.secondaryTextColor)
                                     .padding(.horizontal, 12)
                                 
                                 Rectangle()
@@ -2323,16 +2323,16 @@ struct SignAndInstallPickerView: View {
                                     Text("Select IPA File")
                                         .font(.system(size: 17, weight: .semibold))
                                 }
-                                .foregroundStyle(.purple)
+                                .foregroundStyle(themeManager.accentColor)
                                 .frame(maxWidth: .infinity)
                                 .padding(.vertical, 16)
                                 .background(
                                     RoundedRectangle(cornerRadius: 14, style: .continuous)
-                                        .fill(Color.purple.opacity(0.12))
+                                        .fill(themeManager.accentColor.opacity(0.12))
                                 )
                                 .overlay(
                                     RoundedRectangle(cornerRadius: 14, style: .continuous)
-                                        .stroke(Color.purple.opacity(0.3), lineWidth: 1)
+                                        .stroke(themeManager.accentColor.opacity(0.3), lineWidth: 1)
                                 )
                             }
                             .padding(.horizontal, 24)
@@ -2346,11 +2346,11 @@ struct SignAndInstallPickerView: View {
                         HStack(spacing: 6) {
                             Image(systemName: "info.circle.fill")
                                 .font(.system(size: 14))
-                                .foregroundStyle(.secondary)
+                                .foregroundStyle(themeManager.secondaryTextColor)
                             
                             Text("The signing process will start automatically.")
                                 .font(.caption)
-                                .foregroundStyle(.secondary)
+                                .foregroundStyle(themeManager.secondaryTextColor)
                         }
                     }
                     .padding(.bottom, 20)
@@ -2550,7 +2550,7 @@ struct AppUpdatesListSheet: View {
                             
                             Text("No updates available for your tracked apps.")
                                 .font(.subheadline)
-                                .foregroundStyle(.secondary)
+                                .foregroundStyle(themeManager.secondaryTextColor)
                                 .multilineTextAlignment(.center)
                         }
                         .frame(maxWidth: .infinity)
@@ -2603,21 +2603,21 @@ private struct AppUpdateRow: View {
                         .aspectRatio(contentMode: .fill)
                 } placeholder: {
                     RoundedRectangle(cornerRadius: 12, style: .continuous)
-                        .fill(Color.green.opacity(0.2))
+                        .fill(themeManager.selectionColor.opacity(0.2))
                         .overlay(
                             Image(systemName: "app.fill")
-                                .foregroundStyle(.green)
+                                .foregroundStyle(themeManager.selectionColor)
                         )
                 }
                 .frame(width: 50, height: 50)
                 .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
             } else {
                 RoundedRectangle(cornerRadius: 12, style: .continuous)
-                    .fill(Color.green.opacity(0.2))
+                    .fill(themeManager.selectionColor.opacity(0.2))
                     .frame(width: 50, height: 50)
                     .overlay(
                         Image(systemName: "app.fill")
-                            .foregroundStyle(.green)
+                            .foregroundStyle(themeManager.selectionColor)
                     )
             }
             
@@ -2633,13 +2633,13 @@ private struct AppUpdateRow: View {
                         .font(.caption2)
                         .themedText(.secondary)
                     Text("v\(update.newVersion)")
-                        .foregroundStyle(Color.green)
+                        .foregroundStyle(themeManager.selectionColor)
                 }
                 .font(.caption)
                 
                 Text(update.sourceName)
                     .font(.caption2)
-                    .foregroundStyle(.tertiary)
+                    .foregroundStyle(themeManager.secondaryTextColor)
             }
             
             Spacer()
@@ -2649,10 +2649,10 @@ private struct AppUpdateRow: View {
             } label: {
                 Text("Sign")
                     .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(Color(hex: themeManager.resolvedColors.buttonText))
+                    .foregroundStyle(themeManager.buttonTextColor)
                     .padding(.horizontal, 16)
                     .padding(.vertical, 8)
-                    .background(Color.green, in: Capsule())
+                    .background(themeManager.buttonBackgroundColor, in: Capsule())
             }
             .buttonStyle(.plain)
         }

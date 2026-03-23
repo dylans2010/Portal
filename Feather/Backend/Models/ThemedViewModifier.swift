@@ -12,7 +12,7 @@ struct ThemedCardModifier: ViewModifier {
 
     func body(content: Content) -> some View {
         content
-            .background(Color(hex: themeManager.resolvedColors.cardBackground))
+            .background(themeManager.cardBackgroundColor)
             .cornerRadius(12)
             .clipped()
     }
@@ -39,10 +39,10 @@ struct ThemedTextModifier: ViewModifier {
 
     private var textColor: Color {
         switch role {
-        case .primary: return Color(hex: themeManager.resolvedColors.primaryText)
-        case .secondary: return Color(hex: themeManager.resolvedColors.secondaryText)
-        case .header: return Color(hex: themeManager.resolvedColors.headerText)
-        case .badge: return Color(hex: themeManager.resolvedColors.badgeText)
+        case .primary: return themeManager.primaryTextColor
+        case .secondary: return themeManager.secondaryTextColor
+        case .header: return themeManager.headerTextColor
+        case .badge: return themeManager.badgeTextColor
         }
     }
 }
@@ -52,13 +52,14 @@ struct GlobalThemeModifier: ViewModifier {
 
     func body(content: Content) -> some View {
         content
-            .background(Color(hex: themeManager.resolvedColors.appBackground).ignoresSafeArea())
+            .background(themeManager.appBackgroundColor.ignoresSafeArea())
             .scrollContentBackground(.hidden)
-            .toolbarBackground(Color(hex: themeManager.resolvedColors.navigationBar), for: .navigationBar)
+            .toolbarBackground(themeManager.navigationBarColor, for: .navigationBar)
             .toolbarBackground(.visible, for: .navigationBar)
             .toolbarBackground(Color(hex: themeManager.resolvedColors.tabBar), for: .tabBar)
             .tint(themeManager.accentColor)
             .accentColor(themeManager.accentColor)
+            .foregroundStyle(themeManager.primaryTextColor)
     }
 }
 
@@ -67,9 +68,9 @@ struct ThemedBackgroundModifier: ViewModifier {
 
     func body(content: Content) -> some View {
         content
-            .background(Color(hex: themeManager.resolvedColors.appBackground).ignoresSafeArea())
+            .background(themeManager.appBackgroundColor.ignoresSafeArea())
             .scrollContentBackground(.hidden)
-            .toolbarBackground(Color(hex: themeManager.resolvedColors.navigationBar), for: .navigationBar)
+            .toolbarBackground(themeManager.navigationBarColor, for: .navigationBar)
             .toolbarBackground(.visible, for: .navigationBar)
     }
 }
@@ -79,8 +80,21 @@ struct ThemedListRowModifier: ViewModifier {
 
     func body(content: Content) -> some View {
         content
-            .background(Color(hex: themeManager.resolvedColors.cardBackground))
-            .foregroundStyle(Color(hex: themeManager.resolvedColors.primaryText))
+            .background(themeManager.cardBackgroundColor)
+            .foregroundStyle(themeManager.primaryTextColor)
+    }
+}
+
+struct ThemedSectionHeader: ViewModifier {
+    @EnvironmentObject var themeManager: ThemeManager
+
+    func body(content: Content) -> some View {
+        content
+            .font(.caption)
+            .fontWeight(.semibold)
+            .foregroundStyle(themeManager.headerTextColor)
+            .textCase(.uppercase)
+            .tracking(0.5)
     }
 }
 
@@ -107,5 +121,9 @@ extension View {
 
     func themedListRow() -> some View {
         self.modifier(ThemedListRowModifier())
+    }
+
+    func themedSectionHeader() -> some View {
+        self.modifier(ThemedSectionHeader())
     }
 }

@@ -420,7 +420,7 @@ extension LibraryView {
                 } label: {
                     Image(systemName: _editMode == .active ? "checkmark.circle.fill" : "line.3.horizontal.decrease.circle")
                         .font(.system(size: 22))
-                        .foregroundStyle(Color.accentColor)
+                        .foregroundStyle(themeManager.accentColor)
                 }
             }
         }
@@ -433,7 +433,7 @@ extension LibraryView {
             HStack(spacing: 16) {
                 Text("\(_selectedApps.count) Selected")
                     .font(.system(size: 15, weight: .medium))
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(themeManager.secondaryTextColor)
                 
                 Spacer()
                 
@@ -530,11 +530,11 @@ extension LibraryView {
                 VStack(spacing: 8) {
                     Text("No Apps")
                         .font(.system(size: 22, weight: .semibold))
-                        .foregroundStyle(.primary)
+                        .foregroundStyle(themeManager.primaryTextColor)
 
                     Text("There is no apps here. Import an IPA file to get started!")
                         .font(.system(size: 15))
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(themeManager.secondaryTextColor)
                 }
 
                 Button {
@@ -775,7 +775,7 @@ struct LibraryAppRow: View {
 
                             Text(app.isSigned ? String.localized("Signed") : String.localized("Unsigned"))
                                 .font(.system(size: 11, weight: .bold))
-                                .foregroundStyle(app.isSigned ? Color.green : Color.orange)
+                                .foregroundStyle(app.isSigned ? themeManager.selectionColor : Color(hex: "#FF9500"))
                         }
                     }
 
@@ -796,7 +796,7 @@ struct LibraryAppRow: View {
                 } label: {
                     Image(systemName: app.isSigned ? "arrow.down.circle.fill" : "signature")
                         .font(.system(size: 20, weight: .bold))
-                        .foregroundStyle(app.isSigned ? Color.green : themeManager.accentColor)
+                        .foregroundStyle(app.isSigned ? themeManager.selectionColor : themeManager.accentColor)
                         .contentShape(Rectangle())
                 }
 
@@ -853,7 +853,7 @@ struct LibraryDownloadItemView: View {
             HStack(spacing: 10) {
                 Image(systemName: overallProgress >= 1.0 ? "checkmark.circle.fill" : "arrow.down.circle.fill")
                     .font(.title3)
-                    .foregroundStyle(overallProgress >= 1.0 ? Color.green : themeManager.accentColor)
+                    .foregroundStyle(overallProgress >= 1.0 ? themeManager.selectionColor : themeManager.accentColor)
 
                 Text(download.fileName)
                     .font(.subheadline.weight(.medium))

@@ -103,7 +103,7 @@ struct QuickActionsSheetView: View {
                         dismiss()
                     } label: {
                         Image(systemName: "xmark.circle.fill")
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(themeManager.secondaryTextColor)
                             .font(.title3)
                     }
                 }
@@ -119,7 +119,7 @@ private struct SectionHeader: View {
         HStack {
             Text(title.uppercased())
                 .font(.system(size: 13, weight: .bold))
-                .foregroundStyle(.secondary)
+                .foregroundStyle(themeManager.secondaryTextColor)
                 .padding(.leading, 4)
             Spacer()
         }
@@ -149,11 +149,11 @@ private struct QuickActionRow: View {
                 VStack(alignment: .leading, spacing: 2) {
                     Text(title)
                         .font(.system(size: 16, weight: .bold))
-                        .foregroundStyle(.primary)
+                        .foregroundStyle(themeManager.primaryTextColor)
 
                     Text(subtitle)
                         .font(.system(size: 13))
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(themeManager.secondaryTextColor)
                 }
 
                 Spacer()

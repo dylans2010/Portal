@@ -342,7 +342,7 @@ struct DeveloperAuthView: View {
             VStack(spacing: 16) {
                 Image(systemName: "key.slash")
                     .font(.system(size: 40))
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(themeManager.secondaryTextColor)
                 
                 Text("No Passcode Configured")
                     .font(.headline)
@@ -1551,7 +1551,7 @@ struct NetworkInspectorView: View {
     var body: some View {
         List {
             Text("No Active Requests")
-                .foregroundStyle(.secondary)
+                .foregroundStyle(themeManager.secondaryTextColor)
         }
             .scrollContentBackground(.hidden)
         .navigationTitle("Network Inspector")
@@ -1564,7 +1564,7 @@ struct FileSystemBrowserView: View {
             if let documentsPath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first {
                 Text(documentsPath.path)
                     .font(.caption)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(themeManager.secondaryTextColor)
             }
             Text("Documents")
             Text("Library")
@@ -1585,7 +1585,7 @@ struct UserDefaultsEditorView: View {
                     Spacer()
                     Text("\(String(describing: UserDefaults.standard.object(forKey: key) ?? "nil"))")
                         .font(.caption)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(themeManager.secondaryTextColor)
                         .lineLimit(1)
                 }
             }
@@ -2211,7 +2211,7 @@ struct IPAInspectorView: View {
                             if let file = selectedFile {
                                 Text(file.lastPathComponent)
                                     .font(.caption)
-                                    .foregroundStyle(.secondary)
+                                    .foregroundStyle(themeManager.secondaryTextColor)
                             } else {
                                 Text("No File Selected")
                                     .font(.caption)
@@ -2234,7 +2234,7 @@ struct IPAInspectorView: View {
                             .foregroundStyle(.red)
                         Text(error)
                             .font(.caption)
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(themeManager.secondaryTextColor)
                     }
                 }
             }
@@ -2409,7 +2409,7 @@ struct IPAInspectorView: View {
                         ForEach(info.fileStructure.prefix(15), id: \.self) { file in
                             HStack {
                                 Image(systemName: fileIcon(for: file))
-                                    .foregroundStyle(.secondary)
+                                    .foregroundStyle(themeManager.secondaryTextColor)
                                     .font(.caption)
                                 Text(file)
                                     .font(.caption.monospaced())
@@ -2439,10 +2439,10 @@ struct IPAInspectorView: View {
                         ForEach(info.limitations, id: \.self) { limitation in
                             HStack(alignment: .top, spacing: 8) {
                                 Text("•")
-                                    .foregroundStyle(.secondary)
+                                    .foregroundStyle(themeManager.secondaryTextColor)
                                 Text(limitation)
                                     .font(.caption)
-                                    .foregroundStyle(.secondary)
+                                    .foregroundStyle(themeManager.secondaryTextColor)
                             }
                         }
                     }
@@ -2758,11 +2758,11 @@ struct DeveloperInfoRow: View {
         HStack(alignment: .top) {
             Text(label)
                 .font(.subheadline)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(themeManager.secondaryTextColor)
             Spacer()
             Text(value)
                 .font(.subheadline.monospaced())
-                .foregroundStyle(.primary)
+                .foregroundStyle(themeManager.primaryTextColor)
                 .multilineTextAlignment(.trailing)
         }
     }
@@ -2813,10 +2813,10 @@ struct PlistViewer: View {
                 VStack(alignment: .leading, spacing: 4) {
                     Text(key)
                         .font(.subheadline.bold())
-                        .foregroundStyle(.primary)
+                        .foregroundStyle(themeManager.primaryTextColor)
                     Text(String(describing: dictionary[key] ?? ""))
                         .font(.caption.monospaced())
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(themeManager.secondaryTextColor)
                         .lineLimit(3)
                 }
                 .padding(.vertical, 4)
@@ -2871,7 +2871,7 @@ struct IPAIntegrityCheckerView: View {
                             if let file = selectedFile {
                                 Text(file.lastPathComponent)
                                     .font(.caption)
-                                    .foregroundStyle(.secondary)
+                                    .foregroundStyle(themeManager.secondaryTextColor)
                             } else {
                                 Text("No File Selected")
                                     .font(.caption)
@@ -2894,7 +2894,7 @@ struct IPAIntegrityCheckerView: View {
                             .foregroundStyle(.red)
                         Text(error)
                             .font(.caption)
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(themeManager.secondaryTextColor)
                     }
                 }
             }
@@ -2943,7 +2943,7 @@ struct IPAIntegrityCheckerView: View {
                                     .font(.caption)
                                 Text(warning)
                                     .font(.caption)
-                                    .foregroundStyle(.secondary)
+                                    .foregroundStyle(themeManager.secondaryTextColor)
                             }
                         }
                     }
@@ -2959,7 +2959,7 @@ struct IPAIntegrityCheckerView: View {
                                     .font(.caption)
                                 Text(error)
                                     .font(.caption)
-                                    .foregroundStyle(.secondary)
+                                    .foregroundStyle(themeManager.secondaryTextColor)
                             }
                         }
                     }
@@ -2975,7 +2975,7 @@ struct IPAIntegrityCheckerView: View {
                                     .font(.caption)
                                 Text(suggestion)
                                     .font(.caption)
-                                    .foregroundStyle(.secondary)
+                                    .foregroundStyle(themeManager.secondaryTextColor)
                             }
                         }
                     }
@@ -3401,14 +3401,14 @@ struct PerformanceMonitorView: View {
                     Label("Memory", systemImage: "memorychip")
                     Spacer()
                     Text(monitor.memoryUsage)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(themeManager.secondaryTextColor)
                 }
                 
                 HStack {
                     Label("Disk Space", systemImage: "internaldrive")
                     Spacer()
                     Text(monitor.diskSpace)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(themeManager.secondaryTextColor)
                 }
             }
             
@@ -3425,7 +3425,7 @@ struct PerformanceMonitorView: View {
                     Label("Launch Time", systemImage: "timer")
                     Spacer()
                     Text("0.8s")
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(themeManager.secondaryTextColor)
                 }
             }
             
@@ -3575,19 +3575,19 @@ struct CoreDataInspectorView: View {
                     Text("Total Certificates")
                     Spacer()
                     Text("\(Storage.shared.getCertificates().count)")
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(themeManager.secondaryTextColor)
                 }
                 HStack {
                     Text("Total Sources")
                     Spacer()
                     Text("\(Storage.shared.getSources().count)")
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(themeManager.secondaryTextColor)
                 }
                 HStack {
                     Text("Total Signed Apps")
                     Spacer()
                     Text("\(Storage.shared.getSignedApps().count)")
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(themeManager.secondaryTextColor)
                 }
             }
         }
@@ -3603,7 +3603,7 @@ struct EntityDetailView: View {
         List {
             Text("Entity: \(entityName)")
                 .font(.caption)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(themeManager.secondaryTextColor)
             // Add more detailed entity inspection here
         }
             .scrollContentBackground(.hidden)
@@ -3633,7 +3633,7 @@ struct TestNotificationsView: View {
                                 ProgressView()
                                 Text("Sending In \(countdown)...")
                                     .font(.caption)
-                                    .foregroundStyle(.secondary)
+                                    .foregroundStyle(themeManager.secondaryTextColor)
                             }
                         } else {
                             Label("Send Test Notification", systemImage: "bell.badge")
@@ -3651,7 +3651,7 @@ struct TestNotificationsView: View {
                     ForEach(debugInfo, id: \.self) { info in
                         Text(info)
                             .font(.caption.monospaced())
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(themeManager.secondaryTextColor)
                     }
                 }
             }
@@ -3854,7 +3854,7 @@ struct UpdatesReleasesView: View {
                     Text("Version")
                     Spacer()
                     Text(currentVersion)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(themeManager.secondaryTextColor)
                         .font(.system(.body, design: .monospaced))
                 }
                 
@@ -3862,7 +3862,7 @@ struct UpdatesReleasesView: View {
                     Text("Build")
                     Spacer()
                     Text(currentBuild)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(themeManager.secondaryTextColor)
                         .font(.system(.body, design: .monospaced))
                 }
                 
@@ -3870,7 +3870,7 @@ struct UpdatesReleasesView: View {
                     Text("Bundle ID")
                     Spacer()
                     Text(Bundle.main.bundleIdentifier ?? "Unknown")
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(themeManager.secondaryTextColor)
                         .font(.caption.monospaced())
                         .lineLimit(1)
                 }
@@ -3916,7 +3916,7 @@ struct UpdatesReleasesView: View {
                         
                         Text(release.name)
                             .font(.subheadline)
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(themeManager.secondaryTextColor)
                         
                         if let publishedAt = release.publishedAt {
                             Text("Published: \(publishedAt, style: .date)")
@@ -3956,7 +3956,7 @@ struct UpdatesReleasesView: View {
                                     }
                                     Text(release.name)
                                         .font(.caption)
-                                        .foregroundStyle(.secondary)
+                                        .foregroundStyle(themeManager.secondaryTextColor)
                                         .lineLimit(1)
                                 }
                                 Spacer()
@@ -4026,7 +4026,7 @@ struct UpdatesReleasesView: View {
                 
                 Text("Simulates an available update to test the CheckForUpdatesView and update banner.")
                     .font(.caption)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(themeManager.secondaryTextColor)
             }
         }
             .scrollContentBackground(.hidden)
@@ -4188,7 +4188,7 @@ struct ReleaseDetailView: View {
                                 Text("\(asset.downloadCount) Downloads")
                             }
                             .font(.caption)
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(themeManager.secondaryTextColor)
                         }
                     }
                 }
@@ -4262,7 +4262,7 @@ struct SourcesLibraryDevView: View {
                             if let url = source.sourceURL {
                                 Text(url.absoluteString)
                                     .font(.caption)
-                                    .foregroundStyle(.secondary)
+                                    .foregroundStyle(themeManager.secondaryTextColor)
                                     .lineLimit(1)
                             }
                             if let repo = viewModel.sources[source] {
@@ -4477,7 +4477,7 @@ struct InstallIPADevView: View {
             Section(header: Text("Download Queue (\(downloadManager.downloads.count))")) {
                 if downloadManager.downloads.isEmpty {
                     Text("No Active Downloads")
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(themeManager.secondaryTextColor)
                 } else {
                     ForEach(downloadManager.downloads, id: \.id) { download in
                         VStack(alignment: .leading, spacing: 4) {
@@ -4490,7 +4490,7 @@ struct InstallIPADevView: View {
                                 Text("\(Int(download.unpackageProgress * 100))% Processed")
                             }
                             .font(.caption)
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(themeManager.secondaryTextColor)
                         }
                     }
                 }
@@ -4520,7 +4520,7 @@ struct InstallIPADevView: View {
                     }
                 } else {
                     Text("No Imported Apps Available For Testing")
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(themeManager.secondaryTextColor)
                 }
                 
                 Toggle("Always Show After Download", isOn: Binding(
@@ -4780,7 +4780,7 @@ struct NetworkSystemDevView: View {
                         Text(key)
                         Spacer()
                         Text(systemInfo[key] ?? "")
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(themeManager.secondaryTextColor)
                             .font(.system(.caption, design: .monospaced))
                     }
                 }
@@ -4873,7 +4873,7 @@ struct FailureInspectorView: View {
         List {
             if failureLogs.isEmpty {
                 Text("No Failures Recorded")
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(themeManager.secondaryTextColor)
             } else {
                 ForEach(failureLogs) { log in
                     VStack(alignment: .leading, spacing: 4) {
@@ -4886,7 +4886,7 @@ struct FailureInspectorView: View {
                             .font(.system(.body, design: .monospaced))
                         Text("[\(log.category)] \(log.file):\(log.line)")
                             .font(.caption)
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(themeManager.secondaryTextColor)
                     }
                     .padding(.vertical, 4)
                 }
@@ -4929,7 +4929,7 @@ struct StatePersistenceDevView: View {
                     Text("Cache Size")
                     Spacer()
                     Text(cacheSize)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(themeManager.secondaryTextColor)
                 }
                 
                 Button("Clear URL Cache") {
@@ -4957,7 +4957,7 @@ struct StatePersistenceDevView: View {
                     Text("Completed")
                     Spacer()
                     Text(UserDefaults.standard.bool(forKey: "hasCompletedOnboarding") ? "True" : "False")
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(themeManager.secondaryTextColor)
                 }
                 
                 Button("Reset Onboarding") {
@@ -5270,10 +5270,10 @@ struct DeveloperDeviceInfoRow: View {
     var body: some View {
         HStack {
             Text(label)
-                .foregroundStyle(.primary)
+                .foregroundStyle(themeManager.primaryTextColor)
             Spacer()
             Text(value)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(themeManager.secondaryTextColor)
                 .font(.system(.body, design: .monospaced))
                 .lineLimit(1)
                 .minimumScaleFactor(0.8)
@@ -5323,7 +5323,7 @@ struct EnvironmentInspectorView: View {
                             .fontWeight(.semibold)
                         Text(item.value)
                             .font(.system(.caption2, design: .monospaced))
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(themeManager.secondaryTextColor)
                             .lineLimit(3)
                     }
                     .padding(.vertical, 2)
@@ -5381,7 +5381,7 @@ struct CrashLogViewer: View {
                         
                         Text("Portal has not recorded any crashes. This is good!")
                             .font(.subheadline)
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(themeManager.secondaryTextColor)
                             .multilineTextAlignment(.center)
                     }
                     .frame(maxWidth: .infinity)
@@ -5396,7 +5396,7 @@ struct CrashLogViewer: View {
                                 Text(log.level.icon)
                                 Text(log.formattedTimestamp)
                                     .font(.caption.monospaced())
-                                    .foregroundStyle(.secondary)
+                                    .foregroundStyle(themeManager.secondaryTextColor)
                             }
                             
                             Text(log.message)
@@ -5574,7 +5574,7 @@ struct QuickActionsDevView: View {
                 }
                 
                 Text(action.rawValue)
-                    .foregroundStyle(.primary)
+                    .foregroundStyle(themeManager.primaryTextColor)
                 
                 Spacer()
             }
@@ -5797,12 +5797,12 @@ struct CertificateProfileManagerView: View {
                         VStack(spacing: 12) {
                             Image(systemName: "person.badge.key")
                                 .font(.system(size: 48))
-                                .foregroundStyle(.secondary)
+                                .foregroundStyle(themeManager.secondaryTextColor)
                             Text("No Certificates")
                                 .font(.headline)
                             Text("Add a signing certificate to get started")
                                 .font(.subheadline)
-                                .foregroundStyle(.secondary)
+                                .foregroundStyle(themeManager.secondaryTextColor)
                                 .multilineTextAlignment(.center)
                             Button("Add Certificate") {
                                 showAddCertificate = true
@@ -5918,7 +5918,7 @@ struct CertificateManagerRow: View {
                 VStack(alignment: .leading, spacing: 4) {
                     Text(certificate.nickname ?? "Unknown Certificate")
                         .font(.headline)
-                        .foregroundStyle(.primary)
+                        .foregroundStyle(themeManager.primaryTextColor)
                     
                     if let expiration = certificate.expiration {
                         HStack(spacing: 4) {
@@ -5970,10 +5970,10 @@ struct StatCard: View {
                 .foregroundStyle(color)
             Text(value)
                 .font(.title.bold())
-                .foregroundStyle(.primary)
+                .foregroundStyle(themeManager.primaryTextColor)
             Text(title)
                 .font(.caption)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(themeManager.secondaryTextColor)
         }
         .frame(maxWidth: .infinity)
         .padding()
@@ -6043,12 +6043,12 @@ struct SigningLogsView: View {
                     Spacer()
                     Image(systemName: "doc.text.magnifyingglass")
                         .font(.system(size: 50))
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(themeManager.secondaryTextColor)
                     Text("No Signing Logs")
                         .font(.headline)
                     Text("Signing operations will appear here.")
                         .font(.subheadline)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(themeManager.secondaryTextColor)
                     Spacer()
                 }
             } else {
@@ -6127,7 +6127,7 @@ struct SigningLogRow: View {
                     HStack {
                         Text(entry.formattedTimestamp)
                             .font(.caption2.monospaced())
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(themeManager.secondaryTextColor)
                         
                         Text("[\(entry.category)]")
                             .font(.caption2.bold())
@@ -6197,7 +6197,7 @@ struct DeveloperBatchSigningView: View {
                 Section {
                     if certificates.isEmpty {
                         Text("No Certificates Available")
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(themeManager.secondaryTextColor)
                     } else {
                         Picker("Signing Certificate", selection: $selectedCertificateIndex) {
                             ForEach(Array(certificates.enumerated()), id: \.element.uuid) { index, cert in
@@ -6214,7 +6214,7 @@ struct DeveloperBatchSigningView: View {
                 Section {
                     if importedApps.isEmpty {
                         Text("No Apps Available For Signing")
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(themeManager.secondaryTextColor)
                     } else {
                         ForEach(importedApps, id: \.uuid) { app in
                             DeveloperBatchAppRow(
@@ -6273,7 +6273,7 @@ struct DeveloperBatchSigningView: View {
                                         .font(.subheadline)
                                     Text(result.message)
                                         .font(.caption)
-                                        .foregroundStyle(.secondary)
+                                        .foregroundStyle(themeManager.secondaryTextColor)
                                 }
                             }
                         }
@@ -6396,11 +6396,11 @@ struct DeveloperBatchAppRow: View {
                 VStack(alignment: .leading, spacing: 2) {
                     Text(app.name ?? "Unknown App")
                         .font(.subheadline.bold())
-                        .foregroundStyle(.primary)
+                        .foregroundStyle(themeManager.primaryTextColor)
                     
                     Text(app.identifier ?? "Unknown Bundle ID")
                         .font(.caption)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(themeManager.secondaryTextColor)
                 }
                 
                 Spacer()
@@ -6601,7 +6601,7 @@ struct EntitlementRow: View {
         VStack(alignment: .leading, spacing: 4) {
             Text(item.key)
                 .font(.subheadline.bold())
-                .foregroundStyle(.primary)
+                .foregroundStyle(themeManager.primaryTextColor)
             
             HStack {
                 Text(item.type.rawValue)
@@ -6614,7 +6614,7 @@ struct EntitlementRow: View {
                 
                 Text(item.value)
                     .font(.caption.monospaced())
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(themeManager.secondaryTextColor)
                     .lineLimit(1)
             }
         }
@@ -6747,7 +6747,7 @@ struct PlistItemRow: View {
                 .font(.subheadline.bold())
             Text(item.value)
                 .font(.caption.monospaced())
-                .foregroundStyle(.secondary)
+                .foregroundStyle(themeManager.secondaryTextColor)
                 .lineLimit(1)
         }
         .padding(.vertical, 4)
@@ -6961,7 +6961,7 @@ struct SigningPerformanceMetricsView: View {
                     VStack(alignment: .leading) {
                         Text("Successful")
                             .font(.caption)
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(themeManager.secondaryTextColor)
                         Text("\(metrics.successfulSigns)")
                             .font(.title2.bold())
                             .foregroundStyle(.green)
@@ -6972,7 +6972,7 @@ struct SigningPerformanceMetricsView: View {
                     VStack(alignment: .trailing) {
                         Text("Failed")
                             .font(.caption)
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(themeManager.secondaryTextColor)
                         Text("\(metrics.failedSigns)")
                             .font(.title2.bold())
                             .foregroundStyle(.red)
@@ -7115,11 +7115,11 @@ struct MetricCard: View {
             
             Text(value)
                 .font(.title.bold())
-                .foregroundStyle(.primary)
+                .foregroundStyle(themeManager.primaryTextColor)
             
             Text(title)
                 .font(.caption)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(themeManager.secondaryTextColor)
         }
         .frame(maxWidth: .infinity)
         .padding()
@@ -7231,7 +7231,7 @@ struct APIWebhookIntegrationView: View {
                         
                         Text(samplePayload)
                             .font(.caption.monospaced())
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(themeManager.secondaryTextColor)
                     }
                     .padding(.vertical, 4)
                 } header: {
@@ -7332,12 +7332,12 @@ struct APILogsView: View {
                     VStack(spacing: 12) {
                         Image(systemName: "network.slash")
                             .font(.system(size: 48))
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(themeManager.secondaryTextColor)
                         Text("No API Logs")
                             .font(.headline)
                         Text("API and webhook activity will appear here.")
                             .font(.subheadline)
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(themeManager.secondaryTextColor)
                             .multilineTextAlignment(.center)
                     }
                     .padding()
@@ -7411,7 +7411,7 @@ struct NearbyTransferSimulationView: View {
                             .font(.headline)
                         Text("UI preview only - no actual data transfer will occur")
                             .font(.caption)
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(themeManager.secondaryTextColor)
                     }
                 }
                 .padding(.vertical, 8)
@@ -7438,7 +7438,7 @@ struct NearbyTransferSimulationView: View {
             } footer: {
                 Text("Switch between Sender and Receiver roles to test both UI flows")
                     .font(.caption)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(themeManager.secondaryTextColor)
             }
             
             // View Selection
@@ -7455,7 +7455,7 @@ struct NearbyTransferSimulationView: View {
                                     .font(.subheadline.weight(.medium))
                                 Text(descriptionFor(view))
                                     .font(.caption)
-                                    .foregroundStyle(.secondary)
+                                    .foregroundStyle(themeManager.secondaryTextColor)
                             }
                         }
                         .padding(.vertical, 4)
@@ -7466,7 +7466,7 @@ struct NearbyTransferSimulationView: View {
             } footer: {
                 Text("Select any view to see how it appears during a real transfer")
                     .font(.caption)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(themeManager.secondaryTextColor)
             }
             
             // Instructions
@@ -7525,7 +7525,7 @@ struct NearbyTransferSimulationView: View {
                 ConflictResolverView(backupDirectory: mockURL) { _ in }
             } else {
                 Text("Unable to create mock data")
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(themeManager.secondaryTextColor)
             }
         case .postHealthCheck:
             PostRestoreHealthCheckView {}
@@ -7601,7 +7601,7 @@ struct NearbyTransferSimulationView: View {
             
             Text(text)
                 .font(.subheadline)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(themeManager.secondaryTextColor)
                 .fixedSize(horizontal: false, vertical: true)
         }
     }

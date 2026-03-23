@@ -8,6 +8,7 @@ enum InstallSource {
 }
 
 struct InstallProgressView<Footer: View>: View {
+    @EnvironmentObject var themeManager: ThemeManager
     @State private var _isPulsing = false
     @State private var _installStarted = false
     @State private var _appeared = false
@@ -182,9 +183,9 @@ struct InstallProgressView<Footer: View>: View {
         } label: {
             Text("Install")
                 .font(.headline)
-                .foregroundColor(.white)
+                .foregroundStyle(themeManager.buttonTextColor)
                 .frame(width: 220, height: 48)
-                .background(Color.blue)
+                .background(themeManager.buttonBackgroundColor)
                 .clipShape(Capsule())
         }
         .padding(.bottom, 4)
@@ -195,12 +196,12 @@ struct InstallProgressView<Footer: View>: View {
         VStack(spacing: 12) {
             ZStack {
                 Circle()
-                    .stroke(Color.primary.opacity(0.1), lineWidth: 4)
+                    .stroke(themeManager.primaryTextColor.opacity(0.1), lineWidth: 4)
                     .frame(width: 56, height: 56)
 
                 Circle()
                     .trim(from: 0, to: max(viewModel.overallProgress, 0.05))
-                    .stroke(Color.blue, style: StrokeStyle(lineWidth: 4, lineCap: .round))
+                    .stroke(themeManager.accentColor, style: StrokeStyle(lineWidth: 4, lineCap: .round))
                     .frame(width: 56, height: 56)
                     .rotationEffect(.degrees(-90 + _ringRotation))
                     .animation(.easeInOut(duration: 0.4), value: viewModel.overallProgress)
@@ -208,11 +209,11 @@ struct InstallProgressView<Footer: View>: View {
                 if viewModel.overallProgress < 1.0 {
                     Image(systemName: "arrow.down")
                         .font(.system(size: 18, weight: .semibold))
-                        .foregroundColor(.blue)
+                        .foregroundStyle(themeManager.accentColor)
                 } else {
                     Image(systemName: "checkmark")
                         .font(.system(size: 18, weight: .bold))
-                        .foregroundColor(.green)
+                        .foregroundStyle(themeManager.selectionColor)
                 }
             }
             .onAppear {
@@ -223,7 +224,7 @@ struct InstallProgressView<Footer: View>: View {
 
             Text(viewModel.statusLabel)
                 .font(.caption)
-                .foregroundColor(.secondary)
+                .foregroundStyle(themeManager.secondaryTextColor)
         }
         .padding(.bottom, 4)
     }
@@ -234,42 +235,42 @@ struct InstallProgressView<Footer: View>: View {
             if viewModel.isError {
                 ZStack {
                     Circle()
-                        .stroke(Color.red.opacity(0.2), lineWidth: 4)
+                        .stroke(themeManager.destructiveColor.opacity(0.2), lineWidth: 4)
                         .frame(width: 56, height: 56)
 
                     Image(systemName: "xmark")
                         .font(.system(size: 18, weight: .bold))
-                        .foregroundColor(.red)
+                        .foregroundStyle(themeManager.destructiveColor)
                 }
 
                 Text("Failed")
                     .font(.subheadline)
                     .fontWeight(.medium)
-                    .foregroundColor(.red)
+                    .foregroundStyle(themeManager.destructiveColor)
             } else {
                 ZStack {
                     Circle()
-                        .stroke(Color.green, lineWidth: 4)
+                        .stroke(themeManager.selectionColor, lineWidth: 4)
                         .frame(width: 56, height: 56)
 
                     Image(systemName: "checkmark")
                         .font(.system(size: 18, weight: .bold))
-                        .foregroundColor(.green)
+                        .foregroundStyle(themeManager.selectionColor)
                 }
 
                 Text("Installed")
                     .font(.subheadline)
                     .fontWeight(.medium)
-                    .foregroundColor(.green)
+                    .foregroundStyle(themeManager.selectionColor)
 
                 Button {
                     onOpen?()
                 } label: {
                     Text("Open")
                         .font(.headline)
-                        .foregroundColor(.white)
+                        .foregroundStyle(themeManager.buttonTextColor)
                         .frame(width: 220, height: 48)
-                        .background(Color.blue)
+                        .background(themeManager.buttonBackgroundColor)
                         .clipShape(Capsule())
                 }
             }

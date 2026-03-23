@@ -1,0 +1,144 @@
+Complete the following tasks in order. Read every file fully before editing it.
+
+The app has a ThemeManager (AppWideThemeManager.swift) with resolvedColors which exposes these hex string slots: appBackground, navigationBar, tabBar, primaryText, secondaryText, cardBackground, accent, separator, buttonBackground, buttonText, iconTint, groupedBackground, headerText, badgeBackground, badgeText, cellHighlight, destructive, switchTint, selectionIndicator
+
+Every single color used anywhere in the UI must be driven by one of these slots. There must be zero hardcoded Color literals, zero Color(hex:) with a fixed string, zero .blue, .white, .black, .gray, .secondary references anywhere in the codebase. The only exception is Color.clear and opacity modifiers.
+
+Helpers to use everywhere: themeManager.accentColor → Color(hex: resolvedColors.accent) themeManager.primaryTextColor → Color(hex: resolvedColors.primaryText) themeManager.secondaryTextColor → Color(hex: resolvedColors.secondaryText) themeManager.cardBackgroundColor → Color(hex: resolvedColors.cardBackground) themeManager.appBackgroundColor → Color(hex: resolvedColors.appBackground) themeManager.iconTintColor → Color(hex: resolvedColors.iconTint) themeManager.headerTextColor → Color(hex: resolvedColors.headerText) themeManager.separatorColor → Color(hex: resolvedColors.separator) themeManager.badgeBackgroundColor → Color(hex: resolvedColors.badgeBackground) themeManager.badgeTextColor → Color(hex: resolvedColors.badgeText) themeManager.buttonBackgroundColor → Color(hex: resolvedColors.buttonBackground) themeManager.buttonTextColor → Color(hex: resolvedColors.buttonText) themeManager.switchTintColor → Color(hex: resolvedColors.switchTint) themeManager.selectionColor → Color(hex: resolvedColors.selectionIndicator) themeManager.cellHighlightColor → Color(hex: resolvedColors.cellHighlight)
+
+If these computed properties do not yet exist on ThemeManager, add them all in AppWideThemeManager.swift first before touching any view files.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ TASK 1 — AppWideThemeManager.swift ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Add all missing computed Color and UIColor properties listed above to ThemeManager so every view can access them without constructing Color(hex:) inline.
+
+Also add: var separatorUIColor: UIColor var primaryTextUIColor: UIColor var cardBackgroundUIColor: UIColor
+
+Update applyUIKitAppearance() so it also sets:
+
+UILabel.appearance().textColor = primaryTextUIColor
+UITableView.appearance().separatorColor = separatorUIColor
+UINavigationBar.appearance().tintColor = accentUIColor
+UITabBar.appearance().tintColor = accentUIColor
+UISwitch.appearance().onTintColor = UIColor(switchTintColor)
+All UIWindow instances: window.tintColor = accentUIColor
+Update AppWideColors.default(for theme: AppTheme) so every AppTheme preset populates ALL color slots — appBackground, navigationBar, tabBar, primaryText, secondaryText, cardBackground, accent, separator, buttonBackground, buttonText, iconTint, groupedBackground, headerText, badgeBackground, badgeText, cellHighlight, destructive, switchTint, selectionIndicator — with values that are fully derived from and consistent with that theme's visual identity. No slot should fall back to a generic default that ignores the theme. Each theme must feel cohesive end-to-end:
+
+darkNavy: base #0D0F1A, accent #3B8FE8, cards slightly lighter than base
+midnight: base #000000, accent #3B8FE8, cards #111111
+graphite: base #1C1C1E, accent #636366, cards #2C2C2E
+oceanDeep: base #0A1628, accent #0A84FF, cards #0F2137
+warmBlack: base #12100E, accent #FF9F0A, cards #1C1A17 Derive all other slots (text, separators, badges, headers etc.) proportionally from each theme's base and accent so the whole UI feels unified per theme.
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ TASK 2 — ThemedViewModifier.swift ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Update all existing modifiers so they use ThemeManager computed properties instead of any inline Color(hex:) calls.
+
+Update GlobalThemeModifier to also apply: .tint(themeManager.accentColor) .accentColor(themeManager.accentColor) .foregroundStyle(themeManager.primaryTextColor)
+
+Add a new modifier ThemedSectionHeader: a ViewModifier that applies: .font(.caption) .fontWeight(.semibold) .foregroundStyle(themeManager.headerTextColor) .textCase(.uppercase) .tracking(0.5)
+
+Add View extension: func themedSectionHeader() -> some View
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ TASK 3 — ColorCustomizationView.swift ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Read ColorCustomizationView.swift fully before making any changes.
+
+CHANGE 1 — Remove all individual ColorPickers from the Core Palette section. Delete every ColorPicker row inside the Core Palette section entirely — including their state variables, bindings, and any helper structs or rows that exist solely to support those pickers. Do not leave empty rows or placeholder UI where they were. The Core Palette section should only contain the "App Wide" row after this change. If removing the pickers makes the Core Palette section empty except for "App Wide", that is correct and expected.
+
+CHANGE 2 — Update the "All Themes" section so each theme card/row reflects the full AppWideColors that the theme now provides rather than showing a single color swatch or a hardcoded preview.
+
+For each theme in AppTheme.allCases, replace the existing theme card/row UI with:
+
+RoundedRectangle(cornerRadius: 16) filled with AppWideColors.default(for: theme).appBackground: VStack(alignment: .leading, spacing: 10), padding 14:
+
+-- Row 1: Theme name + active indicator -- HStack: Text(theme.displayName) .font(.subheadline) .bold() .foregroundStyle(Color(hex: AppWideColors.default(for: theme).primaryText)) Spacer() if themeManager.currentTheme == theme && themeManager.appWideColors == nil: Image(systemName: "checkmark.circle.fill") .foregroundStyle(Color(hex: AppWideColors.default(for: theme).accent))
+
+-- Row 2: Multi-slot color swatch strip -- HStack(spacing: 6): ForEach these slots in order, each as a Circle() diameter 20: accent, cardBackground, primaryText, secondaryText, iconTint, buttonBackground, badgeBackground, switchTint Each Circle filled with Color(hex: AppWideColors.default(for: theme).[slot]) with a 1pt stroke of Color(hex: AppWideColors.default(for: theme).separator)
+
+-- Row 3: Mini UI preview -- HStack(spacing: 8): -- Fake card -- RoundedRectangle(cornerRadius: 8) .fill(Color(hex: AppWideColors.default(for: theme).cardBackground)) .frame(width: 80, height: 36) .overlay( HStack(spacing: 4): Circle() .fill(Color(hex: AppWideColors.default(for: theme).iconTint)) .frame(width: 10, height: 10) Rectangle() .fill(Color(hex: AppWideColors.default(for: theme).primaryText).opacity(0.7)) .frame(width: 36, height: 7) .cornerRadius(3) )
+
+-- Fake button --
+RoundedRectangle(cornerRadius: 8)
+  .fill(Color(hex: AppWideColors.default(for: theme).buttonBackground))
+  .frame(width: 52, height: 36)
+  .overlay(
+    Rectangle()
+      .fill(Color(hex: AppWideColors.default(for: theme).buttonText).opacity(0.9))
+      .frame(width: 28, height: 7)
+      .cornerRadius(3)
+  )
+
+-- Fake badge --
+Capsule()
+  .fill(Color(hex: AppWideColors.default(for: theme).badgeBackground))
+  .frame(width: 40, height: 20)
+  .overlay(
+    Rectangle()
+      .fill(Color(hex: AppWideColors.default(for: theme).badgeText).opacity(0.9))
+      .frame(width: 22, height: 5)
+      .cornerRadius(2)
+  )
+Tapping the entire card calls themeManager.setTheme(theme)
+
+CHANGE 3 — Apply all 19 color rules from Task 4 (below) to ColorCustomizationView itself — its own background, section headers, row text, chevrons, icons, dividers, and the "App Wide" row must all use ThemeManager resolved colors. The only exemptions are:
+
+The color swatch Circles in the theme preview strip (they intentionally show raw theme colors)
+The mini UI preview shapes inside each theme card (intentionally raw theme colors)
+The AppWideColorPickerSheet live preview card
+The "App Wide" multi-swatch preview on the row itself
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ TASK 4 — Full codebase sweep ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Search the entire project for every .swift file. For each file read it fully, then apply ALL of the following replacement rules. Do not change layout, spacing, padding, fonts, or logic. Only replace color references.
+
+RULE 1 — Section header labels: Any Text or Label used as a section header must use: .foregroundStyle(themeManager.headerTextColor) Not accent, not blue, not gray. All section headers (SIGNING, GENERAL, DEVICES, Customizations, App Management etc.) must use headerTextColor.
+
+RULE 2 — Navigation row icons: Every Image(systemName:) inside a navigation row HStack must use: .foregroundStyle(themeManager.iconTintColor)
+
+RULE 3 — Navigation row labels: Every primary Text label in a navigation row must use: .foregroundStyle(themeManager.primaryTextColor)
+
+RULE 4 — Chevrons: Every Image(systemName: "chevron.right") must use: .foregroundStyle(themeManager.secondaryTextColor)
+
+RULE 5 — Card/container backgrounds: Every RoundedRectangle fill or .background used as a card container must use: themeManager.cardBackgroundColor
+
+RULE 6 — App/screen background: Every root ScrollView, List, NavigationStack, ZStack background must use: themeManager.appBackgroundColor.ignoresSafeArea()
+
+RULE 7 — Separator / divider lines: Every Divider() or thin Rectangle separator must use: themeManager.separatorColor
+
+RULE 8 — Toggles: Every Toggle must have: .tint(themeManager.switchTintColor)
+
+RULE 9 — Filled buttons: Every Button with a RoundedRectangle or Capsule background must use: background: themeManager.buttonBackgroundColor label foreground: themeManager.buttonTextColor
+
+RULE 10 — Badges and pills: Every badge/pill background: themeManager.badgeBackgroundColor Every badge/pill text: themeManager.badgeTextColor
+
+RULE 11 — Search bar: Search bar background: themeManager.cardBackgroundColor Search icon and placeholder: themeManager.secondaryTextColor
+
+RULE 12 — Tab bar: Active tab icon and label: themeManager.accentColor via .tint(themeManager.accentColor) Inactive tab icons: themeManager.secondaryTextColor Tab bar background: handled by UIKit applyUIKitAppearance — verify it is applied
+
+RULE 13 — NavigationStack / toolbar: All toolbar buttons and back buttons: .tint(themeManager.accentColor)
+
+RULE 14 — ProgressView and Slider: Add .tint(themeManager.accentColor) to every ProgressView and Slider.
+
+RULE 15 — Secondary text: Any .foregroundStyle(.secondary) or .foregroundColor(.secondary) or .foregroundStyle(.gray): → .foregroundStyle(themeManager.secondaryTextColor)
+
+RULE 16 — Selection indicators: Any checkmark, radio dot, selected state indicator: → themeManager.selectionColor
+
+RULE 17 — Highlighted / selected cells: Any cell/row that changes background on selection: → themeManager.cellHighlightColor
+
+RULE 18 — @EnvironmentObject injection: Every view that references themeManager must declare: @EnvironmentObject var themeManager: ThemeManager Do NOT add .environmentObject(...) inside child views — only at root.
+
+RULE 19 — Remove ALL hardcoded colors: Final pass on each file — remove any remaining: Color.blue, Color.white, Color.black, Color.gray, Color.red, Color.green Color(hex: "any literal string") .foregroundColor(Color.*) with any hardcoded value UIColor(red:green:blue:alpha:) hardcoded values Replace each with the most semantically appropriate ThemeManager computed property.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ TASK 5 — Verify AppInstallSheet in AdvancedInfoDisplayView.swift ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Read AdvancedInfoDisplayView.swift. Apply all 19 rules. Specifically:
+
+App icon fallback background: themeManager.cardBackgroundColor
+"Install App" button: buttonBackgroundColor / buttonTextColor
+All card containers: cardBackgroundColor
+All section headers: headerTextColor
+All primary row labels: primaryTextColor
+All value text (InfoRow right side): secondaryTextColor
+Entitlement checkmark icons: accentColor for true, secondaryTextColor for false
+Expiry warning icon: .yellow is exempt (semantic warning color)
+Profile UUID monospaced text: secondaryTextColor
+InfoRowDivider: separatorColor

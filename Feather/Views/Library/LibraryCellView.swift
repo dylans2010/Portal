@@ -4,6 +4,7 @@ import NimbleViews
 
 // MARK: - LibraryCellView - Modern Minimal Design
 struct LibraryCellView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     @Environment(\.editMode) private var editMode
 
@@ -130,7 +131,7 @@ struct LibraryCellView: View {
         } label: {
             Text(app.isSigned ? "Install" : "Sign")
                 .font(.system(size: 15, weight: .semibold))
-                .foregroundStyle(app.isSigned ? Color.green : Color.accentColor)
+                .foregroundStyle(app.isSigned ? themeManager.selectionColor : themeManager.accentColor)
         }
         .buttonStyle(.plain)
     }

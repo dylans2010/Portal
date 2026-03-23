@@ -196,7 +196,7 @@ struct SourcesView: View {
                     Button {
                         _isAddingPresenting = true
                     } label: {
-                        navBarButton(systemImage: "plus", color: Color.green)
+                        navBarButton(systemImage: "plus", color: themeManager.accentColor)
                     }
                     .disabled(_addingSourceLoading)
                 }
@@ -274,7 +274,7 @@ struct SourcesView: View {
             
             ZStack {
                 Circle()
-                    .fill(Color.cyan.opacity(0.12))
+                    .fill(themeManager.accentColor.opacity(0.12))
                     .frame(width: 100, height: 100)
                 
                 Image(systemName: "globe.desk.fill")
@@ -324,7 +324,7 @@ struct SourcesView: View {
                     VStack(spacing: 16) {
                         ZStack {
                             Circle()
-                                .fill(Color.blue.opacity(0.12))
+                                .fill(themeManager.accentColor.opacity(0.12))
                                 .frame(width: 80, height: 80)
                             
                             Image(systemName: "checkmark.shield.fill")
@@ -641,123 +641,123 @@ struct ModernSourceCardWithIcon: View {
 
 // MARK: - AllAppsCardView
 private struct AllAppsCardView: View {
-	@EnvironmentObject var themeManager: ThemeManager
-	@AppStorage("Feather.useGradients") private var _useGradients: Bool = true
-	
-	let horizontalSizeClass: UserInterfaceSizeClass?
-	let totalApps: Int
-	
-	@State private var appIconColor: Color = .accentColor
-	
-	var body: some View {
-		let isRegular = horizontalSizeClass != .compact
-		
-		VStack(spacing: 0) {
-			contentSection(isRegular: isRegular)
-		}
-		.background(cardBackground)
-		.overlay(cardStroke)
-		.shadow(color: Color.black.opacity(0.02), radius: 2, x: 0, y: 1)
-		.shadow(color: Color.black.opacity(0.03), radius: 3, x: 0, y: 1)
-		.onAppear {
-			extractAppIconColor()
-		}
-	}
-	
-	private func extractAppIconColor() {
-		guard let iconName = Bundle.main.iconFileName,
-			  let appIcon = UIImage(named: iconName) else {
-			appIconColor = .accentColor
-			return
-		}
-		
-		guard let inputImage = CIImage(image: appIcon) else {
-			appIconColor = .accentColor
-			return
-		}
-		
-		let extentVector = CIVector(x: inputImage.extent.origin.x, y: inputImage.extent.origin.y, z: inputImage.extent.size.width, w: inputImage.extent.size.height)
-		
-		guard let filter = CIFilter(name: "CIAreaAverage", parameters: [kCIInputImageKey: inputImage, kCIInputExtentKey: extentVector]) else {
-			appIconColor = .accentColor
-			return
-		}
-		guard let outputImage = filter.outputImage else {
-			appIconColor = .accentColor
-			return
-		}
-		
-		var bitmap = [UInt8](repeating: 0, count: 4)
-		let context = Self.sharedCIContext
-		context.render(outputImage, toBitmap: &bitmap, rowBytes: 4, bounds: CGRect(x: 0, y: 0, width: 1, height: 1), format: .RGBA8, colorSpace: nil)
-		
-		appIconColor = Color(red: Double(bitmap[0]) / 255, green: Double(bitmap[1]) / 255, blue: Double(bitmap[2]) / 255)
-	}
-	
-	private static let sharedCIContext = CIContext(options: [.workingColorSpace: kCFNull as Any])
-	
-	private func contentSection(isRegular: Bool) -> some View {
-		HStack(spacing: 12) {
-			iconView
-			
-			textContent
-			
-			Spacer()
-		}
-		.padding(.horizontal, isRegular ? 12 : 10)
-		.padding(.vertical, isRegular ? 10 : 8)
-	}
-	
-	private var iconView: some View {
-		ZStack {
-			Circle()
-				.fill(appIconColor.opacity(0.12))
-				.frame(width: 44, height: 44)
-			
-			Image(systemName: "app.badge.fill")
-				.font(.system(size: 20, weight: .semibold))
-				.foregroundStyle(appIconColor)
-		}
-	}
-	
-	private var textContent: some View {
-		VStack(alignment: .leading, spacing: 4) {
-			Text(.localized("All Apps"))
-				.font(.system(size: 16, weight: .bold))
-				.themedText(.primary)
-			Text(.localized("See all yor apps in one page"))
-				.font(.caption)
-				.themedText(.secondary)
-				.lineLimit(1)
-			
-			appsBadge
-		}
-	}
-	
-	private var appsBadge: some View {
-		HStack(spacing: 4) {
-			Image(systemName: "square.stack.3d.up.fill")
-				.font(.system(size: 9))
-			Text("\(totalApps) \(totalApps == 1 ? "App" : "Apps")")
-				.font(.system(size: 10, weight: .bold))
-		}
-		.foregroundStyle(Color(hex: themeManager.resolvedColors.badgeText))
-		.padding(.horizontal, 8)
-		.padding(.vertical, 3.5)
-		.background(
-			Capsule()
-				.fill(Color(hex: themeManager.resolvedColors.badgeBackground))
-		)
-		.shadow(color: Color(hex: themeManager.resolvedColors.badgeBackground).opacity(0.2), radius: 2, x: 0, y: 1)
-	}
-	
-	private var cardBackground: some View {
-		RoundedRectangle(cornerRadius: 14, style: .continuous)
-			.fill(Color(hex: themeManager.resolvedColors.cardBackground))
-	}
-	
-	private var cardStroke: some View {
-		RoundedRectangle(cornerRadius: 14, style: .continuous)
-			.stroke(Color(hex: themeManager.resolvedColors.separator), lineWidth: 1)
-	}
+        @EnvironmentObject var themeManager: ThemeManager
+        @AppStorage("Feather.useGradients") private var _useGradients: Bool = true
+        
+        let horizontalSizeClass: UserInterfaceSizeClass?
+        let totalApps: Int
+        
+        @State private var appIconColor: Color = .accentColor
+        
+        var body: some View {
+                let isRegular = horizontalSizeClass != .compact
+                
+                VStack(spacing: 0) {
+                        contentSection(isRegular: isRegular)
+                }
+                .background(cardBackground)
+                .overlay(cardStroke)
+                .shadow(color: Color.black.opacity(0.02), radius: 2, x: 0, y: 1)
+                .shadow(color: Color.black.opacity(0.03), radius: 3, x: 0, y: 1)
+                .onAppear {
+                        extractAppIconColor()
+                }
+        }
+        
+        private func extractAppIconColor() {
+                guard let iconName = Bundle.main.iconFileName,
+                          let appIcon = UIImage(named: iconName) else {
+                        appIconColor = .accentColor
+                        return
+                }
+                
+                guard let inputImage = CIImage(image: appIcon) else {
+                        appIconColor = .accentColor
+                        return
+                }
+                
+                let extentVector = CIVector(x: inputImage.extent.origin.x, y: inputImage.extent.origin.y, z: inputImage.extent.size.width, w: inputImage.extent.size.height)
+                
+                guard let filter = CIFilter(name: "CIAreaAverage", parameters: [kCIInputImageKey: inputImage, kCIInputExtentKey: extentVector]) else {
+                        appIconColor = .accentColor
+                        return
+                }
+                guard let outputImage = filter.outputImage else {
+                        appIconColor = .accentColor
+                        return
+                }
+                
+                var bitmap = [UInt8](repeating: 0, count: 4)
+                let context = Self.sharedCIContext
+                context.render(outputImage, toBitmap: &bitmap, rowBytes: 4, bounds: CGRect(x: 0, y: 0, width: 1, height: 1), format: .RGBA8, colorSpace: nil)
+                
+                appIconColor = Color(red: Double(bitmap[0]) / 255, green: Double(bitmap[1]) / 255, blue: Double(bitmap[2]) / 255)
+        }
+        
+        private static let sharedCIContext = CIContext(options: [.workingColorSpace: kCFNull as Any])
+        
+        private func contentSection(isRegular: Bool) -> some View {
+                HStack(spacing: 12) {
+                        iconView
+                        
+                        textContent
+                        
+                        Spacer()
+                }
+                .padding(.horizontal, isRegular ? 12 : 10)
+                .padding(.vertical, isRegular ? 10 : 8)
+        }
+        
+        private var iconView: some View {
+                ZStack {
+                        Circle()
+                                .fill(appIconColor.opacity(0.12))
+                                .frame(width: 44, height: 44)
+                        
+                        Image(systemName: "app.badge.fill")
+                                .font(.system(size: 20, weight: .semibold))
+                                .foregroundStyle(appIconColor)
+                }
+        }
+        
+        private var textContent: some View {
+                VStack(alignment: .leading, spacing: 4) {
+                        Text(.localized("All Apps"))
+                                .font(.system(size: 16, weight: .bold))
+                                .themedText(.primary)
+                        Text(.localized("See all yor apps in one page"))
+                                .font(.caption)
+                                .themedText(.secondary)
+                                .lineLimit(1)
+                        
+                        appsBadge
+                }
+        }
+        
+        private var appsBadge: some View {
+                HStack(spacing: 4) {
+                        Image(systemName: "square.stack.3d.up.fill")
+                                .font(.system(size: 9))
+                        Text("\(totalApps) \(totalApps == 1 ? "App" : "Apps")")
+                                .font(.system(size: 10, weight: .bold))
+                }
+                .foregroundStyle(Color(hex: themeManager.resolvedColors.badgeText))
+                .padding(.horizontal, 8)
+                .padding(.vertical, 3.5)
+                .background(
+                        Capsule()
+                                .fill(Color(hex: themeManager.resolvedColors.badgeBackground))
+                )
+                .shadow(color: Color(hex: themeManager.resolvedColors.badgeBackground).opacity(0.2), radius: 2, x: 0, y: 1)
+        }
+        
+        private var cardBackground: some View {
+                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                        .fill(Color(hex: themeManager.resolvedColors.cardBackground))
+        }
+        
+        private var cardStroke: some View {
+                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                        .stroke(Color(hex: themeManager.resolvedColors.separator), lineWidth: 1)
+        }
 }

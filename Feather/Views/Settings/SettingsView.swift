@@ -254,7 +254,7 @@ struct SettingsView: View {
     private var developerSection: some View {
         Section {
             if !hideManager.isHidden("settings.debug") {
-                SettingsRow(icon: "person.2.badge.gearshape.fill", title: String.localized("Debug"), color: .red, destination: DeveloperView())
+                SettingsRow(icon: "person.2.badge.gearshape.fill", title: String.localized("Debug"), color: themeManager.destructiveColor, destination: DeveloperView())
             }
         } header: {
             SettingsSectionHeader(title: String.localized("Internal"), icon: "wrench.and.screwdriver.fill")

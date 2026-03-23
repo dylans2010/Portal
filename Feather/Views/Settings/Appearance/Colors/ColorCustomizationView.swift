@@ -121,17 +121,17 @@ struct ColorCustomizationView: View {
     @AppStorage("Feather.appearance.motionGradients") private var motionGradients: Bool = true
     @AppStorage("Feather.appearance.performanceMode") private var performanceMode: Bool = false
 
-    @State private var uiElementColor: Color = .blue
-    @State private var textColor: Color = .black
-    @State private var secondaryTextColor: Color = .gray
-    @State private var tintColor: Color = .blue
-    @State private var navBarColor: Color = .white
-    @State private var tabBarColor: Color = .white
-    @State private var dividerColor: Color = .gray
-    @State private var sheetBackgroundColor: Color = .white
-    @State private var successColor: Color = .green
-    @State private var warningColor: Color = .orange
-    @State private var errorColor: Color = .red
+    @State private var uiElementColor: Color = Color(hex: "#007AFF")
+    @State private var textColor: Color = Color(hex: "#000000")
+    @State private var secondaryTextColor: Color = Color(hex: "#8E8E93")
+    @State private var tintColor: Color = Color(hex: "#0077BE")
+    @State private var navBarColor: Color = Color(hex: "#F2F2F7")
+    @State private var tabBarColor: Color = Color(hex: "#F2F2F7")
+    @State private var dividerColor: Color = Color(hex: "#E5E5EA")
+    @State private var sheetBackgroundColor: Color = Color(hex: "#F2F2F7")
+    @State private var successColor: Color = Color(hex: "#34C759")
+    @State private var warningColor: Color = Color(hex: "#FF9500")
+    @State private var errorColor: Color = Color(hex: "#FF3B30")
     @State private var selectedSection: EditorSection = .overview
     @State private var showAllThemes = false
     @State private var themeName: String = ""
@@ -296,6 +296,7 @@ struct ColorCustomizationView: View {
                 quickActionsRow
             } header: {
                 Text(String.localized("Live Preview"))
+                    .foregroundStyle(themeManager.headerTextColor)
             } footer: {
                 Text(String.localized("Use the quick actions to instantly sync surfaces, soften the interface, or add a more vivid look without leaving this screen."))
             }
@@ -304,18 +305,111 @@ struct ColorCustomizationView: View {
                 themeGallerySection
             } header: {
                 Text(String.localized("Theme Shortcuts"))
+                    .foregroundStyle(themeManager.headerTextColor)
             }
+
+            appWideThemesSection
+        }
+    }
+
+    private var appWideThemesSection: some View {
+        Section {
+            ForEach(AppTheme.allCases) { theme in
+                let colors = AppWideColors.default(for: theme)
+                Button {
+                    themeManager.setTheme(theme)
+                } label: {
+                    RoundedRectangle(cornerRadius: 16)
+                        .fill(Color(hex: colors.appBackground))
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 110)
+                        .overlay(
+                            VStack(alignment: .leading, spacing: 10) {
+                                HStack {
+                                    Text(theme.displayName)
+                                        .font(.subheadline)
+                                        .bold()
+                                        .foregroundStyle(Color(hex: colors.primaryText))
+                                    Spacer()
+                                    if themeManager.currentTheme == theme && themeManager.appWideColors == nil {
+                                        Image(systemName: "checkmark.circle.fill")
+                                            .foregroundStyle(Color(hex: colors.accent))
+                                    }
+                                }
+
+                                HStack(spacing: 6) {
+                                    ForEach([
+                                        colors.accent,
+                                        colors.cardBackground,
+                                        colors.primaryText,
+                                        colors.secondaryText,
+                                        colors.iconTint,
+                                        colors.buttonBackground,
+                                        colors.badgeBackground,
+                                        colors.switchTint
+                                    ], id: \.self) { hex in
+                                        Circle()
+                                            .fill(Color(hex: hex))
+                                            .frame(width: 20, height: 20)
+                                            .overlay(
+                                                Circle()
+                                                    .stroke(Color(hex: colors.separator), lineWidth: 1)
+                                            )
+                                    }
+                                }
+
+                                HStack(spacing: 8) {
+                                    RoundedRectangle(cornerRadius: 8)
+                                        .fill(Color(hex: colors.cardBackground))
+                                        .frame(width: 80, height: 36)
+                                        .overlay(
+                                            HStack(spacing: 4) {
+                                                Circle()
+                                                    .fill(Color(hex: colors.iconTint))
+                                                    .frame(width: 10, height: 10)
+                                                Rectangle()
+                                                    .fill(Color(hex: colors.primaryText).opacity(0.7))
+                                                    .frame(width: 36, height: 7)
+                                                    .cornerRadius(3)
+                                            }
+                                        )
+
+                                    RoundedRectangle(cornerRadius: 8)
+                                        .fill(Color(hex: colors.buttonBackground))
+                                        .frame(width: 52, height: 36)
+                                        .overlay(
+                                            Rectangle()
+                                                .fill(Color(hex: colors.buttonText).opacity(0.9))
+                                                .frame(width: 28, height: 7)
+                                                .cornerRadius(3)
+                                        )
+
+                                    Capsule()
+                                        .fill(Color(hex: colors.badgeBackground))
+                                        .frame(width: 40, height: 20)
+                                        .overlay(
+                                            Rectangle()
+                                                .fill(Color(hex: colors.badgeText).opacity(0.9))
+                                                .frame(width: 22, height: 5)
+                                                .cornerRadius(2)
+                                        )
+                                }
+                            }
+                            .padding(14)
+                        )
+                }
+                .buttonStyle(.plain)
+                .listRowBackground(Color.clear)
+                .listRowInsets(EdgeInsets(top: 4, leading: 16, bottom: 4, trailing: 16))
+            }
+        } header: {
+            Text(String.localized("Built-in Themes"))
+                .foregroundStyle(themeManager.headerTextColor)
         }
     }
 
     private var paletteSection: some View {
         Section {
-            colorPickerRow(title: String.localized("Background"), subtext: String.localized("Main app background color"), color: $backgroundManager.baseColor, icon: "square.fill")
-            colorPickerRow(title: String.localized("UI Elements"), subtext: String.localized("Cards, panels, and controls"), color: $uiElementColor, icon: "app.fill")
-            colorPickerRow(title: String.localized("Primary Text"), subtext: String.localized("Titles and body text"), color: $textColor, icon: "textformat")
-            colorPickerRow(title: String.localized("Secondary Text"), subtext: String.localized("Descriptions and helper labels"), color: $secondaryTextColor, icon: "textformat.size")
-            colorPickerRow(title: String.localized("Accent"), subtext: String.localized("Interactive highlights and focus"), color: $tintColor, icon: "sparkles")
-
             Button {
                 showingAppWideColorPicker = true
             } label: {
@@ -323,22 +417,23 @@ struct ColorCustomizationView: View {
                     VStack(alignment: .leading, spacing: 3) {
                         Text(String.localized("App Wide"))
                             .font(.system(size: 16, weight: .semibold, design: .rounded))
+                            .foregroundStyle(themeManager.primaryTextColor)
                         Text(String.localized("Customize all app colors"))
                             .font(.system(size: 11))
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(themeManager.secondaryTextColor)
                     }
 
                     Spacer()
 
                     HStack(spacing: 0) {
                         RoundedRectangle(cornerRadius: 0)
-                            .fill(Color(hex: themeManager.resolvedColors.appBackground))
+                            .fill(themeManager.appBackgroundColor)
                             .frame(width: 12, height: 24)
                         RoundedRectangle(cornerRadius: 0)
-                            .fill(Color(hex: themeManager.resolvedColors.navigationBar))
+                            .fill(themeManager.navigationBarColor)
                             .frame(width: 12, height: 24)
                         RoundedRectangle(cornerRadius: 0)
-                            .fill(Color(hex: themeManager.resolvedColors.accent))
+                            .fill(themeManager.accentColor)
                             .frame(width: 12, height: 24)
                     }
                     .clipShape(RoundedRectangle(cornerRadius: 6))
@@ -348,14 +443,14 @@ struct ColorCustomizationView: View {
                             themeManager.resetToThemeDefaults()
                         } label: {
                             Image(systemName: "xmark.circle.fill")
-                                .foregroundStyle(.gray)
+                                .foregroundStyle(themeManager.secondaryTextColor)
                         }
                         .buttonStyle(.plain)
                     }
 
                     Image(systemName: "chevron.right")
                         .font(.system(size: 14, weight: .semibold))
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(themeManager.secondaryTextColor)
                 }
                 .padding(.vertical, 4)
             }
@@ -365,6 +460,7 @@ struct ColorCustomizationView: View {
             }
         } header: {
             Text(String.localized("Core Palette"))
+                .foregroundStyle(themeManager.headerTextColor)
         }
     }
 
@@ -426,32 +522,33 @@ struct ColorCustomizationView: View {
         Section {
             NavigationLink(destination: AllAppsCustomizationView()) {
                 Label("All Apps", systemImage: "square.grid.2x2.fill")
-                    .foregroundStyle(Color.accentColor)
+                    .foregroundStyle(themeManager.iconTintColor)
             }
             NavigationLink(destination: AppHideElementsView()) {
                 Label("Hide UI Elements", systemImage: "eye.slash.fill")
-                    .foregroundStyle(Color.accentColor)
+                    .foregroundStyle(themeManager.iconTintColor)
             }
             NavigationLink(destination: StatusBarCustomizationView()) {
                 Label("Status Bar", systemImage: "rectangle.topthird.inset.filled")
-                    .foregroundStyle(Color.accentColor)
+                    .foregroundStyle(themeManager.iconTintColor)
             }
             NavigationLink(destination: TabBarCustomizationView()) {
                 Label("Tab Bar", systemImage: "dock.rectangle")
-                    .foregroundStyle(Color.accentColor)
+                    .foregroundStyle(themeManager.iconTintColor)
             }
             if ProcessInfo.processInfo.operatingSystemVersion.majorVersion >= 16 {
                 NavigationLink(destination: KeyboardCustomizationView()) {
                     Label("Keyboard Backdrop", systemImage: "keyboard")
-                        .foregroundStyle(Color.accentColor)
+                        .foregroundStyle(themeManager.iconTintColor)
                 }
             }
             NavigationLink(destination: TopViewAppearance()) {
                 Label("Top View", systemImage: "uiwindow.split.2x1")
-                    .foregroundStyle(Color.accentColor)
+                    .foregroundStyle(themeManager.iconTintColor)
             }
         } header: {
             Label("Customization", systemImage: "slider.horizontal.3")
+                .foregroundStyle(themeManager.headerTextColor)
         }
     }
 
@@ -604,7 +701,7 @@ struct ColorCustomizationView: View {
                 showSaveAlert = true
             } label: {
                 Label("Save Current Style", systemImage: "plus.circle.fill")
-                    .foregroundStyle(Color.accentColor)
+                    .foregroundStyle(themeManager.accentColor)
             }
             .disabled(appState.isSigning)
 
@@ -763,15 +860,16 @@ struct ColorCustomizationView: View {
                 VStack(alignment: .leading, spacing: 3) {
                     Text(title)
                         .font(.system(size: 16, weight: .semibold, design: .rounded))
+                        .foregroundStyle(themeManager.primaryTextColor)
                     Text(subtext)
                         .font(.system(size: 11))
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(themeManager.secondaryTextColor)
                         .lineLimit(2)
                 }
                 Spacer()
                 Text(color.wrappedValue.toHex() ?? "—")
                     .font(.system(size: 11, weight: .semibold, design: .monospaced))
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(themeManager.secondaryTextColor)
             }
             .padding(.vertical, 4)
         }
@@ -782,12 +880,14 @@ struct ColorCustomizationView: View {
         VStack(alignment: .leading, spacing: 6) {
             HStack {
                 Label(title, systemImage: icon)
+                    .foregroundStyle(themeManager.primaryTextColor)
                 Spacer()
                 Text(isPercent ? "\(Int(value.wrappedValue * 100))%" : "\(String(format: value.wrappedValue.truncatingRemainder(dividingBy: 1) == 0 ? "%.0f" : "%.1f", value.wrappedValue))\(unit)")
                     .font(.system(.caption, design: .monospaced))
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(themeManager.secondaryTextColor)
             }
             Slider(value: value, in: range, step: step)
+                .tint(themeManager.accentColor)
         }
         .padding(.vertical, 4)
     }
@@ -800,7 +900,7 @@ struct ColorCustomizationView: View {
                     .foregroundStyle(tint)
                 Text(title)
                     .font(.system(size: 12, weight: .semibold, design: .rounded))
-                    .foregroundStyle(.primary)
+                    .foregroundStyle(themeManager.primaryTextColor)
             }
             .frame(width: 88, alignment: .leading)
             .padding(12)
@@ -1015,6 +1115,7 @@ struct ColorCustomizationView: View {
 }
 
 struct ModernThemeCard: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let theme: ColorTheme
     let action: () -> Void
 
@@ -1025,7 +1126,7 @@ struct ModernThemeCard: View {
                     RoundedRectangle(cornerRadius: 16, style: .continuous)
                         .fill(Color(hex: theme.bg))
                         .frame(width: 130, height: 90)
-                        .shadow(color: .black.opacity(0.05), radius: 5, x: 0, y: 2)
+                        .shadow(color: themeManager.appBackgroundColor.opacity(0.05), radius: 5, x: 0, y: 2)
 
                     VStack(spacing: 8) {
                         HStack(spacing: 8) {
@@ -1040,7 +1141,7 @@ struct ModernThemeCard: View {
 
                 Text(theme.name)
                     .font(.system(size: 14, weight: .bold, design: .rounded))
-                    .foregroundStyle(.primary)
+                    .foregroundStyle(themeManager.primaryTextColor)
                     .lineLimit(1)
                     .padding(.leading, 4)
             }

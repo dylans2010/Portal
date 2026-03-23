@@ -5,6 +5,7 @@ import ImageIO
 
 // MARK: - Modern Full Screen Signing View
 struct ModernSigningView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     @Environment(\.dismiss) var dismiss
     @Environment(\.colorScheme) var colorScheme
     @AppStorage("Feather.serverMethod") private var _serverMethod: Int = 0
@@ -376,8 +377,8 @@ struct ModernSigningView: View {
                 // Fallback for older iOS
                 LinearGradient(
                     colors: [
-                        Color.accentColor.opacity(0.1),
-                        Color.purple.opacity(0.05),
+                        themeManager.accentColor.opacity(0.1),
+                        themeManager.accentColor.opacity(0.05),
                         Color.clear
                     ],
                     startPoint: .topLeading,
@@ -799,7 +800,7 @@ struct ModernSigningView: View {
                                     .foregroundStyle(.white)
                                     .padding(.horizontal, 4)
                                     .padding(.vertical, 2)
-                                    .background(Capsule().fill(Color.blue))
+                                    .background(Capsule().fill(themeManager.accentColor))
                             }
 
                             if _decodedCertificate?.ProvisionedDevices != nil {
@@ -808,7 +809,7 @@ struct ModernSigningView: View {
                                     .foregroundStyle(.white)
                                     .padding(.horizontal, 4)
                                     .padding(.vertical, 2)
-                                    .background(Capsule().fill(Color.orange))
+                                    .background(Capsule().fill(Color(hex: "#FF9500")))
                             }
 
                             if let team = _decodedCertificate?.TeamName {
@@ -1293,7 +1294,7 @@ struct ModernSigningOptionsView: View {
                 Circle()
                     .fill(
                         RadialGradient(
-                            colors: [Color.purple.opacity(0.1), Color.purple.opacity(0)],
+                            colors: [themeManager.accentColor.opacity(0.1), themeManager.accentColor.opacity(0)],
                             center: .center,
                             startRadius: 0,
                             endRadius: 150
@@ -1487,9 +1488,9 @@ struct SwipeToSign: View {
                 // Thumb
                 ZStack {
                     Capsule()
-                        .fill(isCompleted ? Color.green : Color.accentColor)
+                        .fill(isCompleted ? themeManager.selectionColor : themeManager.accentColor)
                         .frame(width: thumbWidth + offset, height: 60)
-                        .shadow(color: (isCompleted ? Color.green : Color.accentColor).opacity(0.3), radius: 10, x: 0, y: 0)
+                        .shadow(color: (isCompleted ? themeManager.selectionColor : themeManager.accentColor).opacity(0.3), radius: 10, x: 0, y: 0)
 
                     HStack {
                         Spacer()
@@ -1501,7 +1502,7 @@ struct SwipeToSign: View {
 
                             Image(systemName: isCompleted ? "checkmark" : "chevron.right.2")
                                 .font(.system(size: 20, weight: .bold))
-                                .foregroundStyle(isCompleted ? Color.green : Color.accentColor)
+                                .foregroundStyle(isCompleted ? themeManager.selectionColor : themeManager.accentColor)
                         }
                         .padding(.trailing, 4)
                     }
@@ -1596,7 +1597,7 @@ struct HoldToSign: View {
             // Progress Fill
             GeometryReader { geo in
                 Capsule()
-                    .fill(isCompleted ? Color.green : Color.accentColor.opacity(0.3))
+                    .fill(isCompleted ? themeManager.selectionColor : themeManager.accentColor.opacity(0.3))
                     .frame(width: geo.size.width * progress, height: 60)
             }
             .clipShape(Capsule())
@@ -1746,7 +1747,7 @@ struct DoubleTapToSign: View {
             HStack {
                 ZStack {
                     Circle()
-                        .fill(isCompleted ? Color.green.opacity(0.2) : Color.accentColor.opacity(0.2))
+                        .fill(isCompleted ? themeManager.selectionColor.opacity(0.2) : themeManager.accentColor.opacity(0.2))
                         .frame(width: 44, height: 44)
 
                     Image(systemName: isCompleted ? "checkmark" : "hand.tap.fill")
@@ -1772,7 +1773,7 @@ struct DoubleTapToSign: View {
             .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
             .overlay(
                 RoundedRectangle(cornerRadius: 24, style: .continuous)
-                    .stroke(isCompleted ? Color.green.opacity(0.3) : Color.accentColor.opacity(0.3), lineWidth: 1)
+                    .stroke(isCompleted ? themeManager.selectionColor.opacity(0.3) : themeManager.accentColor.opacity(0.3), lineWidth: 1)
             )
             .contentShape(Rectangle())
         }

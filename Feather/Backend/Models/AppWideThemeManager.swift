@@ -48,8 +48,6 @@ struct AppWideColors: Codable, Equatable {
     var cardBackground: String
     var accent: String
     var separator: String
-
-    // New slots
     var cellHighlight: String
     var destructive: String
     var buttonBackground: String
@@ -70,43 +68,43 @@ struct AppWideColors: Codable, Equatable {
                 navigationBar: "#161B2E",
                 tabBar: "#161B2E",
                 primaryText: "#FFFFFF",
-                secondaryText: "#A0AEC0",
-                cardBackground: "#1A202C",
-                accent: "#4299E1",
-                separator: "#2D3748",
-                cellHighlight: "#2D3748",
+                secondaryText: "#8A9BBE",
+                cardBackground: "#1A2133",
+                accent: "#3B8FE8",
+                separator: "#252D44",
+                cellHighlight: "#1F2840",
                 destructive: "#FF3B30",
-                buttonBackground: "#4299E1",
+                buttonBackground: "#3B8FE8",
                 buttonText: "#FFFFFF",
-                iconTint: "#4299E1",
+                iconTint: "#3B8FE8",
                 groupedBackground: "#0D0F1A",
-                headerText: "#A0AEC0",
-                badgeBackground: "#4299E1",
+                headerText: "#8A9BBE",
+                badgeBackground: "#3B8FE8",
                 badgeText: "#FFFFFF",
-                switchTint: "#4299E1",
-                selectionIndicator: "#4299E1"
+                switchTint: "#3B8FE8",
+                selectionIndicator: "#3B8FE8"
             )
         case .midnight:
             return AppWideColors(
                 appBackground: "#000000",
-                navigationBar: "#121212",
-                tabBar: "#121212",
+                navigationBar: "#0A0A0A",
+                tabBar: "#0A0A0A",
                 primaryText: "#FFFFFF",
                 secondaryText: "#8E8E93",
-                cardBackground: "#1C1C1E",
-                accent: "#0A84FF",
-                separator: "#38383A",
-                cellHighlight: "#38383A",
+                cardBackground: "#111111",
+                accent: "#3B8FE8",
+                separator: "#1C1C1E",
+                cellHighlight: "#1A1A1A",
                 destructive: "#FF3B30",
-                buttonBackground: "#0A84FF",
+                buttonBackground: "#3B8FE8",
                 buttonText: "#FFFFFF",
-                iconTint: "#0A84FF",
+                iconTint: "#3B8FE8",
                 groupedBackground: "#000000",
                 headerText: "#8E8E93",
-                badgeBackground: "#0A84FF",
+                badgeBackground: "#3B8FE8",
                 badgeText: "#FFFFFF",
-                switchTint: "#0A84FF",
-                selectionIndicator: "#0A84FF"
+                switchTint: "#3B8FE8",
+                selectionIndicator: "#3B8FE8"
             )
         case .graphite:
             return AppWideColors(
@@ -115,64 +113,64 @@ struct AppWideColors: Codable, Equatable {
                 tabBar: "#2C2C2E",
                 primaryText: "#FFFFFF",
                 secondaryText: "#AEAEB2",
-                cardBackground: "#3A3A3C",
-                accent: "#FF9F0A",
-                separator: "#48484A",
-                cellHighlight: "#48484A",
+                cardBackground: "#2C2C2E",
+                accent: "#636366",
+                separator: "#3A3A3C",
+                cellHighlight: "#323234",
                 destructive: "#FF3B30",
-                buttonBackground: "#FF9F0A",
-                buttonText: "#000000",
-                iconTint: "#FF9F0A",
+                buttonBackground: "#636366",
+                buttonText: "#FFFFFF",
+                iconTint: "#AEAEB2",
                 groupedBackground: "#1C1C1E",
                 headerText: "#AEAEB2",
-                badgeBackground: "#FF9F0A",
-                badgeText: "#000000",
-                switchTint: "#FF9F0A",
-                selectionIndicator: "#FF9F0A"
+                badgeBackground: "#636366",
+                badgeText: "#FFFFFF",
+                switchTint: "#636366",
+                selectionIndicator: "#636366"
             )
         case .oceanDeep:
             return AppWideColors(
                 appBackground: "#0A1628",
-                navigationBar: "#0F223D",
-                tabBar: "#0F223D",
+                navigationBar: "#0D1E38",
+                tabBar: "#0D1E38",
                 primaryText: "#E2E8F0",
-                secondaryText: "#94A3B8",
-                cardBackground: "#1E293B",
-                accent: "#38BDF8",
-                separator: "#334155",
-                cellHighlight: "#334155",
+                secondaryText: "#7A92B0",
+                cardBackground: "#0F2137",
+                accent: "#0A84FF",
+                separator: "#1A3050",
+                cellHighlight: "#142840",
                 destructive: "#FF3B30",
-                buttonBackground: "#38BDF8",
-                buttonText: "#000000",
-                iconTint: "#38BDF8",
+                buttonBackground: "#0A84FF",
+                buttonText: "#FFFFFF",
+                iconTint: "#0A84FF",
                 groupedBackground: "#0A1628",
-                headerText: "#94A3B8",
-                badgeBackground: "#38BDF8",
-                badgeText: "#000000",
-                switchTint: "#38BDF8",
-                selectionIndicator: "#38BDF8"
+                headerText: "#7A92B0",
+                badgeBackground: "#0A84FF",
+                badgeText: "#FFFFFF",
+                switchTint: "#0A84FF",
+                selectionIndicator: "#0A84FF"
             )
         case .warmBlack:
             return AppWideColors(
                 appBackground: "#12100E",
-                navigationBar: "#1C1917",
-                tabBar: "#1C1917",
+                navigationBar: "#1A1814",
+                tabBar: "#1A1814",
                 primaryText: "#F5F5F4",
                 secondaryText: "#A8A29E",
-                cardBackground: "#292524",
-                accent: "#F59E0B",
-                separator: "#44403C",
-                cellHighlight: "#44403C",
+                cardBackground: "#1C1A17",
+                accent: "#FF9F0A",
+                separator: "#2A2722",
+                cellHighlight: "#211F1B",
                 destructive: "#FF3B30",
-                buttonBackground: "#F59E0B",
+                buttonBackground: "#FF9F0A",
                 buttonText: "#000000",
-                iconTint: "#F59E0B",
+                iconTint: "#FF9F0A",
                 groupedBackground: "#12100E",
                 headerText: "#A8A29E",
-                badgeBackground: "#F59E0B",
+                badgeBackground: "#FF9F0A",
                 badgeText: "#000000",
-                switchTint: "#F59E0B",
-                selectionIndicator: "#F59E0B"
+                switchTint: "#FF9F0A",
+                selectionIndicator: "#FF9F0A"
             )
         }
     }
@@ -204,13 +202,30 @@ final class ThemeManager: ObservableObject {
         appWideColors ?? AppWideColors.default(for: currentTheme)
     }
 
-    var accentColor: Color {
-        Color(hex: resolvedColors.accent)
-    }
+    // MARK: - SwiftUI Color Helpers
+    var accentColor: Color { Color(hex: resolvedColors.accent) }
+    var primaryTextColor: Color { Color(hex: resolvedColors.primaryText) }
+    var secondaryTextColor: Color { Color(hex: resolvedColors.secondaryText) }
+    var cardBackgroundColor: Color { Color(hex: resolvedColors.cardBackground) }
+    var appBackgroundColor: Color { Color(hex: resolvedColors.appBackground) }
+    var iconTintColor: Color { Color(hex: resolvedColors.iconTint) }
+    var headerTextColor: Color { Color(hex: resolvedColors.headerText) }
+    var buttonBackgroundColor: Color { Color(hex: resolvedColors.buttonBackground) }
+    var buttonTextColor: Color { Color(hex: resolvedColors.buttonText) }
+    var badgeBackgroundColor: Color { Color(hex: resolvedColors.badgeBackground) }
+    var badgeTextColor: Color { Color(hex: resolvedColors.badgeText) }
+    var separatorColor: Color { Color(hex: resolvedColors.separator) }
+    var switchTintColor: Color { Color(hex: resolvedColors.switchTint) }
+    var selectionColor: Color { Color(hex: resolvedColors.selectionIndicator) }
+    var cellHighlightColor: Color { Color(hex: resolvedColors.cellHighlight) }
+    var destructiveColor: Color { Color(hex: resolvedColors.destructive) }
+    var navigationBarColor: Color { Color(hex: resolvedColors.navigationBar) }
 
-    var accentUIColor: UIColor {
-        UIColor(hex: resolvedColors.accent)
-    }
+    // MARK: - UIKit Color Helpers
+    var accentUIColor: UIColor { UIColor(hex: resolvedColors.accent) }
+    var separatorUIColor: UIColor { UIColor(hex: resolvedColors.separator) }
+    var primaryTextUIColor: UIColor { UIColor(hex: resolvedColors.primaryText) }
+    var cardBackgroundUIColor: UIColor { UIColor(hex: resolvedColors.cardBackground) }
 
     private init() {
         let themeRaw = UserDefaults.standard.string(forKey: "app.selectedTheme") ?? AppTheme.darkNavy.rawValue
@@ -247,40 +262,35 @@ final class ThemeManager: ObservableObject {
         let bgColor = UIColor(hex: colors.appBackground)
         let navBarColor = UIColor(hex: colors.navigationBar)
         let tabBarColor = UIColor(hex: colors.tabBar)
-        let cardColor = UIColor(hex: colors.cardBackground)
-        let primaryTextColor = UIColor(hex: colors.primaryText)
-        let separatorColor = UIColor(hex: colors.separator)
-
         let accentColor = UIColor(hex: colors.accent)
-        let iconTint = UIColor(hex: colors.iconTint)
+        let primaryText = UIColor(hex: colors.primaryText)
+        let separator = UIColor(hex: colors.separator)
+        let switchTint = UIColor(hex: colors.switchTint)
         let groupedBg = UIColor(hex: colors.groupedBackground)
-        let headerTextColor = UIColor(hex: colors.headerText)
-        let buttonBgColor = UIColor(hex: colors.buttonBackground)
-        let buttonTextColor = UIColor(hex: colors.buttonText)
-        let switchTintColor = UIColor(hex: colors.switchTint)
-        let badgeBgColor = UIColor(hex: colors.badgeBackground)
+        let headerText = UIColor(hex: colors.headerText)
+        let buttonBg = UIColor(hex: colors.buttonBackground)
+        let buttonText = UIColor(hex: colors.buttonText)
+        let badgeBg = UIColor(hex: colors.badgeBackground)
+        let cardBg = UIColor(hex: colors.cardBackground)
 
-        // Window background & Tint
         if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene {
             for window in windowScene.windows {
                 window.backgroundColor = bgColor
-                window.tintColor = iconTint
+                window.tintColor = accentColor
             }
         }
 
-        // Navigation Bar
         let navAppearance = UINavigationBarAppearance()
         navAppearance.configureWithOpaqueBackground()
         navAppearance.backgroundColor = navBarColor
-        navAppearance.titleTextAttributes = [.foregroundColor: primaryTextColor]
-        navAppearance.largeTitleTextAttributes = [.foregroundColor: primaryTextColor]
+        navAppearance.titleTextAttributes = [.foregroundColor: primaryText]
+        navAppearance.largeTitleTextAttributes = [.foregroundColor: primaryText]
 
         UINavigationBar.appearance().standardAppearance = navAppearance
         UINavigationBar.appearance().scrollEdgeAppearance = navAppearance
         UINavigationBar.appearance().compactAppearance = navAppearance
         UINavigationBar.appearance().tintColor = accentColor
 
-        // Tab Bar
         let tabAppearance = UITabBarAppearance()
         tabAppearance.configureWithOpaqueBackground()
         tabAppearance.backgroundColor = tabBarColor
@@ -289,48 +299,28 @@ final class ThemeManager: ObservableObject {
         UITabBar.appearance().scrollEdgeAppearance = tabAppearance
         UITabBar.appearance().tintColor = accentColor
 
-        // Lists/Cards
-        UITableView.appearance().backgroundColor = cardColor
-        UITableViewCell.appearance().backgroundColor = cardColor
-        UICollectionView.appearance().backgroundColor = cardColor
-
-        // Grouped Lists
+        UITableView.appearance().backgroundColor = cardBg
+        UITableView.appearance().separatorColor = separator
+        UITableViewCell.appearance().backgroundColor = cardBg
+        UICollectionView.appearance().backgroundColor = cardBg
         UITableView.appearance(whenContainedInInstancesOf: [UIViewController.self]).backgroundColor = groupedBg
 
-        // Cell Tint & Highlight
         UIView.appearance(whenContainedInInstancesOf: [UITableViewCell.self]).tintColor = accentColor
 
-        // Section Headers
-        UILabel.appearance(whenContainedInInstancesOf: [UITableViewHeaderFooterView.self]).textColor = headerTextColor
+        UILabel.appearance().textColor = primaryText
+        UILabel.appearance(whenContainedInInstancesOf: [UITableViewHeaderFooterView.self]).textColor = headerText
+        UILabel.appearance(whenContainedInInstancesOf: [UITableViewCell.self]).backgroundColor = badgeBg
 
-        // Primary Text
-        UILabel.appearance().textColor = primaryTextColor
+        UISwitch.appearance().onTintColor = switchTint
 
-        // Badges (Manual tagging needed)
-        UILabel.appearance(whenContainedInInstancesOf: [UITableViewCell.self]).backgroundColor = badgeBgColor
-
-        // Separator
-        UITableView.appearance().separatorColor = separatorColor
-
-        // Switches
-        UISwitch.appearance().onTintColor = switchTintColor
-
-        // Sliders
         UISlider.appearance().minimumTrackTintColor = accentColor
-
-        // Progress Views
         UIProgressView.appearance().progressTintColor = accentColor
-
-        // Page Control
         UIPageControl.appearance().currentPageIndicatorTintColor = accentColor
-
-        // Segmented Control
         UISegmentedControl.appearance().selectedSegmentTintColor = accentColor
 
-        // Buttons
         UIButton.appearance().tintColor = accentColor
-        UIButton.appearance().backgroundColor = buttonBgColor
-        UIButton.appearance().setTitleColor(buttonTextColor, for: .normal)
+        UIButton.appearance().backgroundColor = buttonBg
+        UIButton.appearance().setTitleColor(buttonText, for: .normal)
 
         NotificationCenter.default.post(name: Notification.Name("AppWideThemeDidChange"), object: nil)
     }
@@ -343,16 +333,15 @@ extension UIColor {
         Scanner(string: hex).scanHexInt64(&int)
         let a, r, g, b: UInt64
         switch hex.count {
-        case 3: // RGB (12-bit)
+        case 3:
             (a, r, g, b) = (255, (int >> 8) * 17, (int >> 4 & 0xF) * 17, (int & 0xF) * 17)
-        case 6: // RGB (24-bit)
+        case 6:
             (a, r, g, b) = (255, int >> 16, int >> 8 & 0xFF, int & 0xFF)
-        case 8: // ARGB (32-bit)
+        case 8:
             (a, r, g, b) = (int >> 24, int >> 16 & 0xFF, int >> 8 & 0xFF, int & 0xFF)
         default:
             (a, r, g, b) = (1, 1, 1, 0)
         }
-
         self.init(red: CGFloat(r) / 255, green: CGFloat(g) / 255, blue: CGFloat(b) / 255, alpha: CGFloat(a) / 255)
     }
 }
