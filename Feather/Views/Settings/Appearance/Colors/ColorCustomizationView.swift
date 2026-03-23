@@ -182,6 +182,12 @@ struct ColorCustomizationView: View {
             }
 
             Section {
+                appearancePreviewCard
+                    .listRowInsets(EdgeInsets())
+                    .listRowBackground(Color.clear)
+            }
+
+            Section {
                 Picker("Section", selection: $selectedSection) {
                     ForEach(EditorSection.allCases) { section in
                         Label(section.rawValue, systemImage: section.icon).tag(section)
@@ -189,6 +195,7 @@ struct ColorCustomizationView: View {
                 }
                 .pickerStyle(.segmented)
             }
+            .listRowBackground(Color.clear)
 
             switch selectedSection {
             case .overview:
@@ -247,25 +254,25 @@ struct ColorCustomizationView: View {
             }
             .presentationDetents([.medium, .large])
         }
-        .alert("Save Theme", isPresented: $showSaveAlert) {
-            TextField("Theme Name", text: $themeName)
-            Button("Save") {
+        .alert(String.localized("Save Theme"), isPresented: $showSaveAlert) {
+            TextField(String.localized("Theme Name"), text: $themeName)
+            Button(String.localized("Save")) {
                 saveStyle()
                 themeName = ""
             }
-            Button("Cancel", role: .cancel) {
+            Button(String.localized("Cancel"), role: .cancel) {
                 themeName = ""
             }
         } message: {
-            Text("Enter a name for your custom theme.")
+            Text(String.localized("Enter a name for your custom theme."))
         }
-        .alert("Reset Appearance", isPresented: $showResetAlert) {
-            Button("Reset Everything", role: .destructive) {
+        .alert(String.localized("Reset Appearance"), isPresented: $showResetAlert) {
+            Button(String.localized("Reset Everything"), role: .destructive) {
                 resetToDefaults()
             }
-            Button("Cancel", role: .cancel) { }
+            Button(String.localized("Cancel"), role: .cancel) { }
         } message: {
-            Text("This will restore all colors to their original system defaults. Your saved custom themes will not be deleted.")
+            Text(String.localized("This will restore all colors to their original system defaults. Your saved custom themes will not be deleted."))
         }
         .onChange(of: uiElementColor) { uiElementColorHex = $0.toHex() ?? Color.defaultUIElement }
         .onChange(of: textColor) { textColorHex = $0.toHex() ?? Color.defaultText }
@@ -286,82 +293,82 @@ struct ColorCustomizationView: View {
                 appearancePreviewCard
                 quickActionsRow
             } header: {
-                Text("Live Preview")
+                Text(String.localized("Live Preview"))
             } footer: {
-                Text("Use the quick actions to instantly sync surfaces, soften the interface, or add a more vivid look without leaving this screen.")
+                Text(String.localized("Use the quick actions to instantly sync surfaces, soften the interface, or add a more vivid look without leaving this screen."))
             }
 
             Section {
                 themeGallerySection
             } header: {
-                Text("Theme Shortcuts")
+                Text(String.localized("Theme Shortcuts"))
             }
         }
     }
 
     private var paletteSection: some View {
         Section {
-            colorPickerRow(title: "Background", subtext: "Main app background color", color: $backgroundManager.baseColor, icon: "square.fill")
-            colorPickerRow(title: "UI Elements", subtext: "Cards, panels, and controls", color: $uiElementColor, icon: "app.fill")
-            colorPickerRow(title: "Primary Text", subtext: "Titles and body text", color: $textColor, icon: "textformat")
-            colorPickerRow(title: "Secondary Text", subtext: "Descriptions and helper labels", color: $secondaryTextColor, icon: "textformat.size")
-            colorPickerRow(title: "Accent", subtext: "Interactive highlights and focus", color: $tintColor, icon: "sparkles")
+            colorPickerRow(title: String.localized("Background"), subtext: String.localized("Main app background color"), color: $backgroundManager.baseColor, icon: "square.fill")
+            colorPickerRow(title: String.localized("UI Elements"), subtext: String.localized("Cards, panels, and controls"), color: $uiElementColor, icon: "app.fill")
+            colorPickerRow(title: String.localized("Primary Text"), subtext: String.localized("Titles and body text"), color: $textColor, icon: "textformat")
+            colorPickerRow(title: String.localized("Secondary Text"), subtext: String.localized("Descriptions and helper labels"), color: $secondaryTextColor, icon: "textformat.size")
+            colorPickerRow(title: String.localized("Accent"), subtext: String.localized("Interactive highlights and focus"), color: $tintColor, icon: "sparkles")
         } header: {
-            Text("Core Palette")
+            Text(String.localized("Core Palette"))
         }
     }
 
     private var semanticColorsSection: some View {
         Section {
-            colorPickerRow(title: "Navigation Bar", subtext: "Top navigation chrome", color: $navBarColor, icon: "menubar.rectangle")
-            colorPickerRow(title: "Tab Bar", subtext: "Bottom tab bar surface", color: $tabBarColor, icon: "dock.rectangle")
-            colorPickerRow(title: "Sheet Background", subtext: "Presented sheets and popovers", color: $sheetBackgroundColor, icon: "square.stack")
-            colorPickerRow(title: "Divider", subtext: "Lines and separators", color: $dividerColor, icon: "minus")
-            colorPickerRow(title: "Success", subtext: "Positive states and confirmations", color: $successColor, icon: "checkmark.circle")
-            colorPickerRow(title: "Warning", subtext: "Caution states and prompts", color: $warningColor, icon: "exclamationmark.triangle")
-            colorPickerRow(title: "Error", subtext: "Errors and destructive alerts", color: $errorColor, icon: "xmark.circle")
+            colorPickerRow(title: String.localized("Navigation Bar"), subtext: String.localized("Top navigation chrome"), color: $navBarColor, icon: "menubar.rectangle")
+            colorPickerRow(title: String.localized("Tab Bar"), subtext: String.localized("Bottom tab bar surface"), color: $tabBarColor, icon: "dock.rectangle")
+            colorPickerRow(title: String.localized("Sheet Background"), subtext: String.localized("Presented sheets and popovers"), color: $sheetBackgroundColor, icon: "square.stack")
+            colorPickerRow(title: String.localized("Divider"), subtext: String.localized("Lines and separators"), color: $dividerColor, icon: "minus")
+            colorPickerRow(title: String.localized("Success"), subtext: String.localized("Positive states and confirmations"), color: $successColor, icon: "checkmark.circle")
+            colorPickerRow(title: String.localized("Warning"), subtext: String.localized("Caution states and prompts"), color: $warningColor, icon: "exclamationmark.triangle")
+            colorPickerRow(title: String.localized("Error"), subtext: String.localized("Errors and destructive alerts"), color: $errorColor, icon: "xmark.circle")
         } header: {
-            Text("Semantic Colors")
+            Text(String.localized("Semantic Colors"))
         }
     }
 
     private var stylingSection: some View {
         Section {
-            Picker("Font Design", selection: $fontDesign) {
-                Text("Default").tag("default")
-                Text("Rounded").tag("rounded")
-                Text("Serif").tag("serif")
-                Text("Monospaced").tag("monospaced")
+            Picker(String.localized("Font Design"), selection: $fontDesign) {
+                Text(String.localized("Default")).tag("default")
+                Text(String.localized("Rounded")).tag("rounded")
+                Text(String.localized("Serif")).tag("serif")
+                Text(String.localized("Monospaced")).tag("monospaced")
             }
-            advancedSliderRow(title: "Card Corners", value: $cardCornerRadius, range: 0...40, step: 2, unit: "pt", icon: "square.dashed")
-            advancedSliderRow(title: "Button Corners", value: $buttonCornerRadius, range: 0...24, step: 1, unit: "pt", icon: "button.programmable")
-            advancedSliderRow(title: "Card Opacity", value: $cardOpacity, range: 0.1...1.0, step: 0.05, isPercent: true, icon: "square.stack.3d.down.right")
-            advancedSliderRow(title: "Border Width", value: $borderWidth, range: 0...5, step: 0.5, unit: "pt", icon: "square.and.line.vertical.and.square")
-            advancedSliderRow(title: "Shadow Intensity", value: $shadowIntensity, range: 0...20, step: 1, icon: "shadow")
+            advancedSliderRow(title: String.localized("Card Corners"), value: $cardCornerRadius, range: 0...40, step: 2, unit: "pt", icon: "square.dashed")
+            advancedSliderRow(title: String.localized("Button Corners"), value: $buttonCornerRadius, range: 0...24, step: 1, unit: "pt", icon: "button.programmable")
+            advancedSliderRow(title: String.localized("Card Opacity"), value: $cardOpacity, range: 0.1...1.0, step: 0.05, isPercent: true, icon: "square.stack.3d.down.right")
+            advancedSliderRow(title: String.localized("Border Width"), value: $borderWidth, range: 0...5, step: 0.5, unit: "pt", icon: "square.and.line.vertical.and.square")
+            advancedSliderRow(title: String.localized("Shadow Intensity"), value: $shadowIntensity, range: 0...20, step: 1, icon: "shadow")
         } header: {
-            Text("Surfaces & Typography")
+            Text(String.localized("Surfaces & Typography"))
         }
     }
 
     private var advancedEffectsSection: some View {
         Section {
-            advancedSliderRow(title: "Blur Opacity", value: $blurOpacity, range: 0...1, step: 0.05, isPercent: true, icon: "drop.halffull")
-            advancedSliderRow(title: "Glow Intensity", value: $glowIntensity, range: 0...30, step: 1, icon: "sun.max.fill")
+            advancedSliderRow(title: String.localized("Blur Opacity"), value: $blurOpacity, range: 0...1, step: 0.05, isPercent: true, icon: "drop.halffull")
+            advancedSliderRow(title: String.localized("Glow Intensity"), value: $glowIntensity, range: 0...30, step: 1, icon: "sun.max.fill")
             Toggle(isOn: $animateBackground) {
-                Label("Animate Background", systemImage: "sparkles")
+                Label(String.localized("Animate Background"), systemImage: "sparkles")
             }
             Button {
                 syncBarsWithBackground()
             } label: {
-                Label("Match Navigation + Tab Bars", systemImage: "arrow.triangle.2.circlepath")
+                Label(String.localized("Match Navigation + Tab Bars"), systemImage: "arrow.triangle.2.circlepath")
             }
             Button {
                 applyHighContrastPreset()
             } label: {
-                Label("Apply High Contrast Boost", systemImage: "circle.lefthalf.filled")
+                Label(String.localized("Apply High Contrast Boost"), systemImage: "circle.lefthalf.filled")
             }
         } header: {
-            Text("Effects & Shortcuts")
+            Text(String.localized("Effects & Shortcuts"))
         }
     }
 
@@ -401,99 +408,99 @@ struct ColorCustomizationView: View {
     private var contextAwareSection: some View {
         Section {
             Toggle(isOn: $contextTheming) {
-                Label("Context-Aware Theming", systemImage: "bolt.badge.automatic.fill")
+                Label(String.localized("Context-Aware Theming"), systemImage: "bolt.badge.automatic.fill")
             }
 
             if contextTheming {
-                Picker("Low Power Theme", selection: $lowPowerThemeId) {
-                    Text("None").tag("")
+                Picker(String.localized("Low Power Theme"), selection: $lowPowerThemeId) {
+                    Text(String.localized("None")).tag("")
                     ForEach(allThemes) { theme in
                         Text(theme.name).tag(theme.id.uuidString)
                     }
                 }
 
-                Picker("Focus Theme", selection: $focusThemeId) {
-                    Text("None").tag("")
+                Picker(String.localized("Focus Theme"), selection: $focusThemeId) {
+                    Text(String.localized("None")).tag("")
                     ForEach(allThemes) { theme in
                         Text(theme.name).tag(theme.id.uuidString)
                     }
                 }
             }
         } header: {
-            Text("System Integration")
+            Text(String.localized("System Integration"))
         } footer: {
-            Text("Automatically switch themes based on Low Power Mode or Focus filters.")
+            Text(String.localized("Automatically switch themes based on Low Power Mode or Focus filters."))
         }
     }
 
     private var timeBasedSection: some View {
         Section {
             Toggle(isOn: $timeBasedTheming) {
-                Label("Schedule Themes", systemImage: "clock.fill")
+                Label(String.localized("Schedule Themes"), systemImage: "clock.fill")
             }
 
             if timeBasedTheming {
-                Picker("Morning Theme", selection: $morningThemeId) {
+                Picker(String.localized("Morning Theme"), selection: $morningThemeId) {
                     ForEach(allThemes) { theme in
                         Text(theme.name).tag(theme.id.uuidString)
                     }
                 }
-                Picker("Sunset Theme", selection: $sunsetThemeId) {
+                Picker(String.localized("Sunset Theme"), selection: $sunsetThemeId) {
                     ForEach(allThemes) { theme in
                         Text(theme.name).tag(theme.id.uuidString)
                     }
                 }
-                Picker("Night Theme", selection: $nightThemeId) {
+                Picker(String.localized("Night Theme"), selection: $nightThemeId) {
                     ForEach(allThemes) { theme in
                         Text(theme.name).tag(theme.id.uuidString)
                     }
                 }
             }
         } header: {
-            Text("Time-Based Theming")
+            Text(String.localized("Time-Based Theming"))
         }
     }
 
     private var accessibilitySection: some View {
         Section {
-            Toggle("High Contrast Mode", isOn: $highContrast)
-            Toggle("Auto Contrast Correction", isOn: $autoContrastCorrection)
+            Toggle(String.localized("High Contrast Mode"), isOn: $highContrast)
+            Toggle(String.localized("Auto Contrast Correction"), isOn: $autoContrastCorrection)
 
-            Picker("Color Blindness Filter", selection: $colorBlindnessFilter) {
-                Text("None").tag(0)
-                Text("Protanopia").tag(1)
-                Text("Deuteranopia").tag(2)
-                Text("Tritanopia").tag(3)
+            Picker(String.localized("Color Blindness Filter"), selection: $colorBlindnessFilter) {
+                Text(String.localized("None")).tag(0)
+                Text(String.localized("Protanopia")).tag(1)
+                Text(String.localized("Deuteranopia")).tag(2)
+                Text(String.localized("Tritanopia")).tag(3)
             }
         } header: {
-            Text("Accessibility")
+            Text(String.localized("Accessibility"))
         }
     }
 
     private var feedbackSection: some View {
         Section {
-            advancedSliderRow(title: "Haptic Intensity", value: $hapticIntensity, range: 0...1, step: 0.1, isPercent: true, icon: "waveform")
-            advancedSliderRow(title: "Visual Feedback", value: $visualFeedbackStrength, range: 0...1, step: 0.1, isPercent: true, icon: "sparkles")
+            advancedSliderRow(title: String.localized("Haptic Intensity"), value: $hapticIntensity, range: 0...1, step: 0.1, isPercent: true, icon: "waveform")
+            advancedSliderRow(title: String.localized("Visual Feedback"), value: $visualFeedbackStrength, range: 0...1, step: 0.1, isPercent: true, icon: "sparkles")
         } header: {
-            Text("Haptic & Visual Feedback")
+            Text(String.localized("Haptic & Visual Feedback"))
         }
     }
 
     private var experimentalSection: some View {
         Section {
-            Picker("Layer Blending", selection: $layerBlendMode) {
-                Text("Normal").tag(0)
-                Text("Overlay").tag(1)
-                Text("Multiply").tag(2)
-                Text("Screen").tag(3)
+            Picker(String.localized("Layer Blending"), selection: $layerBlendMode) {
+                Text(String.localized("Normal")).tag(0)
+                Text(String.localized("Overlay")).tag(1)
+                Text(String.localized("Multiply")).tag(2)
+                Text(String.localized("Screen")).tag(3)
             }
-            Toggle("Parallax Depth Effect", isOn: $parallaxEnabled)
-            Toggle("Motion Gradients", isOn: $motionGradients)
-            Toggle("Performance Mode", isOn: $performanceMode)
+            Toggle(String.localized("Parallax Depth Effect"), isOn: $parallaxEnabled)
+            Toggle(String.localized("Motion Gradients"), isOn: $motionGradients)
+            Toggle(String.localized("Performance Mode"), isOn: $performanceMode)
         } header: {
-            Text("Experimental Effects")
+            Text(String.localized("Experimental Effects"))
         } footer: {
-            Text("Performance mode reduces heavy blurs and shadows to save battery and increase responsiveness.")
+            Text(String.localized("Performance mode reduces heavy blurs and shadows to save battery and increase responsiveness."))
         }
     }
 
@@ -502,16 +509,16 @@ struct ColorCustomizationView: View {
             Button {
                 exportTheme()
             } label: {
-                Label("Export Current Theme Code", systemImage: "square.and.arrow.up")
+                Label(String.localized("Export Current Theme Code"), systemImage: "square.and.arrow.up")
             }
 
             Button {
                 importTheme()
             } label: {
-                Label("Import Theme From Clipboard", systemImage: "square.and.arrow.down")
+                Label(String.localized("Import Theme From Clipboard"), systemImage: "square.and.arrow.down")
             }
         } header: {
-            Text("Theme Sharing")
+            Text(String.localized("Theme Sharing"))
         }
     }
 
@@ -520,12 +527,12 @@ struct ColorCustomizationView: View {
             Button {
                 showImagePicker = true
             } label: {
-                Label("Generate From Image", systemImage: "photo.on.rectangle.angled")
+                Label(String.localized("Generate From Image"), systemImage: "photo.on.rectangle.angled")
             }
         } header: {
-            Text("Dynamic Wallpaper Integration")
+            Text(String.localized("Dynamic Wallpaper Integration"))
         } footer: {
-            Text("Auto-generate a theme palette from your favorite wallpaper or image.")
+            Text(String.localized("Auto-generate a theme palette from your favorite wallpaper or image."))
         }
     }
 
@@ -534,10 +541,10 @@ struct ColorCustomizationView: View {
             NavigationLink {
                 PerScreenThemeView(allThemes: allThemes)
             } label: {
-                Label("Per-Screen Overrides", systemImage: "rectangle.3.group")
+                Label(String.localized("Per-Screen Overrides"), systemImage: "rectangle.3.group")
             }
         } header: {
-            Text("View Overrides")
+            Text(String.localized("View Overrides"))
         }
     }
 
@@ -561,77 +568,94 @@ struct ColorCustomizationView: View {
     }
 
     private var appearancePreviewCard: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            HStack(alignment: .top) {
-                VStack(alignment: .leading, spacing: 6) {
-                    Text("Portal Preview")
-                        .font(.system(size: 20, weight: .bold, design: selectedDesign))
-                        .foregroundStyle(textColor)
-                    Text("See your palette, card styling, and semantic colors together before you save it.")
-                        .font(.system(size: 12, design: selectedDesign))
-                        .foregroundStyle(secondaryTextColor)
-                }
-                Spacer()
-                Circle()
-                    .fill(tintColor)
-                    .frame(width: 14, height: 14)
-                    .shadow(color: tintColor.opacity(0.5), radius: glowIntensity / 6)
-            }
-
-            HStack(spacing: 12) {
-                previewPill(title: "Success", color: successColor, icon: "checkmark")
-                previewPill(title: "Warn", color: warningColor, icon: "exclamationmark")
-                previewPill(title: "Error", color: errorColor, icon: "xmark")
-            }
-
-            VStack(spacing: 12) {
-                RoundedRectangle(cornerRadius: cardCornerRadius, style: .continuous)
-                    .fill(uiElementColor.opacity(cardOpacity))
-                    .overlay(
-                        HStack {
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text("Main Card")
-                                    .font(.system(size: 16, weight: .semibold, design: selectedDesign))
-                                    .foregroundStyle(textColor)
-                                Text("Buttons, cards, and content containers will follow this styling.")
-                                    .font(.system(size: 11, design: selectedDesign))
-                                    .foregroundStyle(secondaryTextColor)
-                            }
-                            Spacer()
-                            RoundedRectangle(cornerRadius: buttonCornerRadius, style: .continuous)
-                                .fill(tintColor)
-                                .frame(width: 74, height: 34)
-                                .overlay {
-                                    Text("Action")
-                                        .font(.system(size: 12, weight: .bold, design: selectedDesign))
-                                        .foregroundStyle(Color.white)
-                                }
-                        }
-                        .padding(14)
-                    )
-                    .overlay(
-                        RoundedRectangle(cornerRadius: cardCornerRadius, style: .continuous)
-                            .stroke(dividerColor.opacity(max(0.2, borderWidth / 5)), lineWidth: max(1, borderWidth))
-                    )
-                    .shadow(color: .black.opacity(shadowIntensity / 40), radius: shadowIntensity, y: 4)
-                    .frame(height: 110)
-
-                HStack(spacing: 10) {
-                    previewBar(title: "Nav", color: navBarColor)
-                    previewBar(title: "Tab", color: tabBarColor)
-                    previewBar(title: "Sheet", color: sheetBackgroundColor)
-                }
-            }
-        }
-        .padding(18)
-        .background(
+        ZStack {
             RoundedRectangle(cornerRadius: 24, style: .continuous)
                 .fill(backgroundManager.baseColor)
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: 24, style: .continuous)
-                .stroke(dividerColor.opacity(0.35), lineWidth: 1)
-        )
+                .shadow(color: .black.opacity(0.15), radius: 12, x: 0, y: 6)
+
+            VStack(alignment: .leading, spacing: 16) {
+                // Header Mock
+                HStack {
+                    VStack(alignment: .leading, spacing: 4) {
+                Text(String.localized("Portal Home"))
+                            .font(.system(size: 20, weight: .bold, design: selectedDesign))
+                            .foregroundStyle(textColor)
+                Text(String.localized("Preview Mode"))
+                            .font(.system(size: 12, weight: .medium, design: selectedDesign))
+                            .foregroundStyle(secondaryTextColor)
+                    }
+                    Spacer()
+                    Image(systemName: "person.circle.fill")
+                        .font(.title2)
+                        .foregroundStyle(tintColor)
+                        .shadow(color: tintColor.opacity(0.3), radius: glowIntensity / 4)
+                }
+
+                // Interactive-like Content
+                VStack(spacing: 12) {
+                    // Card Mock
+                    RoundedRectangle(cornerRadius: cardCornerRadius, style: .continuous)
+                        .fill(uiElementColor.opacity(cardOpacity))
+                        .overlay {
+                            VStack(alignment: .leading, spacing: 8) {
+                                HStack {
+                                    Text(String.localized("App Container"))
+                                        .font(.system(size: 14, weight: .semibold, design: selectedDesign))
+                                        .foregroundStyle(textColor)
+                                    Spacer()
+                                    Toggle("", isOn: .constant(true)).labelsHidden()
+                                        .tint(tintColor)
+                                        .scaleEffect(0.7)
+                                }
+
+                                Text(String.localized("This is how your cards and content will look across the app."))
+                                    .font(.system(size: 11, design: selectedDesign))
+                                    .foregroundStyle(secondaryTextColor)
+                                    .lineLimit(2)
+
+                                HStack {
+                                    Spacer()
+                                    Button {} label: {
+                                        Text(String.localized("Action"))
+                                            .font(.system(size: 12, weight: .bold, design: selectedDesign))
+                                            .padding(.horizontal, 16)
+                                            .padding(.vertical, 6)
+                                            .background(tintColor, in: RoundedRectangle(cornerRadius: buttonCornerRadius))
+                                            .foregroundStyle(.white)
+                                    }
+                                }
+                            }
+                            .padding(12)
+                        }
+                        .overlay {
+                            RoundedRectangle(cornerRadius: cardCornerRadius, style: .continuous)
+                                .stroke(dividerColor.opacity(max(0.2, borderWidth / 5)), lineWidth: max(0.5, borderWidth))
+                        }
+                        .shadow(color: .black.opacity(shadowIntensity / 50), radius: shadowIntensity, y: 4)
+                        .frame(height: 120)
+
+                    // Semantic Row
+                    HStack(spacing: 10) {
+                        previewPill(title: "Success", color: successColor, icon: "checkmark.circle.fill")
+                        previewPill(title: "Warning", color: warningColor, icon: "exclamationmark.triangle.fill")
+                        Spacer()
+                    }
+                }
+
+                // Bottom Bar Mock
+                HStack(spacing: 20) {
+                    Image(systemName: "house.fill").foregroundStyle(tintColor)
+                    Image(systemName: "square.grid.2x2").foregroundStyle(secondaryTextColor)
+                    Image(systemName: "gearshape").foregroundStyle(secondaryTextColor)
+                    Spacer()
+                }
+                .font(.system(size: 18))
+                .padding(.top, 4)
+            }
+            .padding(20)
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 8)
     }
 
     private var quickActionsRow: some View {
@@ -893,9 +917,12 @@ struct ColorCustomizationView: View {
             dynamicLighting: false
         )
 
-        if let data = try? JSONEncoder().encode(theme),
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = .prettyPrinted
+        if let data = try? encoder.encode(theme),
            let json = String(data: data, encoding: .utf8) {
             UIPasteboard.general.string = json
+            ToastManager.shared.show(String.localized("Theme exported to clipboard"), type: .success)
             HapticsManager.shared.success()
         }
     }
@@ -992,16 +1019,16 @@ struct PerScreenThemeView: View {
                         get: { screenOverride[screen.1] ?? "" },
                         set: { screenOverride[screen.1] = $0.isEmpty ? nil : $0 }
                     )) {
-                        Text("Default").tag("")
+                        Text(String.localized("Default")).tag("")
                         ForEach(allThemes) { theme in
                             Text(theme.name).tag(theme.id.uuidString)
                         }
                     }
                 }
             } header: {
-                Text("Select Theme Per Screen")
+                Text(String.localized("Select Theme Per Screen"))
             } footer: {
-                Text("Override the global theme for specific areas of the app.")
+                Text(String.localized("Override the global theme for specific areas of the app."))
             }
         }
         .navigationTitle("Per-Screen Themes")
