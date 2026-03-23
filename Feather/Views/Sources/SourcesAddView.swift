@@ -923,6 +923,7 @@ struct PortalExportData: Codable {
 
 // MARK: - Portal Export View
 struct PortalExportView: View {
+    @EnvironmentObject var themeManager: ThemeManager
         @Environment(\.dismiss) private var dismiss
         @Environment(\.colorScheme) private var colorScheme
         @Binding var exportData: String
@@ -1176,6 +1177,7 @@ struct ModernGroupBoxStyle: GroupBoxStyle {
 
 // MARK: - Subviews
 private struct ExportSourceRow: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let source: AltSource
     let isSelected: Bool
     let toggleSelect: () -> Void

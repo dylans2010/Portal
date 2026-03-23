@@ -2,6 +2,7 @@ import SwiftUI
 import PhotosUI
 
 struct KeyboardCustomizationView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     @StateObject private var manager = KeyboardCustomizeManager.shared
     @AppStorage("Feather.showHeaderViews") private var showHeaderViews = true
 

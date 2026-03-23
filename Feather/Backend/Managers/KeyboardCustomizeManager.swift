@@ -302,6 +302,7 @@ class KeyboardCustomizeManager: ObservableObject {
 // MARK: - Views and Modifiers
 
 struct DynamicGradientView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     @ObservedObject var manager: KeyboardCustomizeManager = .shared
 
     var body: some View {
@@ -400,6 +401,7 @@ struct DynamicGradientView: View {
 }
 
 struct KeyboardBackdropView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     @ObservedObject var manager: KeyboardCustomizeManager = .shared
     @State private var floatingAnimation = false
     @Environment(\.colorScheme) var colorScheme

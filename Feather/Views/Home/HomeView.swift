@@ -1513,6 +1513,7 @@ struct HomeView: View {
 
 // MARK: - Home Quick Action Card
 struct HomeQuickActionCard: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let title: String
     let icon: String
     let color: Color

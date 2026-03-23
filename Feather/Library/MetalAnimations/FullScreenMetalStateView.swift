@@ -9,6 +9,7 @@ enum MetalAnimationState: Int, CaseIterable {
 }
 
 struct FullScreenMetalStateView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     @Binding var state: MetalAnimationState
     var appName: String?
     var errorMessage: String?

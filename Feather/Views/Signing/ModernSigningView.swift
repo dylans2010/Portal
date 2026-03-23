@@ -1658,6 +1658,7 @@ struct HoldToSign: View {
 
 // MARK: - Slide To Confirm
 struct SlideToConfirm: View {
+    @EnvironmentObject var themeManager: ThemeManager
     var onComplete: () -> Void
     @State private var offset: CGFloat = 0
     @State private var isCompleted = false
@@ -1806,6 +1807,7 @@ struct DoubleTapToSign: View {
 
 // MARK: - Advanced Debug Tools View
 struct ModernEditSheet: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let title: String
     let icon: String
     let iconColor: Color

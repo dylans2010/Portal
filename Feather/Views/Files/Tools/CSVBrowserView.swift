@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct CSVBrowserView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let fileURL: URL
     @State private var rows: [[String]] = []
     @State private var isLoading = true

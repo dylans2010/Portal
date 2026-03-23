@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct TextTransformerView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     @State private var inputText: String = ""
     @State private var outputText: String = ""
 

@@ -1151,6 +1151,7 @@ struct ModernThemeCard: View {
 }
 
 struct PerScreenThemeView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     @AppStorage("Feather.appearance.screenOverride") private var screenOverride: [String: String] = [:]
     let allThemes: [ColorTheme]
 
@@ -1187,6 +1188,7 @@ struct PerScreenThemeView: View {
 }
 
 struct ThemeLibraryView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     @Environment(\.dismiss) var dismiss
     let themes: [ColorTheme]
     let onSelect: (ColorTheme) -> Void
@@ -1403,6 +1405,7 @@ private struct AppWideColorPickerSheet: View {
 }
 
 private struct ColorPickerRow: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let label: String
     @Binding var color: String
     @State private var showingPicker = false

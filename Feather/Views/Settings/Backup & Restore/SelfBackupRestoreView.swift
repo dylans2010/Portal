@@ -6,6 +6,7 @@ import UniformTypeIdentifiers
 
 // MARK: - Self Backup Restore View
 struct SelfBackupRestoreView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     @Environment(\.dismiss) var dismiss
     @StateObject private var viewModel = SelfBackupRestoreViewModel()
     @State private var showingBackupOptions = false
@@ -1400,6 +1401,7 @@ class SelfBackupRestoreViewModel: ObservableObject {
 
 // MARK: - Restore Selection View
 struct RestoreSelectionView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let backups: [LocalBackup]
     let onRestore: (LocalBackup) -> Void
     
@@ -1434,6 +1436,7 @@ struct RestoreSelectionView: View {
 // MARK: - Modern Restore Selection View
 @available(iOS 17.0, *)
 struct ModernRestoreSelectionView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let backups: [LocalBackup]
     let onRestore: (LocalBackup) -> Void
     
@@ -1509,6 +1512,7 @@ struct ModernRestoreSelectionView: View {
 
 // MARK: - Legacy Restore Selection View (iOS 16 compatibility)
 struct LegacyRestoreSelectionView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let backups: [LocalBackup]
     let onRestore: (LocalBackup) -> Void
     

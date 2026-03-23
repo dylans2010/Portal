@@ -3,6 +3,7 @@ import NimbleViews
 
 // MARK: - FileCompareView
 struct FileCompareView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let file1: FileItem
     let file2: FileItem
     @Environment(\.dismiss) var dismiss

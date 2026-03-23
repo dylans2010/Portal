@@ -6,6 +6,7 @@ import UniformTypeIdentifiers
 
 // MARK: - Advanced Signing Options Section
 struct AdvancedSigningOptionsSection: View {
+    @EnvironmentObject var themeManager: ThemeManager
     @Environment(\.colorScheme) var colorScheme
     let app: AppInfoPresentable
     @Binding var options: Options
@@ -130,6 +131,7 @@ struct AdvancedSigningOptionsSection: View {
 }
 
 struct AdvancedDebugToolsView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let app: AppInfoPresentable
     @Binding var options: Options
     @Binding var appIcon: UIImage?
@@ -909,6 +911,7 @@ struct AdvancedDebugToolsView: View {
 
 // MARK: - Binary Inspector View
 struct BinaryInspectorView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let app: AppInfoPresentable
     @State private var binaryInfo: [String: String] = [:]
     @State private var isLoading = true
@@ -1044,6 +1047,7 @@ struct BinaryInspectorView: View {
 
 // MARK: - Mach-O Analyzer View
 struct MachOAnalyzerView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let app: AppInfoPresentable
     @State private var isLoading = true
     @State private var segments: [(name: String, size: String, vmAddr: String)] = []
@@ -1182,6 +1186,7 @@ struct MachOAnalyzerView: View {
 
 // MARK: - Dylib Dependencies View
 struct DylibDependenciesView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let app: AppInfoPresentable
     @State private var isLoading = true
     @State private var dependencies: [(name: String, path: String, isWeak: Bool)] = []
@@ -1296,6 +1301,7 @@ struct DylibDependenciesView: View {
 
 // MARK: - Security Scan View
 struct SecurityScanView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let app: AppInfoPresentable
     @State private var isScanning = true
     @State private var scanResults: [(category: String, status: String, severity: String, detail: String)] = []
@@ -1419,6 +1425,7 @@ struct SecurityScanView: View {
 
 // MARK: - Entitlement Analyzer View
 struct EntitlementAnalyzerView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let app: AppInfoPresentable
     @State private var isLoading = true
     @State private var entitlements: [(key: String, value: String, risk: String)] = []
@@ -1541,6 +1548,7 @@ struct EntitlementAnalyzerView: View {
 
 // MARK: - Code Signature View
 struct CodeSignatureView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let app: AppInfoPresentable
     @State private var isLoading = true
     @State private var signatureInfo: [String: String] = [:]
@@ -1663,6 +1671,7 @@ struct PlistEntry: Identifiable, Equatable {
 
 // MARK: - Info.plist Editor Debug View
 struct InfoPlistEditorDebugView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let app: AppInfoPresentable
     @Binding var options: Options
     @State private var plistEntries: [PlistEntry] = []
@@ -2545,6 +2554,7 @@ struct InfoPlistEditorDebugView: View {
 
 // MARK: - Plist Entry Row
 struct PlistEntryRow: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let entry: PlistEntry
     let isSelected: Bool
     let isMultiSelectMode: Bool
@@ -2639,6 +2649,7 @@ struct PlistEntryRow: View {
 
 // MARK: - Entitlements Debug View
 struct EntitlementsDebugView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     @Binding var options: Options
     @State private var entitlements: [(key: String, value: String, enabled: Bool)] = []
     @State private var showAddEntitlement = false
@@ -2781,6 +2792,7 @@ struct ResourceItem: Identifiable, Equatable {
 
 // MARK: - Resource Modifier View
 struct ResourceModifierView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let app: AppInfoPresentable
     @State private var resources: [ResourceItem] = []
     @State private var searchText = ""
@@ -3295,6 +3307,7 @@ struct ResourceModifierView: View {
 
 // MARK: - Resource Stat Badge
 struct ResourceStatBadge: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let title: String
     let value: String
     let color: Color
@@ -3319,6 +3332,7 @@ struct ResourceStatBadge: View {
 
 // MARK: - Resource Row
 struct ResourceRow: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let resource: ResourceItem
     let isSelected: Bool
     let isMultiSelectMode: Bool
@@ -3481,6 +3495,7 @@ struct ResourceRow: View {
 
 // MARK: - Resource Detail View
 struct ResourceDetailView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let resource: ResourceItem
     let onReplace: () -> Void
     let onExport: () -> Void
@@ -3622,6 +3637,7 @@ struct ResourceDetailView: View {
 
 // MARK: - Resource Detail Row
 struct ResourceDetailRow: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let title: String
     let value: String
 
@@ -3640,6 +3656,7 @@ struct ResourceDetailRow: View {
 
 // MARK: - Resource Statistics View
 struct ResourceStatisticsView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let resources: [ResourceItem]
     @Environment(\.dismiss) var dismiss
 
@@ -3747,6 +3764,7 @@ struct ResourceStatisticsView: View {
 
 // MARK: - Signing Logs Debug View
 struct SigningLogsDebugView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     @ObservedObject private var logManager = AppLogManager.shared
     @State private var selectedLevel = "All"
     @State private var autoScroll = true
@@ -3860,6 +3878,7 @@ struct SigningLogsDebugView: View {
 
 // MARK: - Signing Info Row Helper
 private struct SigningInfoRow: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let title: String
     let value: String
 

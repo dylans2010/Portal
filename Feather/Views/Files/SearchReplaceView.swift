@@ -2,6 +2,7 @@ import SwiftUI
 import NimbleViews
 
 struct SearchReplaceView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let fileURL: URL
     @Environment(\.dismiss) var dismiss
     

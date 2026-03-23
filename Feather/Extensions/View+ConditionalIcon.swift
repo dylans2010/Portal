@@ -4,6 +4,7 @@ import SwiftUI
 
 // MARK: - Helper for Conditional Label Creation
 struct ConditionalLabel: View {
+    @EnvironmentObject var themeManager: ThemeManager
 	let title: LocalizedStringKey
 	let systemImage: String
 	@AppStorage("Feather.showIconsInAppearance") private var showIcons: Bool = true
@@ -18,6 +19,7 @@ struct ConditionalLabel: View {
 }
 
 struct ConditionalLabelString: View {
+    @EnvironmentObject var themeManager: ThemeManager
 	let title: String
 	let systemImage: String
 	@AppStorage("Feather.showIconsInAppearance") private var showIcons: Bool = true
@@ -33,6 +35,7 @@ struct ConditionalLabelString: View {
 
 // MARK: - Helper for Conditional Image
 struct ConditionalImage: View {
+    @EnvironmentObject var themeManager: ThemeManager
 	let systemName: String
 	@AppStorage("Feather.showIconsInAppearance") private var showIcons: Bool = true
 	

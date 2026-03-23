@@ -4,6 +4,7 @@ import SwiftUI
 import NimbleViews
 
 struct FileTemplatesView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let directoryURL: URL
     @Environment(\.dismiss) var dismiss
     

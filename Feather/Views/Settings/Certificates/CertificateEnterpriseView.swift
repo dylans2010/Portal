@@ -3,6 +3,7 @@ import SwiftUI
 // MARK: - View
 
 struct CertificateEnterpriseView: View {
+    @EnvironmentObject var themeManager: ThemeManager
 	@Environment(\.dismiss) private var dismiss
 	@StateObject private var fetcher = CertificateEnterpriseFetcher.shared
 	@State private var certificates: [EnterpriseCertificate] = []

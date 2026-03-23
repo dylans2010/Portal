@@ -4,6 +4,7 @@ import ZsignSwift
 
 // MARK: - View
 struct SigningDylibView: View {
+    @EnvironmentObject var themeManager: ThemeManager
 	@State private var _dylibs: [String] = []
 	@State private var _hiddenDylibCount: Int = 0
 	

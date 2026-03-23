@@ -3,6 +3,7 @@ import NimbleViews
 
 // MARK: - Restore Options View
 struct RestoreOptionsView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     @Environment(\.dismiss) var dismiss
     @State private var isRestoring = false
     @State private var selectedMergeMode: Bool? = nil

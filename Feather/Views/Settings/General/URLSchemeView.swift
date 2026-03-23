@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct URLSchemeView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     var body: some View {
         List {
             schemeSection(

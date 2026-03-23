@@ -2,6 +2,7 @@ import SwiftUI
 import ZIPFoundation
 
 struct ArchiveBrowserView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let fileURL: URL
     @State private var entries: [ArchiveEntry] = []
     @State private var isLoading = true

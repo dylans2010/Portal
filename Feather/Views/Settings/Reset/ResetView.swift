@@ -5,6 +5,7 @@ import CoreData
 
 // MARK: - View
 struct ResetView: View {
+    @EnvironmentObject var themeManager: ThemeManager
 	// MARK: Body
     var body: some View {
 		NBList(.localized("Reset")) {

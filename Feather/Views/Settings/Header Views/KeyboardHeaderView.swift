@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct KeyboardHeaderView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     // MARK: - Body
     var body: some View {
         headerCard

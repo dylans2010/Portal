@@ -1341,6 +1341,7 @@ struct AdvancedToolButton: View {
 
 // MARK: - Danger Zone Button Compact
 struct DangerZoneButtonCompact: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let title: LocalizedStringKey
     var size: String? = nil
     let action: () -> Void

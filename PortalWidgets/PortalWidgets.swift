@@ -295,6 +295,7 @@ struct AllInOneWidgetLegacy: Widget {
 // MARK: - Views
 
 struct QuickActionsWidgetView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     var entry: WidgetEntry
     @Environment(\.widgetFamily) var family
     
@@ -361,6 +362,7 @@ struct QuickActionsWidgetView: View {
 }
 
 struct CertificateStatusWidgetView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     var entry: WidgetEntry
     @Environment(\.widgetFamily) var family
 
@@ -411,6 +413,7 @@ struct CertificateStatusWidgetView: View {
 }
 
 struct AllInOneWidgetView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     var entry: WidgetEntry
     @Environment(\.widgetFamily) var family
 
@@ -503,6 +506,7 @@ struct AllInOneWidgetView: View {
 // MARK: - Components
 
 struct HeaderView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let title: String
     let icon: String
     var color: Color = .accentColor
@@ -521,6 +525,7 @@ struct HeaderView: View {
 }
 
 struct ActionButton: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let title: String
     let icon: String
     let color: Color
@@ -558,6 +563,7 @@ struct ActionButton: View {
 }
 
 struct ActionCard: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let title: String
     let icon: String
     let color: Color
@@ -595,6 +601,7 @@ struct ActionCard: View {
 }
 
 struct RecentAppIconView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let app: WidgetApp
 
     var body: some View {

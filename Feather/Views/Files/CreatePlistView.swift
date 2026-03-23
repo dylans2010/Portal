@@ -2,6 +2,7 @@ import SwiftUI
 import NimbleViews
 
 struct CreatePlistView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     @Environment(\.dismiss) var dismiss
     let directoryURL: URL
     

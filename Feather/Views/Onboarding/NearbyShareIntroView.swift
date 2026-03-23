@@ -4,6 +4,7 @@ import NimbleViews
 // MARK: - iOS 17+ Version
 @available(iOS 17.0, *)
 struct NearbyShareIntroView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     @AppStorage("hasSeenNearbyShareIntro") var hasSeenNearbyShareIntro: Bool = false
     @Environment(\.dismiss) private var dismiss
     @State private var animateContent = false
@@ -206,6 +207,7 @@ struct NearbyShareIntroView: View {
 // MARK: - Step Row Component
 @available(iOS 17.0, *)
 struct StepRow: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let step: Int
     let icon: String
     let title: String
@@ -276,6 +278,7 @@ struct StepRow: View {
 // MARK: - Tip Row Component
 @available(iOS 17.0, *)
 struct TipRow: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let text: String
     
     var body: some View {
@@ -295,6 +298,7 @@ struct TipRow: View {
 
 // MARK: - iOS 16 Legacy Version
 struct NearbyShareIntroViewLegacy: View {
+    @EnvironmentObject var themeManager: ThemeManager
     @AppStorage("hasSeenNearbyShareIntro") var hasSeenNearbyShareIntro: Bool = false
     @Environment(\.dismiss) private var dismiss
     @State private var animateContent = false
@@ -496,6 +500,7 @@ struct NearbyShareIntroViewLegacy: View {
 
 // MARK: - Step Row Component (Legacy)
 struct StepRowLegacy: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let step: Int
     let icon: String
     let title: String
@@ -565,6 +570,7 @@ struct StepRowLegacy: View {
 
 // MARK: - Tip Row Component (Legacy)
 struct TipRowLegacy: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let text: String
     
     var body: some View {
@@ -609,6 +615,7 @@ enum DemoAction: String, CaseIterable {
 // MARK: - Interactive Demo Section
 @available(iOS 17.0, *)
 struct InteractiveDemoSection: View {
+    @EnvironmentObject var themeManager: ThemeManager
     @Binding var selectedDemo: DemoAction?
     @State private var isAnimating = false
     
@@ -695,6 +702,7 @@ struct InteractiveDemoSection: View {
 // MARK: - Interactive Transfer View
 @available(iOS 17.0, *)
 struct InteractiveTransferView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let demoAction: DemoAction
     let isAnimating: Bool
     
@@ -864,6 +872,7 @@ struct DataPacket: Identifiable {
 // MARK: - Demo Button
 @available(iOS 17.0, *)
 struct DemoButton: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let action: DemoAction
     let isSelected: Bool
     let isAnimating: Bool
@@ -894,6 +903,7 @@ struct DemoButton: View {
 
 // MARK: - Simplified Transfer View (iOS 16)
 struct SimplifiedTransferView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     @State private var isAnimating = false
     
     var body: some View {

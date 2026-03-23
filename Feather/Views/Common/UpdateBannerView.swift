@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct UpdateBannerView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let version: String
     let message: String
     let onDismiss: () -> Void
@@ -52,6 +53,7 @@ struct UpdateBannerView: View {
 
 // MARK: - App Update Banner View
 struct AppUpdateBannerView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let update: AppUpdateInfo
     let onDismiss: () -> Void
     let onSignApp: () -> Void
@@ -155,6 +157,7 @@ struct AppUpdateBannerView: View {
 
 // MARK: - Multiple App Updates Banner View
 struct MultipleAppUpdatesBannerView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let updates: [AppUpdateInfo]
     let onDismiss: () -> Void
     let onViewAll: () -> Void
@@ -233,6 +236,7 @@ struct MultipleAppUpdatesBannerView: View {
 
 // MARK: - Update Available View
 struct UpdateAvailableView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let version: String
     let releaseURL: String
     let onDismiss: () -> Void

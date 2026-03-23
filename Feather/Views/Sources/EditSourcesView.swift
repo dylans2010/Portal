@@ -5,6 +5,7 @@ import CoreData
 
 // MARK: - View
 struct EditSourcesView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     @Environment(\.dismiss) var dismiss
     @StateObject var viewModel = SourcesViewModel.shared
     @State private var editMode: EditMode = .active

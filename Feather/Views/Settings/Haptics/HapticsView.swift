@@ -3,6 +3,7 @@ import NimbleViews
 
 // MARK: - HapticsView
 struct HapticsView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     @StateObject private var hapticsManager = HapticsManager.shared
     
     var body: some View {

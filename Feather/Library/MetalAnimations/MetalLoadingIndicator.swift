@@ -2,6 +2,7 @@ import SwiftUI
 import MetalKit
 
 struct MetalLoadingIndicator: View {
+    @EnvironmentObject var themeManager: ThemeManager
     @State private var state: MetalAnimationState = .loading
     var size: CGFloat = 24
 

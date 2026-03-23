@@ -1,6 +1,7 @@
 import SwiftUI
 
 public struct NBTitleWithSubtitleView: View {
+    @EnvironmentObject var themeManager: ThemeManager
 	private let _title: String
 	private let _subtitle: String
 	private var _linelimit: Int? = nil

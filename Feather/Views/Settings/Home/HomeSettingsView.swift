@@ -575,6 +575,7 @@ struct HomeSettingsView: View {
 
 // MARK: - Supporting Views
 private struct SettingsRowView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let icon: String
     let title: String
     let color: Color
@@ -593,6 +594,7 @@ private struct SettingsRowView: View {
 }
 
 private struct ReorderableWidgetRow: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let widget: HomeWidgetConfig
     
     var body: some View {

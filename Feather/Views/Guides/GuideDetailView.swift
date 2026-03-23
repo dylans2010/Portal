@@ -3,6 +3,7 @@ import NimbleViews
 
 // MARK: - Guide Detail View
 struct GuideDetailView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let guide: Guide
     @State private var content: String = ""
     @State private var parsedContent: ParsedGuideContent?
@@ -1140,6 +1141,7 @@ struct GuideDetailView: View {
 
 // MARK: - AI Actions Sheet
 struct AIActionsSheet: View {
+    @EnvironmentObject var themeManager: ThemeManager
     @Binding var isPresented: Bool
     let isAIAvailable: Bool
     let onActionSelected: (AIAction) -> Void
@@ -1262,6 +1264,7 @@ struct AIActionsSheet: View {
 }
 
 struct AIActionButton: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let action: AIAction
     let onTap: () -> Void
     @State private var isPressed = false
@@ -1334,6 +1337,7 @@ struct AIActionButton: View {
 
 // MARK: - Custom Prompt Sheet
 struct CustomPromptSheet: View {
+    @EnvironmentObject var themeManager: ThemeManager
     @Binding var isPresented: Bool
     @Binding var instruction: String
     let onSubmit: () -> Void
@@ -1429,6 +1433,7 @@ struct CustomPromptSheet: View {
 
 // MARK: - AI Error Sheet
 struct AIErrorSheet: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let error: String
     let isAIAvailable: Bool
     let onDismiss: () -> Void
@@ -1534,6 +1539,7 @@ struct AIErrorSheet: View {
 
 // MARK: - Translate Sheet
 struct TranslateSheet: View {
+    @EnvironmentObject var themeManager: ThemeManager
     @Binding var isPresented: Bool
     @Binding var selectedLanguage: String
     let onSubmit: (String) -> Void
@@ -1721,6 +1727,7 @@ struct TranslateSheet: View {
 }
 
 struct LanguageButton: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let name: String
     let flag: String
     let isSelected: Bool
@@ -1759,6 +1766,7 @@ struct LanguageButton: View {
 
 // MARK: - Glassmorphic AI Actions Sheet (iOS 26 Style)
 struct GlassmorphicAIActionsSheet: View {
+    @EnvironmentObject var themeManager: ThemeManager
     @Binding var isPresented: Bool
     let isAIAvailable: Bool
     let accentColor: Color
@@ -1859,6 +1867,7 @@ struct GlassmorphicAIActionsSheet: View {
 }
 
 struct GlassmorphicActionButton: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let action: AIAction
     let accentColor: Color
     let onTap: () -> Void
@@ -1923,6 +1932,7 @@ struct GlassmorphicActionButton: View {
 
 // MARK: - Glassmorphic Custom Prompt Sheet
 struct GlassmorphicCustomPromptSheet: View {
+    @EnvironmentObject var themeManager: ThemeManager
     @Binding var isPresented: Bool
     @Binding var instruction: String
     let accentColor: Color
@@ -2012,6 +2022,7 @@ struct GlassmorphicCustomPromptSheet: View {
 
 // MARK: - Glassmorphic Translate Sheet
 struct GlassmorphicTranslateSheet: View {
+    @EnvironmentObject var themeManager: ThemeManager
     @Binding var isPresented: Bool
     @Binding var selectedLanguage: String
     let accentColor: Color
@@ -2167,6 +2178,7 @@ struct GlassmorphicTranslateSheet: View {
 }
 
 struct GlassmorphicLanguageButton: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let name: String
     let flag: String
     let isSelected: Bool
@@ -2217,6 +2229,7 @@ struct GlassmorphicLanguageButton: View {
 
 // MARK: - Glassmorphic Error Sheet
 struct GlassmorphicErrorSheet: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let error: String
     let isAIAvailable: Bool
     let accentColor: Color

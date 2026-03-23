@@ -4,6 +4,7 @@ import IDeviceSwift
 import OSLog
 
 struct JITSettingsView: View {
+    @EnvironmentObject var themeManager: ThemeManager
 
     @Environment(\.dismiss) var dismiss
     @StateObject private var manager = JITManager.shared

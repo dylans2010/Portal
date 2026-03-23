@@ -3,6 +3,7 @@ import NimbleViews
 
 // MARK: - View
 struct CertificatesInfoEntitlementView: View {
+    @EnvironmentObject var themeManager: ThemeManager
 	let entitlements: [String: AnyCodable]
 	
 	// MARK: Body

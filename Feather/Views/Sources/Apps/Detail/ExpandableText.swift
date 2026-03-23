@@ -2,6 +2,7 @@
 import SwiftUI
 
 struct ExpandableText: View {
+    @EnvironmentObject var themeManager: ThemeManager
 	let text: String
 	let lineLimit: Int
 

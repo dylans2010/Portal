@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct StatusBarOverlay: View {
+    @EnvironmentObject var themeManager: ThemeManager
     // MARK: - App Storage Properties
     @AppStorage("statusBar.customText") private var customText: String = ""
     @AppStorage("statusBar.showCustomText") private var showCustomText: Bool = false

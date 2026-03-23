@@ -2,6 +2,7 @@ import SwiftUI
 import Combine
 
 struct PortalTopView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     @AppStorage("Feather.portalTopViewEnabled") private var portalTopViewEnabled: Bool = true
     @AppStorage("Feather.portalTopViewColor") private var portalTopViewColor: String = "#0077BE"
     @AppStorage("Feather.portalTopViewStyle") private var portalTopViewStyle: Int = 0 // 0: Ultra Thin, 1: Thin, 2: Regular, 3: Thick

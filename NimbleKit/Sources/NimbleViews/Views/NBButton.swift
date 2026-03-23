@@ -1,6 +1,7 @@
 import SwiftUI
 
 public struct NBButton: View {
+    @EnvironmentObject var themeManager: ThemeManager
 	private var _title: String
 	private var _icon: String
 	private var _style: NBToolbarMenuStyle

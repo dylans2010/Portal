@@ -147,6 +147,7 @@ extension View {
 }
 
 struct EmojiRainView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let emoji: String
     @State private var items: [EmojiItem] = []
 
@@ -207,6 +208,7 @@ struct EmojiRainView: View {
 }
 
 struct ConfettiView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     @State private var particles: [Particle] = []
 
     struct Particle: Identifiable {
@@ -259,6 +261,7 @@ struct ConfettiView: View {
 }
 
 struct BouncingBallView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     @State private var pos = CGPoint(x: 100, y: 100)
     @State private var vel = CGPoint(x: 5, y: 5)
     let timer = Timer.publish(every: 0.02, on: .main, in: .common).autoconnect()

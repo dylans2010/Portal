@@ -41,6 +41,7 @@ struct InstallationLiveActivityWidget: Widget {
 
 @available(iOS 16.2, *)
 struct InstallationLiveActivityLockScreenView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let context: ActivityViewContext<InstallationActivityAttributes>
 
     private var settings: LiveActivitySettings {
@@ -219,6 +220,7 @@ struct InstallationLiveActivityLockScreenView: View {
 
 @available(iOS 16.2, *)
 struct InstallationLiveActivityExpandedLeading: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let context: ActivityViewContext<InstallationActivityAttributes>
 
     var body: some View {
@@ -251,6 +253,7 @@ struct InstallationLiveActivityExpandedLeading: View {
 
 @available(iOS 16.2, *)
 struct InstallationLiveActivityExpandedTrailing: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let context: ActivityViewContext<InstallationActivityAttributes>
 
     var body: some View {
@@ -270,6 +273,7 @@ struct InstallationLiveActivityExpandedTrailing: View {
 
 @available(iOS 16.2, *)
 struct InstallationLiveActivityExpandedCenter: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let context: ActivityViewContext<InstallationActivityAttributes>
 
     var body: some View {
@@ -299,6 +303,7 @@ struct InstallationLiveActivityExpandedCenter: View {
 
 @available(iOS 16.2, *)
 struct InstallationLiveActivityExpandedBottom: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let context: ActivityViewContext<InstallationActivityAttributes>
 
     private var progressGreen: Color {
@@ -337,6 +342,7 @@ struct InstallationLiveActivityExpandedBottom: View {
 
 @available(iOS 16.2, *)
 struct InstallationLiveActivityCompactLeading: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let context: ActivityViewContext<InstallationActivityAttributes>
 
     var body: some View {
@@ -347,6 +353,7 @@ struct InstallationLiveActivityCompactLeading: View {
 
 @available(iOS 16.2, *)
 struct InstallationLiveActivityCompactTrailing: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let context: ActivityViewContext<InstallationActivityAttributes>
 
     var body: some View {
@@ -358,6 +365,7 @@ struct InstallationLiveActivityCompactTrailing: View {
 
 @available(iOS 16.2, *)
 struct InstallationLiveActivityMinimal: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let context: ActivityViewContext<InstallationActivityAttributes>
 
     var body: some View {
