@@ -153,22 +153,22 @@ struct AppWideColors: Codable, Equatable {
         case .warmBlack:
             return AppWideColors(
                 appBackground: "#12100E",
-                navigationBar: "#1A1814",
-                tabBar: "#1A1814",
-                primaryText: "#F5F5F4",
-                secondaryText: "#A8A29E",
+                navigationBar: "#1A1713",
+                tabBar: "#1A1713",
+                primaryText: "#FFFFFF",
+                secondaryText: "#8A7560",
                 cardBackground: "#1C1A17",
                 accent: "#FF9F0A",
-                separator: "#2A2722",
-                cellHighlight: "#211F1B",
+                separator: "#2A2520",
+                cellHighlight: "#252119",
                 destructive: "#FF3B30",
                 buttonBackground: "#FF9F0A",
                 buttonText: "#000000",
                 iconTint: "#FF9F0A",
-                groupedBackground: "#12100E",
-                headerText: "#A8A29E",
-                badgeBackground: "#FF9F0A",
-                badgeText: "#000000",
+                groupedBackground: "#0E0C09",
+                headerText: "#FF9F0A",
+                badgeBackground: "#2A2520",
+                badgeText: "#FF9F0A",
                 switchTint: "#FF9F0A",
                 selectionIndicator: "#FF9F0A"
             )
@@ -220,6 +220,8 @@ final class ThemeManager: ObservableObject {
     var cellHighlightColor: Color { Color(hex: resolvedColors.cellHighlight) }
     var destructiveColor: Color { Color(hex: resolvedColors.destructive) }
     var navigationBarColor: Color { Color(hex: resolvedColors.navigationBar) }
+    var tabBarColor: Color { Color(hex: resolvedColors.tabBar) }
+    var groupedBackgroundColor: Color { Color(hex: resolvedColors.groupedBackground) }
 
     // MARK: - UIKit Color Helpers
     var accentUIColor: UIColor { UIColor(hex: resolvedColors.accent) }
@@ -257,70 +259,49 @@ final class ThemeManager: ObservableObject {
     }
 
     func applyUIKitAppearance() {
-        let colors = resolvedColors
-
-        let bgColor = UIColor(hex: colors.appBackground)
-        let navBarColor = UIColor(hex: colors.navigationBar)
-        let tabBarColor = UIColor(hex: colors.tabBar)
-        let accentColor = UIColor(hex: colors.accent)
-        let primaryText = UIColor(hex: colors.primaryText)
-        let separator = UIColor(hex: colors.separator)
-        let switchTint = UIColor(hex: colors.switchTint)
-        let groupedBg = UIColor(hex: colors.groupedBackground)
-        let headerText = UIColor(hex: colors.headerText)
-        let buttonBg = UIColor(hex: colors.buttonBackground)
-        let buttonText = UIColor(hex: colors.buttonText)
-        let badgeBg = UIColor(hex: colors.badgeBackground)
-        let cardBg = UIColor(hex: colors.cardBackground)
+        let appBackgroundColor = UIColor(hex: resolvedColors.appBackground)
+        let navigationBarColor = UIColor(hex: resolvedColors.navigationBar)
+        let tabBarColor = UIColor(hex: resolvedColors.tabBar)
+        let accentUIColor = UIColor(hex: resolvedColors.accent)
+        let primaryTextColor = UIColor(hex: resolvedColors.primaryText)
+        let secondaryTextColor = UIColor(hex: resolvedColors.secondaryText)
+        let separatorColor = UIColor(hex: resolvedColors.separator)
+        let switchTintColor = UIColor(hex: resolvedColors.switchTint)
+        let cardBackgroundColor = UIColor(hex: resolvedColors.cardBackground)
 
         if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene {
             for window in windowScene.windows {
-                window.backgroundColor = bgColor
-                window.tintColor = accentColor
+                window.backgroundColor = appBackgroundColor
+                window.tintColor = accentUIColor
             }
         }
 
-        let navAppearance = UINavigationBarAppearance()
-        navAppearance.configureWithOpaqueBackground()
-        navAppearance.backgroundColor = navBarColor
-        navAppearance.titleTextAttributes = [.foregroundColor: primaryText]
-        navAppearance.largeTitleTextAttributes = [.foregroundColor: primaryText]
+        let nav = UINavigationBarAppearance()
+        nav.configureWithOpaqueBackground()
+        nav.backgroundColor = navigationBarColor
+        nav.titleTextAttributes = [.foregroundColor: primaryTextColor]
+        nav.largeTitleTextAttributes = [.foregroundColor: primaryTextColor]
 
-        UINavigationBar.appearance().standardAppearance = navAppearance
-        UINavigationBar.appearance().scrollEdgeAppearance = navAppearance
-        UINavigationBar.appearance().compactAppearance = navAppearance
-        UINavigationBar.appearance().tintColor = accentColor
+        UINavigationBar.appearance().standardAppearance = nav
+        UINavigationBar.appearance().scrollEdgeAppearance = nav
+        UINavigationBar.appearance().compactAppearance = nav
+        UINavigationBar.appearance().tintColor = accentUIColor
 
-        let tabAppearance = UITabBarAppearance()
-        tabAppearance.configureWithOpaqueBackground()
-        tabAppearance.backgroundColor = tabBarColor
+        let tab = UITabBarAppearance()
+        tab.configureWithOpaqueBackground()
+        tab.backgroundColor = tabBarColor
 
-        UITabBar.appearance().standardAppearance = tabAppearance
-        UITabBar.appearance().scrollEdgeAppearance = tabAppearance
-        UITabBar.appearance().tintColor = accentColor
+        UITabBar.appearance().standardAppearance = tab
+        UITabBar.appearance().scrollEdgeAppearance = tab
+        UITabBar.appearance().tintColor = accentUIColor
+        UITabBar.appearance().unselectedItemTintColor = secondaryTextColor
 
-        UITableView.appearance().backgroundColor = cardBg
-        UITableView.appearance().separatorColor = separator
-        UITableViewCell.appearance().backgroundColor = cardBg
-        UICollectionView.appearance().backgroundColor = cardBg
-        UITableView.appearance(whenContainedInInstancesOf: [UIViewController.self]).backgroundColor = groupedBg
+        UITableView.appearance().backgroundColor = appBackgroundColor
+        UITableViewCell.appearance().backgroundColor = cardBackgroundColor
+        UITableView.appearance().separatorColor = separatorColor
+        UICollectionView.appearance().backgroundColor = appBackgroundColor
 
-        UIView.appearance(whenContainedInInstancesOf: [UITableViewCell.self]).tintColor = accentColor
-
-        UILabel.appearance().textColor = primaryText
-        UILabel.appearance(whenContainedInInstancesOf: [UITableViewHeaderFooterView.self]).textColor = headerText
-        UILabel.appearance(whenContainedInInstancesOf: [UITableViewCell.self]).backgroundColor = badgeBg
-
-        UISwitch.appearance().onTintColor = switchTint
-
-        UISlider.appearance().minimumTrackTintColor = accentColor
-        UIProgressView.appearance().progressTintColor = accentColor
-        UIPageControl.appearance().currentPageIndicatorTintColor = accentColor
-        UISegmentedControl.appearance().selectedSegmentTintColor = accentColor
-
-        UIButton.appearance().tintColor = accentColor
-        UIButton.appearance().backgroundColor = buttonBg
-        UIButton.appearance().setTitleColor(buttonText, for: .normal)
+        UISwitch.appearance().onTintColor = switchTintColor
 
         NotificationCenter.default.post(name: Notification.Name("AppWideThemeDidChange"), object: nil)
     }
