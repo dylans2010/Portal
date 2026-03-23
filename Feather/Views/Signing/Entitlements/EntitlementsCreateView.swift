@@ -153,7 +153,7 @@ struct EntitlementsCreateView: View {
             value = _customValue
         }
 
-        let newItem = EntitlementItem(name: "Custom Entitlement", key: _customKey, value: value, isEnabled: true)
+        let newItem = EntitlementItem(name: "Custom Entitlement", key: _customKey, value: value, isEnabled: true, symbol: "questionmark.circle")
         _entitlements.append(newItem)
         _customKey = ""
         _customValue = ""
