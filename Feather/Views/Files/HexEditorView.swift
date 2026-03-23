@@ -2,6 +2,7 @@ import SwiftUI
 import NimbleViews
 
 struct HexEditorView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     @Environment(\.dismiss) var dismiss
     let fileURL: URL
     
@@ -11,9 +12,6 @@ struct HexEditorView: View {
     var body: some View {
         NBNavigationView(.localized("Hex Editor"), displayMode: .inline) {
             ZStack {
-                Color.clear
-                    .ignoresSafeArea()
-                
                 VStack(spacing: 0) {
                     if isLoading {
                         VStack(spacing: 20) {
@@ -43,9 +41,10 @@ struct HexEditorView: View {
                             VStack(spacing: 8) {
                                 ProgressView()
                                     .scaleEffect(1.2)
+                                    .tint(themeManager.accentColor)
                                 Text(.localized("Loading file..."))
                                     .font(.subheadline)
-                                    .foregroundStyle(.secondary)
+                                    .themedText(.secondary)
                             }
                         }
                         .padding(.top, 40)
@@ -80,23 +79,21 @@ struct HexEditorView: View {
                                     VStack(alignment: .leading, spacing: 4) {
                                         Text(fileURL.lastPathComponent)
                                             .font(.headline)
-                                            .foregroundStyle(.primary)
+                                            .themedText(.primary)
                                         Text("\(hexContent.split(separator: "\n").count) lines")
                                             .font(.caption)
-                                            .foregroundStyle(.secondary)
+                                            .themedText(.secondary)
                                     }
                                 }
                                 .padding()
                                 .frame(maxWidth: .infinity, alignment: .leading)
-                                .background(
-                                    RoundedRectangle(cornerRadius: 12, style: .continuous)
-                                        .fill(Color.clear)
-                                )
+                                .themedCard()
                                 .padding()
                                 
                                 // Hex content
                                 Text(hexContent)
                                     .font(.system(.caption, design: .monospaced))
+                                    .themedText(.primary)
                                     .frame(maxWidth: .infinity, alignment: .leading)
                                     .padding()
                                     .textSelection(.enabled)
@@ -105,6 +102,7 @@ struct HexEditorView: View {
                     }
                 }
             }
+            .globalTheme()
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
                     Button(.localized("Done")) {

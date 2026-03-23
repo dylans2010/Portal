@@ -13,6 +13,7 @@ extension AboutView {
 
 // MARK: - View
 struct AboutView: View {
+    @EnvironmentObject var themeManager: ThemeManager
 	typealias CreditsDataHandler = Result<[CreditsModel], Error>
 	private let _dataService = NBFetchService()
 	@AppStorage("Feather.showHeaderViews") private var showHeaderViews = true
@@ -56,14 +57,14 @@ struct AboutView: View {
 						Text(Bundle.main.exec)
 							.font(.largeTitle)
 							.bold()
-							.foregroundStyle(Color.accentColor)
+							.foregroundStyle(themeManager.accentColor)
 						
 						HStack(spacing: 4) {
 							Text(.localized("Version"))
 							Text(Bundle.main.version)
 						}
 						.font(.footnote)
-						.foregroundStyle(.secondary)
+						.themedText(.secondary)
 					}
 				}
 				.frame(maxWidth: .infinity)
@@ -83,7 +84,7 @@ struct AboutView: View {
 					.transition(AnyTransition.slide)
 					
 					Text(.localized("💜 This couldn't of been done without my sponsors!"))
-						.foregroundStyle(.secondary)
+						.themedText(.secondary)
 						.padding(.vertical, 2)
 				}
 
@@ -99,6 +100,7 @@ struct AboutView: View {
 				.listRowBackground(EmptyView())
 			}
 		}
+        .globalTheme()
 		.animation(.default, value: isLoading)
 		.task {
 			await _fetchAllData()

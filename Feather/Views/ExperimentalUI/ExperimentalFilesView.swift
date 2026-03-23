@@ -8,6 +8,7 @@
 import SwiftUI
 
 struct ExperimentalFilesView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     @StateObject private var fileManager = FileManagerService.shared
     @State private var selectedFolder: FileFolder = .all
     
@@ -62,6 +63,7 @@ struct ExperimentalFilesView: View {
                 }
                 .padding(.bottom, 100)
             }
+            .globalTheme()
             .navigationBarHidden(true)
         }
         .accentColor(ExperimentalUITheme.Colors.accentPrimary)
@@ -70,6 +72,7 @@ struct ExperimentalFilesView: View {
 
 // MARK: - Quick Stats
 struct ExperimentalQuickStats: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let totalFiles: Int
     let storageUsed: Int64
     
@@ -93,6 +96,7 @@ struct ExperimentalQuickStats: View {
 
 // MARK: - Stat Card
 struct ExperimentalStatCard: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let icon: String
     let value: String
     let label: String
@@ -102,23 +106,23 @@ struct ExperimentalStatCard: View {
             HStack(spacing: ExperimentalUITheme.Spacing.xs) {
                 Image(systemName: icon)
                     .font(.system(size: 16))
-                    .foregroundStyle(ExperimentalUITheme.Colors.accentPrimary)
+                    .foregroundStyle(themeManager.accentColor)
                 
                 Text(value)
                     .font(ExperimentalUITheme.Typography.title2)
-                    .foregroundStyle(ExperimentalUITheme.Colors.textPrimary)
+                    .themedText(.primary)
                     .fontWeight(.bold)
             }
             
             Text(label)
                 .font(ExperimentalUITheme.Typography.caption)
-                .foregroundStyle(ExperimentalUITheme.Colors.textSecondary)
+                .themedText(.secondary)
         }
         .frame(maxWidth: .infinity)
         .padding(ExperimentalUITheme.Spacing.md)
+        .themedCard()
         .background(
             RoundedRectangle(cornerRadius: ExperimentalUITheme.CornerRadius.lg)
-                .fill(ExperimentalUITheme.Colors.cardBackground)
                 .shadow(
                     color: ExperimentalUITheme.Shadow.sm.color,
                     radius: ExperimentalUITheme.Shadow.sm.radius,
@@ -131,6 +135,7 @@ struct ExperimentalStatCard: View {
 
 // MARK: - Folder Section
 struct ExperimentalFolderSection: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let folder: ExperimentalFilesView.FileFolder
     let files: [FileItem]
     @ObservedObject var fileManager: FileManagerService
@@ -140,20 +145,20 @@ struct ExperimentalFolderSection: View {
             HStack {
                 Text(folder.rawValue)
                     .font(ExperimentalUITheme.Typography.title3)
-                    .foregroundStyle(ExperimentalUITheme.Colors.textPrimary)
+                    .themedText(.primary)
                 
                 Spacer()
                 
                 Text("\(files.count) items")
                     .font(ExperimentalUITheme.Typography.caption)
-                    .foregroundStyle(ExperimentalUITheme.Colors.textSecondary)
+                    .themedText(.secondary)
             }
             .padding(.horizontal, ExperimentalUITheme.Spacing.md)
             
             if files.isEmpty {
                 Text("No files in this category")
                     .font(ExperimentalUITheme.Typography.body)
-                    .foregroundStyle(ExperimentalUITheme.Colors.textSecondary)
+                    .themedText(.secondary)
                     .padding(.horizontal, ExperimentalUITheme.Spacing.md)
                     .padding(.vertical, ExperimentalUITheme.Spacing.sm)
             } else {
@@ -188,6 +193,7 @@ struct ExperimentalFolderSection: View {
 
 // MARK: - File Row
 struct ExperimentalFileRow: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let file: FileItem
     let folder: ExperimentalFilesView.FileFolder
     
@@ -201,31 +207,31 @@ struct ExperimentalFileRow: View {
                 
                 Image(systemName: fileIcon)
                     .font(.system(size: 20))
-                    .foregroundStyle(ExperimentalUITheme.Colors.accentPrimary)
+                    .foregroundStyle(themeManager.accentColor)
             }
             
             // File Info
             VStack(alignment: .leading, spacing: 4) {
                 Text(file.name)
                     .font(ExperimentalUITheme.Typography.callout)
-                    .foregroundStyle(ExperimentalUITheme.Colors.textPrimary)
+                    .themedText(.primary)
                     .lineLimit(1)
                 
                 Text(file.size ?? "Unknown size")
                     .font(ExperimentalUITheme.Typography.caption)
-                    .foregroundStyle(ExperimentalUITheme.Colors.textSecondary)
+                    .themedText(.secondary)
             }
             
             Spacer()
             
             Image(systemName: "chevron.right")
                 .font(.system(size: 14, weight: .semibold))
-                .foregroundStyle(ExperimentalUITheme.Colors.textTertiary)
+                .themedText(.secondary)
         }
         .padding(ExperimentalUITheme.Spacing.sm)
         .background(
             RoundedRectangle(cornerRadius: ExperimentalUITheme.CornerRadius.md)
-                .fill(ExperimentalUITheme.Colors.backgroundSecondary)
+                .fill(Color(hex: themeManager.resolvedColors.cardBackground))
         )
     }
     

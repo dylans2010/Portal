@@ -5,6 +5,7 @@ import QuickLook
 
 // MARK: - FilesView
 struct FilesView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     @StateObject private var fileManager = FileManagerService.shared
     @StateObject private var hideManager = FilesHideManager.shared
     @State private var showCreateMenu = false
@@ -172,6 +173,7 @@ struct FilesView: View {
                     }
                 }
             }
+            .globalTheme()
             .searchable(text: $searchText, prompt: .localized("Search Files"))
             .toolbar {
                 ToolbarItemGroup(placement: .navigationBarLeading) {
@@ -619,10 +621,10 @@ struct FilesView: View {
                 Text(.localized("Certificate Files Detected"))
                     .font(.subheadline)
                     .fontWeight(.semibold)
-                    .foregroundStyle(.primary)
+                    .themedText(.primary)
                 Text(.localized("Tap to add certificate"))
                     .font(.caption2)
-                    .foregroundStyle(.secondary)
+                    .themedText(.secondary)
             }
             
             Spacer()
@@ -708,10 +710,11 @@ struct FilesView: View {
                 Text(.localized("No Files"))
                     .font(.title2)
                     .fontWeight(.bold)
+                    .themedText(.primary)
                 
                 Text(.localized("The File Manager is empty. Import files or create new content to get started."))
                     .font(.body)
-                    .foregroundStyle(.secondary)
+                    .themedText(.secondary)
                     .multilineTextAlignment(.center)
                     .padding(.horizontal, 40)
             }
@@ -729,13 +732,7 @@ struct FilesView: View {
                     .foregroundStyle(.white)
                     .padding(.horizontal, 28)
                     .padding(.vertical, 14)
-                    .background(
-                        LinearGradient(
-                            colors: [Color.accentColor, Color.accentColor.opacity(0.85)],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        )
-                    )
+                    .background(themeManager.accentColor)
                     .clipShape(Capsule())
                     .shadow(color: .accentColor.opacity(0.4), radius: 10, x: 0, y: 6)
                 }
@@ -1524,6 +1521,7 @@ struct FilesView: View {
 
 // MARK: - FileRowView
 struct FileRowView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let file: FileItem
     var isSelected: Bool = false
     @AppStorage("files_showFileSize") private var showFileSize = true
@@ -1562,7 +1560,7 @@ struct FileRowView: View {
                 Text(file.name)
                     .font(.body)
                     .fontWeight(.medium)
-                    .foregroundStyle(.primary)
+                    .themedText(.primary)
                     .lineLimit(2)
                 
                 HStack(spacing: 8) {
@@ -1573,7 +1571,7 @@ struct FileRowView: View {
                             Text(size)
                                 .font(.caption)
                         }
-                        .foregroundStyle(.secondary)
+                        .themedText(.secondary)
                     }
                     
                     if showModificationDate, let modDate = file.modificationDate {
@@ -1583,7 +1581,7 @@ struct FileRowView: View {
                             Text(modDate, style: .relative)
                                 .font(.caption)
                         }
-                        .foregroundStyle(.secondary)
+                        .themedText(.secondary)
                     }
                 }
             }
@@ -1614,6 +1612,7 @@ struct FileRowView: View {
 
 // MARK: - FileGridItemView
 struct FileGridItemView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let file: FileItem
     var isSelected: Bool = false
     @AppStorage("files_showFileSize") private var showFileSize = true
@@ -1673,6 +1672,7 @@ struct FileGridItemView: View {
                 Text(file.name)
                     .font(.caption)
                     .fontWeight(.medium)
+                    .themedText(.primary)
                     .lineLimit(2)
                     .multilineTextAlignment(.center)
                     .frame(width: 100)
@@ -1680,15 +1680,12 @@ struct FileGridItemView: View {
                 if showFileSize, let size = file.size {
                     Text(size)
                         .font(.caption2)
-                        .foregroundStyle(.secondary)
+                        .themedText(.secondary)
                 }
             }
         }
         .padding(10)
-        .background(
-            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .fill(Color.clear)
-        )
+        .themedCard()
         .shadow(color: .black.opacity(0.06), radius: 6, x: 0, y: 3)
         .contentShape(Rectangle())
     }

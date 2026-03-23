@@ -4,6 +4,7 @@ import NimbleViews
 
 // MARK: - HomeView - Dashboard with Quick Actions, Status, and At A Glance
 struct HomeView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     @Environment(\.managedObjectContext) private var viewContext
     @AppStorage("Feather.greetingsName") private var _greetingsName: String = ""
     @AppStorage("Feather.homeGreetingEnabled") private var _greetingEnabled = true
@@ -144,7 +145,7 @@ struct HomeView: View {
                         }
                 }
             }
-            .background(Color.clear)
+            .globalTheme()
             .navigationBarHidden(true)
             .sheet(isPresented: $_showAddCertificate) {
                 CertificatesAddView()
@@ -355,14 +356,14 @@ struct HomeView: View {
             VStack(alignment: .leading, spacing: _compactMode ? 1 : 2) {
                 Text(greetingText)
                     .font(.system(size: _compactMode ? 18 : 24, weight: .bold, design: .rounded))
-                    .foregroundStyle(.primary)
+                    .themedText(.primary)
                     .lineLimit(1)
                     .minimumScaleFactor(0.8)
                 
                 if !_compactMode {
                     Text("Portal Information")
                         .font(.system(size: 14, weight: .medium))
-                        .foregroundStyle(.secondary)
+                        .themedText(.secondary)
                         .onTapGesture {
                             Task {
                                 await GestureManager.shared.performAction(for: .doubleTap, in: .dashboard)
@@ -382,7 +383,7 @@ struct HomeView: View {
                     .clipShape(Circle())
                     .overlay(
                         Circle()
-                            .stroke(Color.accentColor.opacity(0.3), lineWidth: _compactMode ? 1 : 2)
+                            .stroke(themeManager.accentColor.opacity(0.3), lineWidth: _compactMode ? 1 : 2)
                     )
             } else if _showAppIcon,
                let iconName = Bundle.main.iconFileName,
@@ -897,10 +898,10 @@ struct HomeView: View {
             } label: {
                 Text("Add Certificate")
                     .font(.subheadline.bold())
-                    .foregroundStyle(.white)
+                    .foregroundStyle(Color(hex: themeManager.resolvedColors.buttonText))
                     .padding(.horizontal, 20)
                     .padding(.vertical, 10)
-                    .background(Capsule().fill(Color.accentColor))
+                    .background(Capsule().fill(themeManager.accentColor))
             }
         }
         .frame(maxWidth: .infinity)
@@ -965,10 +966,10 @@ struct HomeView: View {
             } label: {
                 Text("Add Source")
                     .font(.subheadline.bold())
-                    .foregroundStyle(.white)
+                    .foregroundStyle(Color(hex: themeManager.resolvedColors.buttonText))
                     .padding(.horizontal, 20)
                     .padding(.vertical, 10)
-                    .background(Capsule().fill(Color.accentColor))
+                    .background(Capsule().fill(themeManager.accentColor))
             }
         }
         .frame(maxWidth: .infinity)
@@ -1185,11 +1186,11 @@ struct HomeView: View {
                                 Spacer()
                                 Text("\(Int(download.overallProgress * 100))%")
                                     .font(.system(size: 12, weight: .bold, design: .monospaced))
-                                    .foregroundStyle(Color.accentColor)
+                                    .foregroundStyle(themeManager.accentColor)
                             }
 
                             ProgressView(value: download.overallProgress)
-                                .tint(Color.accentColor)
+                                .themedAccent()
                         }
                         .padding(12)
                         .background(RoundedRectangle(cornerRadius: 12).fill(Color.primary.opacity(0.05)))
@@ -1318,7 +1319,7 @@ struct HomeView: View {
                             .foregroundStyle(.secondary)
                         Text(ByteCountFormatter.string(fromByteCount: free, countStyle: .file))
                             .font(.system(size: 18, weight: .bold, design: .rounded))
-                            .foregroundStyle(Color.accentColor)
+                            .foregroundStyle(themeManager.accentColor)
                     }
                 }
 
@@ -1327,7 +1328,7 @@ struct HomeView: View {
                         RoundedRectangle(cornerRadius: 6)
                             .fill(Color.primary.opacity(0.05))
                         RoundedRectangle(cornerRadius: 6)
-                            .fill(LinearGradient(colors: [Color.accentColor, Color.accentColor.opacity(0.7)], startPoint: .leading, endPoint: .trailing))
+                            .fill(LinearGradient(colors: [themeManager.accentColor, themeManager.accentColor.opacity(0.7)], startPoint: .leading, endPoint: .trailing))
                             .frame(width: geo.size.width * percent)
                     }
                 }
@@ -1469,11 +1470,11 @@ struct HomeView: View {
         HStack(spacing: 8) {
             Image(systemName: icon)
                 .font(.system(size: 14, weight: .semibold))
-                .foregroundStyle(Color.accentColor)
+                .foregroundStyle(themeManager.accentColor)
             
             Text(title)
                 .font(.system(size: 18, weight: .bold, design: .rounded))
-                .foregroundStyle(.primary)
+                .themedText(.header)
         }
     }
     
@@ -1523,6 +1524,7 @@ struct HomeQuickActionCard: View {
             HomeQuickActionCardContent(title: title, icon: icon, color: color, isLarge: isLarge)
         }
         .buttonStyle(HomeCardButtonStyle())
+        .themedCard()
     }
 }
 
@@ -1539,6 +1541,7 @@ struct HomeCardButtonStyle: ButtonStyle {
 }
 
 struct HomeQuickActionCardContent: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let title: String
     let icon: String
     let color: Color
@@ -1552,13 +1555,14 @@ struct HomeQuickActionCardContent: View {
             
             Text(title)
                 .font(.system(size: isLarge ? 15 : 13, weight: .semibold))
-                .foregroundStyle(.primary)
+                .themedText(.primary)
                 .multilineTextAlignment(.center)
                 .lineLimit(2)
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, isLarge ? 24 : 16)
         .padding(.horizontal, 10)
+        .themedCard()
     }
 }
 
@@ -1588,6 +1592,7 @@ struct CompactQuickActionButton: View {
 
 // MARK: - Status Card
 struct StatusCard: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let title: String
     let value: String
     let subtitle: String
@@ -1605,12 +1610,12 @@ struct StatusCard: View {
             
             Text(value)
                 .font(.system(size: isLarge ? 32 : 24, weight: .bold, design: .rounded))
-                .foregroundStyle(.primary)
+                .themedText(.primary)
             
             VStack(alignment: .leading, spacing: 1) {
                 Text(title)
                     .font(.system(size: isLarge ? 13 : 11, weight: .medium))
-                    .foregroundStyle(.secondary)
+                    .themedText(.secondary)
                 
                 Text(subtitle)
                     .font(.system(size: isLarge ? 12 : 10, weight: .regular))
@@ -1619,11 +1624,13 @@ struct StatusCard: View {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(isLarge ? 18 : 14)
+        .themedCard()
     }
 }
 
 // MARK: - Compact Status Pill
 struct CompactStatusPill: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let title: String
     let icon: String
     let color: Color
@@ -1635,17 +1642,18 @@ struct CompactStatusPill: View {
                 .foregroundStyle(color)
             Text(title)
                 .font(.system(size: 12, weight: .medium))
-                .foregroundStyle(.primary)
+                .themedText(.badge)
         }
         .padding(.horizontal, 10)
         .padding(.vertical, 6)
-        .background(color.opacity(0.12))
+        .background(Color(hex: themeManager.resolvedColors.badgeBackground))
         .cornerRadius(8)
     }
 }
 
 // MARK: - Signing History Row
 struct SigningHistoryRow: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let app: Signed
     var isLarge: Bool = false
     
@@ -1683,12 +1691,13 @@ struct SigningHistoryRow: View {
             VStack(alignment: .leading, spacing: isLarge ? 4 : 2) {
                 Text(app.name ?? "Unknown App")
                     .font(.system(size: isLarge ? 16 : 14, weight: .semibold))
+                    .themedText(.primary)
                     .lineLimit(1)
                 
                 HStack(spacing: 8) {
                     Text(relativeDate)
                         .font(.system(size: isLarge ? 13 : 11))
-                        .foregroundStyle(.secondary)
+                        .themedText(.secondary)
                     
                     if isLarge {
                         Text("•")
@@ -1731,6 +1740,7 @@ struct SigningHistoryRow: View {
 
 // MARK: - Compact History Item
 struct CompactHistoryItem: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let app: Signed
     
     private var relativeDate: String {
@@ -1755,23 +1765,25 @@ struct CompactHistoryItem: View {
             VStack(spacing: 2) {
                 Text(app.name ?? "App")
                     .font(.system(size: 11, weight: .medium))
+                    .themedText(.primary)
                     .lineLimit(1)
                     .frame(width: 60)
                 
                 Text(relativeDate)
                     .font(.system(size: 9))
-                    .foregroundStyle(.secondary)
+                    .themedText(.secondary)
             }
         }
         .padding(.vertical, 8)
         .padding(.horizontal, 6)
-        .background(Color(UIColor.tertiarySystemFill))
+        .themedCard()
         .cornerRadius(12)
     }
 }
 
 // MARK: - At A Glance Row
 struct AtAGlanceRow: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let title: String
     let value: String
     let icon: String
@@ -1787,11 +1799,11 @@ struct AtAGlanceRow: View {
             VStack(alignment: .leading, spacing: 2) {
                 Text(title)
                     .font(.system(size: 12, weight: .regular))
-                    .foregroundStyle(.secondary)
+                    .themedText(.secondary)
                 
                 Text(value)
                     .font(.system(size: 15, weight: .semibold))
-                    .foregroundStyle(.primary)
+                    .themedText(.primary)
                     .lineLimit(1)
             }
             
@@ -1803,6 +1815,7 @@ struct AtAGlanceRow: View {
 
 // MARK: - Device Info Row
 struct DeviceInfoRow: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let title: String
     let value: String
     let icon: String
@@ -1817,19 +1830,20 @@ struct DeviceInfoRow: View {
             
             Text(title)
                 .font(.system(size: 14, weight: .regular))
-                .foregroundStyle(.secondary)
+                .themedText(.secondary)
             
             Spacer()
             
             Text(value)
                 .font(.system(size: 14, weight: .medium))
-                .foregroundStyle(.primary)
+                .themedText(.primary)
         }
     }
 }
 
 // MARK: - App Stat Card
 struct AppStatCard: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let title: String
     let value: String
     let icon: String
@@ -1844,19 +1858,21 @@ struct AppStatCard: View {
             
             Text(value)
                 .font(.system(size: compact ? 20 : 24, weight: .bold, design: .rounded))
-                .foregroundStyle(.primary)
+                .themedText(.primary)
             
             Text(title)
                 .font(.system(size: compact ? 10 : 12, weight: .medium))
-                .foregroundStyle(.secondary)
+                .themedText(.secondary)
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, compact ? 10 : 14)
+        .themedCard()
     }
 }
 
 // MARK: - Favorite App Card
 struct FavoriteAppCard: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let name: String
     let isSigned: Bool
     var compact: Bool = false
@@ -1865,17 +1881,17 @@ struct FavoriteAppCard: View {
         VStack(spacing: compact ? 4 : 8) {
             ZStack {
                 RoundedRectangle(cornerRadius: compact ? 10 : 14, style: .continuous)
-                    .fill(Color(UIColor.tertiarySystemFill))
+                    .fill(Color(hex: themeManager.resolvedColors.cardBackground))
                     .frame(width: compact ? 44 : 56, height: compact ? 44 : 56)
                 
                 Image(systemName: isSigned ? "checkmark.seal.fill" : "app.fill")
                     .font(.system(size: compact ? 18 : 24))
-                    .foregroundStyle(isSigned ? .green : .orange)
+                    .foregroundStyle(isSigned ? Color.green : Color.orange)
             }
             
             Text(name)
                 .font(.system(size: compact ? 10 : 12, weight: .medium))
-                .foregroundStyle(.primary)
+                .themedText(.primary)
                 .lineLimit(1)
                 .frame(width: compact ? 50 : 64)
         }
@@ -1884,6 +1900,7 @@ struct FavoriteAppCard: View {
 
 // MARK: - Recent App Row
 struct RecentAppRow: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let name: String
     let bundleId: String
     let isSigned: Bool
@@ -1898,25 +1915,26 @@ struct RecentAppRow: View {
                 
                 Image(systemName: isSigned ? "checkmark.seal.fill" : "square.and.arrow.down.fill")
                     .font(.system(size: 18))
-                    .foregroundStyle(isSigned ? .green : .orange)
+                    .foregroundStyle(isSigned ? Color.green : Color.orange)
             }
             
             VStack(alignment: .leading, spacing: 2) {
                 Text(name)
                     .font(.system(size: 14, weight: .semibold))
+                    .themedText(.primary)
                     .lineLimit(1)
                 
                 HStack(spacing: 4) {
                     Text(isSigned ? "Signed" : "Imported")
                         .font(.system(size: 11, weight: .medium))
-                        .foregroundStyle(isSigned ? .green : .orange)
+                        .foregroundStyle(isSigned ? Color.green : Color.orange)
                     
                     if let date = date {
                         Text("•")
                             .foregroundStyle(.tertiary)
                         Text(date, style: .relative)
                             .font(.system(size: 11))
-                            .foregroundStyle(.secondary)
+                            .themedText(.secondary)
                     }
                 }
             }
@@ -1928,6 +1946,7 @@ struct RecentAppRow: View {
 
 // MARK: - Quick Setting Toggle
 struct QuickSettingToggle: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let title: String
     let icon: String
     let color: Color
@@ -1946,15 +1965,18 @@ struct QuickSettingToggle: View {
                 }
                 Text(title)
                     .font(.system(size: 15, weight: .medium))
+                    .themedText(.primary)
             }
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 12)
+        .themedAccent()
     }
 }
 
 // MARK: - Storage Info Row
 struct StorageInfoRow: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let title: String
     let count: Int
     let icon: String
@@ -1969,6 +1991,7 @@ struct StorageInfoRow: View {
             
             Text(title)
                 .font(.system(size: 14, weight: .medium))
+                .themedText(.primary)
             
             Spacer()
             
@@ -2031,6 +2054,7 @@ struct CertificateExpirationBar: View {
 
 // MARK: - Source Overview Row
 struct SourceOverviewRow: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let name: String
     let appCount: Int
     let iconURL: URL?
@@ -2064,11 +2088,12 @@ struct SourceOverviewRow: View {
             VStack(alignment: .leading, spacing: 2) {
                 Text(name)
                     .font(.system(size: 14, weight: .semibold))
+                    .themedText(.primary)
                     .lineLimit(1)
                 
                 Text("\(appCount) Apps")
                     .font(.system(size: 12))
-                    .foregroundStyle(.secondary)
+                    .themedText(.secondary)
             }
             
             Spacer()
@@ -2078,6 +2103,7 @@ struct SourceOverviewRow: View {
 
 // MARK: - Sign And Install Picker View
 struct SignAndInstallPickerView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     @Environment(\.dismiss) private var dismiss
     @State private var _showFilePicker = false
     @State private var _isProcessing = false
@@ -2330,6 +2356,7 @@ struct SignAndInstallPickerView: View {
                     .padding(.bottom, 20)
                 }
             }
+            .globalTheme()
             .navigationTitle("Sign & Install")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -2502,6 +2529,7 @@ struct SignAndInstallPickerView: View {
 
 // MARK: - App Updates List Sheet
 struct AppUpdatesListSheet: View {
+    @EnvironmentObject var themeManager: ThemeManager
     @Environment(\.dismiss) private var dismiss
     let updates: [AppUpdateInfo]
     let onSignApp: (AppUpdateInfo) -> Void
@@ -2542,7 +2570,7 @@ struct AppUpdatesListSheet: View {
                     }
                 }
             }
-            .scrollContentBackground(.hidden)
+            .globalTheme()
             .navigationTitle("App Updates")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -2560,6 +2588,7 @@ struct AppUpdatesListSheet: View {
 
 // MARK: - App Update Row
 private struct AppUpdateRow: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let update: AppUpdateInfo
     let onSign: () -> Void
     let onDismiss: () -> Void
@@ -2595,15 +2624,16 @@ private struct AppUpdateRow: View {
             VStack(alignment: .leading, spacing: 4) {
                 Text(update.appName)
                     .font(.subheadline.weight(.semibold))
+                    .themedText(.primary)
                 
                 HStack(spacing: 4) {
                     Text("v\(update.currentVersion)")
-                        .foregroundStyle(.secondary)
+                        .themedText(.secondary)
                     Image(systemName: "arrow.right")
                         .font(.caption2)
-                        .foregroundStyle(.secondary)
+                        .themedText(.secondary)
                     Text("v\(update.newVersion)")
-                        .foregroundStyle(.green)
+                        .foregroundStyle(Color.green)
                 }
                 .font(.caption)
                 
@@ -2619,7 +2649,7 @@ private struct AppUpdateRow: View {
             } label: {
                 Text("Sign")
                     .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(.white)
+                    .foregroundStyle(Color(hex: themeManager.resolvedColors.buttonText))
                     .padding(.horizontal, 16)
                     .padding(.vertical, 8)
                     .background(Color.green, in: Capsule())

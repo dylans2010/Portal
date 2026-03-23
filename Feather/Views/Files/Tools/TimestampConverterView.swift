@@ -1,13 +1,14 @@
 import SwiftUI
 
 struct TimestampConverterView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     @State private var timestamp: String = "\(Int(Date().timeIntervalSince1970))"
     @State private var date: Date = Date()
 
     var body: some View {
         NavigationStack {
             Form {
-                Section(header: Text(.localized("Unix Timestamp to Date"))) {
+                Section(header: Text(.localized("Unix Timestamp to Date")).themedText(.header)) {
                     TextField(.localized("Timestamp"), text: $timestamp)
                         .keyboardType(.numberPad)
                         .onChange(of: timestamp) { newValue in
@@ -17,17 +18,17 @@ struct TimestampConverterView: View {
                         }
 
                     Text(date.formatted())
-                        .foregroundStyle(.secondary)
+                        .themedText(.secondary)
                 }
 
-                Section(header: Text(.localized("Date to Unix Timestamp"))) {
+                Section(header: Text(.localized("Date to Unix Timestamp")).themedText(.header)) {
                     DatePicker(.localized("Select Date"), selection: $date)
                         .onChange(of: date) { newValue in
                             timestamp = "\(Int(newValue.timeIntervalSince1970))"
                         }
 
                     Text("\(Int(date.timeIntervalSince1970))")
-                        .foregroundStyle(.secondary)
+                        .themedText(.secondary)
                         .textSelection(.enabled)
                 }
 
@@ -38,7 +39,7 @@ struct TimestampConverterView: View {
                     }
                 }
             }
-            .scrollContentBackground(.hidden)
+            .globalTheme()
             .navigationTitle(.localized("Timestamp Converter"))
             .navigationBarTitleDisplayMode(.inline)
         }

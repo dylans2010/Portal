@@ -8,6 +8,7 @@
 import SwiftUI
 
 struct ExperimentalGuidesView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     @State private var selectedCategory: GuideCategory = .all
     
     enum GuideCategory: String, CaseIterable {
@@ -50,6 +51,7 @@ struct ExperimentalGuidesView: View {
                 }
                 .padding(.bottom, 100)
             }
+            .globalTheme()
             .navigationBarHidden(true)
         }
         .accentColor(ExperimentalUITheme.Colors.accentPrimary)
@@ -70,6 +72,7 @@ struct ExperimentalGuidesList: View {
 
 // MARK: - Guide Card
 struct ExperimentalGuideCard: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let index: Int
     
     var body: some View {
@@ -79,12 +82,12 @@ struct ExperimentalGuideCard: View {
                 Text(categories[index % categories.count])
                     .font(ExperimentalUITheme.Typography.caption)
                     .fontWeight(.semibold)
-                    .foregroundStyle(ExperimentalUITheme.Colors.accentPrimary)
+                    .themedText(.badge)
                     .padding(.horizontal, ExperimentalUITheme.Spacing.sm)
                     .padding(.vertical, 4)
                     .background(
                         Capsule()
-                            .fill(ExperimentalUITheme.Colors.accentPrimary.opacity(0.15))
+                            .fill(Color(hex: themeManager.resolvedColors.badgeBackground))
                     )
                 
                 Spacer()
@@ -95,18 +98,18 @@ struct ExperimentalGuideCard: View {
                     Text("\(Int.random(in: 3...10)) min")
                         .font(ExperimentalUITheme.Typography.caption)
                 }
-                .foregroundStyle(ExperimentalUITheme.Colors.textSecondary)
+                .themedText(.secondary)
             }
             
             // Title & Description
             VStack(alignment: .leading, spacing: ExperimentalUITheme.Spacing.xs) {
                 Text("Guide Title \(index + 1)")
                     .font(ExperimentalUITheme.Typography.headline)
-                    .foregroundStyle(ExperimentalUITheme.Colors.textPrimary)
+                    .themedText(.primary)
                 
                 Text("Learn how to effectively use Feather with this comprehensive guide covering all essential features.")
                     .font(ExperimentalUITheme.Typography.callout)
-                    .foregroundStyle(ExperimentalUITheme.Colors.textSecondary)
+                    .themedText(.secondary)
                     .lineLimit(2)
             }
             
@@ -120,19 +123,19 @@ struct ExperimentalGuideCard: View {
                     Image(systemName: "arrow.right")
                         .font(.system(size: 12, weight: .semibold))
                 }
-                .foregroundStyle(.white)
+                .foregroundStyle(Color(hex: themeManager.resolvedColors.buttonText))
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, ExperimentalUITheme.Spacing.sm)
                 .background(
                     RoundedRectangle(cornerRadius: ExperimentalUITheme.CornerRadius.sm)
-                        .fill(ExperimentalUITheme.Gradients.primary)
+                        .fill(themeManager.accentColor)
                 )
             }
         }
         .padding(ExperimentalUITheme.Spacing.md)
+        .themedCard()
         .background(
             RoundedRectangle(cornerRadius: ExperimentalUITheme.CornerRadius.lg)
-                .fill(ExperimentalUITheme.Colors.cardBackground)
                 .shadow(
                     color: ExperimentalUITheme.Shadow.sm.color,
                     radius: ExperimentalUITheme.Shadow.sm.radius,

@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct IPAExplorerFileBrowser: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let rootURL: URL
     let currentURL: URL
     @ObservedObject var viewModel: IPAExplorerViewModel
@@ -25,7 +26,7 @@ struct IPAExplorerFileBrowser: View {
                 }
             }
         }
-            .scrollContentBackground(.hidden)
+        .globalTheme()
         .navigationTitle(currentURL == rootURL ? .localized("Payload") : currentURL.lastPathComponent)
         .onAppear {
             loadItems()
@@ -70,19 +71,21 @@ struct IPAExplorerFileBrowser: View {
 }
 
 struct FileRow: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let url: URL
 
     var body: some View {
         HStack {
             Image(systemName: isDirectory ? "folder.fill" : "doc.fill")
-                .foregroundStyle(isDirectory ? .blue : .secondary)
+                .foregroundStyle(isDirectory ? .blue : Color(hex: themeManager.resolvedColors.iconTint))
             VStack(alignment: .leading) {
                 Text(url.lastPathComponent)
                     .font(.body)
+                    .themedText(.primary)
                 if !isDirectory {
                     Text(fileSize)
                         .font(.caption)
-                        .foregroundStyle(.secondary)
+                        .themedText(.secondary)
                 }
             }
         }
@@ -101,6 +104,7 @@ struct FileRow: View {
 }
 
 struct SimpleFileViewer: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let url: URL
     @State private var content: String = ""
 
@@ -108,8 +112,10 @@ struct SimpleFileViewer: View {
         ScrollView {
             Text(content)
                 .font(.system(.body, design: .monospaced))
+                .themedText(.primary)
                 .padding()
         }
+        .globalTheme()
         .navigationTitle(url.lastPathComponent)
         .onAppear {
             if let data = try? Data(contentsOf: url), let s = String(data: data, encoding: .utf8) {

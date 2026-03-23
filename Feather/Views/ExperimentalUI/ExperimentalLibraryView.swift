@@ -8,6 +8,7 @@
 import SwiftUI
 
 struct ExperimentalLibraryView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     @State private var selectedFilter: LibraryFilter = .all
     
     enum LibraryFilter: String, CaseIterable {
@@ -49,6 +50,7 @@ struct ExperimentalLibraryView: View {
                 }
                 .padding(.bottom, 100)
             }
+            .globalTheme()
             .navigationBarHidden(true)
         }
         .accentColor(ExperimentalUITheme.Colors.accentPrimary)
@@ -57,6 +59,7 @@ struct ExperimentalLibraryView: View {
 
 // MARK: - Filter Chip
 struct ExperimentalFilterChip: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let title: String
     let isSelected: Bool
     let action: () -> Void
@@ -66,14 +69,13 @@ struct ExperimentalFilterChip: View {
             Text(title)
                 .font(ExperimentalUITheme.Typography.callout)
                 .fontWeight(isSelected ? .semibold : .regular)
-                .foregroundStyle(isSelected ? .white : ExperimentalUITheme.Colors.textPrimary)
+                .foregroundStyle(isSelected ? .white : Color(hex: themeManager.resolvedColors.primaryText))
                 .padding(.horizontal, ExperimentalUITheme.Spacing.md)
                 .padding(.vertical, ExperimentalUITheme.Spacing.sm)
                 .background(
                     Capsule()
-                        .fill(isSelected ? ExperimentalUITheme.Gradients.primary : 
-                              LinearGradient(gradient: Gradient(colors: [ExperimentalUITheme.Colors.backgroundSecondary]), 
-                                           startPoint: .leading, endPoint: .trailing))
+                        .fill(isSelected ? AnyShapeStyle(themeManager.accentColor) :
+                              AnyShapeStyle(Color(hex: themeManager.resolvedColors.cardBackground)))
                 )
                 .shadow(
                     color: isSelected ? ExperimentalUITheme.Shadow.sm.color : .clear,
@@ -99,6 +101,7 @@ struct ExperimentalLibraryAppsGrid: View {
 
 // MARK: - Library App Row
 struct ExperimentalLibraryAppRow: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let index: Int
     
     var body: some View {
@@ -117,19 +120,19 @@ struct ExperimentalLibraryAppRow: View {
             VStack(alignment: .leading, spacing: 4) {
                 Text("Application \(index + 1)")
                     .font(ExperimentalUITheme.Typography.headline)
-                    .foregroundStyle(ExperimentalUITheme.Colors.textPrimary)
+                    .themedText(.primary)
                 
                 Text("Version 1.\(index).0")
                     .font(ExperimentalUITheme.Typography.caption)
-                    .foregroundStyle(ExperimentalUITheme.Colors.textSecondary)
+                    .themedText(.secondary)
                 
                 HStack(spacing: 4) {
                     Image(systemName: "checkmark.seal.fill")
                         .font(.system(size: 10))
-                        .foregroundStyle(ExperimentalUITheme.Colors.accentPrimary)
+                        .foregroundStyle(themeManager.accentColor)
                     Text("Signed")
                         .font(ExperimentalUITheme.Typography.caption)
-                        .foregroundStyle(ExperimentalUITheme.Colors.textSecondary)
+                        .themedText(.secondary)
                 }
             }
             
@@ -139,18 +142,18 @@ struct ExperimentalLibraryAppRow: View {
             Button(action: {}) {
                 Image(systemName: "ellipsis")
                     .font(.system(size: 18, weight: .semibold))
-                    .foregroundStyle(ExperimentalUITheme.Colors.textSecondary)
+                    .themedText(.secondary)
                     .frame(width: 40, height: 40)
                     .background(
                         Circle()
-                            .fill(ExperimentalUITheme.Colors.backgroundSecondary)
+                            .fill(Color(hex: themeManager.resolvedColors.cardBackground))
                     )
             }
         }
         .padding(ExperimentalUITheme.Spacing.md)
+        .themedCard()
         .background(
             RoundedRectangle(cornerRadius: ExperimentalUITheme.CornerRadius.lg)
-                .fill(ExperimentalUITheme.Colors.cardBackground)
                 .shadow(
                     color: ExperimentalUITheme.Shadow.sm.color,
                     radius: ExperimentalUITheme.Shadow.sm.radius,

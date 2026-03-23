@@ -93,7 +93,7 @@ struct GuideDetailView: View {
                         ProgressView()
                         Text("Loading Guide...")
                             .font(.subheadline)
-                            .foregroundStyle(.secondary)
+                            .themedText(.secondary)
                     }
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .padding()
@@ -109,7 +109,7 @@ struct GuideDetailView: View {
                         
                         Text(error)
                             .font(.subheadline)
-                            .foregroundStyle(.secondary)
+                            .themedText(.secondary)
                             .multilineTextAlignment(.center)
                             .padding(.horizontal)
                         
@@ -330,11 +330,11 @@ struct GuideDetailView: View {
                 VStack(alignment: .leading, spacing: 2) {
                     Text("AI Generated Guide")
                         .font(.headline)
-                        .foregroundStyle(.primary)
+                        .themedText(.primary)
                     
                     Text("Generated with Apple Intelligence")
                         .font(.caption)
-                        .foregroundStyle(.secondary)
+                        .themedText(.secondary)
                 }
                 
                 Spacer()
@@ -348,7 +348,7 @@ struct GuideDetailView: View {
                 } label: {
                     Image(systemName: "xmark.circle.fill")
                         .font(.title2)
-                        .foregroundStyle(.secondary)
+                        .themedText(.secondary)
                 }
             }
             .padding()
@@ -403,11 +403,11 @@ struct GuideDetailView: View {
                             Text("Generation Failed")
                                 .font(.title2)
                                 .fontWeight(.bold)
-                                .foregroundStyle(.primary)
+                                .themedText(.primary)
                             
                             Text(error)
                                 .font(.subheadline)
-                                .foregroundStyle(.secondary)
+                                .themedText(.secondary)
                                 .multilineTextAlignment(.center)
                                 .padding(.horizontal)
                         }
@@ -466,11 +466,11 @@ struct GuideDetailView: View {
                             Text("Generating Guide...")
                                 .font(.title2)
                                 .fontWeight(.bold)
-                                .foregroundStyle(.primary)
+                                .themedText(.primary)
                             
                             Text("Apple Intelligence is writing your guide")
                                 .font(.subheadline)
-                                .foregroundStyle(.secondary)
+                                .themedText(.secondary)
                         }
                     }
                 }
@@ -485,7 +485,7 @@ struct GuideDetailView: View {
                     Text("Cancel")
                         .font(.body)
                         .fontWeight(.medium)
-                        .foregroundStyle(.secondary)
+                        .themedText(.secondary)
                         .padding(.horizontal, 32)
                         .padding(.vertical, 12)
                         .background(
@@ -523,7 +523,7 @@ struct GuideDetailView: View {
                 VStack(alignment: .leading, spacing: 2) {
                     Text("AI Generated")
                         .font(.headline)
-                        .foregroundStyle(.primary)
+                        .themedText(.primary)
                     
                     if let engine = aiEngineUsed {
                         HStack(spacing: 4) {
@@ -537,7 +537,7 @@ struct GuideDetailView: View {
                                     .foregroundStyle(.orange)
                             }
                         }
-                        .foregroundStyle(.secondary)
+                        .themedText(.secondary)
                     }
                 }
                 
@@ -552,7 +552,7 @@ struct GuideDetailView: View {
                 } label: {
                     Image(systemName: "xmark.circle.fill")
                         .font(.title2)
-                        .foregroundStyle(.secondary)
+                        .themedText(.secondary)
                 }
             }
             .padding()
@@ -655,11 +655,11 @@ struct GuideDetailView: View {
                         Text(getProcessingTitle())
                             .font(.title2)
                             .fontWeight(.bold)
-                            .foregroundStyle(.primary)
+                            .themedText(.primary)
                         
                         Text("AI is generating content...")
                             .font(.subheadline)
-                            .foregroundStyle(.secondary)
+                            .themedText(.secondary)
                     }
                 }
                 .padding(.bottom, 40)
@@ -673,14 +673,14 @@ struct GuideDetailView: View {
                             Text("Writing...")
                                 .font(.caption)
                                 .fontWeight(.medium)
-                                .foregroundStyle(.secondary)
+                                .themedText(.secondary)
                             Spacer()
                         }
                         
                         ScrollView {
                             Text(streamingText)
                                 .font(.system(.body, design: .rounded))
-                                .foregroundStyle(.primary)
+                                .themedText(.primary)
                                 .frame(maxWidth: .infinity, alignment: .leading)
                                 .multilineTextAlignment(.leading)
                         }
@@ -722,7 +722,7 @@ struct GuideDetailView: View {
                     Text("Cancel")
                         .font(.body)
                         .fontWeight(.medium)
-                        .foregroundStyle(.secondary)
+                        .themedText(.secondary)
                         .padding(.horizontal, 32)
                         .padding(.vertical, 12)
                         .background(
@@ -888,7 +888,7 @@ struct GuideDetailView: View {
                 case .text(let text):
                     Text(parseInlineMarkdown(text))
                         .font(.body)
-                        .foregroundStyle(.primary)
+                        .themedText(.primary)
                     
                 case .link(let url, let text):
                     if let validURL = URL(string: url) {
@@ -901,7 +901,7 @@ struct GuideDetailView: View {
                     } else {
                         Text(text)
                             .font(.body)
-                            .foregroundStyle(.secondary)
+                            .themedText(.secondary)
                     }
                     
                 case .accentText(let text):
@@ -932,13 +932,13 @@ struct GuideDetailView: View {
             if let lang = language, !lang.isEmpty {
                 Text(lang.uppercased())
                     .font(.caption.bold())
-                    .foregroundStyle(.secondary)
+                    .themedText(.secondary)
             }
             
             ScrollView(.horizontal, showsIndicators: true) {
                 Text(code)
                     .font(.system(.body, design: .monospaced))
-                    .foregroundStyle(.primary)
+                    .themedText(.primary)
                     .padding(12)
             }
             .background(Color.secondary.opacity(0.1))
@@ -963,11 +963,11 @@ struct GuideDetailView: View {
                 VStack(spacing: 8) {
                     Image(systemName: "photo")
                         .font(.largeTitle)
-                        .foregroundStyle(.secondary)
+                        .themedText(.secondary)
                     if let alt = altText {
                         Text(alt)
                             .font(.caption)
-                            .foregroundStyle(.secondary)
+                            .themedText(.secondary)
                             .multilineTextAlignment(.center)
                     }
                 }
@@ -998,7 +998,7 @@ struct GuideDetailView: View {
         } else {
             return AnyView(
                 Text(text)
-                    .foregroundStyle(.secondary)
+                    .themedText(.secondary)
                     .frame(maxWidth: .infinity, alignment: .leading)
             )
         }
@@ -1007,7 +1007,7 @@ struct GuideDetailView: View {
     private func renderListItem(level: Int, content: [InlineContent]) -> some View {
         HStack(alignment: .top, spacing: 8) {
             Text("•")
-                .foregroundStyle(.secondary)
+                .themedText(.secondary)
                 .frame(width: 16)
             renderInlineContent(content)
         }
@@ -1190,7 +1190,7 @@ struct AIActionsSheet: View {
                             
                             Text("Use AI to process this guide.")
                                 .font(.subheadline)
-                                .foregroundStyle(.secondary)
+                                .themedText(.secondary)
                         }
                     }
                     .padding(.top, 8)
@@ -1218,12 +1218,12 @@ struct AIActionsSheet: View {
                                         .fontWeight(.semibold)
                                     Text("Add your API key in Settings → Guides")
                                         .font(.caption)
-                                        .foregroundStyle(.secondary)
+                                        .themedText(.secondary)
                                 }
                                 Spacer()
                                 Image(systemName: "chevron.right")
                                     .font(.caption)
-                                    .foregroundStyle(.secondary)
+                                    .themedText(.secondary)
                             }
                             .padding()
                             .background(
@@ -1253,7 +1253,7 @@ struct AIActionsSheet: View {
                     } label: {
                         Image(systemName: "xmark.circle.fill")
                             .font(.title2)
-                            .foregroundStyle(.secondary)
+                            .themedText(.secondary)
                     }
                 }
             }
@@ -1302,11 +1302,11 @@ struct AIActionButton: View {
                     Text(action.displayName)
                         .font(.subheadline)
                         .fontWeight(.semibold)
-                        .foregroundStyle(.primary)
+                        .themedText(.primary)
                     
                     Text(action.description)
                         .font(.caption2)
-                        .foregroundStyle(.secondary)
+                        .themedText(.secondary)
                         .multilineTextAlignment(.center)
                         .lineLimit(2)
                         .fixedSize(horizontal: false, vertical: true)
@@ -1365,7 +1365,7 @@ struct CustomPromptSheet: View {
                     
                     Text("Enter your own instructions for the AI")
                         .font(.subheadline)
-                        .foregroundStyle(.secondary)
+                        .themedText(.secondary)
                 }
                 .padding(.top)
                 
@@ -1374,7 +1374,7 @@ struct CustomPromptSheet: View {
                     Text("Your Instruction")
                         .font(.subheadline)
                         .fontWeight(.medium)
-                        .foregroundStyle(.secondary)
+                        .themedText(.secondary)
                     
                     TextEditor(text: $instruction)
                         .frame(minHeight: 120)
@@ -1463,7 +1463,7 @@ struct AIErrorSheet: View {
                 VStack(spacing: 16) {
                     Text(error)
                         .font(.body)
-                        .foregroundStyle(.secondary)
+                        .themedText(.secondary)
                         .multilineTextAlignment(.center)
                         .padding(.horizontal)
                     
@@ -1524,7 +1524,7 @@ struct AIErrorSheet: View {
                         onDismiss()
                     } label: {
                         Image(systemName: "xmark.circle.fill")
-                            .foregroundStyle(.secondary)
+                            .themedText(.secondary)
                     }
                 }
             }
@@ -1597,7 +1597,7 @@ struct TranslateSheet: View {
                             
                             Text("Select Language")
                                 .font(.subheadline)
-                                .foregroundStyle(.secondary)
+                                .themedText(.secondary)
                         }
                     }
                     .padding(.top, 8)
@@ -1637,7 +1637,7 @@ struct TranslateSheet: View {
                                 Spacer()
                                 Image(systemName: showCustomLanguage ? "chevron.up" : "chevron.down")
                                     .font(.caption)
-                                    .foregroundStyle(.secondary)
+                                    .themedText(.secondary)
                             }
                             .padding()
                             .background(Color.clear)
@@ -1662,7 +1662,7 @@ struct TranslateSheet: View {
                                         selectedLanguage = ""
                                     } label: {
                                         Image(systemName: "xmark.circle.fill")
-                                            .foregroundStyle(.secondary)
+                                            .themedText(.secondary)
                                     }
                                 }
                             }
@@ -1735,7 +1735,7 @@ struct LanguageButton: View {
                 Text(name)
                     .font(.subheadline)
                     .fontWeight(.medium)
-                    .foregroundStyle(.primary)
+                    .themedText(.primary)
                     .lineLimit(1)
                 
                 Spacer()
@@ -1813,7 +1813,7 @@ struct GlassmorphicAIActionsSheet: View {
                 
                 Text("Make Guides Easier")
                     .font(.subheadline)
-                    .foregroundStyle(.secondary)
+                    .themedText(.secondary)
             }
             .padding(.bottom, 20)
             
@@ -1837,7 +1837,7 @@ struct GlassmorphicAIActionsSheet: View {
                             .foregroundStyle(.orange)
                         Text("Configure API Key In Settings")
                             .font(.caption)
-                            .foregroundStyle(.secondary)
+                            .themedText(.secondary)
                     }
                     .padding()
                     .frame(maxWidth: .infinity)
@@ -1891,11 +1891,11 @@ struct GlassmorphicActionButton: View {
                     Text(action.displayName)
                         .font(.subheadline)
                         .fontWeight(.semibold)
-                        .foregroundStyle(.primary)
+                        .themedText(.primary)
                     
                     Text(action.description)
                         .font(.caption2)
-                        .foregroundStyle(.secondary)
+                        .themedText(.secondary)
                         .lineLimit(2)
                         .multilineTextAlignment(.center)
                 }
@@ -1957,7 +1957,7 @@ struct GlassmorphicCustomPromptSheet: View {
                 
                 Text("Enter Instructions")
                     .font(.subheadline)
-                    .foregroundStyle(.secondary)
+                    .themedText(.secondary)
             }
             .padding(.bottom, 24)
             
@@ -2063,7 +2063,7 @@ struct GlassmorphicTranslateSheet: View {
                 
                 Text("Select Target Language")
                     .font(.subheadline)
-                    .foregroundStyle(.secondary)
+                    .themedText(.secondary)
             }
             .padding(.bottom, 20)
             
@@ -2105,7 +2105,7 @@ struct GlassmorphicTranslateSheet: View {
                         Spacer()
                         Image(systemName: showCustomLanguage ? "chevron.up" : "chevron.down")
                             .font(.caption)
-                            .foregroundStyle(.secondary)
+                            .themedText(.secondary)
                     }
                     .padding()
                     .background(Color.clear)
@@ -2182,7 +2182,7 @@ struct GlassmorphicLanguageButton: View {
                 Text(name)
                     .font(.subheadline)
                     .fontWeight(.medium)
-                    .foregroundStyle(.primary)
+                    .themedText(.primary)
                     .lineLimit(1)
                 
                 Spacer()
@@ -2250,7 +2250,7 @@ struct GlassmorphicErrorSheet: View {
             
             Text(error)
                 .font(.subheadline)
-                .foregroundStyle(.secondary)
+                .themedText(.secondary)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, 24)
             

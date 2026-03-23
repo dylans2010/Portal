@@ -2,6 +2,7 @@ import SwiftUI
 
 // MARK: - Configure Layouts View (Simplified & Modern)
 struct ConfigureLayoutsView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     @Environment(\.dismiss) var dismiss
     @ObservedObject var viewModel: StatusBarViewModel
     @State private var selectedLayout: LayoutType = .text
@@ -70,7 +71,7 @@ struct ConfigureLayoutsView: View {
                 }
                 .padding(16)
             }
-            .background(Color.clear)
+            .globalTheme()
             .navigationTitle("Configure Layouts")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -87,7 +88,7 @@ struct ConfigureLayoutsView: View {
     // MARK: - Widget Type Selector
     private var widgetTypeSelector: some View {
         VStack(alignment: .leading, spacing: 12) {
-            sectionHeader("Widget Type", icon: "square.grid.2x2.fill", color: .accentColor)
+            sectionHeader("Widget Type", icon: "square.grid.2x2.fill", color: themeManager.accentColor)
             
             LazyVGrid(columns: [GridItem(.adaptive(minimum: 80))], spacing: 12) {
                 ForEach(LayoutType.allCases, id: \.rawValue) { layout in
@@ -121,7 +122,7 @@ struct ConfigureLayoutsView: View {
                 
                 Text(layout.rawValue)
                     .font(.caption2.weight(isSelected ? .semibold : .medium))
-                    .foregroundStyle(isSelected ? .primary : .secondary)
+                    .themedText(isSelected ? .primary : .secondary)
             }
         }
         .buttonStyle(.plain)
@@ -142,9 +143,10 @@ struct ConfigureLayoutsView: View {
             VStack(alignment: .leading, spacing: 2) {
                 Text(selectedLayout.rawValue)
                     .font(.subheadline.weight(.semibold))
+                    .themedText(.primary)
                 Text(selectedLayout.description)
                     .font(.caption)
-                    .foregroundStyle(.secondary)
+                    .themedText(.secondary)
             }
             
             Spacer()
@@ -162,6 +164,7 @@ struct ConfigureLayoutsView: View {
             VStack(alignment: .leading, spacing: 8) {
                 Text("Alignment")
                     .font(.subheadline.weight(.medium))
+                    .themedText(.primary)
                 
                 HStack(spacing: 8) {
                     ForEach(["left", "center", "right"], id: \.self) { position in
@@ -200,7 +203,7 @@ struct ConfigureLayoutsView: View {
                 Text(position.capitalized)
                     .font(.caption2)
             }
-            .foregroundStyle(isSelected ? .white : .primary)
+            .foregroundStyle(isSelected ? Color(hex: themeManager.resolvedColors.buttonText) : Color(hex: themeManager.resolvedColors.primaryText))
             .frame(maxWidth: .infinity)
             .padding(.vertical, 10)
             .background(
@@ -220,14 +223,14 @@ struct ConfigureLayoutsView: View {
             
             Text(title)
                 .font(.subheadline)
-                .foregroundStyle(.secondary)
+                .themedText(.secondary)
             
             Slider(value: value, in: 0...50, step: 1)
                 .tint(selectedLayout.color)
             
             Text("\(Int(value.wrappedValue))")
                 .font(.caption.weight(.semibold).monospacedDigit())
-                .foregroundStyle(.secondary)
+                .themedText(.secondary)
                 .frame(width: 30)
         }
     }
@@ -246,7 +249,7 @@ struct ConfigureLayoutsView: View {
     
     private var cardBackground: some View {
         RoundedRectangle(cornerRadius: 16, style: .continuous)
-            .fill(Color.clear)
+            .fill(Color(hex: themeManager.resolvedColors.cardBackground))
     }
     
     // MARK: - Padding Bindings

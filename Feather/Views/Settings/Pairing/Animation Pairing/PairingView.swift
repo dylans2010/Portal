@@ -2,6 +2,7 @@ import SwiftUI
 import NimbleViews
 
 struct PairingView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     var isEmbedded: Bool = false
 
     // MARK: - State
@@ -34,9 +35,6 @@ struct PairingView: View {
 
     private var mainContent: some View {
         ZStack {
-            backgroundGradient
-                .ignoresSafeArea()
-
             ScrollView {
                 VStack(spacing: 28) {
                     sphereSection
@@ -48,6 +46,7 @@ struct PairingView: View {
                 .padding(.vertical, 32)
             }
         }
+        .globalTheme()
         .navigationTitle(.localized("Pair Devices"))
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
@@ -150,7 +149,7 @@ struct PairingView: View {
                 .fill(
                     RadialGradient(
                         colors: [
-                            Color(hue: 0.58, saturation: 0.6, brightness: 0.5)
+                            themeManager.accentColor
                                 .opacity(0.18 + viewModel.progress * 0.18),
                             .clear
                         ],
@@ -176,22 +175,22 @@ struct PairingView: View {
             Text(viewModel.statusMessage)
                 .font(.subheadline)
                 .multilineTextAlignment(.center)
-                .foregroundStyle(.secondary)
+                .themedText(.secondary)
                 .animation(.easeInOut(duration: 0.3), value: viewModel.statusMessage)
 
             // Gradient progress bar
             GeometryReader { geo in
                 ZStack(alignment: .leading) {
                     RoundedRectangle(cornerRadius: 3)
-                        .fill(Color.white.opacity(0.1))
+                        .fill(themeManager.accentColor.opacity(0.1))
                         .frame(height: 5)
 
                     RoundedRectangle(cornerRadius: 3)
                         .fill(
                             LinearGradient(
                                 colors: [
-                                    Color(hue: 0.55, saturation: 0.8, brightness: 0.9),
-                                    Color(hue: 0.42, saturation: 0.7, brightness: 0.85)
+                                    themeManager.accentColor,
+                                    themeManager.accentColor.opacity(0.7)
                                 ],
                                 startPoint: .leading,
                                 endPoint: .trailing
@@ -216,27 +215,18 @@ struct PairingView: View {
                 Button(action: { viewModel.showScanSheet = true }) {
                     Label(.localized("Scan Pairing Code"), systemImage: "camera.viewfinder")
                         .font(.headline)
-                        .foregroundStyle(.white)
+                        .foregroundStyle(Color(hex: themeManager.resolvedColors.buttonText))
                         .frame(maxWidth: .infinity, minHeight: 50)
-                        .background(
-                            LinearGradient(
-                                colors: [
-                                    Color(hue: 0.70, saturation: 0.75, brightness: 0.90),
-                                    Color(hue: 0.82, saturation: 0.65, brightness: 0.85)
-                                ],
-                                startPoint: .leading,
-                                endPoint: .trailing
-                            )
-                        )
+                        .background(Color(hex: themeManager.resolvedColors.buttonBackground))
                         .clipShape(RoundedRectangle(cornerRadius: 14))
                 }
 
                 Button(action: { showDemo = true }) {
                     Label(.localized("See Demo"), systemImage: "play.circle")
                         .font(.subheadline)
-                        .foregroundStyle(.white.opacity(0.75))
+                        .themedText(.secondary)
                         .frame(maxWidth: .infinity, minHeight: 42)
-                        .background(.white.opacity(0.08))
+                        .background(Color(hex: themeManager.resolvedColors.cardBackground))
                         .clipShape(RoundedRectangle(cornerRadius: 12))
                 }
             }
@@ -245,7 +235,7 @@ struct PairingView: View {
                 Button(action: { viewModel.retry() }) {
                     Label(.localized("Try Again"), systemImage: "arrow.clockwise")
                         .font(.subheadline)
-                        .foregroundStyle(.orange)
+                        .foregroundStyle(themeManager.accentColor)
                 }
             }
         }
@@ -259,14 +249,15 @@ struct PairingView: View {
         if let errorMessage = viewModel.errorMessage, case .failed = viewModel.status {
             HStack(spacing: 8) {
                 Image(systemName: "exclamationmark.circle")
-                    .foregroundStyle(.orange)
+                    .foregroundStyle(Color(hex: themeManager.resolvedColors.destructive))
                 Text(errorMessage)
                     .font(.footnote)
-                    .foregroundStyle(.orange.opacity(0.9))
+                    .foregroundStyle(Color(hex: themeManager.resolvedColors.destructive))
+                    .opacity(0.9)
                     .multilineTextAlignment(.leading)
             }
             .padding(12)
-            .background(Color.orange.opacity(0.12))
+            .background(Color(hex: themeManager.resolvedColors.destructive).opacity(0.12))
             .clipShape(RoundedRectangle(cornerRadius: 10))
             .transition(.move(edge: .bottom).combined(with: .opacity))
         }

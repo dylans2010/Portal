@@ -7,6 +7,7 @@ import Zip
 
 // MARK: - Modern Library View with Blue Gradient Background
 struct LibraryView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     @Environment(\.managedObjectContext) private var viewContext
     @AppStorage("Feather.useGradients") private var _useGradients: Bool = true
     
@@ -104,6 +105,7 @@ struct LibraryView: View {
     var body: some View {
         NavigationStack {
             navigationContent
+                .globalTheme()
         }
     }
 
@@ -321,10 +323,10 @@ struct LibraryView: View {
     private func sectionHeader(_ title: String) -> some View {
         Text(title)
             .font(.system(size: 12, weight: .bold, design: .rounded))
-            .foregroundStyle(.secondary)
+            .themedText(.header)
             .padding(.horizontal, 12)
             .padding(.vertical, 4)
-            .background(Color.secondary.opacity(0.1))
+            .background(Color(hex: themeManager.resolvedColors.badgeBackground).opacity(0.1))
             .clipShape(Capsule())
             .padding(.horizontal, 24)
     }
@@ -339,7 +341,7 @@ struct LibraryView: View {
                 } label: {
                     Image(systemName: "document.badge.plus.fill")
                         .font(.system(size: 20))
-                        .foregroundStyle(Color.accentColor)
+                        .foregroundStyle(Color(hex: themeManager.resolvedColors.iconTint))
                         .symbolRenderingMode(.hierarchical)
                 }
             }
@@ -385,13 +387,13 @@ extension LibraryView {
                     } label: {
                         Text(mode.rawValue)
                             .font(.system(size: 13, weight: isSelected ? .bold : .medium, design: .rounded))
-                            .foregroundStyle(isSelected ? .primary : .secondary)
+                            .themedText(isSelected ? .primary : .secondary)
                             .padding(.horizontal, 16)
                             .padding(.vertical, 8)
                             .background {
                                 if isSelected {
                                     Capsule()
-                                        .fill(Color(UIColor.secondarySystemGroupedBackground))
+                                        .fill(Color(hex: themeManager.resolvedColors.buttonBackground))
                                         .shadow(color: .black.opacity(0.1), radius: 4, x: 0, y: 2)
                                         .matchedGeometryEffect(id: "activeFilter", in: _namespace)
                                 }
@@ -442,7 +444,7 @@ extension LibraryView {
                     } label: {
                         Text("Sign \(unsignedSelectedApps.count)")
                             .font(.system(size: 15, weight: .semibold))
-                            .foregroundStyle(Color.accentColor)
+                            .foregroundStyle(themeManager.accentColor)
                             .contentShape(Rectangle())
                     }
 
@@ -508,10 +510,10 @@ extension LibraryView {
                 } label: {
                     Text("Import App")
                         .font(.system(size: 17, weight: .semibold))
-                        .foregroundStyle(.white)
+                        .foregroundStyle(Color(hex: themeManager.resolvedColors.buttonText))
                         .padding(.horizontal, 24)
                         .padding(.vertical, 10)
-                        .background(Color.accentColor)
+                        .background(Color(hex: themeManager.resolvedColors.buttonBackground))
                         .clipShape(Capsule())
                 }
                 .padding(.top, 10)
@@ -541,7 +543,7 @@ extension LibraryView {
                 } label: {
                     Text("Import App")
                         .font(.system(size: 17, weight: .semibold))
-                        .foregroundStyle(Color.accentColor)
+                        .foregroundStyle(themeManager.accentColor)
                 }
                 .padding(.top, 8)
 
@@ -717,6 +719,7 @@ extension LibraryView {
 
 // MARK: - Simplified Library App Row
 struct LibraryAppRow: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let app: AppInfoPresentable
     @Binding var selectedInfoAppPresenting: AnyApp?
     @Binding var selectedSigningAppPresenting: AnyApp?
@@ -745,7 +748,7 @@ struct LibraryAppRow: View {
                     if isEditing {
                         Image(systemName: selectedApps.contains(app.uuid) ? "checkmark.circle.fill" : "circle")
                             .font(.system(size: 22))
-                            .foregroundStyle(selectedApps.contains(app.uuid) ? Color.accentColor : .secondary.opacity(0.4))
+                            .foregroundStyle(selectedApps.contains(app.uuid) ? themeManager.accentColor : Color(hex: themeManager.resolvedColors.secondaryText).opacity(0.4))
                             .transition(.move(edge: .leading).combined(with: .opacity))
                     }
 
@@ -756,23 +759,23 @@ struct LibraryAppRow: View {
                     VStack(alignment: .leading, spacing: 2) {
                         Text(app.name ?? String.localized("Unknown"))
                             .font(.system(size: 16, weight: .bold))
-                            .foregroundStyle(.primary)
+                            .themedText(.primary)
                             .lineLimit(1)
 
                         HStack(spacing: 6) {
                             if let version = app.version {
                                 Text(version)
                                     .font(.system(size: 11, design: .monospaced))
-                                    .foregroundStyle(.secondary)
+                                    .themedText(.secondary)
                             }
 
                             Text("•")
                                 .font(.system(size: 11))
-                                .foregroundStyle(.secondary)
+                                .themedText(.secondary)
 
                             Text(app.isSigned ? String.localized("Signed") : String.localized("Unsigned"))
                                 .font(.system(size: 11, weight: .bold))
-                                .foregroundStyle(app.isSigned ? .green : .orange)
+                                .foregroundStyle(app.isSigned ? Color.green : Color.orange)
                         }
                     }
 
@@ -793,7 +796,7 @@ struct LibraryAppRow: View {
                 } label: {
                     Image(systemName: app.isSigned ? "arrow.down.circle.fill" : "signature")
                         .font(.system(size: 20, weight: .bold))
-                        .foregroundStyle(app.isSigned ? Color.green : Color.accentColor)
+                        .foregroundStyle(app.isSigned ? Color.green : themeManager.accentColor)
                         .contentShape(Rectangle())
                 }
 
@@ -801,11 +804,13 @@ struct LibraryAppRow: View {
         }
         .padding(.vertical, 10)
         .padding(.horizontal, 12)
+        .themedCard()
     }
 }
 
 // MARK: - Library Download Header View
 struct LibraryDownloadHeaderView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     @ObservedObject var downloadManager: DownloadManager
 
     var body: some View {
@@ -819,10 +824,10 @@ struct LibraryDownloadHeaderView: View {
                             Spacer()
                             Text(verbatim: "+\(downloadManager.manualDownloads.count - 1) More")
                                 .font(.caption2.bold())
-                                .foregroundColor(.secondary)
+                                .themedText(.secondary)
                                 .padding(.horizontal, 8)
                                 .padding(.vertical, 4)
-                                .background(Capsule().fill(Color.accentColor.opacity(0.1)))
+                                .background(Capsule().fill(themeManager.accentColor.opacity(0.1)))
                         }
                     }
                 }
@@ -836,6 +841,7 @@ struct LibraryDownloadHeaderView: View {
 }
 
 struct LibraryDownloadItemView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let download: Download
     @State private var progress: Double = 0
     @State private var bytesDownloaded: Int64 = 0
@@ -847,21 +853,22 @@ struct LibraryDownloadItemView: View {
             HStack(spacing: 10) {
                 Image(systemName: overallProgress >= 1.0 ? "checkmark.circle.fill" : "arrow.down.circle.fill")
                     .font(.title3)
-                    .foregroundStyle(overallProgress >= 1.0 ? .green : .accentColor)
+                    .foregroundStyle(overallProgress >= 1.0 ? Color.green : themeManager.accentColor)
 
                 Text(download.fileName)
                     .font(.subheadline.weight(.medium))
+                    .themedText(.primary)
                     .lineLimit(1)
 
                 Spacer()
 
                 Text("\(Int(overallProgress * 100))%")
                     .font(.caption.monospacedDigit().bold())
-                    .foregroundStyle(.secondary)
+                    .themedText(.secondary)
             }
 
             ProgressView(value: overallProgress)
-                .tint(.accentColor)
+                .themedAccent()
                 .scaleEffect(x: 1, y: 0.5, anchor: .center)
         }
         .onReceive(download.$progress) { self.progress = $0 }
@@ -878,6 +885,7 @@ struct LibraryDownloadItemView: View {
 
 // MARK: - Modern Filter Chip
 struct ModernFilterChip: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let title: String
     let isSelected: Bool
     let namespace: Namespace.ID
@@ -889,7 +897,7 @@ struct ModernFilterChip: View {
         Button(action: action) {
             Text(title)
                 .font(.system(size: 13, weight: .semibold, design: .rounded))
-                .foregroundStyle(isSelected ? .white : .primary.opacity(0.7))
+                .foregroundStyle(isSelected ? Color(hex: themeManager.resolvedColors.buttonText) : Color(hex: themeManager.resolvedColors.primaryText).opacity(0.7))
                 .padding(.horizontal, 16)
                 .padding(.vertical, 8)
                 .background {
@@ -897,12 +905,12 @@ struct ModernFilterChip: View {
                         Capsule()
                             .fill(
                                 LinearGradient(
-                                    colors: [Color.accentColor, Color.accentColor.opacity(0.85)],
+                                    colors: [themeManager.accentColor, themeManager.accentColor.opacity(0.85)],
                                     startPoint: .topLeading,
                                     endPoint: .bottomTrailing
                                 )
                             )
-                            .shadow(color: Color.accentColor.opacity(0.4), radius: 6, x: 0, y: 3)
+                            .shadow(color: themeManager.accentColor.opacity(0.4), radius: 6, x: 0, y: 3)
                             .matchedGeometryEffect(id: "filterBackground", in: namespace)
                     }
                 }
@@ -914,6 +922,7 @@ struct ModernFilterChip: View {
 
 // MARK: - Compact Filter Chip (New Modern Design)
 struct CompactFilterChip: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let title: String
     let icon: String
     let isSelected: Bool
@@ -928,13 +937,13 @@ struct CompactFilterChip: View {
                 Text(title)
                     .font(.system(size: 12, weight: .semibold))
             }
-            .foregroundStyle(isSelected ? .white : .secondary)
+            .foregroundStyle(isSelected ? Color(hex: themeManager.resolvedColors.buttonText) : Color(hex: themeManager.resolvedColors.secondaryText))
             .padding(.horizontal, 10)
             .padding(.vertical, 6)
             .background {
                 if isSelected {
                     RoundedRectangle(cornerRadius: 7, style: .continuous)
-                        .fill(Color.accentColor)
+                        .fill(themeManager.accentColor)
                         .matchedGeometryEffect(id: "compactFilterBackground", in: namespace)
                 }
             }

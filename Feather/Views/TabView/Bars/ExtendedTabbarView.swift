@@ -7,6 +7,7 @@ import NukeUI
 
 @available(iOS 18, *)
 struct ExtendedTabbarView: View {
+	@EnvironmentObject var themeManager: ThemeManager
 	@Environment(\.horizontalSizeClass) var horizontalSizeClass
 	@AppStorage("Feather.tabCustomization") var customization = TabViewCustomization()
 	@AppStorage("Feather.tabBar.dashboard") private var showDashboard = false
@@ -118,6 +119,7 @@ struct ExtendedTabbarView: View {
 				}
 			}
 		}
+		.globalTheme()
 		.tabViewStyle(.sidebarAdaptable)
 		.tabViewCustomization($customization)
 		.onAppear {

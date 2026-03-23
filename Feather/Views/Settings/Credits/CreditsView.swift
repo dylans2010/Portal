@@ -20,6 +20,7 @@ struct WSFLink: Identifiable {
 }
 
 struct CreditsView: View {
+        @EnvironmentObject var themeManager: ThemeManager
         @AppStorage("Feather.showHeaderViews") private var showHeaderViews = true
         private let credits: [CreditItem] = [
                 CreditItem(
@@ -77,7 +78,7 @@ struct CreditsView: View {
                                 VStack(alignment: .leading, spacing: 12) {
                                         Text(.localized("Development"))
                                                 .font(.system(size: 13, weight: .bold, design: .rounded))
-                                                .foregroundStyle(.secondary)
+                                                .themedText(.header)
                                                 .textCase(.uppercase)
                                                 .padding(.leading, 4)
 
@@ -92,17 +93,13 @@ struct CreditsView: View {
                                                         }
                                                 }
                                         }
-                                        .background(
-                                                RoundedRectangle(cornerRadius: 20, style: .continuous)
-                                                        .fill(Color(UIColor.secondarySystemGroupedBackground))
-                                        )
-                                        .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+                                        .themedCard()
                                 }
 
                                 VStack(alignment: .leading, spacing: 12) {
                                         Text(.localized("Join WSF"))
                                                 .font(.system(size: 13, weight: .bold, design: .rounded))
-                                                .foregroundStyle(.secondary)
+                                                .themedText(.header)
                                                 .textCase(.uppercase)
                                                 .padding(.leading, 4)
 
@@ -117,17 +114,13 @@ struct CreditsView: View {
                                                         }
                                                 }
                                         }
-                                        .background(
-                                                RoundedRectangle(cornerRadius: 20, style: .continuous)
-                                                        .fill(Color(UIColor.secondarySystemGroupedBackground))
-                                        )
-                                        .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+                                        .themedCard()
                                 }
 
                                 VStack(alignment: .leading, spacing: 12) {
                                         Text(.localized("Portal Source"))
                                                 .font(.system(size: 13, weight: .bold, design: .rounded))
-                                                .foregroundStyle(.secondary)
+                                                .themedText(.header)
                                                 .textCase(.uppercase)
                                                 .padding(.leading, 4)
 
@@ -137,23 +130,20 @@ struct CreditsView: View {
                                                 icon: "chevron.left.forwardslash.chevron.right",
                                                 color: .blue
                                         ))
-                                        .background(
-                                                RoundedRectangle(cornerRadius: 20, style: .continuous)
-                                                        .fill(Color(UIColor.secondarySystemGroupedBackground))
-                                        )
-                                        .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+                                        .themedCard()
                                 }
                         }
                         .padding(.horizontal, 20)
                         .padding(.bottom, 30)
                 }
-                .background(Color(UIColor.systemGroupedBackground))
+                .globalTheme()
                 .navigationTitle(.localized("Credits"))
                 .navigationBarTitleDisplayMode(.inline)
         }
 }
 
 struct WSFLinkButton: View {
+        @EnvironmentObject var themeManager: ThemeManager
         let link: WSFLink
 
         var body: some View {
@@ -174,7 +164,7 @@ struct WSFLinkButton: View {
 
                                 Text(link.title)
                                         .font(.system(size: 15, weight: .medium))
-                                        .foregroundStyle(.primary)
+                                        .themedText(.primary)
 
                                 Spacer()
 
@@ -190,6 +180,7 @@ struct WSFLinkButton: View {
 }
 
 struct GitHubCreditCard: View {
+        @EnvironmentObject var themeManager: ThemeManager
         let credit: CreditItem
         @State private var _tapCount = 0
 
@@ -244,16 +235,17 @@ struct GitHubCreditCard: View {
                                 VStack(alignment: .leading, spacing: 3) {
                                         Text(viewModel.user?.name ?? credit.username)
                                                 .font(.system(size: 16, weight: .bold))
-                                                .foregroundStyle(.primary)
+                                                .themedText(.primary)
 
                                         Text(credit.role)
                                                 .font(.system(size: 13, weight: .medium))
-                                                .foregroundStyle(.secondary)
+                                                .themedText(.secondary)
 
                                         if let bio = viewModel.user?.bio, !bio.isEmpty {
                                                 Text(bio)
                                                         .font(.system(size: 12))
-                                                        .foregroundStyle(.secondary.opacity(0.8))
+                                                        .themedText(.secondary)
+                                                        .opacity(0.8)
                                                         .lineLimit(1)
                                         }
                                 }

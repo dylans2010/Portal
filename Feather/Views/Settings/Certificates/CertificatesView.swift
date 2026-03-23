@@ -3,6 +3,7 @@ import NimbleViews
 
 // MARK: - View
 struct CertificatesView: View {
+    @EnvironmentObject var themeManager: ThemeManager
 	@AppStorage("feather.selectedCert") private var _storedSelectedCert: Int = 0
 	@AppStorage("Feather.certificateExperience") private var certificateExperience: String = CertificateExperience.developer.rawValue
 	@AppStorage("forceShowGuides") private var forceShowGuides = false
@@ -58,7 +59,7 @@ struct CertificatesView: View {
 			}
 			.padding(20)
 		}
-		.background(Color.clear)
+		.globalTheme()
 		.navigationTitle(.localized("Certificates"))
 		.overlay {
 			if _certificates.isEmpty {
@@ -75,7 +76,7 @@ struct CertificatesView: View {
 						} label: {
 							Image(systemName: "lock.rotation")
 								.font(.system(size: 20, weight: .medium))
-								.foregroundStyle(Color.accentColor)
+								.foregroundStyle(themeManager.accentColor)
 						}
 					}
 
@@ -85,7 +86,7 @@ struct CertificatesView: View {
 					} label: {
 						Image(systemName: "plus.circle.fill")
 							.font(.system(size: 22, weight: .medium))
-							.foregroundStyle(Color.accentColor)
+							.foregroundStyle(themeManager.accentColor)
 							.symbolRenderingMode(.hierarchical)
 					}
 				}
@@ -169,7 +170,7 @@ struct CertificatesView: View {
 				Circle()
 					.fill(
 						LinearGradient(
-							colors: [.accentColor.opacity(0.15), .accentColor.opacity(0.05)],
+							colors: [themeManager.accentColor.opacity(0.15), themeManager.accentColor.opacity(0.05)],
 							startPoint: .topLeading,
 							endPoint: .bottomTrailing
 						)
@@ -180,7 +181,7 @@ struct CertificatesView: View {
 					.font(.system(size: 40, weight: .medium))
 					.foregroundStyle(
 						LinearGradient(
-							colors: [.accentColor, .accentColor.opacity(0.7)],
+							colors: [themeManager.accentColor, themeManager.accentColor.opacity(0.7)],
 							startPoint: .topLeading,
 							endPoint: .bottomTrailing
 						)
@@ -190,11 +191,11 @@ struct CertificatesView: View {
 			VStack(spacing: 8) {
 				Text(.localized("No Certificates"))
 					.font(.system(size: 20, weight: .bold))
-					.foregroundStyle(.primary)
+					.themedText(.primary)
 				
 				Text(.localized("Get started signing by importing your first certificate."))
 					.font(.system(size: 14, weight: .medium))
-					.foregroundStyle(.secondary)
+					.themedText(.secondary)
 					.multilineTextAlignment(.center)
 					.padding(.horizontal, 40)
 			}
@@ -209,20 +210,20 @@ struct CertificatesView: View {
 					Text(.localized("Import Certificate"))
 						.font(.system(size: 15, weight: .semibold))
 				}
-				.foregroundStyle(.white)
+				.foregroundStyle(Color(hex: themeManager.resolvedColors.buttonText))
 				.padding(.horizontal, 24)
 				.padding(.vertical, 14)
 				.background(
 					Capsule()
 						.fill(
 							LinearGradient(
-								colors: [.accentColor, .accentColor.opacity(0.8)],
+								colors: [themeManager.accentColor, themeManager.accentColor.opacity(0.8)],
 								startPoint: .leading,
 								endPoint: .trailing
 							)
 						)
 				)
-				.shadow(color: .accentColor.opacity(0.3), radius: 10, x: 0, y: 5)
+				.shadow(color: themeManager.accentColor.opacity(0.3), radius: 10, x: 0, y: 5)
 			}
 		}
 	}
@@ -247,7 +248,7 @@ struct CertificatesView: View {
 					Rectangle()
 						.fill(
 							LinearGradient(
-								colors: [.accentColor, .accentColor.opacity(0.7)],
+								colors: [themeManager.accentColor, themeManager.accentColor.opacity(0.7)],
 								startPoint: .top,
 								endPoint: .bottom
 							)
@@ -263,16 +264,16 @@ struct CertificatesView: View {
 			.background {
 				if isSelected {
 					ZStack {
-						Color.accentColor.opacity(0.08)
+						themeManager.accentColor.opacity(0.08)
 						.background(Color.clear)
 
 						RoundedRectangle(cornerRadius: 24, style: .continuous)
 							.stroke(
 								LinearGradient(
 									colors: [
-										Color.accentColor.opacity(0.5),
-										Color.accentColor.opacity(0.2),
-										Color.accentColor.opacity(0.05)
+										themeManager.accentColor.opacity(0.5),
+										themeManager.accentColor.opacity(0.2),
+										themeManager.accentColor.opacity(0.05)
 									],
 									startPoint: .topLeading,
 									endPoint: .bottomTrailing
@@ -281,14 +282,14 @@ struct CertificatesView: View {
 							)
 					}
 				} else {
-					Color.clear
+					Color(hex: themeManager.resolvedColors.cardBackground)
 						.opacity(0.6)
 						.background(Color.clear)
 				}
 			}
 			.clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
 			.shadow(
-				color: isSelected ? Color.accentColor.opacity(0.25) : Color.black.opacity(0.08),
+				color: isSelected ? themeManager.accentColor.opacity(0.25) : Color.black.opacity(0.08),
 				radius: isSelected ? 20 : 12,
 				x: 0,
 				y: isSelected ? 10 : 4
@@ -299,7 +300,7 @@ struct CertificatesView: View {
 						Circle()
 							.fill(
 								LinearGradient(
-									colors: [.accentColor, .accentColor.opacity(0.8)],
+									colors: [themeManager.accentColor, themeManager.accentColor.opacity(0.8)],
 									startPoint: .topLeading,
 									endPoint: .bottomTrailing
 								)
@@ -308,10 +309,10 @@ struct CertificatesView: View {
 						
 						Image(systemName: "checkmark")
 							.font(.system(size: 12, weight: .bold))
-							.foregroundStyle(.white)
+							.foregroundStyle(Color(hex: themeManager.resolvedColors.buttonText))
 					}
 					.offset(x: 8, y: -8)
-					.shadow(color: .accentColor.opacity(0.4), radius: 8, x: 0, y: 4)
+					.shadow(color: themeManager.accentColor.opacity(0.4), radius: 8, x: 0, y: 4)
 				}
 			}
 			.scaleEffect(isSelected ? 1.02 : 1.0)

@@ -3,6 +3,7 @@ import NimbleViews
 
 // MARK: - GuidesView
 struct GuidesView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     @State private var selectedGuide: Guide?
     @AppStorage("forceShowGuides") private var forceShowGuides = false
     @StateObject private var hideManager = GuidesHideManager.shared
@@ -23,6 +24,7 @@ struct GuidesView: View {
                     }
                 }
             }
+            .globalTheme()
         }
         .sheet(item: $selectedGuide) { guide in
             GuideDetailView(guide: guide)
@@ -58,11 +60,11 @@ struct GuidesView: View {
             Text(.localized("Why are you here?"))
                 .font(.title2)
                 .fontWeight(.semibold)
-                .foregroundStyle(.primary)
+                .themedText(.primary)
             
             Text(.localized("Are you lost, or why are you here? You shouldn't even be here on this view lol."))
                 .font(.subheadline)
-                .foregroundStyle(.secondary)
+                .themedText(.secondary)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, 40)
             
@@ -77,24 +79,26 @@ struct GuidesView: View {
             if isLoading {
                 VStack(spacing: 20) {
                     ProgressView()
+                        .tint(themeManager.accentColor)
                     Text("Loading Guides")
                         .font(.subheadline)
-                        .foregroundStyle(.secondary)
+                        .themedText(.secondary)
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else if let error = errorMessage {
                 VStack(spacing: 20) {
                     Image(systemName: "exclamationmark.triangle.fill")
                         .font(.system(size: 50))
-                        .foregroundStyle(.red)
+                        .foregroundStyle(Color(hex: themeManager.resolvedColors.destructive))
                     
                     Text("Failed To Load Guides")
                         .font(.title2)
                         .fontWeight(.semibold)
+                        .themedText(.primary)
                     
                     Text(error)
                         .font(.subheadline)
-                        .foregroundStyle(.secondary)
+                        .themedText(.secondary)
                         .multilineTextAlignment(.center)
                         .padding(.horizontal, 40)
                     
@@ -115,10 +119,11 @@ struct GuidesView: View {
                     Text("No Guides Available")
                         .font(.title2)
                         .fontWeight(.semibold)
+                        .themedText(.primary)
                     
                     Text("There are no guides in the repository yet.")
                         .font(.subheadline)
-                        .foregroundStyle(.secondary)
+                        .themedText(.secondary)
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
@@ -134,12 +139,12 @@ struct GuidesView: View {
                                     VStack(alignment: .leading, spacing: 4) {
                                         Text(guide.displayName)
                                             .font(.body)
-                                            .foregroundStyle(.primary)
+                                            .themedText(.primary)
                                         
                                         if guide.type == .directory {
                                             Text("Directory")
                                                 .font(.caption)
-                                                .foregroundStyle(.secondary)
+                                                .themedText(.secondary)
                                         }
                                     }
                                 }
@@ -182,6 +187,7 @@ struct GuidesView: View {
                         }
                     } header: {
                         Text("Available Guides")
+                            .themedText(.header)
                     } footer: {
                         Text("Read helpful tips, guides, and more.")
                     }

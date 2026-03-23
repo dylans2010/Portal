@@ -195,6 +195,7 @@ class DownloadsPortalService: ObservableObject {
 
 // MARK: - Downloads Portal View
 struct DownloadsPortalView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     @StateObject private var service = DownloadsPortalService()
     @Environment(\.dismiss) var dismiss
     @State private var _searchText = ""
@@ -210,7 +211,6 @@ struct DownloadsPortalView: View {
     var body: some View {
         NBNavigationView(.localized("Downloads"), displayMode: .inline) {
             ZStack {
-                modernBackground
                 
                 if service.isLoading {
                     loadingView
@@ -222,6 +222,7 @@ struct DownloadsPortalView: View {
                     contentView
                 }
             }
+            .globalTheme()
             .searchable(text: $_searchText, placement: .navigationBarDrawer(displayMode: .always), prompt: .localized("Search Downloads"))
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
@@ -281,10 +282,11 @@ struct DownloadsPortalView: View {
         VStack(spacing: 20) {
             ProgressView()
                 .controlSize(.large)
+                .tint(themeManager.accentColor)
             
             Text(.localized("Loading Downloads"))
                 .font(.headline)
-                .foregroundStyle(.secondary)
+                .themedText(.secondary)
         }
     }
     
@@ -300,7 +302,7 @@ struct DownloadsPortalView: View {
             
             Text(error)
                 .font(.subheadline)
-                .foregroundStyle(.secondary)
+                .themedText(.secondary)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, 40)
             
@@ -314,10 +316,10 @@ struct DownloadsPortalView: View {
                     Text(.localized("Retry"))
                 }
                 .font(.headline)
-                .foregroundStyle(.white)
+                .foregroundStyle(Color(hex: themeManager.resolvedColors.buttonText))
                 .padding(.horizontal, 24)
                 .padding(.vertical, 12)
-                .background(Color.accentColor)
+                .background(Color(hex: themeManager.resolvedColors.buttonBackground))
                 .clipShape(Capsule())
             }
         }
@@ -332,10 +334,11 @@ struct DownloadsPortalView: View {
             Text(.localized("No Downloads Available"))
                 .font(.title2)
                 .fontWeight(.bold)
+                .themedText(.primary)
             
             Text(.localized("Check back here later for available downloads."))
                 .font(.subheadline)
-                .foregroundStyle(.secondary)
+                .themedText(.secondary)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, 40)
         }
@@ -360,7 +363,7 @@ struct DownloadsPortalView: View {
                             .foregroundStyle(.quaternary)
                         Text(.localized("No items match your search"))
                             .font(.subheadline)
-                            .foregroundStyle(.secondary)
+                            .themedText(.secondary)
                     }
                     .padding(.top, 40)
                 } else {
@@ -392,10 +395,11 @@ struct DownloadsPortalView: View {
 
             Text(.localized("Portal Downloads"))
                 .font(.system(size: 28, weight: .black, design: .rounded))
+                .themedText(.primary)
 
             Text(.localized("Explore and download exclusive resources directly to your device."))
                 .font(.subheadline)
-                .foregroundStyle(.secondary)
+                .themedText(.secondary)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, 20)
         }
@@ -407,7 +411,7 @@ struct DownloadsPortalView: View {
             HStack {
                 Text("Active Downloads")
                     .font(.system(size: 12, weight: .bold))
-                    .foregroundStyle(.secondary)
+                    .themedText(.header)
                     .textCase(.uppercase)
                 Spacer()
             }
@@ -431,12 +435,12 @@ struct DownloadsPortalView: View {
 
                         ProgressView(value: queueItem.progress)
                             .progressViewStyle(.linear)
-                            .tint(.blue)
+                            .tint(themeManager.accentColor)
                     }
                     
                     Text(queueItem.status == .downloading ? "\(Int(queueItem.progress * 100))%" : "Waiting")
                         .font(.system(size: 12, weight: .bold, design: .monospaced))
-                        .foregroundStyle(.secondary)
+                        .themedText(.secondary)
                         .frame(width: 45)
                 }
                 .padding(12)
@@ -451,6 +455,7 @@ struct DownloadsPortalView: View {
 
 // MARK: - Download Item Card
 struct DownloadItemCard: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let item: DownloadsPortalItem
     @ObservedObject var service: DownloadsPortalService
     @State private var isDownloading = false
@@ -486,12 +491,12 @@ struct DownloadItemCard: View {
                 VStack(alignment: .leading, spacing: 4) {
                     Text(item.name)
                         .font(.system(size: 17, weight: .bold, design: .rounded))
-                        .foregroundStyle(.primary)
+                        .themedText(.primary)
                     
                     if let description = item.description {
                         Text(description)
                             .font(.system(size: 13))
-                            .foregroundStyle(.secondary)
+                            .themedText(.secondary)
                             .lineLimit(2)
                     }
                 }
@@ -507,10 +512,10 @@ struct DownloadItemCard: View {
                         Text(category)
                             .font(.system(size: 11, weight: .bold))
                     }
-                    .foregroundStyle(.blue)
+                    .foregroundStyle(themeManager.accentColor)
                     .padding(.horizontal, 10)
                     .padding(.vertical, 5)
-                    .background(Color.blue.opacity(0.1))
+                    .background(themeManager.accentColor.opacity(0.1))
                     .clipShape(Capsule())
                 }
 
@@ -521,10 +526,10 @@ struct DownloadItemCard: View {
                         Text(size)
                             .font(.system(size: 11, weight: .bold))
                     }
-                    .foregroundStyle(.secondary)
+                    .themedText(.secondary)
                     .padding(.horizontal, 10)
                     .padding(.vertical, 5)
-                    .background(Color(UIColor.tertiarySystemFill))
+                    .background(Color(hex: themeManager.resolvedColors.cardBackground))
                     .clipShape(Capsule())
                 }
 
@@ -540,23 +545,18 @@ struct DownloadItemCard: View {
                         Text(.localized("Get"))
                             .font(.system(size: 14, weight: .black))
                     }
-                    .foregroundStyle(.white)
+                    .foregroundStyle(Color(hex: themeManager.resolvedColors.buttonText))
                     .padding(.horizontal, 16)
                     .padding(.vertical, 8)
-                    .background {
-                        ZStack {
-                            Capsule().fill(Color.accentColor)
-                            Capsule().fill(.ultraThinMaterial).opacity(0.3)
-                        }
-                    }
+                    .background(Color(hex: themeManager.resolvedColors.buttonBackground))
                     .clipShape(Capsule())
-                    .shadow(color: Color.accentColor.opacity(0.3), radius: 8, x: 0, y: 4)
+                    .shadow(color: themeManager.accentColor.opacity(0.3), radius: 8, x: 0, y: 4)
                 }
                 .disabled(isDownloading)
             }
         }
         .padding(16)
-        .background(Color.clear)
+        .themedCard()
         .clipShape(RoundedRectangle(cornerRadius: 28, style: .continuous))
         .overlay(
             RoundedRectangle(cornerRadius: 28, style: .continuous)
@@ -571,22 +571,23 @@ struct DownloadItemCard: View {
                     VStack(spacing: 12) {
                         ZStack {
                             Circle()
-                                .stroke(Color.accentColor.opacity(0.2), lineWidth: 4)
+                                .stroke(themeManager.accentColor.opacity(0.2), lineWidth: 4)
                                 .frame(width: 50, height: 50)
 
                             Circle()
                                 .trim(from: 0, to: downloadProgress)
-                                .stroke(Color.accentColor, style: StrokeStyle(lineWidth: 4, lineCap: .round))
+                                .stroke(themeManager.accentColor, style: StrokeStyle(lineWidth: 4, lineCap: .round))
                                 .frame(width: 50, height: 50)
                                 .rotationEffect(.degrees(-90))
 
                             Text("\(Int(downloadProgress * 100))%")
                                 .font(.system(size: 10, weight: .bold, design: .monospaced))
+                                .themedText(.primary)
                         }
 
                         Text("Downloading...")
                             .font(.system(size: 12, weight: .bold))
-                            .foregroundStyle(.secondary)
+                            .themedText(.secondary)
                     }
                 }
                 .transition(.opacity)

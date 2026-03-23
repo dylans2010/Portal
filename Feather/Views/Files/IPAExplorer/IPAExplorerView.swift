@@ -2,6 +2,7 @@ import SwiftUI
 import NimbleViews
 
 struct IPAExplorerView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     @StateObject var viewModel: IPAExplorerViewModel
     @Environment(\.dismiss) var dismiss
 
@@ -17,6 +18,7 @@ struct IPAExplorerView: View {
                     errorView(message)
                 }
             }
+            .globalTheme()
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button(.localized("Close")) {
@@ -34,11 +36,12 @@ struct IPAExplorerView: View {
         VStack(spacing: 20) {
             ProgressView(value: viewModel.progress)
                 .progressViewStyle(.linear)
+                .tint(themeManager.accentColor)
                 .frame(width: 200)
 
             Text(statusMessage)
                 .font(.subheadline)
-                .foregroundStyle(.secondary)
+                .themedText(.secondary)
         }
     }
 
@@ -94,16 +97,17 @@ struct IPAExplorerView: View {
                 } label: {
                     Label(.localized("Export IPA"), systemImage: "square.and.arrow.up")
                 }
-                .foregroundStyle(.blue)
+                .themedAccent()
             }
 
             Section(.localized("Hash")) {
                 VStack(alignment: .leading, spacing: 4) {
                     Text("SHA-256")
                         .font(.caption)
-                        .foregroundStyle(.secondary)
+                        .themedText(.secondary)
                     Text(viewModel.ipaHash)
                         .font(.system(.caption, design: .monospaced))
+                        .themedText(.primary)
                         .textSelection(.enabled)
                 }
             }
@@ -123,12 +127,13 @@ struct IPAExplorerView: View {
         VStack(spacing: 16) {
             Image(systemName: "exclamationmark.triangle.fill")
                 .font(.system(size: 50))
-                .foregroundStyle(.red)
+                .foregroundStyle(Color(hex: themeManager.resolvedColors.destructive))
             Text(.localized("Exploration Failed"))
                 .font(.headline)
+                .themedText(.primary)
             Text(message)
                 .font(.subheadline)
-                .foregroundStyle(.secondary)
+                .themedText(.secondary)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal)
         }

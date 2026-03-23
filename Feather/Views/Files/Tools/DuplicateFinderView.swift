@@ -2,6 +2,7 @@ import SwiftUI
 import CryptoKit
 
 struct DuplicateFinderView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let baseDirectory: URL
     @State private var duplicates: [String: [URL]] = [:]
     @State private var isSearching = false
@@ -11,12 +12,14 @@ struct DuplicateFinderView: View {
             VStack {
                 if isSearching {
                     ProgressView(.localized("Searching for duplicates..."))
+                        .tint(themeManager.accentColor)
                 } else if duplicates.isEmpty {
                     VStack(spacing: 20) {
                         Image(systemName: "doc.on.doc")
                             .font(.system(size: 64))
-                            .foregroundStyle(.secondary)
+                            .themedText(.secondary)
                         Text(.localized("No duplicates found yet"))
+                            .themedText(.secondary)
                         Button(.localized("Start Search")) {
                             search()
                         }
@@ -26,21 +29,22 @@ struct DuplicateFinderView: View {
                 } else {
                     List {
                         ForEach(duplicates.keys.sorted(), id: \.self) { hash in
-                            Section(header: Text("Hash: \(hash.prefix(8))...")) {
+                            Section(header: Text("Hash: \(hash.prefix(8))...").themedText(.header)) {
                                 ForEach(duplicates[hash]!, id: \.self) { url in
                                     VStack(alignment: .leading) {
                                         Text(url.lastPathComponent)
+                                            .themedText(.primary)
                                         Text(url.path)
                                             .font(.caption2)
-                                            .foregroundStyle(.secondary)
+                                            .themedText(.secondary)
                                     }
                                 }
                             }
                         }
                     }
-            .scrollContentBackground(.hidden)
                 }
             }
+            .globalTheme()
             .navigationTitle(.localized("Duplicate Finder"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {

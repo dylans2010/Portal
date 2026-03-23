@@ -5,6 +5,7 @@ import UniformTypeIdentifiers
 
 // MARK: - Create JSON File View
 struct CreateJSONFileView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     @Environment(\.dismiss) private var dismiss
     @State private var fileName = ""
     @State private var jsonContent = "{\n    \n}"
@@ -25,12 +26,14 @@ struct CreateJSONFileView: View {
                 Section {
                     TextEditor(text: $jsonContent)
                         .font(.system(.body, design: .monospaced))
+                        .themedText(.primary)
                         .frame(minHeight: 200)
                 } header: {
                     Text(.localized("Content"))
+                        .themedText(.header)
                 }
             }
-            .scrollContentBackground(.hidden)
+            .globalTheme()
             .navigationTitle(.localized("Create JSON File"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -58,6 +61,7 @@ struct CreateJSONFileView: View {
 
 // MARK: - Create XML File View
 struct CreateXMLFileView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     @Environment(\.dismiss) private var dismiss
     @State private var fileName = ""
     @State private var xmlContent = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<root>\n    \n</root>"
@@ -78,12 +82,14 @@ struct CreateXMLFileView: View {
                 Section {
                     TextEditor(text: $xmlContent)
                         .font(.system(.body, design: .monospaced))
+                        .themedText(.primary)
                         .frame(minHeight: 200)
                 } header: {
                     Text(.localized("Content"))
+                        .themedText(.header)
                 }
             }
-            .scrollContentBackground(.hidden)
+            .globalTheme()
             .navigationTitle(.localized("Create XML File"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -111,6 +117,7 @@ struct CreateXMLFileView: View {
 
 // MARK: - URL Import View
 struct URLImportView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     @Environment(\.dismiss) private var dismiss
     @State private var urlString = ""
     @State private var customFileName = ""
@@ -143,20 +150,21 @@ struct URLImportView: View {
                 if isDownloading {
                     Section {
                         ProgressView(value: downloadProgress)
+                            .tint(themeManager.accentColor)
                         Text("\(Int(downloadProgress * 100))%")
                             .font(.caption)
-                            .foregroundStyle(.secondary)
+                            .themedText(.secondary)
                     }
                 }
                 
                 if let error = errorMessage {
                     Section {
                         Text(error)
-                            .foregroundStyle(.red)
+                            .foregroundStyle(Color(hex: themeManager.resolvedColors.destructive))
                     }
                 }
             }
-            .scrollContentBackground(.hidden)
+            .globalTheme()
             .navigationTitle(.localized("Import from URL"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -218,6 +226,7 @@ struct URLImportView: View {
 
 // MARK: - Clipboard Import View
 struct ClipboardImportView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     @Environment(\.dismiss) private var dismiss
     @State private var fileName = ""
     @State private var clipboardContent = ""
@@ -238,13 +247,14 @@ struct ClipboardImportView: View {
                     if hasContent {
                         Text(clipboardContent.prefix(500) + (clipboardContent.count > 500 ? "..." : ""))
                             .font(.system(.caption, design: .monospaced))
-                            .foregroundStyle(.secondary)
+                            .themedText(.secondary)
                     } else {
                         Text(.localized("No Text Content In Clipboard"))
-                            .foregroundStyle(.secondary)
+                            .themedText(.secondary)
                     }
                 } header: {
                     Text(.localized("Clipboard Preview"))
+                        .themedText(.header)
                 }
                 
                 Section {
@@ -255,7 +265,7 @@ struct ClipboardImportView: View {
                     }
                 }
             }
-            .scrollContentBackground(.hidden)
+            .globalTheme()
             .navigationTitle(.localized("Import from Clipboard"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -295,6 +305,7 @@ struct ClipboardImportView: View {
 
 // MARK: - Advanced File Search View
 struct AdvancedFileSearchView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     @Environment(\.dismiss) private var dismiss
     @Environment(\.colorScheme) private var colorScheme
     @State private var searchQuery = ""
@@ -314,9 +325,6 @@ struct AdvancedFileSearchView: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                Color.clear
-                    .ignoresSafeArea()
-                
                 ScrollView {
                     VStack(spacing: 20) {
                         searchHeaderSection
@@ -332,6 +340,7 @@ struct AdvancedFileSearchView: View {
                     .padding(.vertical, 20)
                 }
             }
+            .globalTheme()
             .navigationTitle(.localized("Advanced Search"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -375,7 +384,7 @@ struct AdvancedFileSearchView: View {
             
             Text(.localized("Find files with precision"))
                 .font(.subheadline)
-                .foregroundStyle(.secondary)
+                .themedText(.secondary)
         }
         .padding(.bottom, 8)
     }
@@ -385,15 +394,16 @@ struct AdvancedFileSearchView: View {
         VStack(alignment: .leading, spacing: 16) {
             Label(.localized("Search Query"), systemImage: "text.magnifyingglass")
                 .font(.headline)
-                .foregroundStyle(.primary)
+                .themedText(.primary)
             
             HStack(spacing: 12) {
                 Image(systemName: "magnifyingglass")
-                    .foregroundStyle(.blue)
+                    .foregroundStyle(themeManager.accentColor)
                     .frame(width: 24)
                 
                 TextField(.localized("Enter Search Term"), text: $searchQuery)
                     .font(.body)
+                    .themedText(.primary)
                     .autocorrectionDisabled()
                 
                 if !searchQuery.isEmpty {
@@ -428,11 +438,7 @@ struct AdvancedFileSearchView: View {
             }
         }
         .padding(20)
-        .background(
-            RoundedRectangle(cornerRadius: 20, style: .continuous)
-                .fill(Color.clear)
-                .shadow(color: .black.opacity(colorScheme == .dark ? 0.3 : 0.08), radius: 15, x: 0, y: 8)
-        )
+        .themedCard()
     }
     
     // MARK: - Filters Card
@@ -440,7 +446,7 @@ struct AdvancedFileSearchView: View {
         VStack(alignment: .leading, spacing: 16) {
             Label(.localized("Filters"), systemImage: "slider.horizontal.3")
                 .font(.headline)
-                .foregroundStyle(.primary)
+                .themedText(.primary)
             
             HStack(spacing: 12) {
                 ZStack {
@@ -505,11 +511,7 @@ struct AdvancedFileSearchView: View {
             }
         }
         .padding(20)
-        .background(
-            RoundedRectangle(cornerRadius: 20, style: .continuous)
-                .fill(Color.clear)
-                .shadow(color: .black.opacity(colorScheme == .dark ? 0.3 : 0.08), radius: 15, x: 0, y: 8)
-        )
+        .themedCard()
     }
     
     // MARK: - Search Button
@@ -530,7 +532,7 @@ struct AdvancedFileSearchView: View {
                 Text(isSearching ? .localized("Searching...") : .localized("Search Files"))
                     .font(.system(size: 17, weight: .bold))
             }
-            .foregroundStyle(.white)
+            .foregroundStyle(Color(hex: themeManager.resolvedColors.buttonText))
             .frame(maxWidth: .infinity)
             .padding(.vertical, 18)
             .background(
@@ -540,11 +542,11 @@ struct AdvancedFileSearchView: View {
                             .fill(Color.gray.opacity(0.5))
                     } else {
                         RoundedRectangle(cornerRadius: 16, style: .continuous)
-                            .fill(LinearGradient(colors: gradientColors, startPoint: .leading, endPoint: .trailing))
+                            .fill(themeManager.accentColor)
                     }
                 }
             )
-            .shadow(color: searchQuery.isEmpty ? .clear : .blue.opacity(0.3), radius: 10, x: 0, y: 5)
+            .shadow(color: searchQuery.isEmpty ? .clear : themeManager.accentColor.opacity(0.3), radius: 10, x: 0, y: 5)
         }
         .disabled(searchQuery.isEmpty || isSearching)
         .animation(.easeInOut(duration: 0.2), value: searchQuery.isEmpty)
@@ -556,20 +558,18 @@ struct AdvancedFileSearchView: View {
             HStack {
                 Label(.localized("Results"), systemImage: "doc.on.doc.fill")
                     .font(.headline)
-                    .foregroundStyle(.primary)
+                    .themedText(.primary)
                 
                 Spacer()
                 
                 Text("\(results.count)")
                     .font(.system(size: 14, weight: .bold))
-                    .foregroundStyle(.white)
+                    .themedText(.badge)
                     .padding(.horizontal, 12)
                     .padding(.vertical, 6)
                     .background(
                         Capsule()
-                            .fill(
-                                LinearGradient(colors: [.green, .green.opacity(0.8)], startPoint: .leading, endPoint: .trailing)
-                            )
+                            .fill(themeManager.accentColor)
                     )
             }
             
@@ -589,12 +589,12 @@ struct AdvancedFileSearchView: View {
                         VStack(alignment: .leading, spacing: 4) {
                             Text(url.lastPathComponent)
                                 .font(.system(size: 15, weight: .medium))
-                                .foregroundStyle(.primary)
+                                .themedText(.primary)
                                 .lineLimit(1)
                             
                             Text(url.deletingLastPathComponent().path)
                                 .font(.system(size: 12))
-                                .foregroundStyle(.secondary)
+                                .themedText(.secondary)
                                 .lineLimit(1)
                         }
                         
@@ -625,11 +625,7 @@ struct AdvancedFileSearchView: View {
             }
         }
         .padding(20)
-        .background(
-            RoundedRectangle(cornerRadius: 20, style: .continuous)
-                .fill(Color.clear)
-                .shadow(color: .black.opacity(colorScheme == .dark ? 0.3 : 0.08), radius: 15, x: 0, y: 8)
-        )
+        .themedCard()
     }
     
     // MARK: - Helper Views
@@ -728,6 +724,7 @@ struct AdvancedFileSearchView: View {
 
 // MARK: - Disk Usage View
 struct DiskUsageView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     @Environment(\.dismiss) private var dismiss
     @Environment(\.colorScheme) private var colorScheme
     @State private var isCalculating = true
@@ -759,6 +756,7 @@ struct DiskUsageView: View {
                     }
                 }
             }
+        .globalTheme()
             .navigationTitle(.localized("Disk Usage"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -805,11 +803,11 @@ struct DiskUsageView: View {
             
             Text(.localized("Calculating Disk Usage..."))
                 .font(.headline)
-                .foregroundStyle(.primary)
+                .themedText(.primary)
             
             Text(.localized("Analyzing files and folders"))
                 .font(.subheadline)
-                .foregroundStyle(.secondary)
+                .themedText(.secondary)
         }
     }
     
@@ -846,7 +844,7 @@ struct DiskUsageView: View {
             
             Text(.localized("Storage Analysis"))
                 .font(.subheadline)
-                .foregroundStyle(.secondary)
+                .themedText(.secondary)
         }
         .padding(.bottom, 8)
     }
@@ -858,17 +856,11 @@ struct DiskUsageView: View {
                 VStack(alignment: .leading, spacing: 4) {
                     Text(.localized("Total Size"))
                         .font(.subheadline)
-                        .foregroundStyle(.secondary)
+                        .themedText(.secondary)
                     
                     Text(ByteCountFormatter.string(fromByteCount: totalSize, countStyle: .file))
                         .font(.system(size: 32, weight: .bold, design: .rounded))
-                        .foregroundStyle(
-                            LinearGradient(
-                                colors: gradientColors,
-                                startPoint: .leading,
-                                endPoint: .trailing
-                            )
-                        )
+                        .themedText(.primary)
                 }
                 
                 Spacer()
@@ -894,22 +886,18 @@ struct DiskUsageView: View {
             HStack {
                 Label("\(items.count) Items", systemImage: "doc.on.doc.fill")
                     .font(.caption)
-                    .foregroundStyle(.secondary)
+                    .themedText(.secondary)
                 
                 Spacer()
                 
                 Text(directory.lastPathComponent)
                     .font(.caption)
-                    .foregroundStyle(.secondary)
+                    .themedText(.secondary)
                     .lineLimit(1)
             }
         }
         .padding(20)
-        .background(
-            RoundedRectangle(cornerRadius: 20, style: .continuous)
-                .fill(Color.clear)
-                .shadow(color: .black.opacity(colorScheme == .dark ? 0.3 : 0.08), radius: 15, x: 0, y: 8)
-        )
+        .themedCard()
     }
     
     // MARK: - Contents Section
@@ -917,7 +905,7 @@ struct DiskUsageView: View {
         VStack(alignment: .leading, spacing: 16) {
             Label(.localized("Contents"), systemImage: "folder.fill")
                 .font(.headline)
-                .foregroundStyle(.primary)
+                .themedText(.primary)
             
             VStack(spacing: 0) {
                 ForEach(items, id: \.name) { item in
@@ -935,11 +923,7 @@ struct DiskUsageView: View {
             )
         }
         .padding(20)
-        .background(
-            RoundedRectangle(cornerRadius: 20, style: .continuous)
-                .fill(Color.clear)
-                .shadow(color: .black.opacity(colorScheme == .dark ? 0.3 : 0.08), radius: 15, x: 0, y: 8)
-        )
+        .themedCard()
     }
     
     // MARK: - Item Row
@@ -958,12 +942,12 @@ struct DiskUsageView: View {
             VStack(alignment: .leading, spacing: 4) {
                 Text(item.name)
                     .font(.system(size: 15, weight: .medium))
-                    .foregroundStyle(.primary)
+                    .themedText(.primary)
                     .lineLimit(1)
                 
                 Text(ByteCountFormatter.string(fromByteCount: item.size, countStyle: .file))
                     .font(.system(size: 13))
-                    .foregroundStyle(.secondary)
+                    .themedText(.secondary)
             }
             
             Spacer()
@@ -1044,6 +1028,7 @@ struct DiskUsageView: View {
 
 // MARK: - File Hasher View
 struct FileHasherView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     @Environment(\.dismiss) private var dismiss
     @State private var isImporting = false
     @State private var selectedFile: URL?
@@ -1085,7 +1070,7 @@ struct FileHasherView: View {
                     }
                 }
             }
-            .scrollContentBackground(.hidden)
+            .globalTheme()
             .navigationTitle(.localized("Hash Calculator"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -1141,6 +1126,7 @@ struct FileHasherView: View {
 }
 
 struct FileHashRow: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let algorithm: String
     let hash: String
     
@@ -1148,9 +1134,10 @@ struct FileHashRow: View {
         VStack(alignment: .leading, spacing: 4) {
             Text(algorithm)
                 .font(.caption)
-                .foregroundStyle(.secondary)
+                .themedText(.secondary)
             Text(hash)
                 .font(.system(.caption, design: .monospaced))
+                .themedText(.primary)
                 .textSelection(.enabled)
         }
         .contextMenu {
@@ -1166,6 +1153,7 @@ struct FileHashRow: View {
 
 // MARK: - Base64 Tool View
 struct Base64ToolView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     @Environment(\.dismiss) private var dismiss
     @Environment(\.colorScheme) private var colorScheme
     @State private var inputText = ""
@@ -1218,6 +1206,7 @@ struct Base64ToolView: View {
                     .padding(.vertical, 20)
                 }
             }
+            .globalTheme()
             .navigationTitle(.localized("Base64 Tool"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -1262,7 +1251,7 @@ struct Base64ToolView: View {
             
             Text(mode == .encode ? .localized("Encode text data to Base64") : .localized("Decode Base64 to text"))
                 .font(.subheadline)
-                .foregroundStyle(.secondary)
+                .themedText(.secondary)
                 .animation(.easeInOut, value: mode)
         }
         .padding(.bottom, 8)
@@ -1305,11 +1294,7 @@ struct Base64ToolView: View {
             }
         }
         .padding(20)
-        .background(
-            RoundedRectangle(cornerRadius: 20, style: .continuous)
-                .fill(Color.clear)
-                .shadow(color: .black.opacity(colorScheme == .dark ? 0.3 : 0.08), radius: 15, x: 0, y: 8)
-        )
+        .themedCard()
     }
     
     // MARK: - Input Card
@@ -1318,7 +1303,7 @@ struct Base64ToolView: View {
             HStack {
                 Label(.localized("Input"), systemImage: "text.alignleft")
                     .font(.headline)
-                    .foregroundStyle(.primary)
+                    .themedText(.primary)
                 
                 Spacer()
                 
@@ -1345,6 +1330,7 @@ struct Base64ToolView: View {
             
             TextEditor(text: $inputText)
                 .font(.system(.body, design: .monospaced))
+                .themedText(.primary)
                 .frame(minHeight: 120)
                 .padding(12)
                 .background(
@@ -1376,11 +1362,7 @@ struct Base64ToolView: View {
             }
         }
         .padding(20)
-        .background(
-            RoundedRectangle(cornerRadius: 20, style: .continuous)
-                .fill(Color.clear)
-                .shadow(color: .black.opacity(colorScheme == .dark ? 0.3 : 0.08), radius: 15, x: 0, y: 8)
-        )
+        .themedCard()
     }
     
     // MARK: - Convert Button
@@ -1410,7 +1392,7 @@ struct Base64ToolView: View {
                 Text(mode == .encode ? .localized("Encode To Base64") : .localized("Decode from Base64"))
                     .font(.system(size: 17, weight: .bold))
             }
-            .foregroundStyle(.white)
+            .foregroundStyle(Color(hex: themeManager.resolvedColors.buttonText))
             .frame(maxWidth: .infinity)
             .padding(.vertical, 18)
             .background(
@@ -1420,11 +1402,11 @@ struct Base64ToolView: View {
                             .fill(Color.gray.opacity(0.5))
                     } else {
                         RoundedRectangle(cornerRadius: 16, style: .continuous)
-                            .fill(LinearGradient(colors: gradientColors, startPoint: .leading, endPoint: .trailing))
+                            .fill(themeManager.accentColor)
                     }
                 }
             )
-            .shadow(color: inputText.isEmpty ? .clear : mode.color.opacity(0.3), radius: 10, x: 0, y: 5)
+            .shadow(color: inputText.isEmpty ? .clear : themeManager.accentColor.opacity(0.3), radius: 10, x: 0, y: 5)
         }
         .disabled(inputText.isEmpty || isConverting)
         .animation(.easeInOut(duration: 0.2), value: inputText.isEmpty)
@@ -1436,7 +1418,7 @@ struct Base64ToolView: View {
             HStack {
                 Label(.localized("Output"), systemImage: "text.badge.checkmark")
                     .font(.headline)
-                    .foregroundStyle(.primary)
+                    .themedText(.primary)
                 
                 Spacer()
                 
@@ -1471,17 +1453,11 @@ struct Base64ToolView: View {
             
             Text(outputText)
                 .font(.system(.body, design: .monospaced))
+                .themedText(.primary)
                 .textSelection(.enabled)
                 .padding(12)
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .background(
-                    RoundedRectangle(cornerRadius: 12, style: .continuous)
-                        .fill(Color.clear)
-                )
-                .overlay(
-                    RoundedRectangle(cornerRadius: 12, style: .continuous)
-                        .stroke(Color.green.opacity(0.3), lineWidth: 1)
-                )
+                .themedCard()
             
             // Output info
             HStack {
@@ -1500,11 +1476,7 @@ struct Base64ToolView: View {
             }
         }
         .padding(20)
-        .background(
-            RoundedRectangle(cornerRadius: 20, style: .continuous)
-                .fill(Color.clear)
-                .shadow(color: .black.opacity(colorScheme == .dark ? 0.3 : 0.08), radius: 15, x: 0, y: 8)
-        )
+        .themedCard()
         .transition(AnyTransition.asymmetric(
             insertion: .scale(scale: 0.95).combined(with: .opacity),
             removal: .opacity
@@ -1530,6 +1502,7 @@ struct Base64ToolView: View {
 
 // MARK: - Symlink Creator View
 struct SymlinkCreatorView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     @Environment(\.dismiss) private var dismiss
     @State private var linkName = ""
     @State private var targetPath = ""
@@ -1563,7 +1536,7 @@ struct SymlinkCreatorView: View {
                     }
                 }
             }
-            .scrollContentBackground(.hidden)
+            .globalTheme()
             .navigationTitle(.localized("Create Symlink"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {

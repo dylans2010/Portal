@@ -14,6 +14,7 @@ enum CertificateExperience: String, CaseIterable {
 
 // MARK: - Settings View
 struct SettingsView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     @State private var developerTapCount = 0
     @State private var lastTapTime: Date?
     @State private var _isFetchingFullData = false
@@ -49,7 +50,7 @@ struct SettingsView: View {
                 resourcesSection
                 if isDeveloperModeEnabled { developerSection }
             }
-            .scrollContentBackground(.hidden)
+            .globalTheme()
             .listStyle(.insetGrouped)
             .searchable(text: $_searchText, prompt: .localized("Search Settings"))
         }
@@ -119,21 +120,22 @@ struct SettingsView: View {
                             VStack(alignment: .leading, spacing: 2) {
                                 Text("Refreshing Sources")
                                     .font(.system(size: 16, weight: .bold, design: .rounded))
+                                    .themedText(.primary)
 
                                 Text(sourcesViewModel.fetchProgress < 1.0 ? "Downloading Repository Data..." : "Finalizing Updates...")
                                     .font(.system(size: 12))
-                                    .foregroundStyle(.secondary)
+                                    .themedText(.secondary)
                             }
 
                             Spacer()
 
                             Text("\(Int(sourcesViewModel.fetchProgress * 100))%")
                                 .font(.system(size: 14, weight: .bold, design: .monospaced))
-                                .foregroundStyle(Color.accentColor)
+                                .themedText(.primary)
                         }
 
                         ProgressView(value: sourcesViewModel.fetchProgress)
-                            .tint(Color.accentColor)
+                            .themedAccent()
                             .scaleEffect(x: 1, y: 1.5, anchor: .center)
                             .clipShape(Capsule())
 
@@ -145,7 +147,7 @@ struct SettingsView: View {
                             }
                         }
                         .font(.system(size: 11, weight: .medium))
-                        .foregroundStyle(.secondary)
+                        .themedText(.secondary)
                     }
                     .padding(.vertical, 8)
                 }
@@ -221,17 +223,18 @@ struct SettingsView: View {
         Section {
             Toggle(isOn: $saveDataToDevice) {
                 HStack(spacing: 8) {
-                    SettingsRowContent(icon: "person.text.rectangle.fill", title: String.localized("Save Data To Device"), color: .accentColor)
+                    SettingsRowContent(icon: "person.text.rectangle.fill", title: String.localized("Save Data To Device"), color: themeManager.accentColor)
 
                     Text("Beta")
                         .font(.system(size: 8, weight: .bold))
-                        .foregroundStyle(.white)
+                        .foregroundStyle(Color(hex: themeManager.resolvedColors.badgeText))
                         .padding(.horizontal, 6)
                         .padding(.vertical, 2)
-                        .background(Color.blue)
+                        .background(Color(hex: themeManager.resolvedColors.badgeBackground))
                         .clipShape(Capsule())
                 }
             }
+            .themedAccent()
         } footer: {
             Text(.localized("Generates a unique persistent ID on your device to recover your saved data and certificates even after app reinstallation or Bundle ID changes."))
         }
@@ -240,7 +243,7 @@ struct SettingsView: View {
     private var resourcesSection: some View {
         Section {
             if !hideManager.isHidden("settings.guides") {
-                SettingsRow(icon: "apple.intelligence", title: String.localized("Guides With AI"), color: .accentColor, destination: GuidesSettingsView())
+                SettingsRow(icon: "apple.intelligence", title: String.localized("Guides With AI"), color: themeManager.accentColor, destination: GuidesSettingsView())
             }
         } header: {
             SettingsSectionHeader(title: String.localized("Resources"), icon: "books.vertical.fill")

@@ -2,6 +2,7 @@ import SwiftUI
 
 // MARK: - Custom Tab Bar View (Liquid Glass Design)
 struct CustomTabBarUI: View {
+    @EnvironmentObject var themeManager: ThemeManager
     @AppStorage("Feather.tabBar.dashboard") private var showDashboard = false
     @AppStorage("Feather.tabBar.sources") private var showSources = true
     @AppStorage("Feather.tabBar.library") private var showLibrary = true
@@ -86,6 +87,7 @@ struct CustomTabBarUI: View {
             
             liquidGlassTabBar
         }
+        .globalTheme()
         .ignoresSafeArea(.keyboard)
         .onAppear {
             if !AppStateManager.shared.hasSelectedInitialTab {
@@ -208,16 +210,8 @@ struct CustomTabBarUI: View {
                         .font(.system(size: 19, weight: isSelected ? .semibold : .regular, design: .rounded))
                         .foregroundStyle(
                             isSelected ? 
-                            LinearGradient(
-                                colors: [Color.accentColor, Color.accentColor.opacity(0.8)],
-                                startPoint: .top,
-                                endPoint: .bottom
-                            ) : 
-                            LinearGradient(
-                                colors: [Color.secondary, Color.secondary],
-                                startPoint: .top,
-                                endPoint: .bottom
-                            )
+                            AnyShapeStyle(themeManager.accentColor) :
+                            AnyShapeStyle(Color(hex: themeManager.resolvedColors.secondaryText))
                         )
                         .scaleEffect(isSelected ? 1.08 : 1.0)
                         .modifier(TabBarBounceModifier(trigger: isSelected))
@@ -228,16 +222,8 @@ struct CustomTabBarUI: View {
                     .font(.system(size: 9, weight: isSelected ? .semibold : .medium, design: .rounded))
                     .foregroundStyle(
                         isSelected ? 
-                        LinearGradient(
-                            colors: [Color.accentColor, Color.accentColor.opacity(0.9)],
-                            startPoint: .leading,
-                            endPoint: .trailing
-                        ) : 
-                        LinearGradient(
-                            colors: [Color.secondary, Color.secondary],
-                            startPoint: .leading,
-                            endPoint: .trailing
-                        )
+                        AnyShapeStyle(themeManager.accentColor) :
+                        AnyShapeStyle(Color(hex: themeManager.resolvedColors.secondaryText))
                     )
             }
             .frame(maxWidth: .infinity)

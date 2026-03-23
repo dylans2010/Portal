@@ -4,6 +4,7 @@ import NimbleViews
 
 // MARK: - View
 struct SigningView: View {
+    @EnvironmentObject var themeManager: ThemeManager
 	@Environment(\.dismiss) var dismiss
     @AppStorage("Feather.serverMethod") private var _serverMethod: Int = 0
 	@StateObject private var _optionsManager = OptionsManager.shared
@@ -51,6 +52,7 @@ struct SigningView: View {
                 _cert()
                 _customizationProperties(for: app)
             }
+            .globalTheme()
             .navigationTitle(app.name ?? .localized("Unknown"))
             .navigationBarTitleDisplayMode(.inline)
             .safeAreaInset(edge: .bottom) {
@@ -64,8 +66,8 @@ struct SigningView: View {
                     .font(.headline)
                     .frame(maxWidth: .infinity)
                     .padding()
-                    .background(Color.accentColor)
-                    .foregroundStyle(.white)
+                    .background(themeManager.accentColor)
+                    .foregroundStyle(Color(hex: themeManager.resolvedColors.buttonText))
                     .clipShape(RoundedRectangle(cornerRadius: 12))
                 }
                 .padding()
@@ -214,9 +216,10 @@ extension SigningView {
                 VStack(alignment: .leading, spacing: 4) {
                     Text(app.name ?? .localized("Unknown"))
                         .font(.headline)
+                        .themedText(.primary)
                     Text(.localized("Tap icon to change"))
                         .font(.caption)
-                        .foregroundStyle(.secondary)
+                        .themedText(.secondary)
                 }
             }
             .padding(.vertical, 8)
@@ -254,9 +257,10 @@ extension SigningView {
                         VStack(alignment: .leading, spacing: 4) {
                             Text(.localized("No Certificate"))
                                 .font(.headline)
+                                .themedText(.primary)
                             Text(.localized("Add a certificate to continue"))
                                 .font(.caption)
-                                .foregroundColor(.secondary)
+                                .themedText(.secondary)
                         }
                         Spacer()
                     }
@@ -268,8 +272,8 @@ extension SigningView {
                             .font(.body.weight(.semibold))
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 10)
-                            .background(Color.accentColor)
-                            .foregroundStyle(.white)
+                            .background(themeManager.accentColor)
+                            .foregroundStyle(Color(hex: themeManager.resolvedColors.buttonText))
                             .cornerRadius(10)
                     }
                 }
@@ -337,10 +341,10 @@ extension SigningView {
 				Label(title, systemImage: icon)
 				Spacer()
 				Text(desc ?? .localized("Unknown"))
-					.foregroundStyle(.secondary)
+					.themedText(.secondary)
 			}
 		}
-		.foregroundStyle(.primary)
+		.themedText(.primary)
 	}
 }
 

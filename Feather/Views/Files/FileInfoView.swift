@@ -3,6 +3,7 @@ import NimbleViews
 
 // MARK: - FileInfoView
 struct FileInfoView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let file: FileItem
     @Environment(\.dismiss) var dismiss
     
@@ -55,12 +56,12 @@ struct FileInfoView: View {
                                 VStack(spacing: 4) {
                                     Text(file.name)
                                         .font(.headline)
-                                        .foregroundStyle(.primary)
+                                        .themedText(.primary)
                                         .multilineTextAlignment(.center)
                                     
                                     Text(file.isDirectory ? .localized("Folder") : file.url.pathExtension.uppercased())
                                         .font(.caption)
-                                        .foregroundStyle(.secondary)
+                                        .themedText(.secondary)
                                         .padding(.horizontal, 10)
                                         .padding(.vertical, 3)
                                         .background(
@@ -102,9 +103,9 @@ struct FileInfoView: View {
                         } label: {
                             HStack(spacing: 10) {
                                 Image(systemName: "doc.on.doc.fill")
-                                    .foregroundStyle(Color.accentColor)
+                                    .foregroundStyle(themeManager.accentColor)
                                 Text(.localized("Copy Path"))
-                                    .foregroundStyle(.primary)
+                                    .themedText(.primary)
                                 Spacer()
                                 Image(systemName: "arrow.right")
                                     .font(.caption2)
@@ -115,7 +116,7 @@ struct FileInfoView: View {
                         Label(.localized("Actions"), systemImage: "hand.tap.fill")
                     }
                 }
-                .scrollContentBackground(.hidden)
+                .globalTheme()
             }
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
@@ -137,6 +138,7 @@ struct FileInfoView: View {
 
 // MARK: - InfoRow
 struct FileInfoRow: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let label: String
     let value: String
     var icon: String? = nil
@@ -148,17 +150,18 @@ struct FileInfoRow: View {
             if let icon = icon {
                 Image(systemName: icon)
                     .font(.caption)
-                    .foregroundStyle(Color.accentColor)
+                    .foregroundStyle(themeManager.accentColor)
                     .frame(width: 20)
             }
             
             VStack(alignment: .leading, spacing: 4) {
                 Text(label)
                     .font(.caption)
-                    .foregroundStyle(.secondary)
+                    .themedText(.secondary)
                     .fontWeight(.medium)
                 Text(value)
                     .font(.subheadline)
+                    .themedText(.primary)
                     .textSelection(.enabled)
             }
             
@@ -176,7 +179,7 @@ struct FileInfoRow: View {
                     }
                 } label: {
                     Image(systemName: copied ? "checkmark.circle.fill" : "doc.on.doc")
-                        .foregroundStyle(copied ? .green : .blue)
+                        .foregroundStyle(copied ? .green : themeManager.accentColor)
                         .font(.caption)
                 }
                 .buttonStyle(.plain)

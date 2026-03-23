@@ -3,6 +3,7 @@ import NimbleViews
 
 // MARK: - TextViewerView
 struct TextViewerView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let fileURL: URL
     @Environment(\.dismiss) var dismiss
     
@@ -30,17 +31,6 @@ struct TextViewerView: View {
     var body: some View {
         NBNavigationView(.localized("Text Viewer"), displayMode: .inline) {
             ZStack {
-                // Modern background
-                LinearGradient(
-                    colors: [
-                        Color.accentColor.opacity(0.05),
-                        Color.clear
-                    ],
-                    startPoint: .top,
-                    endPoint: .bottom
-                )
-                .ignoresSafeArea()
-                
                 VStack(spacing: 0) {
                     // Error banner
                     if let error = errorMessage {
@@ -75,9 +65,10 @@ struct TextViewerView: View {
                         VStack(spacing: 16) {
                             ProgressView()
                                 .scaleEffect(1.5)
+                                .tint(themeManager.accentColor)
                             Text("Loading File...")
                                 .font(.subheadline)
-                                .foregroundStyle(.secondary)
+                                .themedText(.secondary)
                         }
                         Spacer()
                     } else {
@@ -93,7 +84,7 @@ struct TextViewerView: View {
                                         Text(fileURL.lastPathComponent)
                                             .font(.subheadline)
                                             .fontWeight(.medium)
-                                            .foregroundStyle(.primary)
+                                            .themedText(.primary)
                                             .lineLimit(1)
                                         
                                         HStack(spacing: 6) {
@@ -130,6 +121,7 @@ struct TextViewerView: View {
                         if isEditing {
                             TextEditor(text: $textContent)
                                 .font(.system(.body, design: .monospaced))
+                                .themedText(.primary)
                                 .padding(.horizontal, 12)
                                 .padding(.vertical, 8)
                                 .focused($isTextEditorFocused)
@@ -141,15 +133,16 @@ struct TextViewerView: View {
                             ScrollView {
                                 Text(textContent)
                                     .font(.system(.body, design: .monospaced))
+                                    .themedText(.primary)
                                     .frame(maxWidth: .infinity, alignment: .leading)
                                     .padding(.horizontal, 14)
                                     .padding(.vertical, 12)
                                     .textSelection(.enabled)
                             }
-                            .background(Color.clear)
                         }
                     }
                 }
+                .globalTheme()
             }
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
@@ -228,22 +221,23 @@ struct TextViewerView: View {
                         } label: {
                             HStack {
                                 Text(item.name)
-                                    .foregroundStyle(.primary)
+                                    .themedText(.primary)
                                 Spacer()
                                 if selectedEncoding == item.encoding {
                                     Image(systemName: "checkmark")
-                                        .foregroundStyle(.blue)
+                                        .themedAccent()
                                 }
                             }
                         }
                     }
                 } header: {
                     Text(.localized("Select Encoding"))
+                        .themedText(.header)
                 } footer: {
                     Text(.localized("Choose the character encoding for this file"))
                 }
             }
-            .scrollContentBackground(.hidden)
+            .globalTheme()
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button(.localized("Cancel")) {

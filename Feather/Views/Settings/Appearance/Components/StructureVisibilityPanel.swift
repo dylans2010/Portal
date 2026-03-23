@@ -2,6 +2,7 @@ import SwiftUI
 
 // MARK: - Left Panel: Structure & Visibility
 struct StructureVisibilityPanel: View {
+    @EnvironmentObject var themeManager: ThemeManager
     @ObservedObject var viewModel: StatusBarViewModel
     @State private var showConfigureLayouts = false
     @State private var showSavedStyles = false
@@ -39,6 +40,7 @@ struct StructureVisibilityPanel: View {
                 )) {
                     Label("Custom Text", systemImage: "textformat")
                 }
+                .themedAccent()
                 
                 Toggle(isOn: Binding(
                     get: { viewModel.showSFSymbol },
@@ -55,6 +57,7 @@ struct StructureVisibilityPanel: View {
                 )) {
                     Label("SF Symbol", systemImage: "star.fill")
                 }
+                .themedAccent()
                 
                 Toggle(isOn: Binding(
                     get: { viewModel.showTime },
@@ -71,6 +74,7 @@ struct StructureVisibilityPanel: View {
                 )) {
                     Label("Time", systemImage: "clock.fill")
                 }
+                .themedAccent()
                 
                 Toggle(isOn: Binding(
                     get: { viewModel.showDate },
@@ -87,6 +91,7 @@ struct StructureVisibilityPanel: View {
                 )) {
                     Label("Date", systemImage: "calendar")
                 }
+                .themedAccent()
                 
                 Toggle(isOn: Binding(
                     get: { viewModel.showBattery },
@@ -103,6 +108,7 @@ struct StructureVisibilityPanel: View {
                 )) {
                     Label("Battery", systemImage: "battery.100")
                 }
+                .themedAccent()
             } header: {
                 Label("Widgets", systemImage: "square.grid.2x2")
             } footer: {
@@ -126,6 +132,7 @@ struct StructureVisibilityPanel: View {
                 )) {
                     Label("Network Status", systemImage: "wifi")
                 }
+                .themedAccent()
                 
                 Toggle(isOn: Binding(
                     get: { viewModel.showMemoryUsage },
@@ -142,6 +149,7 @@ struct StructureVisibilityPanel: View {
                 )) {
                     Label("Memory Usage", systemImage: "memorychip")
                 }
+                .themedAccent()
             } header: {
                 Label("System Info", systemImage: "info.circle")
             }
@@ -152,7 +160,7 @@ struct StructureVisibilityPanel: View {
                 } label: {
                     HStack {
                         Image(systemName: "bookmark.fill")
-                            .foregroundStyle(.blue)
+                            .foregroundStyle(themeManager.accentColor)
                         Text("Saved Styles")
                         Spacer()
                         Image(systemName: "chevron.right")
@@ -166,7 +174,7 @@ struct StructureVisibilityPanel: View {
                 } label: {
                     HStack {
                         Image(systemName: "slider.horizontal.3")
-                            .foregroundStyle(.purple)
+                            .foregroundStyle(themeManager.accentColor)
                         Text("Configure Layouts")
                         Spacer()
                         Image(systemName: "chevron.right")
@@ -183,11 +191,12 @@ struct StructureVisibilityPanel: View {
                     .onChange(of: viewModel.hideDefaultStatusBar) { newValue in
                         viewModel.handleHideDefaultStatusBarChange(newValue)
                     }
+                    .themedAccent()
             } header: {
                 Label("System", systemImage: "gearshape")
             }
         }
-            .scrollContentBackground(.hidden)
+        .globalTheme()
         .listStyle(.insetGrouped)
         .sheet(isPresented: $showConfigureLayouts) {
             ConfigureLayoutsView(viewModel: viewModel)

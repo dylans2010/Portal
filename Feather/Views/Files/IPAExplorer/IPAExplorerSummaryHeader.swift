@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct IPAExplorerSummaryHeader: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let summary: IPAExplorerViewModel.IPASummary
     let isModified: Bool
     let isValid: Bool
@@ -26,10 +27,11 @@ struct IPAExplorerSummaryHeader: View {
                     Text(summary.name)
                         .font(.title3)
                         .fontWeight(.bold)
+                        .themedText(.primary)
 
                     Text(summary.bundleId)
                         .font(.subheadline)
-                        .foregroundStyle(.secondary)
+                        .themedText(.secondary)
 
                     HStack {
                         Text("\(summary.version) (\(summary.build))")
@@ -37,12 +39,11 @@ struct IPAExplorerSummaryHeader: View {
                         Text("iOS \(summary.minOS)+")
                     }
                     .font(.caption)
-                    .foregroundStyle(.secondary)
+                    .themedText(.secondary)
                 }
             }
             .padding()
-            .background(Color.clear)
-            .cornerRadius(12)
+            .themedCard()
 
             HStack {
                 StatusBadge(
@@ -65,6 +66,7 @@ struct IPAExplorerSummaryHeader: View {
 }
 
 struct StatusBadge: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let title: String
     let icon: String
     let color: Color
@@ -73,12 +75,12 @@ struct StatusBadge: View {
         HStack(spacing: 4) {
             Image(systemName: icon)
             Text(title)
+                .themedText(.badge)
         }
         .font(.caption.bold())
         .padding(.horizontal, 8)
         .padding(.vertical, 4)
-        .background(color.opacity(0.1))
-        .foregroundStyle(color)
+        .background(Color(hex: themeManager.resolvedColors.badgeBackground))
         .cornerRadius(8)
     }
 }

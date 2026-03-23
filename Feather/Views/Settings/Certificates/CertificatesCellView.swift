@@ -3,6 +3,7 @@ import NimbleViews
 
 // MARK: - View
 struct CertificatesCellView: View {
+    @EnvironmentObject var themeManager: ThemeManager
 	@State var data: Certificate?
 	@ObservedObject var cert: CertificatePair
 	
@@ -19,26 +20,26 @@ struct CertificatesCellView: View {
 					HStack(spacing: 6) {
 						Text(certificateTitle)
 							.font(.system(size: 15, weight: .semibold))
-							.foregroundStyle(.primary)
+							.themedText(.primary)
 							.lineLimit(1)
 						
 						// Debug badge
 						if let getTaskAllow = data?.Entitlements?["get-task-allow"]?.value as? Bool, getTaskAllow == true {
 							Text("JiT")
 								.font(.system(size: 9, weight: .bold))
-								.foregroundStyle(.white)
+								.foregroundStyle(Color(hex: themeManager.resolvedColors.badgeText))
 								.padding(.horizontal, 5)
 								.padding(.vertical, 2)
 								.background(
 									Capsule()
-										.fill(Color.orange)
+										.fill(Color(hex: themeManager.resolvedColors.badgeBackground))
 								)
 						}
 					}
 					
 					Text(data?.AppIDName ?? .localized("Unknown"))
 						.font(.system(size: 12, weight: .medium))
-						.foregroundStyle(.secondary)
+						.themedText(.secondary)
 						.lineLimit(1)
 				}
 				
@@ -135,7 +136,7 @@ struct CertificatesCellView: View {
 		.padding(.vertical, 4)
 		.background(
 			Capsule()
-				.fill(color.opacity(0.12))
+				.fill(Color(hex: themeManager.resolvedColors.badgeBackground))
 				.overlay(
 					Capsule()
 						.stroke(color.opacity(0.2), lineWidth: 0.5)

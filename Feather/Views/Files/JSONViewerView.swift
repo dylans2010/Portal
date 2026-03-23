@@ -3,6 +3,7 @@ import NimbleViews
 
 // MARK: - JSONViewerView
 struct JSONViewerView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let fileURL: URL
     @Environment(\.dismiss) var dismiss
     
@@ -16,9 +17,6 @@ struct JSONViewerView: View {
     var body: some View {
         NBNavigationView(.localized("JSON Viewer"), displayMode: .inline) {
             ZStack {
-                Color.clear
-                    .ignoresSafeArea()
-                
                 VStack(spacing: 0) {
                     // Validation error banner
                     if let error = validationError {
@@ -50,9 +48,10 @@ struct JSONViewerView: View {
                         VStack(spacing: 16) {
                             ProgressView()
                                 .scaleEffect(1.5)
+                                .tint(themeManager.accentColor)
                             Text("Loading JSON...")
                                 .font(.subheadline)
-                                .foregroundStyle(.secondary)
+                                .themedText(.secondary)
                         }
                     } else {
                         // File info header
@@ -62,7 +61,7 @@ struct JSONViewerView: View {
                                     VStack(alignment: .leading, spacing: 4) {
                                         Text(fileURL.lastPathComponent)
                                             .font(.headline)
-                                            .foregroundStyle(.primary)
+                                            .themedText(.primary)
                                         HStack(spacing: 8) {
                                             HStack(spacing: 4) {
                                                 Image(systemName: "curlybraces")
@@ -70,11 +69,11 @@ struct JSONViewerView: View {
                                                 Text("JSON File")
                                             }
                                             .font(.caption)
-                                            .foregroundStyle(.secondary)
+                                            .themedText(.secondary)
                                             
                                             if validationError == nil {
                                                 Text("•")
-                                                    .foregroundStyle(.secondary)
+                                                    .themedText(.secondary)
                                                 HStack(spacing: 4) {
                                                     Image(systemName: "checkmark.circle.fill")
                                                         .font(.caption2)
@@ -97,6 +96,7 @@ struct JSONViewerView: View {
                         if isEditing {
                             TextEditor(text: $jsonContent)
                                 .font(.system(.body, design: .monospaced))
+                                .themedText(.primary)
                                 .padding()
                                 .focused($isTextEditorFocused)
                                 .onChange(of: jsonContent) { _ in
@@ -106,6 +106,7 @@ struct JSONViewerView: View {
                             ScrollView {
                                 Text(jsonContent)
                                     .font(.system(.body, design: .monospaced))
+                                    .themedText(.primary)
                                     .frame(maxWidth: .infinity, alignment: .leading)
                                     .padding()
                                     .textSelection(.enabled)
@@ -114,6 +115,7 @@ struct JSONViewerView: View {
                     }
                 }
             }
+            .globalTheme()
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button(.localized("Close")) {

@@ -302,6 +302,7 @@ class ProfilePictureManager: ObservableObject {
 
 // MARK: - Home Settings View
 struct HomeSettingsView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     @StateObject private var settingsManager = HomeSettingsManager.shared
     @StateObject private var profileManager = ProfilePictureManager.shared
     @AppStorage("Feather.showHeaderViews") private var showHeaderViews = true
@@ -335,6 +336,7 @@ struct HomeSettingsView: View {
             widgetsToggleSection
             resetSection
         }
+        .globalTheme()
         .alert(.localized("Reset Home Settings"), isPresented: $showResetConfirmation) {
             Button(.localized("Cancel"), role: .cancel) { }
             Button(.localized("Reset"), role: .destructive) {
@@ -425,7 +427,7 @@ struct HomeSettingsView: View {
                     .aspectRatio(contentMode: .fill)
                     .frame(width: 88, height: 88)
                     .clipShape(Circle())
-                    .overlay(Circle().stroke(Color.accentColor.opacity(0.3), lineWidth: 2))
+                    .overlay(Circle().stroke(themeManager.accentColor.opacity(0.3), lineWidth: 2))
             } else {
                 Circle()
                     .fill(Color(UIColor.tertiarySystemFill))
@@ -446,10 +448,10 @@ struct HomeSettingsView: View {
             } label: {
                 Label(profileManager.profileImage == nil ? "Choose" : "Change", systemImage: "photo")
                     .font(.system(size: 14, weight: .medium))
-                    .foregroundStyle(.white)
+                    .foregroundStyle(Color(hex: themeManager.resolvedColors.buttonText))
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 10)
-                    .background(Color.accentColor)
+                    .background(themeManager.accentColor)
                     .cornerRadius(8)
             }
             
@@ -651,15 +653,15 @@ private struct WidgetToggleRow: View {
                     if isPinned {
                         Image(systemName: "pin.fill")
                             .font(.system(size: 8))
-                            .foregroundStyle(.orange)
+                            .foregroundStyle(Color.orange)
                     }
                     
                     Text(currentSize.title)
                         .font(.caption2)
-                        .foregroundStyle(.white)
+                        .foregroundStyle(Color(hex: themeManager.resolvedColors.badgeText))
                         .padding(.horizontal, 5)
                         .padding(.vertical, 2)
-                        .background(widgetType.color.opacity(0.7))
+                        .background(Color(hex: themeManager.resolvedColors.badgeBackground))
                         .cornerRadius(4)
                 }
                 
@@ -679,6 +681,7 @@ private struct WidgetToggleRow: View {
                 }
             ))
             .labelsHidden()
+            .themedAccent()
         }
         .padding(.vertical, 2)
         .contextMenu {
@@ -761,6 +764,7 @@ struct ProfileImagePicker: UIViewControllerRepresentable {
 
 // MARK: - App Update Tracking Settings View
 struct AppUpdateTrackingSettingsView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     @Environment(\.dismiss) private var dismiss
     @StateObject private var updateManager = AppUpdateTrackingManager.shared
     @StateObject private var sourcesViewModel = SourcesViewModel.shared
@@ -981,6 +985,7 @@ struct AppUpdateTrackingSettingsView: View {
 
 // MARK: - Tracked App Row
 private struct TrackedAppRow: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let app: TrackedAppConfig
     let onToggle: () -> Void
     let onRemove: () -> Void
@@ -1043,6 +1048,7 @@ private struct TrackedAppRow: View {
 
 // MARK: - Select App To Track View
 struct SelectAppToTrackView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     @Environment(\.dismiss) private var dismiss
     @StateObject private var updateManager = AppUpdateTrackingManager.shared
     let sources: [AltSource: ASRepository]
@@ -1219,6 +1225,7 @@ struct SelectAppToTrackView: View {
 
 // MARK: - Cached App Row (for fast loading)
 private struct CachedAppRow: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let app: CachedAppInfo
     let onSelect: () -> Void
     
@@ -1309,6 +1316,7 @@ private struct CachedAppRow: View {
 
 // MARK: - Filter Chip Button
 private struct FilterChipButton: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let title: String
     let isSelected: Bool
     let action: () -> Void

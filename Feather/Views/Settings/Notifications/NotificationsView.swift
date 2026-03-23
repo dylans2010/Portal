@@ -2,6 +2,7 @@ import SwiftUI
 import NimbleViews
 
 struct NotificationsView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     @StateObject private var notificationManager = NotificationManager.shared
     @AppStorage("Feather.notificationsEnabled") private var notificationsEnabled = false
     @AppStorage("Feather.showHeaderViews") private var showHeaderViews = true
@@ -21,6 +22,7 @@ struct NotificationsView: View {
                 Toggle(isOn: $notificationsEnabled) {
                     Label(.localized("Enable Notifications"), systemImage: "bell.fill")
                 }
+                .themedAccent()
                 .onChange(of: notificationsEnabled) { newValue in
                     if newValue {
                         notificationManager.requestAuthorization { granted in
@@ -34,12 +36,14 @@ struct NotificationsView: View {
 
                 HStack {
                     Text(.localized("Status"))
+                        .themedText(.primary)
                     Spacer()
                     Text(authorizationStatusText)
                         .foregroundStyle(authorizationStatusColor)
                 }
             } header: {
                 Text(.localized("Global Settings"))
+                    .themedText(.header)
             } footer: {
                 Text(.localized("Toggle to enable or disable all notifications from Portal."))
             }
@@ -51,14 +55,16 @@ struct NotificationsView: View {
                     }
                 } header: {
                     Text(.localized("Notification Preferences"))
+                        .themedText(.header)
                 } footer: {
                     Text(.localized("Choose which events you want to be notified about."))
                 }
 
                 Section {
-                    SettingsRow(icon: "widget.small.badge.plus", title: String.localized("Live Activities"), color: .accentColor, destination: LiveActivitySettingsView())
+                    SettingsRow(icon: "widget.small.badge.plus", title: String.localized("Live Activities"), color: themeManager.accentColor, destination: LiveActivitySettingsView())
                 } header: {
                     Text(.localized("Services"))
+                        .themedText(.header)
                 } footer: {
                     Text(.localized("Customize your Live Activities experience."))
                 }
@@ -91,6 +97,7 @@ struct NotificationsView: View {
                 }
             }
         }
+        .globalTheme()
         .alert(.localized("Permission Required"), isPresented: $showingAlert) {
             Button(.localized("Open Settings")) {
                 notificationManager.openSettings()
@@ -125,6 +132,7 @@ struct NotificationsView: View {
 }
 
 struct NotificationToggleRow: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let type: NotificationType
     @State private var isEnabled: Bool
 
@@ -139,15 +147,17 @@ struct NotificationToggleRow: View {
                 VStack(alignment: .leading, spacing: 2) {
                     Text(title(for: type))
                         .font(.body)
+                        .themedText(.primary)
                     Text(description(for: type))
                         .font(.caption)
-                        .foregroundStyle(.secondary)
+                        .themedText(.secondary)
                 }
             } icon: {
                 Image(systemName: icon(for: type))
-                    .foregroundStyle(Color.accentColor)
+                    .foregroundStyle(themeManager.accentColor)
             }
         }
+        .themedAccent()
         .onChange(of: isEnabled) { newValue in
             UserDefaults.standard.set(newValue, forKey: type.userDefaultsKey)
         }
