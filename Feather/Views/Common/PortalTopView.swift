@@ -145,7 +145,7 @@ struct PortalTopView: View {
                     Spacer(minLength: 0)
                 }
                 .frame(maxWidth: .infinity)
-                .padding(.top, topClearance)
+                .padding(.top, CGFloat(topClearance))
                 .animation(.spring(response: 0.5, dampingFraction: 0.8), value: isScreenshotting)
             }
             .allowsHitTesting(false)
