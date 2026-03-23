@@ -16,6 +16,7 @@ struct InstallPreviewView: View {
     @AppStorage("Feather.useShareSheetForArchiving") private var _useShareSheet: Bool = false
     @AppStorage("Feather.installationMethod") private var _installationMethod: Int = 0
     @AppStorage("Feather.serverMethod") private var _serverMethod: Int = 0
+    @AppStorage("Feather.showAdvancedInstallView") private var _showAdvancedInstallView: Bool = false
     @State private var _isWebviewPresenting = false
     @State private var progressTask: Task<Void, Never>?
 
@@ -42,20 +43,43 @@ struct InstallPreviewView: View {
     }
 
     var body: some View {
-        InstallProgressView(
-            app: app,
-            viewModel: viewModel,
-            installSource: installSource,
-            onInstall: _install,
-            onOpen: {
-                if let bundleID = app.identifier,
-                   let url = URL(string: "portal://open?bundleID=\(bundleID)") {
-                    UIApplication.shared.open(url)
+        Group {
+            if _showAdvancedInstallView {
+                AdvancedInfoDisplayView(
+                    app: app,
+                    viewModel: viewModel,
+                    installer: installer,
+                    installSource: installSource,
+                    onInstall: _install,
+                    onOpen: {
+                        if let bundleID = app.identifier,
+                           let url = URL(string: "portal://open?bundleID=\(bundleID)") {
+                            UIApplication.shared.open(url)
+                        }
+                        onDismiss()
+                    },
+                    onRetry: _install,
+                    onCancel: onDismiss
+                ) {
+                    _closeButton()
                 }
-                onDismiss()
+            } else {
+                InstallProgressView(
+                    app: app,
+                    viewModel: viewModel,
+                    installSource: installSource,
+                    onInstall: _install,
+                    onOpen: {
+                        if let bundleID = app.identifier,
+                           let url = URL(string: "portal://open?bundleID=\(bundleID)") {
+                            UIApplication.shared.open(url)
+                        }
+                        onDismiss()
+                    }
+                ) {
+                    _closeButton()
+                }
             }
-        ) {
-            _closeButton()
         }
         .sheet(isPresented: $_isWebviewPresenting) {
             SafariRepresentableView(url: installer.pageEndpoint).ignoresSafeArea()

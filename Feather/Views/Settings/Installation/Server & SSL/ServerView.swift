@@ -82,7 +82,8 @@ struct ServerView: View {
     @Environment(\.dismiss) private var dismiss
         @AppStorage("Feather.ipFix") private var _ipFix: Bool = false
         @AppStorage("Feather.serverMethod") private var _serverMethod: Int = 0
-        
+        @AppStorage("Feather.showAdvancedInstallView") private var _showAdvancedInstallView: Bool = false
+
         private let _dataService = NBFetchService()
         private let _serverPackUrl = "https://backloop.dev/pack.json"
         
@@ -155,6 +156,30 @@ struct ServerView: View {
                 }
             }
                         
+            Toggle(isOn: $_showAdvancedInstallView) {
+                HStack(spacing: 12) {
+                    ZStack {
+                        RoundedRectangle(cornerRadius: 8, style: .continuous)
+                            .fill(Color.blue.opacity(0.15))
+                            .frame(width: 32, height: 32)
+
+                        Image(systemName: "cpu")
+                            .font(.system(size: 14, weight: .semibold))
+                            .foregroundStyle(.blue)
+                    }
+
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Show Installation View (New)")
+                            .font(.system(size: 14, weight: .medium))
+                        Text("Display advanced diagnostics during installation")
+                            .font(.system(size: 11))
+                            .foregroundStyle(.secondary)
+                    }
+                }
+            }
+            .tint(.blue)
+            .padding(.top, 4)
+
                         if _serverMethod == 1 || _serverMethod == 3 {
                                 Toggle(isOn: $_ipFix) {
                                         HStack(spacing: 12) {
