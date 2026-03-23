@@ -171,9 +171,13 @@ struct FeatherApp: App {
                                 }
                         }
                         .globalTheme()
+                        .tint(themeManager.accentColor)
                         .environmentObject(themeManager)
                         .environmentObject(ColorBackgroundManager.shared)
                         .handleStatusBarHiding()
+                        .onAppear {
+                                themeManager.applyUIKitAppearance()
+                        }
                         .onReceive(NotificationCenter.default.publisher(for: UIApplication.didBecomeActiveNotification)) { _ in
                                 _handlePendingWidgetAction()
                                 NotificationManager.shared.clearBadge()

@@ -56,10 +56,18 @@ struct GlobalThemeModifier: ViewModifier {
             .scrollContentBackground(.hidden)
             .toolbarBackground(themeManager.navigationBarColor, for: .navigationBar)
             .toolbarBackground(.visible, for: .navigationBar)
-            .toolbarBackground(Color(hex: themeManager.resolvedColors.tabBar), for: .tabBar)
+            .onReceive(NotificationCenter.default.publisher(for: Notification.Name("AppWideThemeDidChange"))) { _ in
+                // SwiftUI will re-render automatically via @EnvironmentObject publish
+                // This onReceive ensures UIKit-backed views also refresh
+            }
+            .toolbarBackground(themeManager.tabBarColor, for: .tabBar)
             .tint(themeManager.accentColor)
             .accentColor(themeManager.accentColor)
             .foregroundStyle(themeManager.primaryTextColor)
+            .onReceive(NotificationCenter.default.publisher(for: Notification.Name("AppWideThemeDidChange"))) { _ in
+                // SwiftUI will re-render automatically via @EnvironmentObject publish
+                // This onReceive ensures UIKit-backed views also refresh
+            }
     }
 }
 
@@ -72,6 +80,10 @@ struct ThemedBackgroundModifier: ViewModifier {
             .scrollContentBackground(.hidden)
             .toolbarBackground(themeManager.navigationBarColor, for: .navigationBar)
             .toolbarBackground(.visible, for: .navigationBar)
+            .onReceive(NotificationCenter.default.publisher(for: Notification.Name("AppWideThemeDidChange"))) { _ in
+                // SwiftUI will re-render automatically via @EnvironmentObject publish
+                // This onReceive ensures UIKit-backed views also refresh
+            }
     }
 }
 
@@ -82,6 +94,10 @@ struct ThemedListRowModifier: ViewModifier {
         content
             .background(themeManager.cardBackgroundColor)
             .foregroundStyle(themeManager.primaryTextColor)
+            .onReceive(NotificationCenter.default.publisher(for: Notification.Name("AppWideThemeDidChange"))) { _ in
+                // SwiftUI will re-render automatically via @EnvironmentObject publish
+                // This onReceive ensures UIKit-backed views also refresh
+            }
     }
 }
 
