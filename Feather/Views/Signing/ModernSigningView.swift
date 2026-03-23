@@ -1059,6 +1059,7 @@ struct ModernSigningView: View {
 
 // MARK: - Modern Signing Options View
 struct ModernSigningOptionsView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     @Binding var options: Options
     @State private var showPPQInfo = false
     @State private var floatingAnimation = false
@@ -1441,6 +1442,7 @@ struct ModernSigningOptionsView: View {
 
 // MARK: - Swipe To Sign Component
 struct SwipeToSign: View {
+    @EnvironmentObject var themeManager: ThemeManager
     var onComplete: () -> Void
 
     @State private var offset: CGFloat = 0
@@ -1578,6 +1580,7 @@ struct SignButtonStyle: ButtonStyle {
 
 // MARK: - Hold To Sign
 struct HoldToSign: View {
+    @EnvironmentObject var themeManager: ThemeManager
     var onComplete: () -> Void
     @State private var progress: CGFloat = 0
     @State private var isHolding = false
@@ -1736,6 +1739,7 @@ struct SlideToConfirm: View {
 
 // MARK: - Double Tap To Sign
 struct DoubleTapToSign: View {
+    @EnvironmentObject var themeManager: ThemeManager
     var onComplete: () -> Void
     @State private var isAnimate = false
     @State private var isCompleted = false
