@@ -1528,10 +1528,12 @@ struct HomeQuickActionCard: View {
 
 // MARK: - Home Card Button Style
 struct HomeCardButtonStyle: ButtonStyle {
+    @AppStorage("Feather.appearance.visualFeedbackStrength") private var visualFeedbackStrength: Double = 0.5
+
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
-            .scaleEffect(configuration.isPressed ? 0.96 : 1.0)
-            .opacity(configuration.isPressed ? 0.9 : 1.0)
+            .scaleEffect(configuration.isPressed ? 0.96 - (visualFeedbackStrength * 0.04) : 1.0)
+            .opacity(configuration.isPressed ? 0.9 - (visualFeedbackStrength * 0.1) : 1.0)
             .animation(.spring(response: 0.3, dampingFraction: 0.7), value: configuration.isPressed)
     }
 }

@@ -3,11 +3,11 @@ import NimbleViews
 
 struct ColorTheme: Identifiable, Codable, Equatable {
     var id = UUID()
-    let name: String
-    let bg: String
-    let ui: String
-    let text: String
-    let tint: String
+    var name: String
+    var bg: String
+    var ui: String
+    var text: String
+    var tint: String
     var secondaryText: String?
     var cardRadius: Double?
     var fontDesign: String?
@@ -22,12 +22,33 @@ struct ColorTheme: Identifiable, Codable, Equatable {
     var glowIntensity: Double?
     var borderWidth: Double?
     var cardOpacity: Double?
+
+    // Context-Aware & Time-Based
+    var appearanceMode: Int? = 0 // 0: Auto, 1: Light, 2: Dark
+    var scheduleMode: Int? = 0 // 0: None, 1: Morning, 2: Sunset, 3: Night
+
+    // Accessibility
+    var highContrast: Bool? = false
+    var colorBlindnessFilter: Int? = 0 // 0: None, 1: Protanopia, 2: Deuteranopia, 3: Tritanopia
+    var autoContrastCorrection: Bool? = true
+
+    // Feedback
+    var hapticIntensity: Double? = 0.5
+    var visualFeedbackStrength: Double? = 0.5
+
+    // Experimental & Blending
+    var layerBlendMode: Int? = 0 // 0: Normal, 1: Overlay, 2: Multiply, 3: Screen
+    var parallaxEnabled: Bool? = false
+    var motionGradients: Bool? = true
+    var dynamicLighting: Bool? = false
 }
 
 struct ColorCustomizationView: View {
     private enum EditorSection: String, CaseIterable, Identifiable {
         case overview = "Overview"
         case colors = "Colors"
+        case intelligent = "Intelligent"
+        case advanced = "Advanced"
         case styling = "Styling"
         case sections = "Sections"
 
@@ -37,6 +58,8 @@ struct ColorCustomizationView: View {
             switch self {
             case .overview: return "sparkles"
             case .colors: return "paintpalette.fill"
+            case .intelligent: return "cpu"
+            case .advanced: return "wand.and.rays"
             case .styling: return "slider.horizontal.3"
             case .sections: return "square.grid.2x2.fill"
             }
@@ -68,6 +91,35 @@ struct ColorCustomizationView: View {
     @AppStorage("Feather.userThemes") private var userThemesData: Data = Data()
     @AppStorage("Feather.showHeaderViews") private var showHeaderViews = true
 
+    // Per-Screen Override
+    @AppStorage("Feather.appearance.screenOverride") private var screenOverride: [String: String] = [:]
+
+    // Context-Aware
+    @AppStorage("Feather.appearance.contextTheming") private var contextTheming: Bool = false
+    @AppStorage("Feather.appearance.lowPowerTheme") private var lowPowerThemeId: String = ""
+    @AppStorage("Feather.appearance.focusTheme") private var focusThemeId: String = ""
+
+    // Time-Based
+    @AppStorage("Feather.appearance.timeBasedTheming") private var timeBasedTheming: Bool = false
+    @AppStorage("Feather.appearance.morningTheme") private var morningThemeId: String = ""
+    @AppStorage("Feather.appearance.sunsetTheme") private var sunsetThemeId: String = ""
+    @AppStorage("Feather.appearance.nightTheme") private var nightThemeId: String = ""
+
+    // Accessibility
+    @AppStorage("Feather.appearance.highContrast") private var highContrast: Bool = false
+    @AppStorage("Feather.appearance.colorBlindnessFilter") private var colorBlindnessFilter: Int = 0
+    @AppStorage("Feather.appearance.autoContrastCorrection") private var autoContrastCorrection: Bool = true
+
+    // Feedback
+    @AppStorage("Feather.appearance.hapticIntensity") private var hapticIntensity: Double = 0.5
+    @AppStorage("Feather.appearance.visualFeedbackStrength") private var visualFeedbackStrength: Double = 0.5
+
+    // Experimental
+    @AppStorage("Feather.appearance.layerBlendMode") private var layerBlendMode: Int = 0
+    @AppStorage("Feather.appearance.parallaxEnabled") private var parallaxEnabled: Bool = false
+    @AppStorage("Feather.appearance.motionGradients") private var motionGradients: Bool = true
+    @AppStorage("Feather.appearance.performanceMode") private var performanceMode: Bool = false
+
     @State private var uiElementColor: Color = .blue
     @State private var textColor: Color = .black
     @State private var secondaryTextColor: Color = .gray
@@ -84,6 +136,8 @@ struct ColorCustomizationView: View {
     @State private var themeName: String = ""
     @State private var showSaveAlert = false
     @State private var showResetAlert = false
+    @State private var showImagePicker = false
+    @State private var selectedImage: UIImage?
     @ObservedObject private var appState = AppStateManager.shared
     @Environment(\.colorScheme) var colorScheme
 
@@ -142,6 +196,16 @@ struct ColorCustomizationView: View {
             case .colors:
                 paletteSection
                 semanticColorsSection
+            case .intelligent:
+                contextAwareSection
+                timeBasedSection
+                wallpaperIntegrationSection
+                perScreenSection
+            case .advanced:
+                accessibilitySection
+                feedbackSection
+                experimentalSection
+                sharingSection
             case .styling:
                 stylingSection
                 advancedEffectsSection
@@ -164,6 +228,18 @@ struct ColorCustomizationView: View {
             }
         }
         .onAppear(perform: loadColors)
+        .sheet(isPresented: $showImagePicker) {
+            ImagePicker(image: $selectedImage)
+        }
+        .onChange(of: selectedImage) { image in
+            if let image = image {
+                let palette = WallpaperColorExtractor.shared.extractDominantColors(from: image)
+                backgroundManager.baseColor = palette.primary
+                uiElementColor = palette.secondary
+                tintColor = palette.accent
+                HapticsManager.shared.success()
+            }
+        }
         .sheet(isPresented: $showAllThemes) {
             ThemeLibraryView(themes: allThemes) { theme in
                 applyTheme(theme)
@@ -319,6 +395,149 @@ struct ColorCustomizationView: View {
             }
         } header: {
             Label("Customization", systemImage: "slider.horizontal.3")
+        }
+    }
+
+    private var contextAwareSection: some View {
+        Section {
+            Toggle(isOn: $contextTheming) {
+                Label("Context-Aware Theming", systemImage: "bolt.badge.automatic.fill")
+            }
+
+            if contextTheming {
+                Picker("Low Power Theme", selection: $lowPowerThemeId) {
+                    Text("None").tag("")
+                    ForEach(allThemes) { theme in
+                        Text(theme.name).tag(theme.id.uuidString)
+                    }
+                }
+
+                Picker("Focus Theme", selection: $focusThemeId) {
+                    Text("None").tag("")
+                    ForEach(allThemes) { theme in
+                        Text(theme.name).tag(theme.id.uuidString)
+                    }
+                }
+            }
+        } header: {
+            Text("System Integration")
+        } footer: {
+            Text("Automatically switch themes based on Low Power Mode or Focus filters.")
+        }
+    }
+
+    private var timeBasedSection: some View {
+        Section {
+            Toggle(isOn: $timeBasedTheming) {
+                Label("Schedule Themes", systemImage: "clock.fill")
+            }
+
+            if timeBasedTheming {
+                Picker("Morning Theme", selection: $morningThemeId) {
+                    ForEach(allThemes) { theme in
+                        Text(theme.name).tag(theme.id.uuidString)
+                    }
+                }
+                Picker("Sunset Theme", selection: $sunsetThemeId) {
+                    ForEach(allThemes) { theme in
+                        Text(theme.name).tag(theme.id.uuidString)
+                    }
+                }
+                Picker("Night Theme", selection: $nightThemeId) {
+                    ForEach(allThemes) { theme in
+                        Text(theme.name).tag(theme.id.uuidString)
+                    }
+                }
+            }
+        } header: {
+            Text("Time-Based Theming")
+        }
+    }
+
+    private var accessibilitySection: some View {
+        Section {
+            Toggle("High Contrast Mode", isOn: $highContrast)
+            Toggle("Auto Contrast Correction", isOn: $autoContrastCorrection)
+
+            Picker("Color Blindness Filter", selection: $colorBlindnessFilter) {
+                Text("None").tag(0)
+                Text("Protanopia").tag(1)
+                Text("Deuteranopia").tag(2)
+                Text("Tritanopia").tag(3)
+            }
+        } header: {
+            Text("Accessibility")
+        }
+    }
+
+    private var feedbackSection: some View {
+        Section {
+            advancedSliderRow(title: "Haptic Intensity", value: $hapticIntensity, range: 0...1, step: 0.1, isPercent: true, icon: "waveform")
+            advancedSliderRow(title: "Visual Feedback", value: $visualFeedbackStrength, range: 0...1, step: 0.1, isPercent: true, icon: "sparkles")
+        } header: {
+            Text("Haptic & Visual Feedback")
+        }
+    }
+
+    private var experimentalSection: some View {
+        Section {
+            Picker("Layer Blending", selection: $layerBlendMode) {
+                Text("Normal").tag(0)
+                Text("Overlay").tag(1)
+                Text("Multiply").tag(2)
+                Text("Screen").tag(3)
+            }
+            Toggle("Parallax Depth Effect", isOn: $parallaxEnabled)
+            Toggle("Motion Gradients", isOn: $motionGradients)
+            Toggle("Performance Mode", isOn: $performanceMode)
+        } header: {
+            Text("Experimental Effects")
+        } footer: {
+            Text("Performance mode reduces heavy blurs and shadows to save battery and increase responsiveness.")
+        }
+    }
+
+    private var sharingSection: some View {
+        Section {
+            Button {
+                exportTheme()
+            } label: {
+                Label("Export Current Theme Code", systemImage: "square.and.arrow.up")
+            }
+
+            Button {
+                importTheme()
+            } label: {
+                Label("Import Theme From Clipboard", systemImage: "square.and.arrow.down")
+            }
+        } header: {
+            Text("Theme Sharing")
+        }
+    }
+
+    private var wallpaperIntegrationSection: some View {
+        Section {
+            Button {
+                showImagePicker = true
+            } label: {
+                Label("Generate From Image", systemImage: "photo.on.rectangle.angled")
+            }
+        } header: {
+            Text("Dynamic Wallpaper Integration")
+        } footer: {
+            Text("Auto-generate a theme palette from your favorite wallpaper or image.")
+        }
+    }
+
+    private var perScreenSection: some View {
+        Section {
+            NavigationLink {
+                PerScreenThemeView(allThemes: allThemes)
+            } label: {
+                Label("Per-Screen Overrides", systemImage: "rectangle.3.group")
+            }
+        } header: {
+            Text("View Overrides")
         }
     }
 
@@ -641,6 +860,57 @@ struct ColorCustomizationView: View {
         HapticsManager.shared.success()
     }
 
+    private func exportTheme() {
+        let theme = ColorTheme(
+            name: "Exported Theme",
+            bg: backgroundManager.baseColor.toHex() ?? Color.defaultBackground,
+            ui: uiElementColor.toHex() ?? Color.defaultUIElement,
+            text: textColor.toHex() ?? Color.defaultText,
+            tint: tintColor.toHex() ?? "#0077BE",
+            secondaryText: secondaryTextColor.toHex() ?? "#8E8E93",
+            cardRadius: cardCornerRadius,
+            fontDesign: fontDesign,
+            navBarColor: navBarColor.toHex(),
+            tabBarColor: tabBarColor.toHex(),
+            dividerColor: dividerColor.toHex(),
+            sheetBackgroundColor: sheetBackgroundColor.toHex(),
+            successColor: successColor.toHex(),
+            warningColor: warningColor.toHex(),
+            errorColor: errorColor.toHex(),
+            glowIntensity: glowIntensity,
+            borderWidth: borderWidth,
+            cardOpacity: cardOpacity,
+            appearanceMode: 0,
+            scheduleMode: 0,
+            highContrast: highContrast,
+            colorBlindnessFilter: colorBlindnessFilter,
+            autoContrastCorrection: autoContrastCorrection,
+            hapticIntensity: hapticIntensity,
+            visualFeedbackStrength: visualFeedbackStrength,
+            layerBlendMode: layerBlendMode,
+            parallaxEnabled: parallaxEnabled,
+            motionGradients: motionGradients,
+            dynamicLighting: false
+        )
+
+        if let data = try? JSONEncoder().encode(theme),
+           let json = String(data: data, encoding: .utf8) {
+            UIPasteboard.general.string = json
+            HapticsManager.shared.success()
+        }
+    }
+
+    private func importTheme() {
+        guard let json = UIPasteboard.general.string,
+              let data = json.data(using: .utf8),
+              let theme = try? JSONDecoder().decode(ColorTheme.self, from: data) else {
+            HapticsManager.shared.error()
+            return
+        }
+
+        applyTheme(theme)
+    }
+
     private func resetToDefaults() {
         backgroundManager.baseColor = Color(hex: Color.defaultBackground)
         uiElementColorHex = Color.defaultUIElement
@@ -699,6 +969,42 @@ struct ModernThemeCard: View {
             }
         }
         .buttonStyle(.plain)
+    }
+}
+
+struct PerScreenThemeView: View {
+    @AppStorage("Feather.appearance.screenOverride") private var screenOverride: [String: String] = [:]
+    let allThemes: [ColorTheme]
+
+    private let screens = [
+        ("Library", "LibraryView"),
+        ("Sources", "SourcesView"),
+        ("Guides", "GuidesView"),
+        ("Settings", "SettingsView"),
+        ("Signer", "SigningView")
+    ]
+
+    var body: some View {
+        List {
+            Section {
+                ForEach(screens, id: \.1) { screen in
+                    Picker(screen.0, selection: Binding(
+                        get: { screenOverride[screen.1] ?? "" },
+                        set: { screenOverride[screen.1] = $0.isEmpty ? nil : $0 }
+                    )) {
+                        Text("Default").tag("")
+                        ForEach(allThemes) { theme in
+                            Text(theme.name).tag(theme.id.uuidString)
+                        }
+                    }
+                }
+            } header: {
+                Text("Select Theme Per Screen")
+            } footer: {
+                Text("Override the global theme for specific areas of the app.")
+            }
+        }
+        .navigationTitle("Per-Screen Themes")
     }
 }
 

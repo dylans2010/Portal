@@ -1,4 +1,5 @@
 import SwiftUI
+import Combine
 
 struct PortalTopView: View {
     @AppStorage("Feather.portalTopViewEnabled") private var portalTopViewEnabled: Bool = true
@@ -13,6 +14,8 @@ struct PortalTopView: View {
     @AppStorage("Feather.portalTopViewGradientDirection") private var gradientDirection: Int = 0
     @AppStorage("Feather.portalTopViewGlassEffect") private var glassEffect: Bool = false
     @AppStorage("Feather.portalTopViewGlassIntensity") private var glassIntensity: Int = 0
+
+    @State private var isScreenshotting = false
 
     private var material: Material {
         switch portalTopViewStyle {
@@ -54,14 +57,13 @@ struct PortalTopView: View {
             } else {
                 GeometryReader { geometry in
                     let safeAreaTop = geometry.safeAreaInsets.top
-                    // iPhones with Dynamic Island have a significantly larger top safe area
-                    // (~59 pt vs ~44 pt for notch).  Placing the pill within that region
-                    // positions it directly behind the Dynamic Island hardware, making it
-                    // invisible.  We detect this and shift the pill below the island instead.
-                    // Threshold: midpoint between notch (~44 pt) and Dynamic Island (~59 pt).
                     let dynamicIslandThreshold: CGFloat = 54
                     let hasDynamicIsland = safeAreaTop >= dynamicIslandThreshold
-                    let topClearance = hasDynamicIsland ? safeAreaTop + 14 : max((safeAreaTop - 30) / 2, 6)
+
+                    // When screenshotting, we move the pill into the Dynamic Island area (topClearance = 0)
+                    // and ignore safe areas. Normally, we respect safe area (handled by the .ignoresSafeArea modifier below)
+                    // and shift it below the island to be visible.
+                    let topClearance = isScreenshotting ? 0 : (hasDynamicIsland ? safeAreaTop + 14 : max((safeAreaTop - 30) / 2, 6))
 
                     VStack(spacing: 0) {
                         Spacer(minLength: 0)
@@ -150,13 +152,25 @@ struct PortalTopView: View {
                     // the top inset as before.
                     .frame(height: max(safeAreaTop + 70, 88))
                     .padding(.top, topClearance)
+                    .animation(.spring(response: 0.5, dampingFraction: 0.8), value: isScreenshotting)
 
                     Spacer()
                 }
             }
         }
         .allowsHitTesting(false)
-        .zIndex(1000)
-        .ignoresSafeArea(edges: .top)
+        .zIndex(isScreenshotting ? 999999 : 1000)
+        .ignoresSafeArea(isScreenshotting ? .all : [], edges: .top)
+        .onReceive(NotificationCenter.default.publisher(for: UIApplication.userDidTakeScreenshotNotification)) { _ in
+            withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) {
+                isScreenshotting = true
+            }
+            // Return to normal state after capture
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) {
+                    isScreenshotting = false
+                }
+            }
+        }
     }
 }

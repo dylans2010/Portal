@@ -5,8 +5,11 @@ import NimbleViews
 struct SigningEntitlementsView: View {
     @Environment(\.colorScheme) var colorScheme
     @State private var _isAddingPresenting = false
+    @State private var _isCreatingPresenting = false
     @State private var _appearAnimation = false
     @State private var _floatingAnimation = false
+    @State private var _parsedEntitlements: [String: Any] = [:]
+    @AppStorage("Feather.showEntitlementsSplash") private var _showSplash = true
     
     @Binding var bindingValue: URL?
     
@@ -23,11 +26,23 @@ struct SigningEntitlementsView: View {
                         .opacity(_appearAnimation ? 1 : 0)
                         .offset(y: _appearAnimation ? 0 : 20)
                     
+                    // Main Buttons
+                    mainButtonsSection
+                        .opacity(_appearAnimation ? 1 : 0)
+                        .offset(y: _appearAnimation ? 0 : 25)
+
                     // Content card
                     contentCard
                         .opacity(_appearAnimation ? 1 : 0)
                         .offset(y: _appearAnimation ? 0 : 30)
                     
+                    // Parsed Entitlements List
+                    if !_parsedEntitlements.isEmpty {
+                        entitlementsListView
+                            .opacity(_appearAnimation ? 1 : 0)
+                            .offset(y: _appearAnimation ? 0 : 35)
+                    }
+
                     // Info section
                     infoSection
                         .opacity(_appearAnimation ? 1 : 0)
@@ -47,10 +62,16 @@ struct SigningEntitlementsView: View {
                     
                     FileManager.default.moveAndStore(selectedFileURL, with: "FeatherEntitlement") { url in
                         bindingValue = url
+                        _parseEntitlements(at: url)
                     }
                 }
             )
             .ignoresSafeArea()
+        }
+        .sheet(isPresented: $_isCreatingPresenting) {
+            NavigationStack {
+                EntitlementsCreateView()
+            }
         }
         .onAppear {
             withAnimation(.spring(response: 0.6, dampingFraction: 0.8)) {
@@ -59,6 +80,9 @@ struct SigningEntitlementsView: View {
             withAnimation(.easeInOut(duration: 4).repeatForever(autoreverses: true)) {
                 _floatingAnimation = true
             }
+        }
+        .sheet(isPresented: $_showSplash) {
+            EntitlementsSplashView()
         }
     }
     
@@ -102,6 +126,80 @@ struct SigningEntitlementsView: View {
         }
     }
     
+    // MARK: - Main Buttons Section
+    @ViewBuilder
+    private var mainButtonsSection: some View {
+        HStack(spacing: 16) {
+            Button {
+                _isAddingPresenting = true
+            } label: {
+                VStack(spacing: 12) {
+                    Image(systemName: "doc.badge.plus")
+                        .font(.system(size: 24))
+                    Text("Load Entitlements")
+                        .font(.subheadline.weight(.semibold))
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 16)
+                .background(RoundedRectangle(cornerRadius: 16).fill(.ultraThinMaterial))
+                .overlay(RoundedRectangle(cornerRadius: 16).stroke(Color.primary.opacity(0.1), lineWidth: 1))
+            }
+
+            Button {
+                _isCreatingPresenting = true
+            } label: {
+                VStack(spacing: 12) {
+                    Image(systemName: "plus.square.on.square")
+                        .font(.system(size: 24))
+                    Text("Create New")
+                        .font(.subheadline.weight(.semibold))
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 16)
+                .background(RoundedRectangle(cornerRadius: 16).fill(.ultraThinMaterial))
+                .overlay(RoundedRectangle(cornerRadius: 16).stroke(Color.primary.opacity(0.1), lineWidth: 1))
+            }
+        }
+    }
+
+    // MARK: - Entitlements List View
+    @ViewBuilder
+    private var entitlementsListView: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            HStack {
+                Image(systemName: "list.bullet.rectangle.fill")
+                    .foregroundStyle(.orange)
+                Text("Entitlements Content")
+                    .font(.headline)
+                Spacer()
+            }
+
+            VStack(spacing: 12) {
+                ForEach(Array(_parsedEntitlements.keys.sorted()), id: \.self) { key in
+                    VStack(alignment: .leading, spacing: 4) {
+                        HStack {
+                            Text(key)
+                                .font(.system(.caption, design: .monospaced))
+                                .fontWeight(.bold)
+                                .foregroundStyle(.primary)
+                            Spacer()
+                        }
+
+                        Text(String(describing: _parsedEntitlements[key] ?? ""))
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
+                            .padding(8)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .background(RoundedRectangle(cornerRadius: 8).fill(Color.primary.opacity(0.05)))
+                    }
+                }
+            }
+        }
+        .padding(16)
+        .background(RoundedRectangle(cornerRadius: 20).fill(.ultraThinMaterial))
+        .overlay(RoundedRectangle(cornerRadius: 20).stroke(Color.primary.opacity(0.1), lineWidth: 1))
+    }
+
     // MARK: - Header Section
     @ViewBuilder
     private var headerSection: some View {
@@ -277,6 +375,14 @@ struct SigningEntitlementsView: View {
         }
     }
     
+    private func _parseEntitlements(at url: URL) {
+        guard let data = try? Data(contentsOf: url),
+              let plist = try? PropertyListSerialization.propertyList(from: data, options: [], format: nil) as? [String: Any] else {
+            return
+        }
+        _parsedEntitlements = plist
+    }
+
     @ViewBuilder
     private func infoRow(icon: String, text: String, color: Color) -> some View {
         HStack(spacing: 12) {

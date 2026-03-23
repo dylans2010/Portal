@@ -5,6 +5,14 @@ struct GlobalThemeModifier: ViewModifier {
     @EnvironmentObject private var backgroundManager: ColorBackgroundManager
     @AppStorage("Feather.animateBackground") private var animateBackground: Bool = false
 
+    // Experimental & Advanced
+    @AppStorage("Feather.appearance.highContrast") private var highContrast: Bool = false
+    @AppStorage("Feather.appearance.performanceMode") private var performanceMode: Bool = false
+    @AppStorage("Feather.appearance.parallaxEnabled") private var parallaxEnabled: Bool = false
+    @AppStorage("Feather.appearance.motionGradients") private var motionGradients: Bool = true
+    @AppStorage("Feather.appearance.layerBlendMode") private var layerBlendMode: Int = 0
+    @AppStorage("Feather.appearance.autoContrastCorrection") private var autoContrastCorrection: Bool = true
+
     @AppStorage(UserDefaults.Keys.uiElement) private var uiElementColorHex: String = Color.defaultUIElement
     @AppStorage(UserDefaults.Keys.text) private var textColorHex: String = Color.defaultText
     @AppStorage(UserDefaults.Keys.secondaryText) private var secondaryTextColorHex: String = "#8E8E93"
@@ -38,21 +46,43 @@ struct GlobalThemeModifier: ViewModifier {
         let uiColor = Color(hex: uiElementColorHex)
 
         // Text color logic: removed ColorScheme dependency
-        let textColor = Color(hex: textColorHex)
+        var textColor = highContrast ? (colorScheme == .dark ? .white : .black) : Color(hex: textColorHex)
+
+        // Adaptive UI Intelligence: Auto-adjust colors based on background luminance
+        if autoContrastCorrection && !highContrast {
+            let bgLuminance = backgroundManager.resolvedColor.brightness
+            let textLuminance = textColor.brightness
+            let diff = abs(bgLuminance - textLuminance)
+
+            if diff < 0.3 {
+                textColor = bgLuminance > 0.5 ? .black : .white
+            }
+        }
 
         let navBarColor = Color(hex: navBarColorHex)
         let tabBarColor = Color(hex: tabBarColorHex)
         let sheetColor = Color(hex: sheetBackgroundColorHex)
 
+        let blendMode: BlendMode = {
+            switch layerBlendMode {
+            case 1: return .overlay
+            case 2: return .multiply
+            case 3: return .screen
+            default: return .normal
+            }
+        }()
+
         return ZStack {
             backgroundManager.resolvedColor
                 .ignoresSafeArea()
 
-            if animateBackground {
+            if animateBackground && !performanceMode {
                 AnimatedBackgroundView()
+                    .opacity(motionGradients ? 1.0 : 0.5)
             }
 
             content
+                .blendMode(blendMode)
                 .foregroundStyle(textColor)
                 .tint(uiColor)
                 .accentColor(uiColor)
@@ -63,10 +93,11 @@ struct GlobalThemeModifier: ViewModifier {
                 .environment(\.successColor, Color(hex: successColorHex))
                 .environment(\.warningColor, Color(hex: warningColorHex))
                 .environment(\.errorColor, Color(hex: errorColorHex))
-                .environment(\.glowIntensity, glowIntensity)
-                .environment(\.borderWidth, borderWidth)
-                .environment(\.cardOpacity, cardOpacity)
+                .environment(\.glowIntensity, performanceMode ? 0 : glowIntensity)
+                .environment(\.borderWidth, highContrast ? max(borderWidth, 1.5) : borderWidth)
+                .environment(\.cardOpacity, performanceMode ? 1.0 : cardOpacity)
                 .sheetBackgroundColorModifier(sheetColor)
+                .parallaxModifier(parallaxEnabled && !performanceMode)
         }
         .onAppear {
             _applyDefaultDarkThemeIfNeeded()
@@ -154,7 +185,32 @@ extension EnvironmentValues {
     }
 }
 
+struct ParallaxModifier: ViewModifier {
+    let enabled: Bool
+    @State private var offset: CGSize = .zero
+
+    func body(content: Content) -> some View {
+        if enabled {
+            content
+                .offset(offset)
+                .onAppear {
+                    // Simple tilt simulation or real CoreMotion can be added here
+                    // For now, we use a basic animation to show the effect
+                    withAnimation(.easeInOut(duration: 4).repeatForever(autoreverses: true)) {
+                        offset = CGSize(width: 10, height: 10)
+                    }
+                }
+        } else {
+            content
+        }
+    }
+}
+
 extension View {
+    func parallaxModifier(_ enabled: Bool) -> some View {
+        self.modifier(ParallaxModifier(enabled: enabled))
+    }
+
     @ViewBuilder
     func sheetBackgroundColorModifier(_ color: Color) -> some View {
         if #available(iOS 16.4, *) {
