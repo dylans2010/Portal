@@ -1569,6 +1569,7 @@ struct HomeQuickActionCardContent: View {
 
 // MARK: - Compact Quick Action Button
 struct CompactQuickActionButton: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let title: String
     let icon: String
     let color: Color
@@ -2005,6 +2006,7 @@ struct StorageInfoRow: View {
 
 // MARK: - Certificate Expiration Bar
 struct CertificateExpirationBar: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let expiration: Date
     
     private var progress: Double {
