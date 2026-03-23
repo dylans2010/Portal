@@ -123,6 +123,7 @@ struct LibraryView: View {
             }
             .fullScreenCover(item: $_selectedSigningAppPresenting) { app in
                 ModernSigningView(app: app.base)
+                    .environmentObject(themeManager)
             }
             .sheet(item: $_selectedInstallModifyAppPresenting) { app in
                 InstallModifyDialogView(app: app.base)
@@ -952,4 +953,3 @@ struct CompactFilterChip: View {
 
     }
 }
-
