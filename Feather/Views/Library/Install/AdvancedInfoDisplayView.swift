@@ -9,6 +9,7 @@ struct AdvancedInfoDisplayView<Footer: View>: View {
     @State private var _appSizeString: String = ""
     @State private var _logs: [LogEntry] = []
     @State private var _autoScroll = true
+    @State private var _showInstallSheet = false
 
     // Collapsible states
     @State private var _isCoreInfoExpanded = true
@@ -95,6 +96,16 @@ struct AdvancedInfoDisplayView<Footer: View>: View {
             .padding(.horizontal, 12)
             .padding(.vertical, 40)
             .offset(y: _appeared ? 0 : 600)
+        }
+        .sheet(isPresented: $_showInstallSheet) {
+            DetailedInstallInfoView(
+                app: app,
+                installer: installer,
+                appSize: _appSizeString,
+                minIOS: _minIOS,
+                buildNumber: _buildNumber
+            )
+            .presentationDetents([.large])
         }
         .onAppear {
             _computeAppSize()
@@ -397,6 +408,7 @@ struct AdvancedInfoDisplayView<Footer: View>: View {
                     _largeButton(title: "Retry Installation", icon: "arrow.clockwise", color: .blue, action: { onRetry?() })
                 } else {
                     HStack(spacing: 12) {
+                        _largeButton(title: "Install App", icon: "arrow.down.circle.fill", color: .blue, action: { _showInstallSheet = true })
                         _largeButton(title: "Open App", icon: "arrow.up.right.square", color: .green, action: { onOpen?() })
 
                         Button {
@@ -524,6 +536,107 @@ struct AdvancedInfoDisplayView<Footer: View>: View {
            let infoDict = NSDictionary(contentsOf: bundleURL.appendingPathComponent("Info.plist")) {
             _minIOS = infoDict["MinimumOSVersion"] as? String ?? "N/A"
             _buildNumber = infoDict["CFBundleVersion"] as? String ?? "N/A"
+        }
+    }
+}
+
+struct DetailedInstallInfoView: View {
+    @Environment(\.dismiss) var dismiss
+
+    var app: AppInfoPresentable
+    var installer: ServerInstaller?
+    var appSize: String
+    var minIOS: String
+    var buildNumber: String
+
+    @State private var certPair: CertificatePair?
+    @State private var decodedCert: Certificate?
+
+    var body: some View {
+        NavigationStack {
+            List {
+                Section("App Information") {
+                    LabeledContent("Name", value: app.name ?? "Unknown")
+                    LabeledContent("Identifier", value: app.identifier ?? "N/A")
+                    LabeledContent("Version", value: app.version ?? "N/A")
+                    LabeledContent("Build", value: buildNumber)
+                    LabeledContent("Min iOS", value: minIOS)
+                    LabeledContent("Size", value: appSize)
+                }
+
+                Section("Signing Details") {
+                    if let cert = certPair {
+                        LabeledContent("Certificate", value: cert.nickname ?? "N/A")
+                        if let decoded = decodedCert {
+                            LabeledContent("Team Name", value: decoded.TeamName)
+                            LabeledContent("Team ID", value: decoded.TeamIdentifier.first ?? "N/A")
+                            LabeledContent("Profile Name", value: decoded.Name)
+                            LabeledContent("Expiration", value: decoded.ExpirationDate.formatted(date: .abbreviated, time: .omitted))
+                            LabeledContent("Profile UUID", value: decoded.UUID)
+                        }
+                    } else {
+                        Text("No certificate information available")
+                            .foregroundColor(.secondary)
+                    }
+                }
+
+                if let installer = installer {
+                    Section("Server Details") {
+                        LabeledContent("Port", value: "\(installer.port)")
+
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("Manifest URL")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                            Text(installer.plistEndpoint.absoluteString)
+                                .font(.system(size: 10, design: .monospaced))
+                                .foregroundColor(.primary)
+                        }
+
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("IPA URL")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                            Text(installer.payloadEndpoint.absoluteString)
+                                .font(.system(size: 10, design: .monospaced))
+                                .foregroundColor(.primary)
+                        }
+                    }
+
+                    Section("ITMS Link") {
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text(installer.iTunesLink)
+                                .font(.system(size: 10, design: .monospaced))
+                                .foregroundColor(.primary)
+                                .lineLimit(3)
+                        }
+
+                        Button {
+                            UIApplication.shared.open(URL(string: installer.iTunesLink)!)
+                        } label: {
+                            Label("Confirm & Install", systemImage: "arrow.down.circle.fill")
+                                .frame(maxWidth: .infinity)
+                                .fontWeight(.bold)
+                        }
+                        .buttonStyle(.borderedProminent)
+                        .listRowBackground(Color.clear)
+                        .padding(.vertical, 8)
+                    }
+                }
+            }
+            .navigationTitle("Install Details")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Done") { dismiss() }
+                }
+            }
+        }
+        .onAppear {
+            certPair = Storage.shared.getCertificate(from: app)
+            if let cert = certPair {
+                decodedCert = Storage.shared.getProvisionFileDecoded(for: cert)
+            }
         }
     }
 }

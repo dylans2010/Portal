@@ -93,6 +93,7 @@ struct PortalTopView: View {
                                 }
                             }
                         }
+                        .frame(width: hasDynamicIsland ? 126 : nil, height: hasDynamicIsland ? 37.33 : nil)
                         .padding(.horizontal, 14)
                         .padding(.vertical, 8)
                         .background {
