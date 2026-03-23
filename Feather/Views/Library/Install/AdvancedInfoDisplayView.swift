@@ -2,28 +2,23 @@ import SwiftUI
 import IDeviceSwift
 
 struct AdvancedInfoDisplayView<Footer: View>: View {
+    @Environment(\.dismiss) var dismiss
     @AppStorage("Feather.installationMethod") private var _installationMethod: Int = 0
     @AppStorage("Feather.serverMethod") private var _serverMethod: Int = 0
 
-    @State private var _appeared = false
     @State private var _appSizeString: String = ""
-    @State private var _logs: [LogEntry] = []
     @State private var _autoScroll = true
-    @State private var _showInstallSheet = false
-
-    // Collapsible states
-    @State private var _isCoreInfoExpanded = true
-    @State private var _isSourceMethodExpanded = true
-    @State private var _isFilePathExpanded = false
-    @State private var _isSigningExpanded = true
-    @State private var _isLogsExpanded = true
-    @State private var _isProgressExpanded = true
-    @State private var _isPerformanceExpanded = false
-    @State private var _isDebugExpanded = false
 
     // Additional data
     @State private var _minIOS: String = "N/A"
     @State private var _buildNumber: String = "N/A"
+    @State private var _deviceModel: String = UIDevice.current.model
+    @State private var _osVersion: String = UIDevice.current.systemVersion
+    @State private var _architecture: String = "arm64" // Default for modern iOS
+    @State private var _freeDiskSpace: String = "Calculating..."
+
+    @State private var _certPair: CertificatePair?
+    @State private var _decodedCert: Certificate?
 
     var app: AppInfoPresentable
     @ObservedObject var viewModel: InstallerStatusViewModel
@@ -60,246 +55,177 @@ struct AdvancedInfoDisplayView<Footer: View>: View {
     }
 
     var body: some View {
-        ZStack {
-            Color.black.opacity(0.45)
-                .ignoresSafeArea()
-                .onTapGesture {
-                    if !viewModel.isInProgress {
+        NavigationStack {
+            List {
+                _headerSection()
+                _progressSection()
+                _deviceDiagnosticsSection()
+                _ipaMetadataSection()
+                _signingDetailsSection()
+                _serverNetworkSection()
+                _liveLogsSection()
+                _actionSection()
+            }
+            .navigationTitle("Installation Diagnostics")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Done") {
                         onCancel?()
+                        dismiss()
                     }
                 }
 
-            VStack(spacing: 0) {
-                _header()
-
-                ScrollViewReader { proxy in
-                    ScrollView {
-                        VStack(spacing: 16) {
-                            _coreAppInfoSection()
-                            _installationSourceSection()
-                            _progressStatusSection()
-                            _liveLogsSection(proxy: proxy)
-                            _signingDetailsSection()
-                            _filePathSection()
-                            _performanceMetricsSection()
-                            _advancedDebugSection()
-                        }
-                        .padding(.horizontal, 16)
-                        .padding(.vertical, 20)
-                    }
+                ToolbarItem(placement: .primaryAction) {
+                    footer()
                 }
-
-                _bottomActions()
             }
-            .background(.ultraThinMaterial)
-            .clipShape(RoundedRectangle(cornerRadius: 32, style: .continuous))
-            .padding(.horizontal, 12)
-            .padding(.vertical, 40)
-            .offset(y: _appeared ? 0 : 600)
-        }
-        .sheet(isPresented: $_showInstallSheet) {
-            DetailedInstallInfoView(
-                app: app,
-                installer: installer,
-                appSize: _appSizeString,
-                minIOS: _minIOS,
-                buildNumber: _buildNumber
-            )
-            .presentationDetents([.large])
-        }
-        .onAppear {
-            _computeAppSize()
-            _loadExtendedAppInfo()
-            withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) {
-                _appeared = true
+            .onAppear {
+                _computeAppSize()
+                _loadExtendedAppInfo()
+                _loadDeviceDiagnostics()
+                _loadSigningInfo()
             }
         }
     }
 
-    // MARK: - Components
+    // MARK: - Sections
 
     @ViewBuilder
-    private func _header() -> some View {
-        HStack {
-            VStack(alignment: .leading, spacing: 4) {
-                Text("Installation Diagnostics")
-                    .font(.system(size: 20, weight: .bold, design: .rounded))
-                Text(viewModel.statusLabel)
-                    .font(.system(size: 13, weight: .medium, design: .monospaced))
-                    .foregroundColor(viewModel.statusColor)
+    private func _headerSection() -> some View {
+        Section {
+            HStack(spacing: 16) {
+                FRAppIconView(app: app, size: 64)
+                    .frame(width: 64, height: 64)
+                    .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(app.name ?? "Unknown App")
+                        .font(.headline)
+                    Text(app.identifier ?? "unknown.bundle.id")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+
+                    Text("v\(app.version ?? "0.0") (\(_buildNumber))")
+                        .font(.caption2)
+                        .foregroundColor(.secondary)
+                }
             }
-            Spacer()
-            footer()
+            .padding(.vertical, 4)
         }
-        .padding(.horizontal, 24)
-        .padding(.top, 24)
-        .padding(.bottom, 16)
-        .background(Color.primary.opacity(0.03))
     }
 
     @ViewBuilder
-    private func _sectionHeader(title: String, systemImage: String, isExpanded: Binding<Bool>) -> some View {
-        Button {
-            withAnimation { isExpanded.wrappedValue.toggle() }
-        } label: {
-            HStack {
-                Label(title, systemImage: systemImage)
-                    .font(.system(size: 14, weight: .semibold, design: .rounded))
-                Spacer()
-                Image(systemName: "chevron.right")
-                    .font(.system(size: 12, weight: .bold))
-                    .rotationEffect(.degrees(isExpanded.wrappedValue ? 90 : 0))
+    private func _progressSection() -> some View {
+        Section("Installation Progress") {
+            VStack(spacing: 12) {
+                HStack {
+                    Text(viewModel.statusLabel)
+                        .font(.subheadline)
+                        .fontWeight(.bold)
+                    Spacer()
+                    Text("\(Int(viewModel.overallProgress * 100))%")
+                        .font(.system(.subheadline, design: .monospaced))
+                }
+
+                ProgressView(value: viewModel.overallProgress)
+                    .tint(viewModel.statusColor)
+
+                if _installationMethod == 1 {
+                    VStack(spacing: 8) {
+                        _progressMiniRow(label: "Packaging", progress: viewModel.packageProgress)
+                        _progressMiniRow(label: "Uploading", progress: viewModel.uploadProgress)
+                        _progressMiniRow(label: "Installing", progress: viewModel.installProgress)
+                    }
+                }
             }
-            .foregroundColor(.primary)
             .padding(.vertical, 8)
         }
     }
 
     @ViewBuilder
-    private func _coreAppInfoSection() -> some View {
-        VStack(alignment: .leading, spacing: 12) {
-            _sectionHeader(title: "Core App Information", systemImage: "info.circle.fill", isExpanded: $_isCoreInfoExpanded)
+    private func _deviceDiagnosticsSection() -> some View {
+        Section("Device Diagnostics") {
+            LabeledContent("Model", value: _deviceModel)
+            LabeledContent("OS Version", value: _osVersion)
+            LabeledContent("Architecture", value: _architecture)
+            LabeledContent("Free Space", value: _freeDiskSpace)
+        }
+    }
 
-            if _isCoreInfoExpanded {
-                HStack(spacing: 16) {
-                    FRAppIconView(app: app, size: 64)
-                        .frame(width: 64, height: 64)
-                        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
-                        .shadow(radius: 4)
+    @ViewBuilder
+    private func _ipaMetadataSection() -> some View {
+        Section("IPA Metadata") {
+            LabeledContent("Size", value: _appSizeString)
+            LabeledContent("Min iOS", value: _minIOS)
+            LabeledContent("Bundle ID", value: app.identifier ?? "N/A")
+            LabeledContent("Version", value: app.version ?? "N/A")
 
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text(app.name ?? "Unknown App")
-                            .font(.headline)
-                        Text(app.identifier ?? "unknown.bundle.id")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-
-                        HStack {
-                            Text("v\(app.version ?? "0.0") (\(_buildNumber))")
-                            Text("•")
-                            Text(_appSizeString)
-                        }
-                        .font(.caption2)
+            if let archiveURL = app.archiveURL {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Source Path")
+                        .font(.caption)
                         .foregroundColor(.secondary)
-
-                        Text("Min iOS: \(_minIOS)")
-                            .font(.system(size: 10))
-                            .foregroundColor(.secondary)
-                    }
-                }
-                .padding(.bottom, 4)
-            }
-        }
-        .padding(16)
-        .background(Color.primary.opacity(0.04))
-        .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
-    }
-
-    @ViewBuilder
-    private func _installationSourceSection() -> some View {
-        VStack(alignment: .leading, spacing: 12) {
-            _sectionHeader(title: "Installation Source & Method", systemImage: "shippingbox.fill", isExpanded: $_isSourceMethodExpanded)
-
-            if _isSourceMethodExpanded {
-                VStack(alignment: .leading, spacing: 10) {
-                    _infoRow(label: "Method", value: _installationMethod == 1 ? "Direct (IDeviceSwift)" : "Server-based")
-
-                    if let installer = installer {
-                        VStack(alignment: .leading, spacing: 6) {
-                            Text("Install Link")
-                                .font(.caption2)
-                                .foregroundColor(.secondary)
-                            HStack {
-                                Text(installer.iTunesLink)
-                                    .font(.system(size: 10, design: .monospaced))
-                                    .lineLimit(1)
-                                    .truncationMode(.middle)
-                                Spacer()
-                                Button {
-                                    UIPasteboard.general.string = installer.iTunesLink
-                                } label: {
-                                    Image(systemName: "doc.on.doc")
-                                        .font(.system(size: 12))
-                                }
-                            }
-                            .padding(8)
-                            .background(Color.primary.opacity(0.05))
-                            .clipShape(RoundedRectangle(cornerRadius: 8))
-                        }
-
-                        _infoRow(label: "Server Port", value: "\(installer.port)")
-                    }
-
-                    _infoRow(label: "Signing", value: _installationMethod == 1 ? "Local" : "Remote/Server")
+                    Text(archiveURL.path)
+                        .font(.system(size: 10, design: .monospaced))
+                        .foregroundColor(.primary)
                 }
             }
         }
-        .padding(16)
-        .background(Color.primary.opacity(0.04))
-        .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
     }
 
     @ViewBuilder
-    private func _progressStatusSection() -> some View {
-        VStack(alignment: .leading, spacing: 12) {
-            _sectionHeader(title: "Progress + Status System", systemImage: "gauge.with.needle.fill", isExpanded: $_isProgressExpanded)
+    private func _signingDetailsSection() -> some View {
+        Section("Signing Diagnostics") {
+            if let cert = _certPair {
+                LabeledContent("Certificate", value: cert.nickname ?? "N/A")
+                if let decoded = _decodedCert {
+                    LabeledContent("Team Name", value: decoded.TeamName)
+                    LabeledContent("Team ID", value: decoded.TeamIdentifier.first ?? "N/A")
+                    LabeledContent("Profile Name", value: decoded.Name)
+                    LabeledContent("Expiration", value: decoded.ExpirationDate.formatted(date: .abbreviated, time: .omitted))
+                    LabeledContent("Profile UUID", value: decoded.UUID)
+                }
+            } else {
+                Text("No signing information available")
+                    .foregroundColor(.secondary)
+            }
+        }
+    }
 
-            if _isProgressExpanded {
-                VStack(spacing: 16) {
-                    HStack {
-                        Text(viewModel.statusLabel)
-                            .font(.subheadline)
-                            .fontWeight(.bold)
-                        Spacer()
-                        Text("\(Int(viewModel.overallProgress * 100))%")
-                            .font(.system(.subheadline, design: .monospaced))
-                    }
+    @ViewBuilder
+    private func _serverNetworkSection() -> some View {
+        Section("Network & Server") {
+            LabeledContent("Install Method", value: _installationMethod == 1 ? "Direct (IDeviceSwift)" : "Server-based")
 
-                    ProgressView(value: viewModel.overallProgress)
-                        .tint(viewModel.statusColor)
+            if let installer = installer {
+                LabeledContent("Port", value: "\(installer.port)")
 
-                    if _installationMethod == 1 {
-                        VStack(spacing: 8) {
-                            _progressMiniRow(label: "Packaging", progress: viewModel.packageProgress)
-                            _progressMiniRow(label: "Uploading", progress: viewModel.uploadProgress)
-                            _progressMiniRow(label: "Installing", progress: viewModel.installProgress)
-                        }
-                    }
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Manifest URL")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                    Text(installer.plistEndpoint.absoluteString)
+                        .font(.system(size: 10, design: .monospaced))
+                        .foregroundColor(.primary)
+                }
+
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("IPA URL")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                    Text(installer.payloadEndpoint.absoluteString)
+                        .font(.system(size: 10, design: .monospaced))
+                        .foregroundColor(.primary)
                 }
             }
         }
-        .padding(16)
-        .background(Color.primary.opacity(0.04))
-        .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
     }
 
     @ViewBuilder
-    private func _liveLogsSection(proxy: ScrollViewProxy) -> some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack {
-                _sectionHeader(title: "Live Installation Logs", systemImage: "terminal.fill", isExpanded: $_isLogsExpanded)
-                Spacer()
-                if _isLogsExpanded {
-                    HStack(spacing: 12) {
-                        Button {
-                            _autoScroll.toggle()
-                        } label: {
-                            Image(systemName: _autoScroll ? "lock.fill" : "lock.open.fill")
-                                .font(.system(size: 12))
-                                .foregroundColor(_autoScroll ? .blue : .secondary)
-                        }
-
-                        Button {
-                            UIPasteboard.general.string = appLogManager.exportLogs()
-                        } label: {
-                            Image(systemName: "doc.on.doc")
-                                .font(.system(size: 12))
-                        }
-                    }
-                }
-            }
-
-            if _isLogsExpanded {
+    private func _liveLogsSection() -> some View {
+        Section {
+            ScrollViewReader { proxy in
                 VStack(spacing: 0) {
                     ScrollView {
                         LazyVStack(alignment: .leading, spacing: 4) {
@@ -313,7 +239,7 @@ struct AdvancedInfoDisplayView<Footer: View>: View {
                         .padding(8)
                     }
                     .frame(height: 180)
-                    .background(Color.black.opacity(0.2))
+                    .background(Color(UIColor.secondarySystemBackground))
                     .clipShape(RoundedRectangle(cornerRadius: 12))
                     .onChange(of: appLogManager.logs.count) { _ in
                         if _autoScroll, let last = appLogManager.logs.last {
@@ -322,151 +248,98 @@ struct AdvancedInfoDisplayView<Footer: View>: View {
                     }
                 }
             }
-        }
-        .padding(16)
-        .background(Color.primary.opacity(0.04))
-        .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
-    }
+        } header: {
+            HStack {
+                Text("Live Installation Logs")
+                Spacer()
+                HStack(spacing: 12) {
+                    Button {
+                        _autoScroll.toggle()
+                    } label: {
+                        Image(systemName: _autoScroll ? "lock.fill" : "lock.open.fill")
+                    }
 
-    @ViewBuilder
-    private func _signingDetailsSection() -> some View {
-        VStack(alignment: .leading, spacing: 12) {
-            _sectionHeader(title: "Signing & Entitlements Details", systemImage: "key.fill", isExpanded: $_isSigningExpanded)
-
-            if _isSigningExpanded {
-                VStack(alignment: .leading, spacing: 8) {
-                    _infoRow(label: "Certificate", value: "Auto-selected")
-                    _infoRow(label: "Entitlements", value: "Standard + Injected")
-                    _infoRow(label: "Profile", value: "Provisioning managed by Feather")
-                }
-            }
-        }
-        .padding(16)
-        .background(Color.primary.opacity(0.04))
-        .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
-    }
-
-    @ViewBuilder
-    private func _filePathSection() -> some View {
-        VStack(alignment: .leading, spacing: 12) {
-            _sectionHeader(title: "File & Path Information", systemImage: "folder.fill", isExpanded: $_isFilePathExpanded)
-
-            if _isFilePathExpanded {
-                VStack(alignment: .leading, spacing: 8) {
-                    _pathRow(label: "Source IPA", path: app.archiveURL?.path ?? "N/A")
-                    if let uuidDir = Storage.shared.getUuidDirectory(for: app) {
-                        _pathRow(label: "Working Dir", path: uuidDir.path)
+                    Button {
+                        UIPasteboard.general.string = appLogManager.exportLogs()
+                    } label: {
+                        Image(systemName: "doc.on.doc")
                     }
                 }
+                .font(.caption)
+                .textCase(nil)
             }
         }
-        .padding(16)
-        .background(Color.primary.opacity(0.04))
-        .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
     }
 
     @ViewBuilder
-    private func _performanceMetricsSection() -> some View {
-        VStack(alignment: .leading, spacing: 12) {
-            _sectionHeader(title: "Network & Performance", systemImage: "bolt.fill", isExpanded: $_isPerformanceExpanded)
-
-            if _isPerformanceExpanded {
-                VStack(alignment: .leading, spacing: 8) {
-                    _infoRow(label: "Status", value: "Monitoring...")
-                    _infoRow(label: "Latency", value: "Normal")
-                }
-            }
-        }
-        .padding(16)
-        .background(Color.primary.opacity(0.04))
-        .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
-    }
-
-    @ViewBuilder
-    private func _advancedDebugSection() -> some View {
-        VStack(alignment: .leading, spacing: 12) {
-            _sectionHeader(title: "Advanced Debug", systemImage: "ladybug.fill", isExpanded: $_isDebugExpanded)
-
-            if _isDebugExpanded {
-                VStack(alignment: .leading, spacing: 8) {
-                    _infoRow(label: "Internal ID", value: app.uuid ?? "N/A")
-                    _infoRow(label: "Status Code", value: "\(viewModel.currentStep)")
-                    _infoRow(label: "Method ID", value: "\(_installationMethod)")
-                }
-            }
-        }
-        .padding(16)
-        .background(Color.primary.opacity(0.04))
-        .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
-    }
-
-    @ViewBuilder
-    private func _bottomActions() -> some View {
-        VStack(spacing: 12) {
+    private func _actionSection() -> some View {
+        Section {
             if viewModel.isCompleted {
                 if viewModel.isError {
-                    _largeButton(title: "Retry Installation", icon: "arrow.clockwise", color: .blue, action: { onRetry?() })
+                    Button {
+                        onRetry?()
+                    } label: {
+                        Label("Retry Installation", systemImage: "arrow.clockwise")
+                            .frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(.borderedProminent)
                 } else {
-                    HStack(spacing: 12) {
-                        _largeButton(title: "Install App", icon: "arrow.down.circle.fill", color: .blue, action: { _showInstallSheet = true })
-                        _largeButton(title: "Open App", icon: "arrow.up.right.square", color: .green, action: { onOpen?() })
-
+                    VStack(spacing: 12) {
                         Button {
-                            if let archiveURL = app.archiveURL {
-                                UIActivityViewController.show(activityItems: [archiveURL])
+                            if let installer = installer {
+                                UIApplication.shared.open(URL(string: installer.iTunesLink)!)
                             }
                         } label: {
-                            Image(systemName: "square.and.arrow.up")
-                                .font(.headline)
-                                .foregroundColor(.white)
-                                .frame(width: 50, height: 50)
-                                .background(Color.blue)
-                                .clipShape(Circle())
+                            Label("Install App", systemImage: "arrow.down.circle.fill")
+                                .frame(maxWidth: .infinity)
+                                .fontWeight(.bold)
+                        }
+                        .buttonStyle(.borderedProminent)
+
+                        HStack {
+                            Button {
+                                onOpen?()
+                            } label: {
+                                Label("Open App", systemImage: "arrow.up.right.square")
+                                    .frame(maxWidth: .infinity)
+                            }
+                            .buttonStyle(.bordered)
+
+                            Button {
+                                if let archiveURL = app.archiveURL {
+                                    UIActivityViewController.show(activityItems: [archiveURL])
+                                }
+                            } label: {
+                                Image(systemName: "square.and.arrow.up")
+                                    .padding(.horizontal, 12)
+                            }
+                            .buttonStyle(.bordered)
                         }
                     }
                 }
-                _largeButton(title: "Close", icon: "xmark", color: .secondary, action: { onCancel?() })
             } else if !viewModel.isInProgress {
-                _largeButton(title: "Start Installation", icon: "play.fill", color: .blue, action: { onInstall?() })
+                Button {
+                    onInstall?()
+                } label: {
+                    Label("Start Installation", systemImage: "play.fill")
+                        .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.borderedProminent)
             } else {
-                _largeButton(title: "Cancel Installation", icon: "stop.fill", color: .red, action: { onCancel?() })
+                Button(role: .destructive) {
+                    onCancel?()
+                } label: {
+                    Label("Cancel Installation", systemImage: "stop.fill")
+                        .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.borderedProminent)
             }
         }
-        .padding(24)
-        .background(Color.primary.opacity(0.03))
+        .listRowBackground(Color.clear)
+        .listRowInsets(EdgeInsets(top: 8, leading: 0, bottom: 8, trailing: 0))
     }
 
     // MARK: - Helpers
-
-    @ViewBuilder
-    private func _infoRow(label: String, value: String) -> some View {
-        HStack {
-            Text(label)
-                .font(.caption)
-                .foregroundColor(.secondary)
-            Spacer()
-            Text(value)
-                .font(.caption)
-                .fontWeight(.medium)
-        }
-    }
-
-    @ViewBuilder
-    private func _pathRow(label: String, path: String) -> some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text(label)
-                .font(.caption2)
-                .foregroundColor(.secondary)
-            Text(path)
-                .font(.system(size: 9, design: .monospaced))
-                .foregroundColor(.primary)
-                .lineLimit(2)
-                .padding(6)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .background(Color.primary.opacity(0.05))
-                .clipShape(RoundedRectangle(cornerRadius: 6))
-        }
-    }
 
     @ViewBuilder
     private func _progressMiniRow(label: String, progress: Double) -> some View {
@@ -483,22 +356,6 @@ struct AdvancedInfoDisplayView<Footer: View>: View {
             ProgressView(value: progress)
                 .scaleEffect(x: 1, y: 0.5, anchor: .center)
                 .tint(progress >= 1.0 ? .green : .blue)
-        }
-    }
-
-    @ViewBuilder
-    private func _largeButton(title: String, icon: String, color: Color, action: @escaping () -> Void) -> some View {
-        Button(action: action) {
-            HStack {
-                Image(systemName: icon)
-                Text(title)
-            }
-            .font(.headline)
-            .foregroundColor(.white)
-            .frame(maxWidth: .infinity)
-            .frame(height: 50)
-            .background(color)
-            .clipShape(Capsule())
         }
     }
 
@@ -538,105 +395,25 @@ struct AdvancedInfoDisplayView<Footer: View>: View {
             _buildNumber = infoDict["CFBundleVersion"] as? String ?? "N/A"
         }
     }
-}
 
-struct DetailedInstallInfoView: View {
-    @Environment(\.dismiss) var dismiss
-
-    var app: AppInfoPresentable
-    var installer: ServerInstaller?
-    var appSize: String
-    var minIOS: String
-    var buildNumber: String
-
-    @State private var certPair: CertificatePair?
-    @State private var decodedCert: Certificate?
-
-    var body: some View {
-        NavigationStack {
-            List {
-                Section("App Information") {
-                    LabeledContent("Name", value: app.name ?? "Unknown")
-                    LabeledContent("Identifier", value: app.identifier ?? "N/A")
-                    LabeledContent("Version", value: app.version ?? "N/A")
-                    LabeledContent("Build", value: buildNumber)
-                    LabeledContent("Min iOS", value: minIOS)
-                    LabeledContent("Size", value: appSize)
-                }
-
-                Section("Signing Details") {
-                    if let cert = certPair {
-                        LabeledContent("Certificate", value: cert.nickname ?? "N/A")
-                        if let decoded = decodedCert {
-                            LabeledContent("Team Name", value: decoded.TeamName)
-                            LabeledContent("Team ID", value: decoded.TeamIdentifier.first ?? "N/A")
-                            LabeledContent("Profile Name", value: decoded.Name)
-                            LabeledContent("Expiration", value: decoded.ExpirationDate.formatted(date: .abbreviated, time: .omitted))
-                            LabeledContent("Profile UUID", value: decoded.UUID)
-                        }
-                    } else {
-                        Text("No certificate information available")
-                            .foregroundColor(.secondary)
-                    }
-                }
-
-                if let installer = installer {
-                    Section("Server Details") {
-                        LabeledContent("Port", value: "\(installer.port)")
-
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text("Manifest URL")
-                                .font(.caption)
-                                .foregroundColor(.secondary)
-                            Text(installer.plistEndpoint.absoluteString)
-                                .font(.system(size: 10, design: .monospaced))
-                                .foregroundColor(.primary)
-                        }
-
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text("IPA URL")
-                                .font(.caption)
-                                .foregroundColor(.secondary)
-                            Text(installer.payloadEndpoint.absoluteString)
-                                .font(.system(size: 10, design: .monospaced))
-                                .foregroundColor(.primary)
-                        }
-                    }
-
-                    Section("ITMS Link") {
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text(installer.iTunesLink)
-                                .font(.system(size: 10, design: .monospaced))
-                                .foregroundColor(.primary)
-                                .lineLimit(3)
-                        }
-
-                        Button {
-                            UIApplication.shared.open(URL(string: installer.iTunesLink)!)
-                        } label: {
-                            Label("Confirm & Install", systemImage: "arrow.down.circle.fill")
-                                .frame(maxWidth: .infinity)
-                                .fontWeight(.bold)
-                        }
-                        .buttonStyle(.borderedProminent)
-                        .listRowBackground(Color.clear)
-                        .padding(.vertical, 8)
-                    }
-                }
-            }
-            .navigationTitle("Install Details")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("Done") { dismiss() }
-                }
-            }
+    private func _loadDeviceDiagnostics() {
+        let fileManager = FileManager.default
+        if let attributes = try? fileManager.attributesOfFileSystem(forPath: NSHomeDirectory()),
+           let freeSize = attributes[.systemFreeSize] as? Int64 {
+            _freeDiskSpace = _formatBytes(UInt64(freeSize))
         }
-        .onAppear {
-            certPair = Storage.shared.getCertificate(from: app)
-            if let cert = certPair {
-                decodedCert = Storage.shared.getProvisionFileDecoded(for: cert)
-            }
+
+        #if targetEnvironment(simulator)
+        _architecture = "x86_64 / arm64 (Sim)"
+        #else
+        _architecture = "arm64"
+        #endif
+    }
+
+    private func _loadSigningInfo() {
+        _certPair = Storage.shared.getCertificate(from: app)
+        if let cert = _certPair {
+            _decodedCert = Storage.shared.getProvisionFileDecoded(for: cert)
         }
     }
 }
