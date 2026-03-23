@@ -49,7 +49,6 @@ struct ThemedTextModifier: ViewModifier {
 
 struct GlobalThemeModifier: ViewModifier {
     @EnvironmentObject var themeManager: ThemeManager
-    @State private var themeVersion: Int = 0
 
     func body(content: Content) -> some View {
         content
@@ -60,10 +59,6 @@ struct GlobalThemeModifier: ViewModifier {
             .toolbarBackground(Color(hex: themeManager.resolvedColors.tabBar), for: .tabBar)
             .tint(themeManager.accentColor)
             .accentColor(themeManager.accentColor)
-            .id(themeVersion)
-            .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("AppWideThemeDidChange"))) { _ in
-                themeVersion += 1
-            }
     }
 }
 
