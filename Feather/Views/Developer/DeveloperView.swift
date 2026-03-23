@@ -1398,6 +1398,7 @@ struct HomeUITestingView: View {
             }
             
             Section {
+                Button {
                     let testConfig = TrackedAppConfig(
                         bundleIdentifier: "com.test.simulatedapp.\(UUID().uuidString.prefix(8))",
                         appName: "Test App \(Int.random(in: 1...100))",

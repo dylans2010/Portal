@@ -1,7 +1,7 @@
 import SwiftUI
 import NimbleViews
 
-struct GlobalThemeModifier: ViewModifier {
+struct PortalThemeModifier: ViewModifier {
     @EnvironmentObject private var backgroundManager: ColorBackgroundManager
     @AppStorage("Feather.animateBackground") private var animateBackground: Bool = false
 
@@ -223,7 +223,7 @@ extension View {
 
 extension View {
     func applyGlobalTheme() -> some View {
-        self.modifier(GlobalThemeModifier())
+        self.modifier(PortalThemeModifier())
     }
 
     /// Conditionally applies the font design modifier if available (iOS 16.1+).
