@@ -68,6 +68,7 @@ struct ColorCustomizationView: View {
 
     @EnvironmentObject private var backgroundManager: ColorBackgroundManager
     @EnvironmentObject private var themeManager: ThemeManager
+    @EnvironmentObject private var styleManager: SectionStyleManager
     @AppStorage("Feather.animateBackground") private var animateBackground: Bool = false
 
     @AppStorage(UserDefaults.Keys.uiElement) private var uiElementColorHex: String = Color.defaultUIElement
@@ -204,7 +205,6 @@ struct ColorCustomizationView: View {
                 overviewSection
             case .colors:
                 paletteSection
-                semanticColorsSection
             case .intelligent:
                 contextAwareSection
                 timeBasedSection
@@ -287,6 +287,7 @@ struct ColorCustomizationView: View {
         .onChange(of: successColor) { successColorHex = $0.toHex() ?? "#34C759" }
         .onChange(of: warningColor) { warningColorHex = $0.toHex() ?? "#FF9500" }
         .onChange(of: errorColor) { errorColorHex = $0.toHex() ?? "#FF3B30" }
+        .onReceive(NotificationCenter.default.publisher(for: .sectionStyleDidChange)) { _ in }
     }
 
     private var overviewSection: some View {
@@ -410,59 +411,239 @@ struct ColorCustomizationView: View {
 
     private var paletteSection: some View {
         Section {
-            Button {
-                showingAppWideColorPicker = true
-            } label: {
-                HStack(spacing: 12) {
-                    VStack(alignment: .leading, spacing: 3) {
-                        Text(String.localized("App Wide"))
-                            .font(.system(size: 16, weight: .semibold, design: .rounded))
+            ThemedSection("APPEARANCE", symbol: "paintpalette") {
+                HStack(spacing: 14) {
+                    Image(systemName: "rectangle.3.group")
+                        .font(.system(size: 16, weight: .medium))
+                        .foregroundStyle(themeManager.iconTintColor)
+                        .frame(width: 28, height: 28)
+                        .background(themeManager.iconTintColor.opacity(0.12))
+                        .cornerRadius(7)
+
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Section Style")
                             .foregroundStyle(themeManager.primaryTextColor)
-                        Text(String.localized("Customize all app colors"))
-                            .font(.system(size: 11))
+                            .font(.body)
+                        Text(styleManager.currentStyle.description)
                             .foregroundStyle(themeManager.secondaryTextColor)
+                            .font(.caption)
                     }
 
                     Spacer()
 
-                    HStack(spacing: 0) {
-                        RoundedRectangle(cornerRadius: 0)
-                            .fill(themeManager.appBackgroundColor)
-                            .frame(width: 12, height: 24)
-                        RoundedRectangle(cornerRadius: 0)
-                            .fill(themeManager.navigationBarColor)
-                            .frame(width: 12, height: 24)
-                        RoundedRectangle(cornerRadius: 0)
-                            .fill(themeManager.accentColor)
-                            .frame(width: 12, height: 24)
+                    Picker("", selection: Binding(
+                        get: { styleManager.currentStyle },
+                        set: { styleManager.setStyle($0) }
+                    )) {
+                        ForEach(SectionStyle.allCases) { style in
+                            HStack {
+                                Image(systemName: style.sfSymbol)
+                                Text(style.displayName)
+                            }
+                            .tag(style)
+                        }
                     }
-                    .clipShape(RoundedRectangle(cornerRadius: 6))
+                    .pickerStyle(.menu)
+                    .tint(themeManager.accentColor)
+                }
+                .padding(.horizontal, 16)
+                .padding(.vertical, 13)
+                .background(themeManager.cardBackgroundColor)
+                .overlay(alignment: .bottom) {
+                    Rectangle()
+                        .fill(themeManager.separatorColor)
+                        .frame(height: 0.5)
+                        .padding(.leading, 58)
+                }
 
-                    if themeManager.appWideColors != nil {
-                        Button {
-                            themeManager.resetToThemeDefaults()
-                        } label: {
-                            Image(systemName: "xmark.circle.fill")
+                sectionStylePreviewCard
+
+                Button {
+                    showingAppWideColorPicker = true
+                } label: {
+                    HStack(spacing: 12) {
+                        VStack(alignment: .leading, spacing: 3) {
+                            Text(String.localized("App Wide"))
+                                .font(.system(size: 16, weight: .semibold, design: .rounded))
+                                .foregroundStyle(themeManager.primaryTextColor)
+                            Text(String.localized("Customize all app colors"))
+                                .font(.system(size: 11))
                                 .foregroundStyle(themeManager.secondaryTextColor)
                         }
-                        .buttonStyle(.plain)
-                    }
 
-                    Image(systemName: "chevron.right")
-                        .font(.system(size: 14, weight: .semibold))
-                        .foregroundStyle(themeManager.secondaryTextColor)
+                        Spacer()
+
+                        HStack(spacing: 0) {
+                            RoundedRectangle(cornerRadius: 0)
+                                .fill(themeManager.appBackgroundColor)
+                                .frame(width: 12, height: 24)
+                            RoundedRectangle(cornerRadius: 0)
+                                .fill(themeManager.navigationBarColor)
+                                .frame(width: 12, height: 24)
+                            RoundedRectangle(cornerRadius: 0)
+                                .fill(themeManager.accentColor)
+                                .frame(width: 12, height: 24)
+                        }
+                        .clipShape(RoundedRectangle(cornerRadius: 6))
+
+                        if themeManager.appWideColors != nil {
+                            Button {
+                                themeManager.resetToThemeDefaults()
+                            } label: {
+                                Image(systemName: "xmark.circle.fill")
+                                    .foregroundStyle(themeManager.secondaryTextColor)
+                            }
+                            .buttonStyle(.plain)
+                        }
+
+                        Image(systemName: "chevron.right")
+                            .font(.system(size: 14, weight: .semibold))
+                            .foregroundStyle(themeManager.secondaryTextColor)
+                    }
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 13)
+                    .background(themeManager.cardBackgroundColor)
                 }
-                .padding(.vertical, 4)
+                .buttonStyle(.plain)
+                .sheet(isPresented: $showingAppWideColorPicker) {
+                    AppWideColorPickerSheet()
+                }
             }
-            .buttonStyle(.plain)
-            .sheet(isPresented: $showingAppWideColorPicker) {
-                AppWideColorPickerSheet()
-            }
-        } header: {
-            Text(String.localized("Core Palette"))
-                .foregroundStyle(themeManager.headerTextColor)
+            .environmentObject(themeManager)
+            .environmentObject(styleManager)
+            .listRowBackground(Color.clear)
         }
     }
+
+
+    private var sectionStylePreviewCard: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text("PREVIEW")
+                .font(.caption2)
+                .fontWeight(.semibold)
+                .textCase(.uppercase)
+                .foregroundStyle(themeManager.secondaryTextColor)
+
+            VStack(alignment: .leading, spacing: 6) {
+                HStack(spacing: 4) {
+                    Image(systemName: "internaldrive")
+                        .font(.caption)
+                        .foregroundStyle(
+                            styleManager.currentStyle == .colorMatch
+                                ? themeManager.headerTextColor : Color(.secondaryLabel)
+                        )
+                    Text("DATA & MAINTENANCE")
+                        .font(.caption)
+                        .fontWeight(.semibold)
+                        .textCase(.uppercase)
+                        .foregroundStyle(
+                            styleManager.currentStyle == .colorMatch
+                                ? themeManager.headerTextColor : Color(.secondaryLabel)
+                        )
+                }
+
+                VStack(spacing: 0) {
+                    HStack(spacing: 10) {
+                        RoundedRectangle(cornerRadius: 5)
+                            .fill(
+                                styleManager.currentStyle == .colorMatch
+                                    ? themeManager.iconTintColor.opacity(0.15) : Color.clear
+                            )
+                            .frame(width: 24, height: 24)
+                            .overlay(Image(systemName: "internaldrive.fill")
+                                .font(.caption2)
+                                .foregroundStyle(
+                                    styleManager.currentStyle == .colorMatch
+                                        ? themeManager.iconTintColor : Color.accentColor
+                                ))
+                        Text("Storage")
+                            .font(.subheadline)
+                            .foregroundStyle(
+                                styleManager.currentStyle == .colorMatch
+                                    ? themeManager.primaryTextColor : Color(.label)
+                            )
+                        Spacer()
+                        Image(systemName: "chevron.right")
+                            .font(.caption2)
+                            .foregroundStyle(
+                                styleManager.currentStyle == .colorMatch
+                                    ? themeManager.secondaryTextColor : Color(.tertiaryLabel)
+                            )
+                    }
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 10)
+                    .background(
+                        styleManager.currentStyle == .colorMatch
+                            ? themeManager.cardBackgroundColor
+                            : Color(.secondarySystemGroupedBackground)
+                    )
+
+                    Rectangle()
+                        .fill(
+                            styleManager.currentStyle == .colorMatch
+                                ? themeManager.separatorColor : Color(.separator)
+                        )
+                        .frame(height: 0.5)
+                        .padding(.leading, 46)
+
+                    HStack(spacing: 10) {
+                        RoundedRectangle(cornerRadius: 5)
+                            .fill(
+                                styleManager.currentStyle == .colorMatch
+                                    ? themeManager.iconTintColor.opacity(0.15) : Color.clear
+                            )
+                            .frame(width: 24, height: 24)
+                            .overlay(Image(systemName: "arrow.clockwise")
+                                .font(.caption2)
+                                .foregroundStyle(
+                                    styleManager.currentStyle == .colorMatch
+                                        ? themeManager.iconTintColor : Color.accentColor
+                                ))
+                        Text("Background Refresh")
+                            .font(.subheadline)
+                            .foregroundStyle(
+                                styleManager.currentStyle == .colorMatch
+                                    ? themeManager.primaryTextColor : Color(.label)
+                            )
+                        Spacer()
+                        Capsule()
+                            .fill(
+                                styleManager.currentStyle == .colorMatch
+                                    ? themeManager.switchTintColor : themeManager.accentColor
+                            )
+                            .frame(width: 36, height: 22)
+                            .overlay(
+                                Circle()
+                                    .fill(themeManager.buttonTextColor)
+                                    .frame(width: 18, height: 18)
+                                    .offset(x: 7)
+                            )
+                    }
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 10)
+                    .background(
+                        styleManager.currentStyle == .colorMatch
+                            ? themeManager.cardBackgroundColor
+                            : Color(.secondarySystemGroupedBackground)
+                    )
+                }
+                .cornerRadius(styleManager.currentStyle == .colorMatch ? 14 : 10)
+                .overlay(
+                    RoundedRectangle(cornerRadius: styleManager.currentStyle == .colorMatch ? 14 : 10)
+                        .stroke(
+                            styleManager.currentStyle == .colorMatch
+                                ? themeManager.borderColor : Color(.separator),
+                            lineWidth: 0.5
+                        )
+                )
+            }
+        }
+        .padding(16)
+        .background(themeManager.groupedBackgroundColor)
+        .cornerRadius(16)
+        .animation(.easeInOut(duration: 0.25), value: styleManager.currentStyle)
+    }
+
 
     private var semanticColorsSection: some View {
         Section {

@@ -5,6 +5,7 @@ import NimbleViews
 // MARK: - HomeView - Dashboard with Quick Actions, Status, and At A Glance
 struct HomeView: View {
     @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var styleManager: SectionStyleManager
     @Environment(\.managedObjectContext) private var viewContext
     @AppStorage("Feather.greetingsName") private var _greetingsName: String = ""
     @AppStorage("Feather.homeGreetingEnabled") private var _greetingEnabled = true
@@ -194,6 +195,7 @@ struct HomeView: View {
                 if let app = _selectedAppForSigning {
                     ModernSigningView(app: app)
                         .environmentObject(themeManager)
+                    .environmentObject(styleManager)
                 }
             }
         }
@@ -1514,6 +1516,7 @@ struct HomeView: View {
 // MARK: - Home Quick Action Card
 struct HomeQuickActionCard: View {
     @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var styleManager: SectionStyleManager
     let title: String
     let icon: String
     let color: Color
@@ -1544,6 +1547,7 @@ struct HomeCardButtonStyle: ButtonStyle {
 
 struct HomeQuickActionCardContent: View {
     @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var styleManager: SectionStyleManager
     let title: String
     let icon: String
     let color: Color
@@ -1571,6 +1575,7 @@ struct HomeQuickActionCardContent: View {
 // MARK: - Compact Quick Action Button
 struct CompactQuickActionButton: View {
     @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var styleManager: SectionStyleManager
     let title: String
     let icon: String
     let color: Color
@@ -1596,6 +1601,7 @@ struct CompactQuickActionButton: View {
 // MARK: - Status Card
 struct StatusCard: View {
     @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var styleManager: SectionStyleManager
     let title: String
     let value: String
     let subtitle: String
@@ -1634,6 +1640,7 @@ struct StatusCard: View {
 // MARK: - Compact Status Pill
 struct CompactStatusPill: View {
     @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var styleManager: SectionStyleManager
     let title: String
     let icon: String
     let color: Color
@@ -1657,6 +1664,7 @@ struct CompactStatusPill: View {
 // MARK: - Signing History Row
 struct SigningHistoryRow: View {
     @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var styleManager: SectionStyleManager
     let app: Signed
     var isLarge: Bool = false
     
@@ -1744,6 +1752,7 @@ struct SigningHistoryRow: View {
 // MARK: - Compact History Item
 struct CompactHistoryItem: View {
     @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var styleManager: SectionStyleManager
     let app: Signed
     
     private var relativeDate: String {
@@ -1787,6 +1796,7 @@ struct CompactHistoryItem: View {
 // MARK: - At A Glance Row
 struct AtAGlanceRow: View {
     @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var styleManager: SectionStyleManager
     let title: String
     let value: String
     let icon: String
@@ -1819,6 +1829,7 @@ struct AtAGlanceRow: View {
 // MARK: - Device Info Row
 struct DeviceInfoRow: View {
     @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var styleManager: SectionStyleManager
     let title: String
     let value: String
     let icon: String
@@ -1847,6 +1858,7 @@ struct DeviceInfoRow: View {
 // MARK: - App Stat Card
 struct AppStatCard: View {
     @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var styleManager: SectionStyleManager
     let title: String
     let value: String
     let icon: String
@@ -1876,6 +1888,7 @@ struct AppStatCard: View {
 // MARK: - Favorite App Card
 struct FavoriteAppCard: View {
     @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var styleManager: SectionStyleManager
     let name: String
     let isSigned: Bool
     var compact: Bool = false
@@ -1904,6 +1917,7 @@ struct FavoriteAppCard: View {
 // MARK: - Recent App Row
 struct RecentAppRow: View {
     @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var styleManager: SectionStyleManager
     let name: String
     let bundleId: String
     let isSigned: Bool
@@ -1950,6 +1964,7 @@ struct RecentAppRow: View {
 // MARK: - Quick Setting Toggle
 struct QuickSettingToggle: View {
     @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var styleManager: SectionStyleManager
     let title: String
     let icon: String
     let color: Color
@@ -1980,6 +1995,7 @@ struct QuickSettingToggle: View {
 // MARK: - Storage Info Row
 struct StorageInfoRow: View {
     @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var styleManager: SectionStyleManager
     let title: String
     let count: Int
     let icon: String
@@ -2008,6 +2024,7 @@ struct StorageInfoRow: View {
 // MARK: - Certificate Expiration Bar
 struct CertificateExpirationBar: View {
     @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var styleManager: SectionStyleManager
     let expiration: Date
     
     private var progress: Double {
@@ -2059,6 +2076,7 @@ struct CertificateExpirationBar: View {
 // MARK: - Source Overview Row
 struct SourceOverviewRow: View {
     @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var styleManager: SectionStyleManager
     let name: String
     let appCount: Int
     let iconURL: URL?
@@ -2108,6 +2126,7 @@ struct SourceOverviewRow: View {
 // MARK: - Sign And Install Picker View
 struct SignAndInstallPickerView: View {
     @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var styleManager: SectionStyleManager
     @Environment(\.dismiss) private var dismiss
     @State private var _showFilePicker = false
     @State private var _isProcessing = false
@@ -2534,6 +2553,7 @@ struct SignAndInstallPickerView: View {
 // MARK: - App Updates List Sheet
 struct AppUpdatesListSheet: View {
     @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var styleManager: SectionStyleManager
     @Environment(\.dismiss) private var dismiss
     let updates: [AppUpdateInfo]
     let onSignApp: (AppUpdateInfo) -> Void
@@ -2593,6 +2613,7 @@ struct AppUpdatesListSheet: View {
 // MARK: - App Update Row
 private struct AppUpdateRow: View {
     @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var styleManager: SectionStyleManager
     let update: AppUpdateInfo
     let onSign: () -> Void
     let onDismiss: () -> Void

@@ -11,6 +11,7 @@ struct FeatherApp: App {
         let heartbeat = HeartbeatManager.shared
 
         @StateObject var themeManager = ThemeManager.shared
+        @StateObject private var styleManager = SectionStyleManager.shared
         @StateObject var downloadManager = DownloadManager.shared
         @StateObject var networkMonitor = NetworkMonitor.shared
         let storage = Storage.shared
@@ -88,20 +89,30 @@ struct FeatherApp: App {
                                                                 .transition(AnyTransition.move(edge: .top).combined(with: .opacity))
                             .sheet(isPresented: $_showCertAdd) {
                                 CertificatesAddView()
+                                    .environmentObject(themeManager)
+                                    .environmentObject(styleManager)
                             }
                             .sheet(isPresented: $_showCertificates) {
                                 NBNavigationView(.localized("Certificates")) {
                                     CertificatesView()
                                 }
+                                .environmentObject(themeManager)
+                                .environmentObject(styleManager)
                             }
                             .sheet(isPresented: $_showQuickActions) {
                                 QuickActionsSheetView()
+                                    .environmentObject(themeManager)
+                                    .environmentObject(styleManager)
                             }
                             .sheet(isPresented: $_showNearbyRestore) {
                                 RestoreOptionsView()
+                                    .environmentObject(themeManager)
+                                    .environmentObject(styleManager)
                             }
                             .sheet(isPresented: $_showBulkSourceImport) {
                                 SourcesAddBulkView(sourceURLs: _bulkSourceURLs)
+                                    .environmentObject(themeManager)
+                                    .environmentObject(styleManager)
                             }
                                                         .confirmationDialog(
                                                                 .localized("Add Source"),
@@ -173,10 +184,12 @@ struct FeatherApp: App {
                         .globalTheme()
                         .tint(themeManager.accentColor)
                         .environmentObject(themeManager)
+                        .environmentObject(styleManager)
                         .environmentObject(ColorBackgroundManager.shared)
                         .handleStatusBarHiding()
                         .onAppear {
                                 themeManager.applyUIKitAppearance()
+                                styleManager.applyGlobalUIKitStyle()
                         }
                         .onReceive(NotificationCenter.default.publisher(for: UIApplication.didBecomeActiveNotification)) { _ in
                                 _handlePendingWidgetAction()

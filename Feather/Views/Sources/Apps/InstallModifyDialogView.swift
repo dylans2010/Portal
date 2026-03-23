@@ -4,6 +4,7 @@ import NimbleViews
 // MARK: - Modern Install/Modify Dialog (Full Screen)
 struct InstallModifyDialogView: View {
     @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var styleManager: SectionStyleManager
     @Environment(\.dismiss) var dismiss
     let app: AppInfoPresentable
     
@@ -132,6 +133,7 @@ struct InstallModifyDialogView: View {
         .fullScreenCover(isPresented: $showModifyView) {
             ModernSigningView(app: app)
                 .environmentObject(themeManager)
+                    .environmentObject(styleManager)
         }
     }
     

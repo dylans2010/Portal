@@ -15,6 +15,7 @@ enum CertificateExperience: String, CaseIterable {
 // MARK: - Settings View
 struct SettingsView: View {
     @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var styleManager: SectionStyleManager
     @State private var developerTapCount = 0
     @State private var lastTapTime: Date?
     @State private var _isFetchingFullData = false
@@ -83,7 +84,10 @@ struct SettingsView: View {
         }
         .navigationDestination(isPresented: $navigateToCheckForUpdates) {
             CheckForUpdatesView()
+                .environmentObject(themeManager)
+                .environmentObject(styleManager)
         }
+        .onReceive(NotificationCenter.default.publisher(for: .sectionStyleDidChange)) { _ in }
     }
     
     // MARK: - Sections
