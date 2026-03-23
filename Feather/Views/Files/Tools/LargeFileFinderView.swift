@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct LargeFileFinderView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let baseDirectory: URL
     @State private var files: [FileInfo] = []
     @State private var isSearching = false
@@ -16,23 +17,26 @@ struct LargeFileFinderView: View {
             VStack {
                 if isSearching {
                     ProgressView(.localized("Scanning files..."))
+                        .tint(themeManager.accentColor)
                 } else {
                     List(files) { file in
                         HStack {
                             VStack(alignment: .leading) {
                                 Text(file.url.lastPathComponent)
+                                    .themedText(.primary)
                                 Text(file.url.path)
                                     .font(.caption2)
-                                    .foregroundStyle(.secondary)
+                                    .themedText(.secondary)
                             }
                             Spacer()
                             Text(ByteCountFormatter.string(fromByteCount: file.size, countStyle: .file))
                                 .font(.caption.monospaced())
-                                .foregroundStyle(.secondary)
+                                .themedText(.secondary)
                         }
                     }
                 }
             }
+            .globalTheme()
             .navigationTitle(.localized("Large Files"))
             .navigationBarTitleDisplayMode(.inline)
             .onAppear {

@@ -26,11 +26,11 @@ struct QuickActionCard: View {
                 VStack(alignment: .leading, spacing: 2) {
                     Text(title)
                         .font(.system(size: 13, weight: .semibold))
-                        .foregroundStyle(.primary)
+                        .themedText(.primary)
                     
                     Text(subtitle)
                         .font(.system(size: 11))
-                        .foregroundStyle(.secondary)
+                        .themedText(.secondary)
                 }
             }
             .frame(width: 100)

@@ -10,6 +10,7 @@ import LocalAuthentication
 
 // MARK: - Developer Mode Entry Point
 struct DeveloperView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     @StateObject private var authManager = DeveloperAuthManager.shared
     @State private var showAuthSheet = true
     @State private var showScreenshotWarning = false
@@ -27,6 +28,7 @@ struct DeveloperView: View {
                         })
                     }
                 }
+                .globalTheme()
             }
             .onChange(of: scenePhase) { newPhase in
                 if newPhase == .background {
@@ -77,6 +79,7 @@ struct DeveloperView: View {
 
 // MARK: - Developer Authentication View
 struct DeveloperAuthView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     @StateObject private var authManager = DeveloperAuthManager.shared
     @State private var passcode = ""
     @State private var developerToken = ""
@@ -220,18 +223,12 @@ struct DeveloperAuthView: View {
                         await GestureManager.shared.performAction(for: .tripleTap, in: .settings)
                     }
                 }
-                .foregroundStyle(
-                    LinearGradient(
-                        colors: [.primary, .primary.opacity(0.7)],
-                        startPoint: .leading,
-                        endPoint: .trailing
-                    )
-                )
+                .themedText(.primary)
             
             // Subtitle
             Text("Secure Authentication Required")
                 .font(.subheadline)
-                .foregroundStyle(.secondary)
+                .themedText(.secondary)
                 .padding(.horizontal, 40)
                 .multilineTextAlignment(.center)
         }
@@ -264,9 +261,9 @@ struct DeveloperAuthView: View {
                             Capsule()
                                 .fill(authMethod == method ? 
                                       AnyShapeStyle(LinearGradient(colors: gradientColors, startPoint: .leading, endPoint: .trailing)) :
-                                      AnyShapeStyle(Color.clear))
+                                      AnyShapeStyle(Color(hex: themeManager.resolvedColors.cardBackground)))
                         )
-                        .foregroundStyle(authMethod == method ? .white : .primary)
+                        .foregroundStyle(authMethod == method ? .white : Color(hex: themeManager.resolvedColors.primaryText))
                         .contentShape(Capsule())
                     }
                     .buttonStyle(.plain)
@@ -290,22 +287,7 @@ struct DeveloperAuthView: View {
             }
         }
         .padding(24)
-        .background(
-            RoundedRectangle(cornerRadius: 20, style: .continuous)
-                .fill(Color.clear)
-                .shadow(color: .black.opacity(colorScheme == .dark ? 0.3 : 0.08), radius: 20, x: 0, y: 10)
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: 20, style: .continuous)
-                .strokeBorder(
-                    LinearGradient(
-                        colors: [Color.orange.opacity(0.3), Color.clear],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    ),
-                    lineWidth: 1
-                )
-        )
+        .themedCard()
         .frame(maxWidth: horizontalSizeClass == .regular ? 450 : .infinity)
     }
     
@@ -346,9 +328,9 @@ struct DeveloperAuthView: View {
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 16)
                     .background(
-                        LinearGradient(colors: gradientColors, startPoint: .leading, endPoint: .trailing)
+                        Color(hex: themeManager.resolvedColors.buttonBackground)
                     )
-                    .foregroundStyle(.white)
+                    .foregroundStyle(Color(hex: themeManager.resolvedColors.buttonText))
                     .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
                     .shadow(color: .orange.opacity(0.3), radius: 10, x: 0, y: 5)
                     .contentShape(Rectangle())
@@ -364,7 +346,7 @@ struct DeveloperAuthView: View {
                 
                 Text("No Passcode Configured")
                     .font(.headline)
-                    .foregroundStyle(.secondary)
+                    .themedText(.secondary)
                 
                 Button {
                     showSetupPasscode = true
@@ -378,7 +360,7 @@ struct DeveloperAuthView: View {
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 14)
                     .background(Color.clear)
-                    .foregroundStyle(.orange)
+                    .themedAccent()
                     .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
                 }
             }
@@ -404,7 +386,7 @@ struct DeveloperAuthView: View {
             
             Text("Use biometric authentication for quick access. This feature does not work yet.")
                 .font(.caption)
-                .foregroundStyle(.secondary)
+                .themedText(.secondary)
                 .multilineTextAlignment(.center)
             
             Button {
@@ -424,9 +406,9 @@ struct DeveloperAuthView: View {
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 16)
                 .background(
-                    LinearGradient(colors: gradientColors, startPoint: .leading, endPoint: .trailing)
+                    Color(hex: themeManager.resolvedColors.buttonBackground)
                 )
-                .foregroundStyle(.white)
+                .foregroundStyle(Color(hex: themeManager.resolvedColors.buttonText))
                 .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
                 .shadow(color: .orange.opacity(0.3), radius: 10, x: 0, y: 5)
             }
@@ -455,7 +437,7 @@ struct DeveloperAuthView: View {
             // Token hint
             Text("Enter your authorized Developer Token.")
                 .font(.caption)
-                .foregroundStyle(.secondary)
+                .themedText(.secondary)
             
             // Validate button
             Button {
@@ -475,9 +457,9 @@ struct DeveloperAuthView: View {
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 16)
                 .background(
-                    LinearGradient(colors: gradientColors, startPoint: .leading, endPoint: .trailing)
+                    Color(hex: themeManager.resolvedColors.buttonBackground)
                 )
-                .foregroundStyle(.white)
+                .foregroundStyle(Color(hex: themeManager.resolvedColors.buttonText))
                 .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
                 .shadow(color: .orange.opacity(0.3), radius: 10, x: 0, y: 5)
             }
@@ -490,15 +472,16 @@ struct DeveloperAuthView: View {
     private var rememberMeSection: some View {
         HStack {
             Image(systemName: authManager.rememberMe ? "checkmark.circle.fill" : "circle")
-                .foregroundStyle(authManager.rememberMe ? .orange : .secondary)
+                .foregroundStyle(authManager.rememberMe ? themeManager.accentColor : Color(hex: themeManager.resolvedColors.secondaryText))
                 .font(.system(size: 22))
             
             VStack(alignment: .leading, spacing: 2) {
                 Text("Remember Me")
                     .font(.subheadline.weight(.medium))
+                    .themedText(.primary)
                 Text("Stay Authenticated For 7 Days")
                     .font(.caption)
-                    .foregroundStyle(.secondary)
+                    .themedText(.secondary)
             }
             
             Spacer()
@@ -508,13 +491,10 @@ struct DeveloperAuthView: View {
                 set: { authManager.rememberMe = $0 }
             ))
             .labelsHidden()
-            .tint(.orange)
+            .tint(themeManager.accentColor)
         }
         .padding(16)
-        .background(
-            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .fill(Color.clear)
-        )
+        .themedCard()
         .frame(maxWidth: horizontalSizeClass == .regular ? 450 : .infinity)
     }
     
@@ -550,7 +530,7 @@ struct DeveloperAuthView: View {
         } label: {
             Text("Cancel")
                 .font(.subheadline.weight(.medium))
-                .foregroundStyle(.secondary)
+                .themedText(.secondary)
                 .padding(.vertical, 12)
                 .padding(.horizontal, 24)
         }
@@ -644,6 +624,7 @@ struct DeveloperAuthView: View {
 
 // MARK: - Modern Passcode Setup View
 struct ModernPasscodeSetupView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     @StateObject private var authManager = DeveloperAuthManager.shared
     @State private var newPasscode = ""
     @State private var confirmPasscode = ""
@@ -683,10 +664,11 @@ struct ModernPasscodeSetupView: View {
                             
                             Text("Create Passcode")
                                 .font(.title2.bold())
+                                .themedText(.primary)
                             
                             Text("Set a secure passcode for Developer Mode")
                                 .font(.subheadline)
-                                .foregroundStyle(.secondary)
+                                .themedText(.secondary)
                                 .multilineTextAlignment(.center)
                         }
                         .padding(.top, 20)
@@ -697,7 +679,7 @@ struct ModernPasscodeSetupView: View {
                             VStack(alignment: .leading, spacing: 8) {
                                 Text("New Passcode")
                                     .font(.caption.weight(.medium))
-                                    .foregroundStyle(.secondary)
+                                    .themedText(.secondary)
                                 
                                 HStack {
                                     Image(systemName: "lock.fill")
@@ -716,7 +698,7 @@ struct ModernPasscodeSetupView: View {
                             VStack(alignment: .leading, spacing: 8) {
                                 Text("Confirm Passcode")
                                     .font(.caption.weight(.medium))
-                                    .foregroundStyle(.secondary)
+                                    .themedText(.secondary)
                                 
                                 HStack {
                                     Image(systemName: "lock.fill")
@@ -785,11 +767,11 @@ struct ModernPasscodeSetupView: View {
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 16)
                             .background(
-                                LinearGradient(colors: gradientColors, startPoint: .leading, endPoint: .trailing)
+                                Color(hex: themeManager.resolvedColors.buttonBackground)
                             )
-                            .foregroundStyle(.white)
+                            .foregroundStyle(Color(hex: themeManager.resolvedColors.buttonText))
                             .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
-                            .shadow(color: .orange.opacity(0.3), radius: 10, x: 0, y: 5)
+                            .shadow(color: themeManager.accentColor.opacity(0.3), radius: 10, x: 0, y: 5)
                         }
                         .disabled(newPasscode.isEmpty || confirmPasscode.isEmpty || isSettingUp)
                         .opacity(newPasscode.isEmpty || confirmPasscode.isEmpty ? 0.6 : 1)
@@ -805,7 +787,7 @@ struct ModernPasscodeSetupView: View {
                         onComplete(false)
                         dismiss()
                     }
-                    .foregroundStyle(.orange)
+                    .themedAccent()
                 }
             }
         }
@@ -887,6 +869,7 @@ struct ModernPasscodeSetupView: View {
 
 // MARK: - Developer Control Panel (Main View)
 struct DeveloperControlPanelView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     @StateObject private var authManager = DeveloperAuthManager.shared
     @State private var showResetConfirmation = false
     @State private var showNearbyShareIntro = false
@@ -983,7 +966,7 @@ struct DeveloperControlPanelView: View {
             .padding(.horizontal, 16)
             .padding(.vertical, 12)
         }
-        .background(Color.clear)
+        .globalTheme()
         .searchable(text: $searchText, prompt: "Search Developer")
     }
 
@@ -1004,9 +987,10 @@ struct DeveloperControlPanelView: View {
             VStack(alignment: .leading, spacing: 4) {
                 Text("Developer Mode")
                     .font(.headline)
+                    .themedText(.primary)
                 Text("Advanced tools and debugging options")
                     .font(.caption)
-                    .foregroundStyle(.secondary)
+                    .themedText(.secondary)
             }
             
             Spacer()
@@ -1019,10 +1003,7 @@ struct DeveloperControlPanelView: View {
                 .background(Capsule().fill(.green))
         }
         .padding(16)
-        .background(
-            RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .fill(Color.clear)
-        )
+        .themedCard()
     }
     
     // MARK: - Quick Toggle Card
@@ -1034,7 +1015,7 @@ struct DeveloperControlPanelView: View {
                     .foregroundStyle(.cyan)
                 Text("EXPERIMENTAL")
                     .font(.caption.weight(.bold))
-                    .foregroundStyle(.secondary)
+                    .themedText(.secondary)
                 Spacer()
             }
             .padding(.horizontal, 16)
@@ -1054,9 +1035,10 @@ struct DeveloperControlPanelView: View {
                     VStack(alignment: .leading, spacing: 2) {
                         Text("Modern Tab Bar")
                             .font(.subheadline.weight(.medium))
+                            .themedText(.primary)
                         Text("Glass effects & animations")
                             .font(.caption)
-                            .foregroundStyle(.secondary)
+                            .themedText(.secondary)
                     }
                 }
             }
@@ -1080,9 +1062,10 @@ struct DeveloperControlPanelView: View {
                     VStack(alignment: .leading, spacing: 2) {
                         Text("Simulate Nearby Transfer")
                             .font(.subheadline.weight(.medium))
+                            .themedText(.primary)
                         Text("UI preview mode without actual transfer")
                             .font(.caption)
-                            .foregroundStyle(.secondary)
+                            .themedText(.secondary)
                     }
                 }
             }
@@ -1107,9 +1090,10 @@ struct DeveloperControlPanelView: View {
                         VStack(alignment: .leading, spacing: 2) {
                             Text("Open Simulation")
                                 .font(.subheadline.weight(.medium))
+                                .themedText(.primary)
                             Text("Test UI flows and interactions")
                                 .font(.caption)
-                                .foregroundStyle(.secondary)
+                                .themedText(.secondary)
                         }
                         Spacer()
                         Image(systemName: "chevron.right")
@@ -1123,10 +1107,7 @@ struct DeveloperControlPanelView: View {
             }
         }
         .padding(.bottom, 14)
-        .background(
-            RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .fill(Color.clear)
-        )
+        .themedCard()
     }
     
     // MARK: - Category Card
@@ -1139,14 +1120,14 @@ struct DeveloperControlPanelView: View {
                     .foregroundStyle(category.color)
                 Text(category.title.uppercased())
                     .font(.caption.weight(.bold))
-                    .foregroundStyle(.secondary)
+                    .themedText(.secondary)
                 Spacer()
                 Text("\(category.items.count + (category.title == "Interface" ? 1 : 0))")
                     .font(.caption2.weight(.semibold))
-                    .foregroundStyle(.secondary)
+                    .themedText(.secondary)
                     .padding(.horizontal, 8)
                     .padding(.vertical, 3)
-                    .background(Capsule().fill(Color.secondary.opacity(0.15)))
+                    .background(Capsule().fill(Color(hex: themeManager.resolvedColors.cardBackground)))
             }
             .padding(.horizontal, 16)
             .padding(.top, 12)
@@ -1180,7 +1161,7 @@ struct DeveloperControlPanelView: View {
                             
                             Text("Nearby Share Intro")
                                 .font(.subheadline.weight(.medium))
-                                .foregroundStyle(.primary)
+                                .themedText(.primary)
                             
                             Spacer()
                             
@@ -1195,10 +1176,7 @@ struct DeveloperControlPanelView: View {
                 .buttonStyle(.plain)
             }
         }
-        .background(
-            RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .fill(Color.clear)
-        )
+        .themedCard()
     }
     
     private func devMenuItemRow(item: DevMenuItem, isLast: Bool) -> some View {
@@ -1215,7 +1193,7 @@ struct DeveloperControlPanelView: View {
                 
                 Text(item.title)
                     .font(.subheadline.weight(.medium))
-                    .foregroundStyle(.primary)
+                    .themedText(.primary)
                 
                 Spacer()
                 
@@ -1242,7 +1220,7 @@ struct DeveloperControlPanelView: View {
                     .foregroundStyle(.orange)
                 Text("SECURITY")
                     .font(.caption.weight(.bold))
-                    .foregroundStyle(.secondary)
+                    .themedText(.secondary)
                 Spacer()
             }
             .padding(.horizontal, 16)
@@ -1261,6 +1239,7 @@ struct DeveloperControlPanelView: View {
                     }
                     Text("Security Settings")
                         .font(.subheadline.weight(.medium))
+                        .themedText(.primary)
                     Spacer()
                     Image(systemName: "chevron.right")
                         .font(.caption.weight(.semibold))
@@ -1296,10 +1275,7 @@ struct DeveloperControlPanelView: View {
             }
             .padding(.bottom, 4)
         }
-        .background(
-            RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .fill(Color.clear)
-        )
+        .themedCard()
     }
 }
 
@@ -1335,6 +1311,7 @@ struct DeveloperMenuRow: View {
 
 // MARK: - Home UI Testing View
 struct HomeUITestingView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     @AppStorage("Feather.devShowSimulatedUpdateBanner") private var showSimulatedUpdateBanner = false
     @AppStorage("Feather.showAppUpdateBanner") private var showAppUpdateBanner = true
     @StateObject private var updateTrackingManager = AppUpdateTrackingManager.shared
@@ -1355,9 +1332,10 @@ struct HomeUITestingView: View {
                         VStack(alignment: .leading, spacing: 2) {
                             Text("Show Simulated Update Banner")
                                 .font(.system(size: 15, weight: .medium))
+                                .themedText(.primary)
                             Text("Display a fake app update banner on Home view.")
                                 .font(.caption)
-                                .foregroundStyle(.secondary)
+                                .themedText(.secondary)
                         }
                     }
                 }
@@ -1381,8 +1359,10 @@ struct HomeUITestingView: View {
                         }
                         Text("Enable Update Banners")
                             .font(.system(size: 15, weight: .medium))
+                            .themedText(.primary)
                     }
                 }
+                .tint(themeManager.accentColor)
                 .tint(.blue)
             } header: {
                 Text("Banner Settings")
@@ -1395,14 +1375,14 @@ struct HomeUITestingView: View {
                     Text("Tracked Apps")
                     Spacer()
                     Text("\(updateTrackingManager.trackedApps.count)")
-                        .foregroundStyle(.secondary)
+                        .themedText(.secondary)
                 }
                 
                 HStack {
                     Text("Available Updates")
                     Spacer()
                     Text("\(updateTrackingManager.availableUpdates.count)")
-                        .foregroundStyle(.secondary)
+                        .themedText(.secondary)
                 }
                 
                 if let lastCheck = updateTrackingManager.lastCheckDate {
@@ -1410,7 +1390,7 @@ struct HomeUITestingView: View {
                         Text("Last Check")
                         Spacer()
                         Text(lastCheck, style: .relative)
-                            .foregroundStyle(.secondary)
+                            .themedText(.secondary)
                     }
                 }
             } header: {
@@ -1418,8 +1398,6 @@ struct HomeUITestingView: View {
             }
             
             Section {
-                Button {
-                    // Add a simulated tracked app for testing
                     let testConfig = TrackedAppConfig(
                         bundleIdentifier: "com.test.simulatedapp.\(UUID().uuidString.prefix(8))",
                         appName: "Test App \(Int.random(in: 1...100))",
@@ -1455,7 +1433,7 @@ struct HomeUITestingView: View {
                 Text("Testing Actions")
             }
         }
-            .scrollContentBackground(.hidden)
+        .globalTheme()
         .navigationTitle("Home UI Testing")
         .navigationBarTitleDisplayMode(.inline)
     }
@@ -1463,6 +1441,7 @@ struct HomeUITestingView: View {
 
 // MARK: - Developer Security View
 struct DeveloperSecurityView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     @StateObject private var authManager = DeveloperAuthManager.shared
     @State private var showChangePasscode = false
     @State private var showRemovePasscode = false
@@ -1474,7 +1453,7 @@ struct DeveloperSecurityView: View {
                     Text("Passcode")
                     Spacer()
                     Text(authManager.hasPasscodeSet ? "Set" : "Not Set")
-                        .foregroundStyle(.secondary)
+                        .themedText(.secondary)
                 }
                 
                 if authManager.hasPasscodeSet {
@@ -1497,14 +1476,14 @@ struct DeveloperSecurityView: View {
                     Text("Biometric Type")
                     Spacer()
                     Text(biometricTypeName)
-                        .foregroundStyle(.secondary)
+                        .themedText(.secondary)
                 }
                 
                 HStack {
                     Text("Available")
                     Spacer()
                     Text(authManager.canUseBiometrics ? "Yes" : "No")
-                        .foregroundStyle(authManager.canUseBiometrics ? .green : .red)
+                        .foregroundStyle(authManager.canUseBiometrics ? .green : Color(hex: themeManager.resolvedColors.destructive))
                 }
             }
             
@@ -1513,7 +1492,7 @@ struct DeveloperSecurityView: View {
                     Text("Saved Token")
                     Spacer()
                     Text(authManager.hasSavedToken ? "Present" : "None")
-                        .foregroundStyle(.secondary)
+                        .themedText(.secondary)
                 }
                 
                 if authManager.hasSavedToken {
@@ -1529,15 +1508,15 @@ struct DeveloperSecurityView: View {
                     Spacer()
                     if let lastAuth = authManager.lastAuthTime {
                         Text(lastAuth, style: .relative)
-                            .foregroundStyle(.secondary)
+                            .themedText(.secondary)
                     } else {
                         Text("Never")
-                            .foregroundStyle(.secondary)
+                            .themedText(.secondary)
                     }
                 }
             }
         }
-            .scrollContentBackground(.hidden)
+        .globalTheme()
         .navigationTitle("Security Settings")
         .sheet(isPresented: $showChangePasscode) {
             ScreenshotPreventingView {

@@ -2,6 +2,7 @@ import SwiftUI
 import NimbleViews
 
 struct PlistEditorView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     @Environment(\.dismiss) var dismiss
     let fileURL: URL
     
@@ -31,17 +32,6 @@ struct PlistEditorView: View {
     var body: some View {
         NBNavigationView(.localized("Plist Editor"), displayMode: .inline) {
             ZStack {
-                // Modern background
-                LinearGradient(
-                    colors: [
-                        Color.purple.opacity(0.06),
-                        Color.clear
-                    ],
-                    startPoint: .top,
-                    endPoint: .bottom
-                )
-                .ignoresSafeArea()
-                
                 VStack(spacing: 0) {
                     if let error = validationError {
                         HStack(spacing: 10) {
@@ -67,6 +57,7 @@ struct PlistEditorView: View {
                         ZStack(alignment: .bottom) {
                             TextEditor(text: $plistContent)
                                 .font(.system(.body, design: .monospaced))
+                                .themedText(.primary)
                                 .padding(.horizontal, 12)
                                 .padding(.vertical, 8)
                                 .padding(.bottom, 50)
@@ -88,19 +79,20 @@ struct PlistEditorView: View {
                             PlistTreeView(plist: plist)
                         } else {
                             Text(.localized("Unable to parse plist for tree view"))
-                                .foregroundStyle(.secondary)
+                                .themedText(.secondary)
                         }
                     } else {
                         ScrollView {
                             Text(plistContent)
                                 .font(.system(.body, design: .monospaced))
+                                .themedText(.primary)
                                 .frame(maxWidth: .infinity, alignment: .leading)
                                 .padding(.horizontal, 14)
                                 .padding(.vertical, 12)
                         }
-                        .background(Color.clear)
                     }
                 }
+                .globalTheme()
             }
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
@@ -410,12 +402,13 @@ struct PlistTreeView: View {
         List {
             PlistNodeView(key: "Root", value: plist)
         }
-            .scrollContentBackground(.hidden)
+        .globalTheme()
         .listStyle(.insetGrouped)
     }
 }
 
 struct PlistNodeView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let key: String
     let value: Any
     @State private var isExpanded = false
@@ -429,9 +422,9 @@ struct PlistNodeView: View {
             } label: {
                 HStack {
                     Image(systemName: "folder.fill").foregroundStyle(.blue)
-                    Text(key).fontWeight(.medium)
+                    Text(key).fontWeight(.medium).themedText(.primary)
                     Spacer()
-                    Text("\(dict.count) items").font(.caption).foregroundStyle(.secondary)
+                    Text("\(dict.count) items").font(.caption).themedText(.secondary)
                 }
             }
         } else if let array = value as? [Any] {
@@ -442,20 +435,21 @@ struct PlistNodeView: View {
             } label: {
                 HStack {
                     Image(systemName: "list.bullet").foregroundStyle(.orange)
-                    Text(key).fontWeight(.medium)
+                    Text(key).fontWeight(.medium).themedText(.primary)
                     Spacer()
-                    Text("\(array.count) items").font(.caption).foregroundStyle(.secondary)
+                    Text("\(array.count) items").font(.caption).themedText(.secondary)
                 }
             }
         } else {
             HStack {
                 VStack(alignment: .leading) {
-                    Text(key).font(.caption).foregroundStyle(.secondary)
-                    Text(String(describing: value))
+                    Text(key).font(.caption).themedText(.secondary)
+                    Text(String(describing: value)).themedText(.primary)
                 }
                 Spacer()
                 Text(typeString(for: value))
                     .font(.caption2.monospaced())
+                    .themedText(.secondary)
                     .padding(.horizontal, 4)
                     .padding(.vertical, 2)
                     .background(Color.gray.opacity(0.1))

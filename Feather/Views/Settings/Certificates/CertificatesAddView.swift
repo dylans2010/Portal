@@ -6,6 +6,7 @@ import OSLog
 
 // MARK: - Modern Compact Certificate Add View
 struct CertificatesAddView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     @Environment(\.dismiss) private var dismiss
     @Namespace private var _namespace
     @AppStorage("feature_usePortalCert") private var usePortalCert = false
@@ -44,9 +45,6 @@ struct CertificatesAddView: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                Color(UIColor.systemGroupedBackground)
-                    .ignoresSafeArea()
-
                 VStack(spacing: 0) {
                     ScrollView {
                         VStack(spacing: 24) {
@@ -101,6 +99,7 @@ struct CertificatesAddView: View {
                     }
                 }
             }
+            .globalTheme()
             .navigationTitle("Add Certificate")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -176,7 +175,7 @@ struct CertificatesAddView: View {
         VStack(alignment: .leading, spacing: 12) {
             Text("Certificate Files")
                 .font(.subheadline.bold())
-                .foregroundStyle(.secondary)
+                .themedText(.secondary)
                 .padding(.leading, 8)
 
             VStack(spacing: 0) {
@@ -188,8 +187,7 @@ struct CertificatesAddView: View {
                     _isImportingMobileProvisionPresenting = true
                 }
             }
-            .background(Color(UIColor.secondarySystemGroupedBackground))
-            .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+            .themedCard()
         }
         .padding(.horizontal)
     }
@@ -198,15 +196,14 @@ struct CertificatesAddView: View {
         VStack(alignment: .leading, spacing: 12) {
             Text("Portal Certificate")
                 .font(.subheadline.bold())
-                .foregroundStyle(.secondary)
+                .themedText(.secondary)
                 .padding(.leading, 8)
 
             if usePortalCert {
                 fileRowModern(title: "Import .portalcert", subtitle: _p12URL != nil ? "Certificate Loaded" : nil, icon: "shippingbox.fill", color: .purple, isDone: _portalDone) {
                     _isImportingPortalCertPresenting = true
                 }
-                .background(Color(UIColor.secondarySystemGroupedBackground))
-                .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+                .themedCard()
             } else {
                 VStack(spacing: 12) {
                     Image(systemName: "shippingbox.and.arrow.backward.fill")
@@ -215,16 +212,16 @@ struct CertificatesAddView: View {
 
                     Text("Portal Cert Coming Soon")
                         .font(.headline)
+                        .themedText(.primary)
 
                     Text("This feature is currently in development and will be available in a future update.")
                         .font(.caption)
-                        .foregroundStyle(.secondary)
+                        .themedText(.secondary)
                         .multilineTextAlignment(.center)
                 }
                 .frame(maxWidth: .infinity)
                 .padding(32)
-                .background(Color(UIColor.secondarySystemGroupedBackground))
-                .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+                .themedCard()
             }
         }
         .padding(.horizontal)
@@ -234,14 +231,13 @@ struct CertificatesAddView: View {
         VStack(alignment: .leading, spacing: 12) {
             Text("Archive Import")
                 .font(.subheadline.bold())
-                .foregroundStyle(.secondary)
+                .themedText(.secondary)
                 .padding(.leading, 8)
 
             fileRowModern(title: "Import ZIP", subtitle: _p12URL != nil ? "Files Extracted" : "Contains .p12 & .mobileprovision", icon: "doc.zipper", color: .green, isDone: _zipDone) {
                 _isImportingZipPresenting = true
             }
-            .background(Color(UIColor.secondarySystemGroupedBackground))
-            .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+            .themedCard()
         }
         .padding(.horizontal)
     }
@@ -251,15 +247,16 @@ struct CertificatesAddView: View {
             Image(systemName: "lock.fill")
                 .font(.system(size: 18))
                 .frame(width: 24)
-                .foregroundStyle(Color.accentColor)
+                .foregroundStyle(themeManager.accentColor)
 
             VStack(alignment: .leading, spacing: 2) {
                 Text("Password")
                     .font(.caption.bold())
-                    .foregroundStyle(.secondary)
+                    .themedText(.secondary)
 
                 SecureField("Required if certificate is encrypted", text: $_p12Password)
                     .font(.subheadline)
+                    .themedText(.primary)
                     .textInputAutocapitalization(.never)
                     .autocorrectionDisabled()
             }
@@ -272,15 +269,16 @@ struct CertificatesAddView: View {
             Image(systemName: "tag.fill")
                 .font(.system(size: 18))
                 .frame(width: 24)
-                .foregroundStyle(Color.accentColor)
+                .foregroundStyle(themeManager.accentColor)
 
             VStack(alignment: .leading, spacing: 2) {
                 Text("Nickname")
                     .font(.caption.bold())
-                    .foregroundStyle(.secondary)
+                    .themedText(.secondary)
 
                 TextField("Custom name for this certificate", text: $_certificateName)
                     .font(.subheadline)
+                    .themedText(.primary)
             }
         }
         .padding(16)
@@ -292,18 +290,19 @@ struct CertificatesAddView: View {
                 Image(systemName: "star.fill")
                     .font(.system(size: 18))
                     .frame(width: 24)
-                    .foregroundStyle(Color.accentColor)
+                    .foregroundStyle(themeManager.accentColor)
 
                 VStack(alignment: .leading, spacing: 2) {
                     Text("Set As Default")
                         .font(.subheadline.bold())
+                        .themedText(.primary)
                     Text("Auto-select for signing")
                         .font(.caption2)
-                        .foregroundStyle(.secondary)
+                        .themedText(.secondary)
                 }
             }
         }
-        .tint(.accentColor)
+        .themedAccent()
         .padding(16)
     }
     
@@ -325,10 +324,10 @@ struct CertificatesAddView: View {
             }
             .frame(maxWidth: .infinity)
             .padding(.vertical, 16)
-            .background(saveButtonDisabled || _isSaving ? Color.gray : Color.accentColor)
-            .foregroundStyle(.white)
+            .background(saveButtonDisabled || _isSaving ? Color.gray : themeManager.accentColor)
+            .foregroundStyle(Color(hex: themeManager.resolvedColors.buttonText))
             .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
-            .shadow(color: Color.accentColor.opacity(0.3), radius: 10, y: 5)
+            .shadow(color: themeManager.accentColor.opacity(0.3), radius: 10, y: 5)
         }
         .disabled(saveButtonDisabled || _isSaving)
         .animation(.spring(), value: _isSaving)
@@ -389,29 +388,30 @@ struct CertificatesAddView: View {
             HStack(spacing: 16) {
                 ZStack {
                     RoundedRectangle(cornerRadius: 12, style: .continuous)
-                        .fill(Color.accentColor.opacity(0.12))
+                        .fill(themeManager.accentColor.opacity(0.12))
                         .frame(width: 40, height: 40)
 
                     Image(systemName: icon)
                         .font(.system(size: 18, weight: .semibold))
-                        .foregroundStyle(Color.accentColor)
+                        .foregroundStyle(themeManager.accentColor)
                 }
 
                 VStack(alignment: .leading, spacing: 2) {
                     Text(title)
                         .font(.system(size: 16, weight: .semibold))
-                        .foregroundColor(.primary)
+                        .themedText(.primary)
 
                     if let subtitle = subtitle {
                         Text(subtitle)
                             .font(.caption)
-                            .foregroundColor(.secondary)
+                            .themedText(.secondary)
                             .lineLimit(1)
                             .transition(.opacity)
                     } else {
                         Text("Tap to select file")
                             .font(.caption)
-                            .foregroundColor(.secondary.opacity(0.6))
+                            .themedText(.secondary)
+                            .opacity(0.6)
                     }
                 }
 
@@ -420,7 +420,7 @@ struct CertificatesAddView: View {
                 if isDone {
                     Image(systemName: "checkmark.circle.fill")
                         .font(.system(size: 20))
-                        .foregroundStyle(Color.accentColor)
+                        .foregroundStyle(themeManager.accentColor)
                         .transition(.scale.combined(with: .opacity))
                 } else {
                     Image(systemName: "plus.circle.fill")

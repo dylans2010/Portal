@@ -11,6 +11,7 @@ import CoreData
 import AltSourceKit
 
 struct ExperimentalSourcesView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     @StateObject var viewModel = SourcesViewModel.shared
     @State private var searchText = ""
     @State private var showAddSource = false
@@ -57,6 +58,7 @@ struct ExperimentalSourcesView: View {
                 }
                 .padding(.bottom, 100) // Space for floating tab bar
             }
+            .globalTheme()
             .navigationBarHidden(true)
             .task {
                 await viewModel.fetchSources(Array(sources), refresh: false)
@@ -68,6 +70,7 @@ struct ExperimentalSourcesView: View {
 
 // MARK: - Hero Header
 struct ExperimentalHeroHeader: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let title: String
     let subtitle: String
     let icon: String
@@ -78,11 +81,11 @@ struct ExperimentalHeroHeader: View {
                 VStack(alignment: .leading, spacing: ExperimentalUITheme.Spacing.xs) {
                     Text(title)
                         .font(ExperimentalUITheme.Typography.largeTitle)
-                        .foregroundStyle(ExperimentalUITheme.Colors.textPrimary)
+                        .themedText(.primary)
                     
                     Text(subtitle)
                         .font(ExperimentalUITheme.Typography.subheadline)
-                        .foregroundStyle(ExperimentalUITheme.Colors.textSecondary)
+                        .themedText(.secondary)
                 }
                 
                 Spacer()
@@ -105,35 +108,38 @@ struct ExperimentalHeroHeader: View {
 
 // MARK: - Search Bar
 struct ExperimentalSearchBar: View {
+    @EnvironmentObject var themeManager: ThemeManager
     @Binding var text: String
     let placeholder: String
     
     var body: some View {
         HStack(spacing: ExperimentalUITheme.Spacing.sm) {
             Image(systemName: "magnifyingglass")
-                .foregroundStyle(ExperimentalUITheme.Colors.textSecondary)
+                .themedText(.secondary)
                 .font(.system(size: 16, weight: .semibold))
             
             TextField(placeholder, text: $text)
+                .themedText(.primary)
                 .font(ExperimentalUITheme.Typography.body)
             
             if !text.isEmpty {
                 Button(action: { text = "" }) {
                     Image(systemName: "xmark.circle.fill")
-                        .foregroundStyle(ExperimentalUITheme.Colors.textSecondary)
+                        .themedText(.secondary)
                 }
             }
         }
         .padding(ExperimentalUITheme.Spacing.md)
         .background(
             RoundedRectangle(cornerRadius: ExperimentalUITheme.CornerRadius.md)
-                .fill(ExperimentalUITheme.Colors.backgroundSecondary)
+                .fill(Color(hex: themeManager.resolvedColors.cardBackground))
         )
     }
 }
 
 // MARK: - Featured Section
 struct ExperimentalFeaturedSection: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let sources: [AltSource]
     @ObservedObject var viewModel: SourcesViewModel
     
@@ -141,13 +147,13 @@ struct ExperimentalFeaturedSection: View {
         VStack(alignment: .leading, spacing: ExperimentalUITheme.Spacing.md) {
             Text("Featured")
                 .font(ExperimentalUITheme.Typography.title3)
-                .foregroundStyle(ExperimentalUITheme.Colors.textPrimary)
+                .themedText(.header)
                 .padding(.horizontal, ExperimentalUITheme.Spacing.md)
             
             if sources.isEmpty {
                 Text("No featured sources available")
                     .font(ExperimentalUITheme.Typography.body)
-                    .foregroundStyle(ExperimentalUITheme.Colors.textSecondary)
+                    .themedText(.secondary)
                     .padding(.horizontal, ExperimentalUITheme.Spacing.md)
             } else {
                 ScrollView(.horizontal, showsIndicators: false) {
@@ -168,6 +174,7 @@ struct ExperimentalFeaturedSection: View {
 
 // MARK: - Featured Card
 struct ExperimentalFeaturedCard: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let source: AltSource
     @ObservedObject var viewModel: SourcesViewModel
     
@@ -205,6 +212,7 @@ struct ExperimentalFeaturedCard: View {
 
 // MARK: - Sources Grid
 struct ExperimentalSourcesGrid: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let sources: [AltSource]
     @ObservedObject var viewModel: SourcesViewModel
     
@@ -217,13 +225,13 @@ struct ExperimentalSourcesGrid: View {
         VStack(alignment: .leading, spacing: ExperimentalUITheme.Spacing.md) {
             Text("All Sources")
                 .font(ExperimentalUITheme.Typography.title3)
-                .foregroundStyle(ExperimentalUITheme.Colors.textPrimary)
+                .themedText(.header)
                 .padding(.horizontal, ExperimentalUITheme.Spacing.md)
             
             if sources.isEmpty {
                 Text("No sources available")
                     .font(ExperimentalUITheme.Typography.body)
-                    .foregroundStyle(ExperimentalUITheme.Colors.textSecondary)
+                    .themedText(.secondary)
                     .padding(.horizontal, ExperimentalUITheme.Spacing.md)
             } else {
                 LazyVGrid(columns: columns, spacing: ExperimentalUITheme.Spacing.md) {
@@ -242,6 +250,7 @@ struct ExperimentalSourcesGrid: View {
 
 // MARK: - Source Card
 struct ExperimentalSourceCard: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let source: AltSource
     @ObservedObject var viewModel: SourcesViewModel
     
@@ -286,16 +295,16 @@ struct ExperimentalSourceCard: View {
             VStack(alignment: .leading, spacing: 4) {
                 Text(source.name ?? "Unknown Source")
                     .font(ExperimentalUITheme.Typography.headline)
-                    .foregroundStyle(ExperimentalUITheme.Colors.textPrimary)
+                    .themedText(.primary)
                 
                 if let repo = viewModel.sources[source] {
                     Text("\(repo.apps.count) apps")
                         .font(ExperimentalUITheme.Typography.caption)
-                        .foregroundStyle(ExperimentalUITheme.Colors.textSecondary)
+                        .themedText(.secondary)
                 } else {
                     Text("Loading...")
                         .font(ExperimentalUITheme.Typography.caption)
-                        .foregroundStyle(ExperimentalUITheme.Colors.textSecondary)
+                        .themedText(.secondary)
                 }
             }
             .padding(.horizontal, ExperimentalUITheme.Spacing.xs)

@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct GoToPathView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     @State private var path: String = ""
     @Environment(\.dismiss) var dismiss
     let onGo: (URL) -> Void
@@ -8,7 +9,7 @@ struct GoToPathView: View {
     var body: some View {
         NavigationStack {
             Form {
-                Section(header: Text(.localized("Enter Path"))) {
+                Section(header: Text(.localized("Enter Path")).themedText(.header)) {
                     TextField(.localized("/var/mobile/..."), text: $path)
                         .autocorrectionDisabled()
                         .textInputAutocapitalization(.never)
@@ -23,7 +24,7 @@ struct GoToPathView: View {
                     .disabled(path.isEmpty)
                 }
             }
-            .scrollContentBackground(.hidden)
+            .globalTheme()
             .navigationTitle(.localized("Go To Path"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {

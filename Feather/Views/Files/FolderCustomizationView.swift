@@ -2,6 +2,7 @@ import SwiftUI
 import NimbleViews
 
 struct FolderCustomizationView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     @Environment(\.dismiss) var dismiss
     let folderURL: URL
     
@@ -20,8 +21,10 @@ struct FolderCustomizationView: View {
                 Section {
                     Text(folderURL.lastPathComponent)
                         .font(.headline)
+                        .themedText(.primary)
                 } header: {
                     Text(.localized("Folder Name"))
+                        .themedText(.header)
                 }
                 
                 Section {
@@ -35,9 +38,10 @@ struct FolderCustomizationView: View {
                     .padding(.vertical, 8)
                 } header: {
                     Text(.localized("Icon"))
+                        .themedText(.header)
                 }
             }
-            .scrollContentBackground(.hidden)
+            .globalTheme()
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
                     Button(.localized("Done")) {
@@ -65,8 +69,8 @@ struct FolderCustomizationView: View {
     
     private func iconButton(for icon: String) -> some View {
         let isSelected = selectedIcon == icon
-        let iconColor: Color = isSelected ? .accentColor : .secondary
-        let backgroundColor: Color = isSelected ? Color.accentColor.opacity(0.1) : Color.secondary.opacity(0.1)
+        let iconColor: Color = isSelected ? themeManager.accentColor : Color(hex: themeManager.resolvedColors.secondaryText)
+        let backgroundColor: Color = isSelected ? themeManager.accentColor.opacity(0.1) : Color(hex: themeManager.resolvedColors.secondaryText).opacity(0.1)
         
         return Button {
             selectedIcon = icon

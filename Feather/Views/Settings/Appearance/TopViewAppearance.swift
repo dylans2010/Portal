@@ -8,6 +8,7 @@ import NimbleViews
 /// Options include background color, text color, material style, version
 /// display, and visual effects like gradients and glass overlays.
 struct TopViewAppearance: View {
+    @EnvironmentObject var themeManager: ThemeManager
     @AppStorage("Feather.portalTopViewColor") private var portalTopViewColor: String = "#0077BE"
     @AppStorage("Feather.portalTopViewStyle") private var portalTopViewStyle: Int = 0
     @AppStorage("Feather.portalTopViewTextColor") private var portalTopViewTextColor: String = "#FFFFFF"
@@ -25,7 +26,7 @@ struct TopViewAppearance: View {
                 VStack(alignment: .leading, spacing: 8) {
                     Text("Preview")
                         .font(.system(size: 12, weight: .bold, design: .rounded))
-                        .foregroundStyle(.secondary)
+                        .themedText(.secondary)
                         .padding(.leading, 4)
 
                     ZStack {
@@ -49,7 +50,7 @@ struct TopViewAppearance: View {
                     Spacer()
                     Text("Default")
                         .font(.system(.subheadline, design: .rounded))
-                        .foregroundStyle(.secondary)
+                        .themedText(.secondary)
                 }
             } footer: {
                 Text("The Top View is always enabled to provide a consistent experience and show off Portal.")
@@ -162,6 +163,7 @@ struct TopViewAppearance: View {
                 Text("Add a frosted glass blur effect for a modern, translucent appearance.")
             }
         }
+        .globalTheme()
         .navigationTitle("Top View")
         .navigationBarTitleDisplayMode(.inline)
     }

@@ -2,6 +2,7 @@ import SwiftUI
 
 // MARK: - View
 struct FRExpirationPillView: View {
+    @EnvironmentObject var themeManager: ThemeManager
 	let title: String
 	let revoked: Bool
 	let expiration: Date.ExpirationInfo?
@@ -12,12 +13,12 @@ struct FRExpirationPillView: View {
 		: expiration?.formatted ?? title
 		
 		let textForeground = (expiration == nil)
-		? Color.accentColor
-		: .white
+		? themeManager.accentColor
+		: Color(hex: themeManager.resolvedColors.badgeText)
 		
 		let textBackground = revoked
-		? .red
-		: expiration?.color.opacity(0.85) ?? Color(uiColor: .quaternarySystemFill)
+		? Color.red
+		: expiration?.color.opacity(0.85) ?? Color(hex: themeManager.resolvedColors.badgeBackground)
 		
 		Text(textLabel)
 			.lineLimit(0)

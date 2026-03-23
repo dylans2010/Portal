@@ -19,6 +19,7 @@ struct StorageCategory: Identifiable {
 
 // MARK: - ManageStorageView
 struct ManageStorageView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     @State private var cleanupPeriod: CleanupPeriod = .thirtyDays
     @State private var isCalculating = false
     @State private var showStorageAnalyzer = false
@@ -86,7 +87,7 @@ struct ManageStorageView: View {
                 .padding(.horizontal, 16)
                 .padding(.vertical, 20)
             }
-            .background(Color(UIColor.systemGroupedBackground))
+            .globalTheme()
             .onAppear {
                 calculateStorageData()
                 withAnimation(.easeInOut(duration: 1.0).delay(0.3)) {
@@ -115,9 +116,10 @@ struct ManageStorageView: View {
                 VStack(alignment: .leading, spacing: 4) {
                     Text(.localized("Device Storage"))
                         .font(.title2.bold())
+                        .themedText(.primary)
                     Text(.localized("Manage Portal Storage"))
                         .font(.subheadline)
-                        .foregroundStyle(.secondary)
+                        .themedText(.secondary)
                 }
                 Spacer()
 
@@ -130,7 +132,7 @@ struct ManageStorageView: View {
                     } label: {
                         Image(systemName: "arrow.clockwise")
                             .font(.title3)
-                            .foregroundStyle(.blue)
+                            .foregroundStyle(themeManager.accentColor)
                     }
                 }
             }
@@ -164,9 +166,9 @@ struct ManageStorageView: View {
                 }
 
                 VStack(alignment: .leading, spacing: 12) {
-                    StorageStatRowCompact(label: .localized("Used"), value: formatBytes(usedSpace), color: .blue)
-                    StorageStatRowCompact(label: .localized("Available"), value: formatBytes(availableSpace), color: .green)
-                    StorageStatRowCompact(label: .localized("Total"), value: formatBytes(totalSpace), color: .gray)
+                    StorageStatRowCompact(label: .localized("Used"), value: formatBytes(usedSpace), color: themeManager.accentColor)
+                    StorageStatRowCompact(label: .localized("Available"), value: formatBytes(availableSpace), color: Color.green)
+                    StorageStatRowCompact(label: .localized("Total"), value: formatBytes(totalSpace), color: Color.gray)
                 }
             }
             .padding(.vertical, 8)
@@ -176,10 +178,11 @@ struct ManageStorageView: View {
                 HStack {
                     Text(.localized("App Storage"))
                         .font(.system(size: 14, weight: .bold))
+                        .themedText(.primary)
                     Spacer()
                     Text(formatBytes(totalFeatherStorage))
                         .font(.system(size: 14, weight: .bold))
-                        .foregroundStyle(.blue)
+                        .foregroundStyle(themeManager.accentColor)
                 }
 
                 GeometryReader { geometry in
@@ -208,7 +211,7 @@ struct ManageStorageView: View {
             }
         }
         .padding(18)
-        .background(Color(UIColor.secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 20, style: .continuous))
+        .themedCard()
     }
 
     // MARK: - Quick Actions Grid
@@ -226,6 +229,7 @@ struct ManageStorageView: View {
         VStack(alignment: .leading, spacing: 12) {
             Text(.localized("Storage Breakdown"))
                 .font(.system(size: 14, weight: .bold))
+                .themedText(.primary)
                 .padding(.horizontal, 4)
 
             VStack(spacing: 0) {
@@ -245,7 +249,7 @@ struct ManageStorageView: View {
                 }
             }
             .padding(12)
-            .background(Color(UIColor.secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 16))
+            .themedCard()
         }
     }
 
@@ -262,9 +266,10 @@ struct ManageStorageView: View {
                 VStack(alignment: .leading, spacing: 0) {
                     Text(.localized("Smart Cleanup"))
                         .font(.system(size: 16, weight: .bold))
+                        .themedText(.primary)
                     Text(.localized("Free up space automatically"))
                         .font(.system(size: 11))
-                        .foregroundStyle(.secondary)
+                        .themedText(.secondary)
                 }
                 Spacer()
             }
@@ -272,6 +277,7 @@ struct ManageStorageView: View {
             HStack {
                 Text(.localized("Cutoff Period"))
                     .font(.system(size: 13))
+                    .themedText(.primary)
                 Spacer()
                 Menu {
                     ForEach(CleanupPeriod.allCases, id: \.self) { period in
@@ -286,20 +292,20 @@ struct ManageStorageView: View {
                         Image(systemName: "chevron.down").font(.caption2)
                     }
                     .font(.system(size: 13))
-                    .foregroundStyle(.blue)
+                    .foregroundStyle(themeManager.accentColor)
                 }
             }
 
             HStack {
                 VStack(alignment: .leading, spacing: 1) {
-                    Text(.localized("Reclaimable")).font(.system(size: 10)).foregroundStyle(.secondary)
-                    Text(formatBytes(reclaimableSpace)).font(.system(size: 18, weight: .bold)).foregroundStyle(.orange)
+                    Text(.localized("Reclaimable")).font(.system(size: 10)).themedText(.secondary)
+                    Text(formatBytes(reclaimableSpace)).font(.system(size: 18, weight: .bold)).foregroundStyle(Color.orange)
                 }
                 Spacer()
                 Button(action: performCleanup) {
                     Text(.localized("Clean Now"))
                         .font(.system(size: 14, weight: .bold))
-                        .foregroundStyle(.white)
+                        .foregroundStyle(Color(hex: themeManager.resolvedColors.buttonText))
                         .padding(.horizontal, 16)
                         .padding(.vertical, 8)
                         .background(Color.orange, in: Capsule())
@@ -311,7 +317,7 @@ struct ManageStorageView: View {
             .background(Color.orange.opacity(0.08), in: RoundedRectangle(cornerRadius: 12))
         }
         .padding(16)
-        .background(Color(UIColor.secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 16))
+        .themedCard()
     }
 
     // MARK: - Advanced Tools Section
@@ -319,27 +325,28 @@ struct ManageStorageView: View {
         VStack(alignment: .leading, spacing: 12) {
             Text(.localized("Advanced Tools"))
                 .font(.system(size: 14, weight: .bold))
+                .themedText(.primary)
                 .padding(.horizontal, 4)
 
             VStack(spacing: 0) {
-                AdvancedToolButton(icon: "network", title: .localized("Network Cache"), color: .blue) {
+                AdvancedToolButton(icon: "network", title: .localized("Network Cache"), color: themeManager.accentColor) {
                     showResetAlert(title: .localized("Clear Network Cache"), message: formatBytes(Int64(URLCache.shared.currentDiskUsage)), action: clearNetworkCache)
                 }
                 Divider().padding(.leading, 36)
-                AdvancedToolButton(icon: "folder", title: .localized("Work Cache"), color: .purple) {
+                AdvancedToolButton(icon: "folder", title: .localized("Work Cache"), color: Color.purple) {
                     showResetAlert(title: .localized("Clear Work Cache"), action: clearWorkCache)
                 }
                 Divider().padding(.leading, 36)
-                AdvancedToolButton(icon: "doc.text", title: .localized("App Logs"), color: .green) {
+                AdvancedToolButton(icon: "doc.text", title: .localized("App Logs"), color: Color.green) {
                     showResetAlert(title: .localized("Clear Logs"), message: formatBytes(logsSize), action: clearLogs)
                 }
                 Divider().padding(.leading, 36)
-                AdvancedToolButton(icon: "square.stack", title: .localized("Source Cache"), color: .cyan) {
+                AdvancedToolButton(icon: "square.stack", title: .localized("Source Cache"), color: Color.cyan) {
                     showResetAlert(title: .localized("Reset Source Cache"), action: resetSourceCache)
                 }
             }
             .padding(.horizontal, 12)
-            .background(Color(UIColor.secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 16))
+            .themedCard()
         }
     }
 
@@ -368,8 +375,8 @@ struct ManageStorageView: View {
                     showResetAlert(title: .localized("Reset All Sources"), action: resetSources)
                 }
             }
-            .background(Color(UIColor.secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 16))
-            .overlay(RoundedRectangle(cornerRadius: 16).stroke(Color.red.opacity(0.1), lineWidth: 1))
+            .themedCard()
+            .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.red.opacity(0.1), lineWidth: 1))
         }
         .padding(.bottom, 20)
     }
@@ -1215,6 +1222,7 @@ enum CleanupPeriod: CaseIterable {
 
 // MARK: - Storage Stat Row Compact
 struct StorageStatRowCompact: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let label: String
     let value: String
     let color: Color
@@ -1228,9 +1236,10 @@ struct StorageStatRowCompact: View {
             VStack(alignment: .leading, spacing: 1) {
                 Text(label)
                     .font(.system(size: 10))
-                    .foregroundStyle(.secondary)
+                    .themedText(.secondary)
                 Text(value)
                     .font(.system(size: 13, weight: .bold))
+                    .themedText(.primary)
             }
         }
     }
@@ -1238,6 +1247,7 @@ struct StorageStatRowCompact: View {
 
 // MARK: - Storage Quick Action Button
 struct StorageQuickActionButton: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let icon: String
     let title: LocalizedStringKey
     let color: Color
@@ -1251,11 +1261,11 @@ struct StorageQuickActionButton: View {
                     .foregroundStyle(color)
                 Text(title)
                     .font(.system(size: 10, weight: .bold))
-                    .foregroundStyle(.primary)
+                    .themedText(.primary)
             }
             .frame(maxWidth: .infinity)
             .padding(.vertical, 12)
-            .background(Color(UIColor.secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 12))
+            .themedCard()
         }
         .buttonStyle(.plain)
     }
@@ -1263,6 +1273,7 @@ struct StorageQuickActionButton: View {
 
 // MARK: - Storage Category Row
 struct StorageCategoryRow: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let category: StorageCategory
     let onClear: () -> Void
 
@@ -1276,9 +1287,10 @@ struct StorageCategoryRow: View {
             VStack(alignment: .leading, spacing: 1) {
                 Text(category.name)
                     .font(.system(size: 14, weight: .medium))
+                    .themedText(.primary)
                 Text(category.formattedSize)
                     .font(.system(size: 11))
-                    .foregroundStyle(.secondary)
+                    .themedText(.secondary)
             }
 
             Spacer()
@@ -1300,6 +1312,7 @@ struct StorageCategoryRow: View {
 
 // MARK: - Advanced Tool Button
 struct AdvancedToolButton: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let icon: String
     let title: LocalizedStringKey
     let color: Color
@@ -1314,6 +1327,7 @@ struct AdvancedToolButton: View {
                     .frame(width: 24)
                 Text(title)
                     .font(.system(size: 14))
+                    .themedText(.primary)
                 Spacer()
                 Image(systemName: "chevron.right")
                     .font(.system(size: 10, weight: .bold))
@@ -1356,6 +1370,7 @@ struct DangerZoneButtonCompact: View {
 
 // MARK: - Storage Analyzer View
 struct StorageDeepAnalyzerView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     @Environment(\.dismiss) private var dismiss
     @State private var isAnalyzing = true
     @State private var analysisResults: [StorageAnalysisItem] = []
@@ -1393,9 +1408,10 @@ struct StorageDeepAnalyzerView: View {
                                 VStack(alignment: .leading, spacing: 2) {
                                     Text(item.name)
                                         .font(.subheadline)
+                                        .themedText(.primary)
                                     Text(item.path)
                                         .font(.caption)
-                                        .foregroundStyle(.secondary)
+                                        .themedText(.secondary)
                                         .lineLimit(1)
                                 }
 
@@ -1403,10 +1419,11 @@ struct StorageDeepAnalyzerView: View {
 
                                 Text(ByteCountFormatter.string(fromByteCount: item.size, countStyle: .file))
                                     .font(.caption.bold())
-                                    .foregroundStyle(.secondary)
+                                    .themedText(.secondary)
                             }
                         }
                     }
+                    .globalTheme()
                 }
             }
             .navigationTitle(.localized("Storage Analyzer"))
@@ -1462,6 +1479,7 @@ struct StorageDeepAnalyzerView: View {
 
 // MARK: - Duplicate Finder View
 struct StorageDuplicateFinderView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     @Environment(\.dismiss) private var dismiss
     @State private var isScanning = true
     @State private var duplicates: [[URL]] = []
@@ -1480,12 +1498,13 @@ struct StorageDuplicateFinderView: View {
                     VStack(spacing: 16) {
                         Image(systemName: "checkmark.circle.fill")
                             .font(.system(size: 60))
-                            .foregroundStyle(.green)
+                            .foregroundStyle(Color.green)
                         Text(.localized("No Duplicates Found"))
                             .font(.title2.bold())
+                            .themedText(.primary)
                         Text(.localized("Your storage is clean!"))
                             .font(.subheadline)
-                            .foregroundStyle(.secondary)
+                            .themedText(.secondary)
                     }
                 } else {
                     List {
@@ -1496,9 +1515,10 @@ struct StorageDuplicateFinderView: View {
                                         VStack(alignment: .leading) {
                                             Text(url.lastPathComponent)
                                                 .font(.subheadline)
+                                                .themedText(.primary)
                                             Text(url.deletingLastPathComponent().lastPathComponent)
                                                 .font(.caption)
-                                                .foregroundStyle(.secondary)
+                                                .themedText(.secondary)
                                         }
                                         Spacer()
                                     }
@@ -1506,6 +1526,7 @@ struct StorageDuplicateFinderView: View {
                             }
                         }
                     }
+                    .globalTheme()
                 }
             }
             .navigationTitle(.localized("Duplicate Finder"))
@@ -1548,6 +1569,7 @@ struct StorageDuplicateFinderView: View {
 
 // MARK: - Large Files Finder View
 struct StorageLargeFilesFinderView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     @Environment(\.dismiss) private var dismiss
     @State private var isScanning = true
     @State private var largeFiles: [(url: URL, size: Int64)] = []
@@ -1566,12 +1588,13 @@ struct StorageLargeFilesFinderView: View {
                     VStack(spacing: 16) {
                         Image(systemName: "checkmark.circle.fill")
                             .font(.system(size: 60))
-                            .foregroundStyle(.green)
+                            .foregroundStyle(Color.green)
                         Text(.localized("No Large Files Found"))
                             .font(.title2.bold())
+                            .themedText(.primary)
                         Text(.localized("No Files Over 50MB"))
                             .font(.subheadline)
-                            .foregroundStyle(.secondary)
+                            .themedText(.secondary)
                     }
                 } else {
                     List {
@@ -1580,16 +1603,17 @@ struct StorageLargeFilesFinderView: View {
                                 VStack(alignment: .leading, spacing: 4) {
                                     Text(file.url.lastPathComponent)
                                         .font(.subheadline)
+                                        .themedText(.primary)
                                     Text(file.url.deletingLastPathComponent().lastPathComponent)
                                         .font(.caption)
-                                        .foregroundStyle(.secondary)
+                                        .themedText(.secondary)
                                 }
 
                                 Spacer()
 
                                 Text(ByteCountFormatter.string(fromByteCount: file.size, countStyle: .file))
                                     .font(.caption.bold())
-                                    .foregroundStyle(.pink)
+                                    .foregroundStyle(Color.pink)
                             }
                         }
                         .onDelete { indexSet in
@@ -1599,6 +1623,7 @@ struct StorageLargeFilesFinderView: View {
                             largeFiles.remove(atOffsets: indexSet)
                         }
                     }
+                    .globalTheme()
                 }
             }
             .navigationTitle(.localized("Large Files"))

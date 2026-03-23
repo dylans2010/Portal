@@ -12,6 +12,7 @@ import NimbleViews
 /// - Elapsed time and a running estimated time remaining
 /// - The remote device name being paired with
 struct LoadingPairView: View {
+    @EnvironmentObject var themeManager: ThemeManager
 
     // MARK: - Input
 
@@ -34,17 +35,6 @@ struct LoadingPairView: View {
 
     var body: some View {
         ZStack {
-            // Background
-            LinearGradient(
-                colors: [
-                    Color(hue: 0.62, saturation: 0.18, brightness: 0.09),
-                    Color(hue: 0.65, saturation: 0.14, brightness: 0.06)
-                ],
-                startPoint: .top,
-                endPoint: .bottom
-            )
-            .ignoresSafeArea()
-
             VStack(spacing: 36) {
                 Spacer()
 
@@ -55,13 +45,13 @@ struct LoadingPairView: View {
                 VStack(spacing: 16) {
                     Text(phaseTitle)
                         .font(.system(.title3, design: .rounded, weight: .semibold))
-                        .foregroundStyle(.white)
+                        .themedText(.primary)
                         .multilineTextAlignment(.center)
                         .animation(.easeInOut(duration: 0.3), value: phaseTitle)
 
                     Text(phaseDetail)
                         .font(.subheadline)
-                        .foregroundStyle(.white.opacity(0.65))
+                        .themedText(.secondary)
                         .multilineTextAlignment(.center)
                         .padding(.horizontal, 32)
                         .animation(.easeInOut(duration: 0.3), value: phaseDetail)
@@ -77,6 +67,7 @@ struct LoadingPairView: View {
                 Spacer()
             }
             .padding(.horizontal, 24)
+            .globalTheme()
         }
         .onAppear {
             startAnimations()
@@ -98,7 +89,7 @@ struct LoadingPairView: View {
                 .fill(
                     RadialGradient(
                         colors: [
-                            Color(hue: 0.58, saturation: 0.7, brightness: 0.6).opacity(0.25),
+                            themeManager.accentColor.opacity(0.25),
                             .clear
                         ],
                         center: .center,
@@ -118,9 +109,9 @@ struct LoadingPairView: View {
                 .stroke(
                     AngularGradient(
                         colors: [
-                            Color(hue: 0.55, saturation: 0.8, brightness: 0.9),
-                            Color(hue: 0.42, saturation: 0.7, brightness: 0.85),
-                            Color(hue: 0.55, saturation: 0.8, brightness: 0.9).opacity(0)
+                            themeManager.accentColor,
+                            themeManager.accentColor.opacity(0.7),
+                            themeManager.accentColor.opacity(0)
                         ],
                         center: .center
                     ),
@@ -139,14 +130,14 @@ struct LoadingPairView: View {
                 .foregroundStyle(
                     LinearGradient(
                         colors: [
-                            Color(hue: 0.55, saturation: 0.8, brightness: 0.95),
-                            Color(hue: 0.42, saturation: 0.7, brightness: 0.9)
+                            themeManager.accentColor,
+                            themeManager.accentColor.opacity(0.8)
                         ],
                         startPoint: .top,
                         endPoint: .bottom
                     )
                 )
-                .shadow(color: Color(hue: 0.55, saturation: 0.8, brightness: 0.9).opacity(0.6), radius: 14)
+                .shadow(color: themeManager.accentColor.opacity(0.6), radius: 14)
         }
         .frame(width: 160, height: 160)
     }
@@ -158,14 +149,14 @@ struct LoadingPairView: View {
             GeometryReader { geo in
                 ZStack(alignment: .leading) {
                     RoundedRectangle(cornerRadius: 4)
-                        .fill(Color.white.opacity(0.1))
+                        .fill(themeManager.accentColor.opacity(0.1))
                         .frame(height: 6)
                     RoundedRectangle(cornerRadius: 4)
                         .fill(
                             LinearGradient(
                                 colors: [
-                                    Color(hue: 0.55, saturation: 0.8, brightness: 0.9),
-                                    Color(hue: 0.42, saturation: 0.7, brightness: 0.85)
+                                    themeManager.accentColor,
+                                    themeManager.accentColor.opacity(0.7)
                                 ],
                                 startPoint: .leading,
                                 endPoint: .trailing
@@ -179,7 +170,7 @@ struct LoadingPairView: View {
 
             Text("\(Int(value * 100))%")
                 .font(.caption.monospacedDigit())
-                .foregroundStyle(.white.opacity(0.6))
+                .themedText(.secondary)
         }
     }
 
@@ -222,8 +213,7 @@ struct LoadingPairView: View {
             )
         }
         .padding(16)
-        .background(.white.opacity(0.06))
-        .clipShape(RoundedRectangle(cornerRadius: 16))
+        .themedCard()
         .padding(.horizontal, 8)
     }
 
@@ -231,15 +221,15 @@ struct LoadingPairView: View {
         HStack(spacing: 12) {
             Image(systemName: icon)
                 .font(.footnote)
-                .foregroundStyle(.white.opacity(0.5))
+                .themedText(.secondary)
                 .frame(width: 20)
             Text(label)
                 .font(.caption)
-                .foregroundStyle(.white.opacity(0.5))
+                .themedText(.secondary)
             Spacer()
             Text(value)
                 .font(.caption.monospacedDigit())
-                .foregroundStyle(.white.opacity(0.85))
+                .themedText(.primary)
         }
     }
 

@@ -47,11 +47,11 @@ struct OfflineView: View {
                 Text("No Internet Connection")
                     .font(.title2)
                     .fontWeight(.bold)
-                    .foregroundStyle(.primary)
+                    .themedText(.primary)
                 
                 Text("You're not connected to the internet.\nPlease check your Wi-Fi or cellular data connection to use Portal.")
                     .font(.body)
-                    .foregroundStyle(.secondary)
+                    .themedText(.secondary)
                     .multilineTextAlignment(.center)
                     .padding(.horizontal, 40)
             }
@@ -61,7 +61,7 @@ struct OfflineView: View {
                 HStack(spacing: 12) {
                     Image(systemName: networkMonitor.connectionType.icon)
                         .font(.title3)
-                        .foregroundStyle(.secondary)
+                        .themedText(.secondary)
                     
                     VStack(alignment: .leading, spacing: 4) {
                         Text("Connection Status")
@@ -70,7 +70,7 @@ struct OfflineView: View {
                         Text(networkMonitor.connectionType.displayName)
                             .font(.subheadline)
                             .fontWeight(.semibold)
-                            .foregroundStyle(.secondary)
+                            .themedText(.secondary)
                     }
                     
                     Spacer()
@@ -92,7 +92,7 @@ struct OfflineView: View {
                 Text("Tips:")
                     .font(.subheadline)
                     .fontWeight(.semibold)
-                    .foregroundStyle(.primary)
+                    .themedText(.primary)
                 
                 TroubleshootingTip(icon: "wifi", text: "Check Your Wi-Fi Connection")
                 TroubleshootingTip(icon: "antenna.radiowaves.left.and.right", text: "Enable Cellular Data")
@@ -135,12 +135,12 @@ struct TroubleshootingTip: View {
         HStack(spacing: 12) {
             Image(systemName: icon)
                 .font(.body)
-                .foregroundStyle(.blue)
+                .themedAccent()
                 .frame(width: 24)
             
             Text(text)
                 .font(.subheadline)
-                .foregroundStyle(.secondary)
+                .themedText(.secondary)
             
             Spacer()
         }

@@ -3,6 +3,7 @@
 import SwiftUI
 
 struct CheckForUpdatesView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     @AppStorage("Feather.showHeaderViews") private var showHeaderViews = true
     @StateObject private var updateManager = UpdateManager()
     @State private var selectedReleaseForNotes: GitHubRelease? = nil
@@ -66,6 +67,7 @@ struct CheckForUpdatesView: View {
                 }
             )
         }
+        .globalTheme()
         .navigationTitle("Updates")
         .navigationBarTitleDisplayMode(.inline)
         .onAppear {
@@ -98,7 +100,7 @@ struct CheckForUpdatesView: View {
                 Circle()
                     .fill(
                         AngularGradient(
-                            colors: [Color.accentColor.opacity(0.5), Color.purple.opacity(0.5), Color.blue.opacity(0.5), Color.accentColor.opacity(0.5)],
+                            colors: [themeManager.accentColor.opacity(0.5), Color.purple.opacity(0.5), Color.blue.opacity(0.5), themeManager.accentColor.opacity(0.5)],
                             center: .center
                         )
                     )
@@ -123,7 +125,7 @@ struct CheckForUpdatesView: View {
                     RoundedRectangle(cornerRadius: 24, style: .continuous)
                         .fill(
                             LinearGradient(
-                                colors: [Color.accentColor, Color.accentColor.opacity(0.7)],
+                                colors: [themeManager.accentColor, themeManager.accentColor.opacity(0.7)],
                                 startPoint: .topLeading,
                                 endPoint: .bottomTrailing
                             )
@@ -134,7 +136,7 @@ struct CheckForUpdatesView: View {
                                 .font(.system(size: 44))
                                 .foregroundStyle(.white)
                         )
-                        .shadow(color: .accentColor.opacity(0.3), radius: 15, x: 0, y: 8)
+                        .shadow(color: themeManager.accentColor.opacity(0.3), radius: 15, x: 0, y: 8)
                 }
             }
             .padding(.top, 30)
@@ -143,17 +145,17 @@ struct CheckForUpdatesView: View {
             VStack(spacing: 12) {
                 Text("Portal")
                     .font(.system(size: 32, weight: .black, design: .rounded))
-                    .foregroundStyle(.primary)
+                    .themedText(.primary)
                 
                 HStack(spacing: 8) {
                     HStack(spacing: 4) {
                         Text("v\(currentVersion)")
                             .font(.system(size: 13, weight: .bold, design: .monospaced))
                     }
-                    .foregroundStyle(.secondary)
+                    .themedText(.secondary)
                     .padding(.horizontal, 10)
                     .padding(.vertical, 4)
-                    .background(Capsule().fill(Color.primary.opacity(0.05)))
+                    .background(Capsule().fill(Color(hex: themeManager.resolvedColors.cardBackground)))
                     
                     HStack(spacing: 4) {
                         Image(systemName: "hammer.fill")
@@ -180,7 +182,7 @@ struct CheckForUpdatesView: View {
                     .padding(.vertical, 4)
                     .background(
                         Capsule()
-                            .fill(LinearGradient(colors: [Color.accentColor, Color.accentColor.opacity(0.8)], startPoint: .leading, endPoint: .trailing))
+                            .fill(LinearGradient(colors: [themeManager.accentColor, themeManager.accentColor.opacity(0.8)], startPoint: .leading, endPoint: .trailing))
                     )
                 }
             }
@@ -210,10 +212,10 @@ struct CheckForUpdatesView: View {
                 .frame(maxWidth: horizontalSizeClass == .regular ? 320 : .infinity)
                 .background(
                     RoundedRectangle(cornerRadius: 18, style: .continuous)
-                        .fill(updateManager.isCheckingUpdates ? Color.gray : Color.accentColor)
+                        .fill(updateManager.isCheckingUpdates ? Color.gray : Color(hex: themeManager.resolvedColors.buttonBackground))
                 )
-                .foregroundStyle(.white)
-                .shadow(color: (updateManager.isCheckingUpdates ? Color.clear : Color.accentColor.opacity(0.3)), radius: 10, x: 0, y: 5)
+                .foregroundStyle(Color(hex: themeManager.resolvedColors.buttonText))
+                .shadow(color: (updateManager.isCheckingUpdates ? Color.clear : themeManager.accentColor.opacity(0.3)), radius: 10, x: 0, y: 5)
             }
             .disabled(updateManager.isCheckingUpdates)
         }
@@ -237,12 +239,12 @@ struct CheckForUpdatesView: View {
 
                                 if updateManager.metalState == .idle || updateManager.metalState == .success {
                                     Circle()
-                                        .fill(Color.accentColor.opacity(0.15))
+                                        .fill(themeManager.accentColor.opacity(0.15))
                                         .frame(width: 60, height: 60)
 
                                     Image(systemName: "gearshape.badge.plus")
                                         .font(.system(size: 28))
-                                        .foregroundStyle(Color.accentColor)
+                                        .foregroundStyle(themeManager.accentColor)
                                         .symbolRenderingMode(.hierarchical)
                                 }
                             }
@@ -250,10 +252,11 @@ struct CheckForUpdatesView: View {
                             VStack(alignment: .leading, spacing: 4) {
                                 Text("Update Available!")
                                     .font(.system(.headline, design: .rounded).bold())
+                                    .themedText(.primary)
 
                                 Text("Version \(release.tagName.replacingOccurrences(of: "v", with: ""))")
                                     .font(.system(.subheadline, design: .monospaced))
-                                    .foregroundStyle(.secondary)
+                                    .themedText(.secondary)
                             }
 
                             Spacer()
@@ -322,7 +325,7 @@ struct CheckForUpdatesView: View {
                                         RoundedRectangle(cornerRadius: 18, style: .continuous)
                                             .fill(
                                                 LinearGradient(
-                                                    colors: [Color.accentColor, Color.accentColor.opacity(0.8)],
+                                                    colors: [Color(hex: themeManager.resolvedColors.buttonBackground), Color(hex: themeManager.resolvedColors.buttonBackground).opacity(0.8)],
                                                     startPoint: .leading,
                                                     endPoint: .trailing
                                                 )
@@ -348,8 +351,8 @@ struct CheckForUpdatesView: View {
                                         }
                                     }
                                 )
-                                .foregroundStyle(.white)
-                                .shadow(color: Color.accentColor.opacity(0.3), radius: 10, x: 0, y: 5)
+                                .foregroundStyle(Color(hex: themeManager.resolvedColors.buttonText))
+                                .shadow(color: themeManager.accentColor.opacity(0.3), radius: 10, x: 0, y: 5)
                             }
                         }
                     }
@@ -362,12 +365,12 @@ struct CheckForUpdatesView: View {
 
                             if updateManager.metalState == .idle {
                                 RoundedRectangle(cornerRadius: 18, style: .continuous)
-                                    .fill(Color.accentColor.opacity(0.1))
+                                    .fill(themeManager.accentColor.opacity(0.1))
                                     .frame(width: 64, height: 64)
 
                                 Image(systemName: "checkmark.circle.fill")
                                     .font(.system(size: 30))
-                                    .foregroundStyle(Color.accentColor)
+                                    .foregroundStyle(themeManager.accentColor)
                                     .symbolRenderingMode(.hierarchical)
                             }
                         }
@@ -375,10 +378,11 @@ struct CheckForUpdatesView: View {
                         VStack(spacing: 6) {
                             Text("No Updates Found")
                                 .font(.system(size: 18, weight: .bold, design: .rounded))
+                                .themedText(.primary)
 
                             Text("You're running the latest Portal version, keep looking for updates later.")
                                 .font(.system(size: 14, weight: .medium))
-                                .foregroundStyle(.secondary)
+                                .themedText(.secondary)
                                 .multilineTextAlignment(.center)
                         }
                     }
@@ -403,10 +407,11 @@ struct CheckForUpdatesView: View {
                         VStack(alignment: .leading, spacing: 4) {
                             Text("Searching For Updates")
                                 .font(.system(.headline, design: .rounded))
+                                .themedText(.primary)
 
                             Text("Portal is checking for any avaiilable updates...")
                                 .font(.subheadline)
-                                .foregroundStyle(.secondary)
+                                .themedText(.secondary)
                         }
                         
                         Spacer()
@@ -417,23 +422,7 @@ struct CheckForUpdatesView: View {
             }
         }
         .padding(20)
-        .background {
-            ZStack {
-                RoundedRectangle(cornerRadius: 28, style: .continuous)
-                    .fill(.ultraThinMaterial)
-
-                RoundedRectangle(cornerRadius: 28, style: .continuous)
-                    .stroke(
-                        LinearGradient(
-                            colors: [.white.opacity(0.5), .clear, .black.opacity(0.05)],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        ),
-                        lineWidth: 1
-                    )
-            }
-            .shadow(color: .black.opacity(0.04), radius: 15, x: 0, y: 8)
-        }
+        .themedCard()
     }
 
     private func isAvailableIOS26() -> Bool {
@@ -450,21 +439,21 @@ struct CheckForUpdatesView: View {
                 Spacer()
                 Label("What's New", systemImage: "sparkles")
                     .font(.system(.title3, design: .rounded).bold())
-                    .foregroundStyle(.primary)
+                    .themedText(.primary)
                 Spacer()
             }
 
             if let date = release.publishedAt {
                 Text(date.formatted(date: .abbreviated, time: .omitted))
                     .font(.system(size: 12, weight: .bold))
-                    .foregroundStyle(.secondary)
+                    .themedText(.secondary)
             }
             
             if let body = release.body, !body.isEmpty {
                 VStack(alignment: .center, spacing: 12) {
                     Text(AttributedString(processMarkdownForPreview(body)))
                         .font(.system(.subheadline, design: .rounded))
-                        .foregroundStyle(.secondary)
+                        .themedText(.secondary)
                         .lineLimit(6)
                         .multilineTextAlignment(.center)
                     
@@ -478,24 +467,16 @@ struct CheckForUpdatesView: View {
                             Image(systemName: "chevron.right")
                                 .font(.system(size: 12, weight: .bold))
                         }
-                        .foregroundStyle(Color.accentColor)
+                        .themedAccent()
                     }
                 }
                 .padding(16)
-                .background(Color.primary.opacity(0.03))
+                .background(Color(hex: themeManager.resolvedColors.cardBackground))
                 .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
             }
         }
         .padding(20)
-        .background(
-            RoundedRectangle(cornerRadius: 28, style: .continuous)
-                .fill(.ultraThinMaterial)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 28, style: .continuous)
-                        .stroke(Color.primary.opacity(0.06), lineWidth: 1)
-                )
-                .shadow(color: .black.opacity(0.04), radius: 15, x: 0, y: 8)
-        )
+        .themedCard()
     }
     
     // MARK: - Previous Releases Section
@@ -504,6 +485,7 @@ struct CheckForUpdatesView: View {
             HStack {
                 Text("Previous Releases")
                     .font(.system(size: 18, weight: .bold, design: .rounded))
+                    .themedText(.header)
                 Spacer()
                 viewAllReleasesButton
             }
@@ -527,15 +509,7 @@ struct CheckForUpdatesView: View {
                     }
                 }
             }
-            .background(
-                RoundedRectangle(cornerRadius: 24, style: .continuous)
-                    .fill(.ultraThinMaterial)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 24, style: .continuous)
-                            .stroke(Color.primary.opacity(0.06), lineWidth: 1)
-                    )
-            )
-            .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
+            .themedCard()
         }
     }
 
@@ -546,18 +520,18 @@ struct CheckForUpdatesView: View {
             HStack(spacing: 14) {
                 ZStack {
                     RoundedRectangle(cornerRadius: 10, style: .continuous)
-                        .fill(Color.accentColor.opacity(0.1))
+                        .fill(themeManager.accentColor.opacity(0.1))
                         .frame(width: 36, height: 36)
                     Image(systemName: "tag.fill")
                         .font(.system(size: 14, weight: .semibold))
-                        .foregroundStyle(Color.accentColor)
+                        .foregroundStyle(themeManager.accentColor)
                 }
 
                 VStack(alignment: .leading, spacing: 4) {
                     HStack(spacing: 8) {
                         Text(release.tagName)
                             .font(.system(size: 15, weight: .bold, design: .monospaced))
-                            .foregroundColor(.primary)
+                            .themedText(.primary)
 
                         if release.prerelease {
                             betaBadge
@@ -567,7 +541,7 @@ struct CheckForUpdatesView: View {
                     if let date = release.publishedAt {
                         Text(date.formatted(date: .abbreviated, time: .omitted))
                             .font(.system(size: 12, weight: .medium))
-                            .foregroundStyle(.secondary)
+                            .themedText(.secondary)
                     }
                 }
 
@@ -608,14 +582,14 @@ struct CheckForUpdatesView: View {
             } label: {
                 HStack {
                     Image(systemName: "list.bullet.rectangle")
-                        .foregroundStyle(Color.accentColor)
+                        .foregroundStyle(themeManager.accentColor)
                     Text("View All Releases")
                         .font(.subheadline.weight(.medium))
-                        .foregroundStyle(Color.accentColor)
+                        .foregroundStyle(themeManager.accentColor)
                     Spacer()
                     Image(systemName: "arrow.up.right")
                         .font(.caption)
-                        .foregroundStyle(.secondary)
+                        .themedText(.secondary)
                 }
                 .padding(.vertical, 14)
                 .padding(.horizontal, 16)
@@ -637,44 +611,29 @@ struct CheckForUpdatesView: View {
         HStack(spacing: 16) {
             ZStack {
                 Circle()
-                    .fill(Color.red.opacity(0.12))
+                    .fill(Color(hex: themeManager.resolvedColors.destructive).opacity(0.12))
                     .frame(width: 56, height: 56)
 
                 Image(systemName: "gearshape.badge.xmark")
                     .font(.system(size: 26))
-                    .foregroundStyle(.red)
+                    .foregroundStyle(Color(hex: themeManager.resolvedColors.destructive))
                     .symbolRenderingMode(.hierarchical)
             }
             
             VStack(alignment: .leading, spacing: 4) {
                 Text("Failed To Check")
                     .font(.system(.headline, design: .rounded).bold())
+                    .themedText(.primary)
 
                 Text("Portal has failed to check for updates, try again later.")
                     .font(.system(.subheadline, design: .rounded))
-                    .foregroundStyle(.secondary)
+                    .themedText(.secondary)
             }
             
             Spacer()
         }
         .padding(20)
-        .background {
-            ZStack {
-                RoundedRectangle(cornerRadius: 28, style: .continuous)
-                    .fill(.ultraThinMaterial)
-
-                RoundedRectangle(cornerRadius: 28, style: .continuous)
-                    .stroke(
-                        LinearGradient(
-                            colors: [.red.opacity(0.3), .clear],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        ),
-                        lineWidth: 1
-                    )
-            }
-        }
-        .shadow(color: .black.opacity(0.04), radius: 15, x: 0, y: 8)
+        .themedCard()
     }
 }
 
@@ -702,6 +661,7 @@ struct CircularProgressView: View {
 
 // MARK: - Looking For Releases Animation
 struct LookingForReleasesView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     @State private var isAnimating = false
 
     var body: some View {
@@ -709,7 +669,7 @@ struct LookingForReleasesView: View {
             HStack(spacing: 8) {
                 ForEach(0..<3) { index in
                     Circle()
-                        .fill(Color.accentColor)
+                        .fill(themeManager.accentColor)
                         .frame(width: 8, height: 8)
                         .scaleEffect(isAnimating ? 1.0 : 0.5)
                         .opacity(isAnimating ? 1.0 : 0.3)
@@ -740,6 +700,7 @@ struct LookingForReleasesView: View {
 
 // MARK: - Modern Progress Bar
 struct ModernProgressBar: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let progress: Double?
     @State private var indeterminateOffset: CGFloat = -1
 
@@ -748,13 +709,13 @@ struct ModernProgressBar: View {
             ZStack(alignment: .leading) {
                 // Track
                 Capsule()
-                    .fill(Color.primary.opacity(0.05))
+                    .fill(Color(hex: themeManager.resolvedColors.cardBackground))
                     .frame(height: 6)
 
                 if let progress = progress {
                     // Determinate
                     Capsule()
-                        .fill(Color.accentColor)
+                        .fill(themeManager.accentColor)
                         .frame(width: geo.size.width * CGFloat(min(max(progress, 0), 1)), height: 6)
                         .animation(.spring(response: 0.5, dampingFraction: 0.8), value: progress)
                 } else {
@@ -762,7 +723,7 @@ struct ModernProgressBar: View {
                     Capsule()
                         .fill(
                             LinearGradient(
-                                colors: [.clear, Color.accentColor, .clear],
+                                colors: [.clear, themeManager.accentColor, .clear],
                                 startPoint: .leading,
                                 endPoint: .trailing
                             )
@@ -830,6 +791,7 @@ struct LoadingDotsView: View {
 
 // MARK: - Full Release Notes View
 struct FullReleaseNotesView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let release: GitHubRelease
     @Environment(\.dismiss) private var dismiss
     
@@ -840,10 +802,11 @@ struct FullReleaseNotesView: View {
                 VStack(alignment: .leading, spacing: 2) {
                     Text("Release Notes")
                         .font(.system(size: 22, weight: .black, design: .rounded))
+                        .themedText(.primary)
 
                     Text(release.tagName)
                         .font(.system(size: 13, weight: .bold, design: .monospaced))
-                        .foregroundStyle(.secondary)
+                        .themedText(.secondary)
                 }
 
                 Spacer()
@@ -888,12 +851,13 @@ struct FullReleaseNotesView: View {
                             if let date = release.publishedAt {
                                 Text(date.formatted(date: .abbreviated, time: .omitted))
                                     .font(.system(size: 12, weight: .bold))
-                                    .foregroundStyle(.secondary)
+                                    .themedText(.secondary)
                             }
                         }
                         
                         Text(release.name)
                             .font(.system(size: 28, weight: .black, design: .rounded))
+                            .themedText(.primary)
                         
                     }
                     
@@ -916,18 +880,20 @@ struct FullReleaseNotesView: View {
                         VStack(alignment: .leading, spacing: 12) {
                             Text("Downloads")
                                 .font(.headline)
+                                .themedText(.header)
                             
                             ForEach(release.assets) { asset in
                                 HStack {
                                     Image(systemName: "doc.zipper")
-                                        .foregroundStyle(Color.accentColor)
+                                        .foregroundStyle(themeManager.accentColor)
                                     
                                     VStack(alignment: .leading, spacing: 2) {
                                         Text(asset.name)
                                             .font(.subheadline.weight(.medium))
+                                            .themedText(.primary)
                                         Text(formatFileSize(asset.size))
                                             .font(.caption)
-                                            .foregroundStyle(.secondary)
+                                            .themedText(.secondary)
                                     }
                                     
                                     Spacer()
@@ -939,7 +905,7 @@ struct FullReleaseNotesView: View {
                                     } label: {
                                         Image(systemName: "arrow.down.circle.fill")
                                             .font(.title2)
-                                            .foregroundStyle(Color.accentColor)
+                                            .foregroundStyle(themeManager.accentColor)
                                     }
                                 }
                                 .padding(12)
@@ -1338,6 +1304,7 @@ class DownloadDelegate: NSObject, URLSessionDownloadDelegate {
 
 // MARK: - Update Finished View
 struct UpdateFinishedView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let ipaURL: URL
     let fileName: String
     let onDismiss: () -> Void
@@ -1383,6 +1350,7 @@ struct UpdateFinishedView: View {
             HStack {
                 Text("Portal Update")
                     .font(.system(size: 20, weight: .bold, design: .rounded))
+                    .themedText(.primary)
 
                 Spacer()
 
@@ -1456,10 +1424,11 @@ struct UpdateFinishedView: View {
             VStack(alignment: .leading, spacing: 2) {
                 Text("Download Complete!")
                     .font(.headline)
+                    .themedText(.primary)
                 
                 Text(fileName)
                     .font(.subheadline)
-                    .foregroundStyle(.secondary)
+                    .themedText(.secondary)
                     .lineLimit(1)
             }
             
@@ -1492,7 +1461,7 @@ struct UpdateFinishedView: View {
                 if let fileSize = getFileSize() {
                     Text(fileSize)
                         .font(.subheadline)
-                        .foregroundStyle(.primary)
+                        .themedText(.primary)
                 }
                 
                 Text("Ready To Sign!")
@@ -1535,9 +1504,9 @@ struct UpdateFinishedView: View {
                 .padding(.vertical, 14)
                 .background(
                     RoundedRectangle(cornerRadius: 12, style: .continuous)
-                        .fill(addedToLibrary ? Color.green : Color.accentColor)
+                        .fill(addedToLibrary ? Color.green : Color(hex: themeManager.resolvedColors.buttonBackground))
                 )
-                .foregroundStyle(.white)
+                .foregroundStyle(Color(hex: themeManager.resolvedColors.buttonText))
             }
             .disabled(isAddingToLibrary || addedToLibrary)
             
@@ -1558,7 +1527,7 @@ struct UpdateFinishedView: View {
                     RoundedRectangle(cornerRadius: 12, style: .continuous)
                         .fill(Color.clear)
                 )
-                .foregroundStyle(.primary)
+                .themedText(.primary)
             }
         }
     }
@@ -1570,7 +1539,7 @@ struct UpdateFinishedView: View {
                 .foregroundStyle(.orange)
             Text(error)
                 .font(.subheadline)
-                .foregroundStyle(.secondary)
+                .themedText(.secondary)
         }
         .padding(14)
         .frame(maxWidth: .infinity)
@@ -1648,6 +1617,7 @@ struct UpdateFinishedView: View {
 
 // MARK: - Modern Markdown View
 struct ModernMarkdownView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let markdown: String
     @Environment(\.colorScheme) private var colorScheme
     
@@ -1761,25 +1731,25 @@ struct ModernMarkdownView: View {
         case .header1(let text):
             Text(processInlineMarkdown(text))
                 .font(.system(size: 24, weight: .black, design: .rounded))
-                .foregroundStyle(.primary)
+                .themedText(.primary)
                 .padding(.top, 8)
                 
         case .header2(let text):
             Text(processInlineMarkdown(text))
                 .font(.system(size: 20, weight: .bold, design: .rounded))
-                .foregroundStyle(.primary)
+                .themedText(.primary)
                 .padding(.top, 6)
                 
         case .header3(let text):
             Text(processInlineMarkdown(text))
                 .font(.system(size: 18, weight: .bold, design: .rounded))
-                .foregroundStyle(.primary)
+                .themedText(.primary)
                 .padding(.top, 4)
                 
         case .paragraph(let text):
             Text(processInlineMarkdown(text))
                 .font(.system(.body, design: .rounded))
-                .foregroundStyle(.primary)
+                .themedText(.primary)
                 .fixedSize(horizontal: false, vertical: true)
                 
         case .bulletList(let items):
@@ -1787,13 +1757,13 @@ struct ModernMarkdownView: View {
                 ForEach(Array(items.enumerated()), id: \.offset) { _, item in
                     HStack(alignment: .top, spacing: 10) {
                         Circle()
-                            .fill(Color.accentColor)
+                            .fill(themeManager.accentColor)
                             .frame(width: 6, height: 6)
                             .padding(.top, 8)
 
                         Text(processInlineMarkdown(item))
                             .font(.system(.body, design: .rounded))
-                            .foregroundStyle(.primary)
+                            .themedText(.primary)
                             .fixedSize(horizontal: false, vertical: true)
                     }
                 }
@@ -1881,7 +1851,7 @@ struct ModernMarkdownView: View {
                         attributedString.replaceSubrange(attrRange, with: AttributedString(content))
                         if let codeRange = attributedString.range(of: content) {
                             attributedString[codeRange].font = .body.monospaced()
-                            attributedString[codeRange].foregroundColor = .accentColor
+                            attributedString[codeRange].foregroundColor = themeManager.accentColor
                         }
                     }
                 }

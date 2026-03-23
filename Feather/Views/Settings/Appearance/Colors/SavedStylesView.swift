@@ -258,6 +258,7 @@ class SavedStylesManager: ObservableObject {
 
 // MARK: - Saved Styles View
 struct SavedStylesView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     @ObservedObject var viewModel: StatusBarViewModel
     @StateObject private var stylesManager = SavedStylesManager()
     @State private var showSaveDialog = false
@@ -288,6 +289,7 @@ struct SavedStylesView: View {
                                 VStack(alignment: .leading, spacing: 4) {
                                     Text(style.name)
                                         .font(.headline)
+                                        .themedText(.primary)
                                     
                                     HStack(spacing: 8) {
                                         if style.showCustomText {
@@ -319,10 +321,10 @@ struct SavedStylesView: View {
                                         Text("Apply")
                                             .font(.subheadline)
                                             .fontWeight(.semibold)
-                                            .foregroundStyle(.white)
+                                            .foregroundStyle(Color(hex: themeManager.resolvedColors.buttonText))
                                             .padding(.horizontal, 16)
                                             .padding(.vertical, 8)
-                                            .background(Color.accentColor)
+                                            .background(themeManager.accentColor)
                                             .cornerRadius(8)
                                     }
                                     .buttonStyle(.plain)
@@ -349,7 +351,7 @@ struct SavedStylesView: View {
                             
                             Text("No Saved Styles")
                                 .font(.headline)
-                                .foregroundStyle(.secondary)
+                                .themedText(.secondary)
                             
                             Text("Save your current status bar configuration to quickly switch between different styles.")
                                 .font(.subheadline)
@@ -362,7 +364,7 @@ struct SavedStylesView: View {
                     }
                 }
             }
-            .scrollContentBackground(.hidden)
+            .globalTheme()
             .navigationTitle("Saved Styles")
             .navigationBarTitleDisplayMode(.inline)
             .alert("Save Style", isPresented: $showSaveDialog) {

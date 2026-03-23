@@ -17,7 +17,7 @@ struct UpdateBannerView: View {
                 
                 Text("v\(version) available")
                     .font(.subheadline.weight(.medium))
-                    .foregroundStyle(.primary)
+                    .themedText(.primary)
                 
                 Spacer()
                 
@@ -37,7 +37,7 @@ struct UpdateBannerView: View {
                 } label: {
                     Image(systemName: "xmark")
                         .font(.caption.weight(.semibold))
-                        .foregroundStyle(.secondary)
+                        .themedText(.secondary)
                 }
             }
             .padding(.horizontal, 14)
@@ -101,7 +101,7 @@ struct AppUpdateBannerView: View {
                     
                     Text("v\(update.currentVersion) → v\(update.newVersion)")
                         .font(.caption)
-                        .foregroundStyle(.secondary)
+                        .themedText(.secondary)
                 }
                 
                 Spacer()
@@ -128,7 +128,7 @@ struct AppUpdateBannerView: View {
                 } label: {
                     Image(systemName: "xmark")
                         .font(.caption.weight(.semibold))
-                        .foregroundStyle(.secondary)
+                        .themedText(.secondary)
                         .frame(width: 24, height: 24)
                 }
             }
@@ -181,7 +181,7 @@ struct MultipleAppUpdatesBannerView: View {
                     
                     Text(updates.prefix(3).map { $0.appName }.joined(separator: ", "))
                         .font(.caption)
-                        .foregroundStyle(.secondary)
+                        .themedText(.secondary)
                         .lineLimit(1)
                 }
                 
@@ -206,7 +206,7 @@ struct MultipleAppUpdatesBannerView: View {
                 } label: {
                     Image(systemName: "xmark")
                         .font(.caption.weight(.semibold))
-                        .foregroundStyle(.secondary)
+                        .themedText(.secondary)
                         .frame(width: 24, height: 24)
                 }
             }
@@ -257,7 +257,7 @@ struct UpdateAvailableView: View {
                         .font(.subheadline.weight(.semibold))
                     Text("v\(version)")
                         .font(.caption)
-                        .foregroundStyle(.secondary)
+                        .themedText(.secondary)
                 }
                 
                 Spacer()
@@ -281,7 +281,7 @@ struct UpdateAvailableView: View {
                 } label: {
                     Image(systemName: "xmark")
                         .font(.caption.weight(.semibold))
-                        .foregroundStyle(.secondary)
+                        .themedText(.secondary)
                 }
             }
             .padding(12)

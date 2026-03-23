@@ -8,6 +8,7 @@
 import SwiftUI
 
 struct ExperimentalSettingsView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     @State private var developerTapCount = 0
     @State private var lastTapTime: Date?
     @State private var showDeveloperConfirmation = false
@@ -71,6 +72,7 @@ struct ExperimentalSettingsView: View {
                 }
                 .padding(.bottom, 100)
             }
+            .globalTheme()
             .navigationBarHidden(true)
         }
         .accentColor(ExperimentalUITheme.Colors.accentPrimary)
@@ -111,6 +113,7 @@ struct ExperimentalSettingsView: View {
 
 // MARK: - Profile Card
 struct ExperimentalProfileCard: View {
+    @EnvironmentObject var themeManager: ThemeManager
     var body: some View {
         HStack(spacing: ExperimentalUITheme.Spacing.md) {
             // Avatar
@@ -128,11 +131,11 @@ struct ExperimentalProfileCard: View {
             VStack(alignment: .leading, spacing: 4) {
                 Text("Feather User")
                     .font(ExperimentalUITheme.Typography.headline)
-                    .foregroundStyle(ExperimentalUITheme.Colors.textPrimary)
+                    .themedText(.primary)
                 
                 Text("Free Plan")
                     .font(ExperimentalUITheme.Typography.caption)
-                    .foregroundStyle(ExperimentalUITheme.Colors.textSecondary)
+                    .themedText(.secondary)
             }
             
             Spacer()
@@ -140,18 +143,18 @@ struct ExperimentalProfileCard: View {
             Button(action: {}) {
                 Image(systemName: "pencil")
                     .font(.system(size: 16, weight: .semibold))
-                    .foregroundStyle(ExperimentalUITheme.Colors.accentPrimary)
+                    .foregroundStyle(themeManager.accentColor)
                     .frame(width: 36, height: 36)
                     .background(
                         Circle()
-                            .fill(ExperimentalUITheme.Colors.accentPrimary.opacity(0.15))
+                            .fill(themeManager.accentColor.opacity(0.15))
                     )
             }
         }
         .padding(ExperimentalUITheme.Spacing.md)
+        .themedCard()
         .background(
             RoundedRectangle(cornerRadius: ExperimentalUITheme.CornerRadius.lg)
-                .fill(ExperimentalUITheme.Colors.cardBackground)
                 .shadow(
                     color: ExperimentalUITheme.Shadow.sm.color,
                     radius: ExperimentalUITheme.Shadow.sm.radius,
@@ -165,6 +168,7 @@ struct ExperimentalProfileCard: View {
 
 // MARK: - Settings Section
 struct ExperimentalSettingsSection: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let title: String
     let items: [SettingItem]
     
@@ -172,7 +176,7 @@ struct ExperimentalSettingsSection: View {
         VStack(alignment: .leading, spacing: ExperimentalUITheme.Spacing.sm) {
             Text(title)
                 .font(ExperimentalUITheme.Typography.title3)
-                .foregroundStyle(ExperimentalUITheme.Colors.textPrimary)
+                .themedText(.header)
             
             VStack(spacing: 0) {
                 ForEach(items.indices, id: \.self) { index in
@@ -184,9 +188,9 @@ struct ExperimentalSettingsSection: View {
                     }
                 }
             }
+            .themedCard()
             .background(
                 RoundedRectangle(cornerRadius: ExperimentalUITheme.CornerRadius.lg)
-                    .fill(ExperimentalUITheme.Colors.cardBackground)
                     .shadow(
                         color: ExperimentalUITheme.Shadow.sm.color,
                         radius: ExperimentalUITheme.Shadow.sm.radius,
@@ -207,6 +211,7 @@ struct SettingItem {
 
 // MARK: - Setting Row
 struct ExperimentalSettingRow: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let item: SettingItem
     
     var body: some View {
@@ -220,13 +225,13 @@ struct ExperimentalSettingRow: View {
                     
                     Image(systemName: item.icon)
                         .font(.system(size: 18))
-                        .foregroundStyle(ExperimentalUITheme.Colors.accentPrimary)
+                        .foregroundStyle(themeManager.accentColor)
                 }
                 
                 // Title
                 Text(item.title)
                     .font(ExperimentalUITheme.Typography.callout)
-                    .foregroundStyle(ExperimentalUITheme.Colors.textPrimary)
+                    .themedText(.primary)
                 
                 Spacer()
                 
@@ -234,12 +239,12 @@ struct ExperimentalSettingRow: View {
                 if let subtitle = item.subtitle {
                     Text(subtitle)
                         .font(ExperimentalUITheme.Typography.callout)
-                        .foregroundStyle(ExperimentalUITheme.Colors.textSecondary)
+                        .themedText(.secondary)
                 }
                 
                 Image(systemName: "chevron.right")
                     .font(.system(size: 14, weight: .semibold))
-                    .foregroundStyle(ExperimentalUITheme.Colors.textTertiary)
+                    .themedText(.secondary)
             }
             .padding(ExperimentalUITheme.Spacing.md)
             .contentShape(Rectangle())

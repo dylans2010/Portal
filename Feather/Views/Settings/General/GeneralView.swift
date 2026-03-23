@@ -2,6 +2,7 @@ import SwiftUI
 import NimbleViews
 
 struct GeneralView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     @StateObject private var hideManager = SettingsHideManager.shared
     @AppStorage("Feather.certificateExperience") private var certificateExperience: String = CertificateExperience.developer.rawValue
     @AppStorage("Feather.showHeaderViews") private var showHeaderViews = true
@@ -36,7 +37,7 @@ struct GeneralView: View {
                 }
             }
         }
-        .scrollContentBackground(.hidden)
+        .globalTheme()
         .listStyle(.insetGrouped)
         .navigationTitle(.localized("General"))
         .navigationBarTitleDisplayMode(.inline)
@@ -66,7 +67,7 @@ struct GeneralView: View {
     private var notificationsSection: some View {
         Section {
             if !hideManager.isHidden("settings.notifications") {
-                SettingsRow(icon: "bell.badge.fill", title: String.localized("Notifications & Live Activities"), color: .accentColor, destination: NotificationsView())
+                SettingsRow(icon: "bell.badge.fill", title: String.localized("Notifications & Live Activities"), color: themeManager.accentColor, destination: NotificationsView())
             }
         } header: {
             SettingsSectionHeader(title: String.localized("Notifications & Live Activities"), icon: "bell.fill")
@@ -76,10 +77,10 @@ struct GeneralView: View {
     private var signingSection: some View {
         Section {
             if !hideManager.isHidden("settings.certificates") {
-                SettingsRow(icon: "person.badge.key.fill", title: String.localized("Certificates"), color: .accentColor, destination: CertificatesView())
+                SettingsRow(icon: "person.badge.key.fill", title: String.localized("Certificates"), color: themeManager.accentColor, destination: CertificatesView())
             }
             if !hideManager.isHidden("settings.signing") {
-                SettingsRow(icon: "signature", title: String.localized("Signing"), color: .accentColor, destination: ConfigurationView())
+                SettingsRow(icon: "signature", title: String.localized("Signing"), color: themeManager.accentColor, destination: ConfigurationView())
             }
         } header: {
             SettingsSectionHeader(title: String.localized("Signing & Services"), icon: "shield.lefthalf.filled.badge.checkmark")
@@ -89,20 +90,20 @@ struct GeneralView: View {
     private var dataSection: some View {
         Section {
             if !isEnterprise && !hideManager.isHidden("settings.storage") {
-                SettingsRow(icon: "externaldrive.fill.badge.person.crop", title: String.localized("Storage"), color: .accentColor, destination: ManageStorageView())
+                SettingsRow(icon: "externaldrive.fill.badge.person.crop", title: String.localized("Storage"), color: themeManager.accentColor, destination: ManageStorageView())
             }
             if !hideManager.isHidden("settings.backupRestore") {
-                SettingsRow(icon: "externaldrive.fill.badge.timemachine", title: String.localized("Backup & Restore"), color: .accentColor, destination: SelfBackupRestoreView())
+                SettingsRow(icon: "externaldrive.fill.badge.timemachine", title: String.localized("Backup & Restore"), color: themeManager.accentColor, destination: SelfBackupRestoreView())
             }
             if !hideManager.isHidden("settings.pairing") {
                 Button {
                     showPairingView = true
                 } label: {
-                    SettingsRowContent(icon: "iphone.motion", title: String.localized("Pairing"), color: .accentColor)
+                    SettingsRowContent(icon: "iphone.motion", title: String.localized("Pairing"), color: themeManager.accentColor)
                 }
             }
             if !hideManager.isHidden("settings.logs") {
-                SettingsRow(icon: "ecg.text.page", title: String.localized("Logs"), color: .accentColor, destination: AppLogsView())
+                SettingsRow(icon: "ecg.text.page", title: String.localized("Logs"), color: themeManager.accentColor, destination: AppLogsView())
             }
         } header: {
             SettingsSectionHeader(title: String.localized("Data & Maintenance"), icon: "externaldrive.fill")
@@ -112,8 +113,9 @@ struct GeneralView: View {
     private var backgroundRefreshSection: some View {
         Section {
             Toggle(isOn: AppStorage(wrappedValue: false, "Feather.useBackgroundRefresh").projectedValue) {
-                SettingsRowContent(icon: "arrow.triangle.2.circlepath", title: String.localized("Use Background Refresh"), color: .accentColor)
+                SettingsRowContent(icon: "arrow.triangle.2.circlepath", title: String.localized("Use Background Refresh"), color: themeManager.accentColor)
             }
+            .themedAccent()
             .padding(.trailing, 16)
             .onChange(of: UserDefaults.standard.bool(forKey: "Feather.useBackgroundRefresh")) { newValue in
                 if newValue {
@@ -122,7 +124,7 @@ struct GeneralView: View {
             }
 
             VStack(alignment: .leading, spacing: 10) {
-                SettingsRowContent(icon: "wifi", title: String.localized("Connection Preference"), color: .accentColor)
+                SettingsRowContent(icon: "wifi", title: String.localized("Connection Preference"), color: themeManager.accentColor)
 
                 Picker(selection: AppStorage(wrappedValue: 0, "Feather.backgroundRefreshConnection").projectedValue) {
                     Label(.localized("Both"), systemImage: "arrow.up.left.and.arrow.down.right").tag(0)
@@ -140,7 +142,7 @@ struct GeneralView: View {
                     UIApplication.shared.open(url)
                 }
             } label: {
-                SettingsRowContent(icon: "gearshape.fill", title: String.localized("Open Background Refresh Settings"), color: .accentColor)
+                SettingsRowContent(icon: "gearshape.fill", title: String.localized("Open Background Refresh Settings"), color: themeManager.accentColor)
             }
         } header: {
             SettingsSectionHeader(title: String.localized("Background Refresh"), icon: "arrow.clockwise")
@@ -151,21 +153,21 @@ struct GeneralView: View {
 
     private var systemSection: some View {
         Section {
-            SettingsRow(icon: "link", title: String.localized("URL Schemes"), color: .accentColor, destination: URLSchemeView())
+            SettingsRow(icon: "link", title: String.localized("URL Schemes"), color: themeManager.accentColor, destination: URLSchemeView())
             if !hideManager.isHidden("settings.language") {
                 Button {
                     if let url = URL(string: UIApplication.openSettingsURLString) {
                         UIApplication.shared.open(url)
                     }
                 } label: {
-                    SettingsRowContent(icon: "translate", title: String.localized("Language"), color: .accentColor)
+                    SettingsRowContent(icon: "translate", title: String.localized("Language"), color: themeManager.accentColor)
                 }
             }
             if !isEnterprise && !hideManager.isHidden("settings.updates") {
                 Button {
                     navigateToCheckForUpdates = true
                 } label: {
-                    SettingsRowContent(icon: "arrow.triangle.2.circlepath", title: String.localized("Check For Updates"), color: .accentColor)
+                    SettingsRowContent(icon: "arrow.triangle.2.circlepath", title: String.localized("Check For Updates"), color: themeManager.accentColor)
                 }
                 .simultaneousGesture(
                     LongPressGesture(minimumDuration: 2.0)
@@ -176,8 +178,9 @@ struct GeneralView: View {
                 )
 
                 Toggle(isOn: AppStorage(wrappedValue: true, "Feather.autoCheckUpdates").projectedValue) {
-                    SettingsRowContent(icon: "bolt.badge.clock.fill", title: String.localized("Check for Updates on Launch"), color: .accentColor)
+                    SettingsRowContent(icon: "bolt.badge.clock.fill", title: String.localized("Check for Updates on Launch"), color: themeManager.accentColor)
                 }
+                .themedAccent()
                 .padding(.trailing, 16)
                 .navigationDestination(isPresented: $navigateToCheckForUpdates) {
                     CheckForUpdatesView()
@@ -190,12 +193,12 @@ struct GeneralView: View {
 
     private var resourcesSection: some View {
         Section {
-            SettingsRow(icon: "square.stack.3d.up", title: String.localized("Shortcuts Guide"), color: .accentColor, destination: PortalShortcutsGuideView())
+            SettingsRow(icon: "square.stack.3d.up", title: String.localized("Shortcuts Guide"), color: themeManager.accentColor, destination: PortalShortcutsGuideView())
             if !hideManager.isHidden("settings.credits") {
-                SettingsRow(icon: "person.crop.circle.fill.badge.checkmark", title: String.localized("Credits"), color: .accentColor, destination: CreditsView())
+                SettingsRow(icon: "person.crop.circle.fill.badge.checkmark", title: String.localized("Credits"), color: themeManager.accentColor, destination: CreditsView())
             }
             if !hideManager.isHidden("settings.feedback") {
-                SettingsRow(icon: "bubble.left.and.bubble.right.fill", title: String.localized("Feedback"), color: .accentColor, destination: FeedbackView())
+                SettingsRow(icon: "bubble.left.and.bubble.right.fill", title: String.localized("Feedback"), color: themeManager.accentColor, destination: FeedbackView())
             }
         } header: {
             SettingsSectionHeader(title: String.localized("Resources"), icon: "books.vertical.fill")

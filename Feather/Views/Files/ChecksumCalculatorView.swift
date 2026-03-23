@@ -4,6 +4,7 @@ import CryptoKit
 
 // MARK: - ChecksumCalculatorView
 struct ChecksumCalculatorView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let fileURL: URL
     @Environment(\.dismiss) var dismiss
     
@@ -25,10 +26,11 @@ struct ChecksumCalculatorView: View {
                         VStack(alignment: .leading, spacing: 4) {
                             Text(fileURL.lastPathComponent)
                                 .font(.body)
+                                .themedText(.primary)
                             if !fileSize.isEmpty {
                                 Text(fileSize)
                                     .font(.caption)
-                                    .foregroundStyle(.secondary)
+                                    .themedText(.secondary)
                             }
                         }
                     }
@@ -40,16 +42,18 @@ struct ChecksumCalculatorView: View {
                     Section {
                         HStack {
                             ProgressView()
-                            Text(.localized("Calculating an independent clause can stand alone as a complete sentence, while a dependent clause cannothecksums..."))
-                                .foregroundStyle(.secondary)
+                                .tint(themeManager.accentColor)
+                            Text(.localized("Calculating checksums..."))
+                                .themedText(.secondary)
                         }
                     }
                 } else if let error = errorMessage {
                     Section {
                         Text(error)
-                            .foregroundStyle(.red)
+                            .foregroundStyle(Color(hex: themeManager.resolvedColors.destructive))
                     } header: {
                         Text(.localized("Error"))
+                            .themedText(.header)
                     }
                 } else {
                     Section {
@@ -59,12 +63,13 @@ struct ChecksumCalculatorView: View {
                         ChecksumRow(algorithm: "SHA-512", checksum: sha512)
                     } header: {
                         Text(.localized("Checksums"))
+                            .themedText(.header)
                     } footer: {
                         Text(.localized("Tap any checksum to copy it to the clipboard."))
                     }
                 }
             }
-            .scrollContentBackground(.hidden)
+            .globalTheme()
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
                     Button(.localized("Done")) {
@@ -112,6 +117,7 @@ struct ChecksumCalculatorView: View {
 
 // MARK: - ChecksumRow
 struct ChecksumRow: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let algorithm: String
     let checksum: String
     
@@ -119,7 +125,7 @@ struct ChecksumRow: View {
         VStack(alignment: .leading, spacing: 8) {
             Text(algorithm)
                 .font(.caption)
-                .foregroundStyle(.secondary)
+                .themedText(.secondary)
             
             Button {
                 UIPasteboard.general.string = checksum
@@ -128,7 +134,7 @@ struct ChecksumRow: View {
                 HStack {
                     Text(checksum)
                         .font(.system(.footnote, design: .monospaced))
-                        .foregroundStyle(.primary)
+                        .themedText(.primary)
                         .lineLimit(2)
                         .textSelection(.enabled)
                     
@@ -136,7 +142,7 @@ struct ChecksumRow: View {
                     
                     Image(systemName: "doc.on.doc")
                         .font(.caption)
-                        .foregroundStyle(.blue)
+                        .themedAccent()
                 }
             }
             .buttonStyle(.plain)

@@ -10,6 +10,7 @@ struct FeatherApp: App {
 
         let heartbeat = HeartbeatManager.shared
 
+        @StateObject var themeManager = ThemeManager.shared
         @StateObject var downloadManager = DownloadManager.shared
         @StateObject var networkMonitor = NetworkMonitor.shared
         let storage = Storage.shared
@@ -172,6 +173,7 @@ struct FeatherApp: App {
                                         }
                                         // dear god help me
                                         .onAppear {
+                                                themeManager.applyUIKitAppearance()
                                                 _setupTheme()
                                                 _checkForUpdates()
                                                 _handlePendingWidgetAction()
@@ -182,7 +184,8 @@ struct FeatherApp: App {
                                         .overlay(PortalTopView())
                                 }
                         }
-                        .applyGlobalTheme()
+                        .globalTheme()
+                        .environmentObject(themeManager)
                         .environmentObject(ColorBackgroundManager.shared)
                         .handleStatusBarHiding()
                         .onReceive(NotificationCenter.default.publisher(for: UIApplication.didBecomeActiveNotification)) { _ in
@@ -719,13 +722,8 @@ class SceneDelegate: NSObject, UIWindowSceneDelegate {
                 }
                 
                 // Apply tint color
-                let colorType = UserDefaults.standard.string(forKey: "Feather.userTintColorType") ?? "solid"
-                if colorType == "gradient" {
-                        let gradientStartHex = UserDefaults.standard.string(forKey: "Feather.userTintGradientStart") ?? "#0077BE"
-                        windowScene.windows.first?.tintColor = UIColor(SwiftUI.Color(hex: gradientStartHex))
-                } else {
-                        windowScene.windows.first?.tintColor = UIColor(SwiftUI.Color(hex: UserDefaults.standard.string(forKey: "Feather.userTintColor") ?? "#0077BE"))
-                }
+                windowScene.windows.first?.tintColor = ThemeManager.shared.accentUIColor
+                ThemeManager.shared.applyUIKitAppearance()
         }
         
         func sceneDidDisconnect(_ scene: UIScene) {

@@ -2,6 +2,7 @@ import SwiftUI
 import NimbleViews
 
 struct IPAExplorerPlistViewer: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let fileURL: URL
     @ObservedObject var viewModel: IPAExplorerViewModel
     @AppStorage("isDeveloperModeEnabled") private var isDeveloperModeEnabled = false
@@ -26,7 +27,7 @@ struct IPAExplorerPlistViewer: View {
                     }
             }
         }
-            .scrollContentBackground(.hidden)
+        .globalTheme()
         .navigationTitle(fileURL.lastPathComponent)
         .onAppear {
             loadPlist()
@@ -66,6 +67,7 @@ struct IPAExplorerPlistViewer: View {
 }
 
 struct PlistRow: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let key: String
     let value: Any?
 
@@ -73,19 +75,22 @@ struct PlistRow: View {
         VStack(alignment: .leading, spacing: 4) {
             Text(key)
                 .font(.caption)
-                .foregroundStyle(.secondary)
+                .themedText(.secondary)
 
             if let dict = value as? [String: Any] {
                 Text("Dictionary (\(dict.count) items)")
                     .font(.body)
+                    .themedText(.primary)
                     .italic()
             } else if let array = value as? [Any] {
                 Text("Array (\(array.count) items)")
                     .font(.body)
+                    .themedText(.primary)
                     .italic()
             } else {
                 Text("\(String(describing: value ?? ""))")
                     .font(.body)
+                    .themedText(.primary)
                     .lineLimit(5)
             }
         }

@@ -2,6 +2,7 @@ import SwiftUI
 
 // MARK: - View
 struct StatusBarCustomizationView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     @StateObject private var viewModel = StatusBarViewModel()
     @State private var selectedPanel: Panel = .structure
     
@@ -42,7 +43,7 @@ struct StatusBarCustomizationView: View {
                                 Text("Structure")
                                     .font(.caption)
                                 Rectangle()
-                                    .fill(selectedPanel == .structure ? Color.accentColor : Color.clear)
+                                    .fill(selectedPanel == .structure ? themeManager.accentColor : Color.clear)
                                     .frame(height: 2)
                             }
                             .frame(maxWidth: .infinity)
@@ -59,7 +60,7 @@ struct StatusBarCustomizationView: View {
                                 Text("Appearance")
                                     .font(.caption)
                                 Rectangle()
-                                    .fill(selectedPanel == .appearance ? Color.accentColor : Color.clear)
+                                    .fill(selectedPanel == .appearance ? themeManager.accentColor : Color.clear)
                                     .frame(height: 2)
                             }
                             .frame(maxWidth: .infinity)
@@ -84,6 +85,7 @@ struct StatusBarCustomizationView: View {
                 }
             }
         }
+        .globalTheme()
         .navigationTitle("Status Bar")
         .navigationBarTitleDisplayMode(.inline)
     }
@@ -91,6 +93,7 @@ struct StatusBarCustomizationView: View {
 
 // MARK: - Color Picker Sheet
 struct ColorPickerSheet: View {
+@EnvironmentObject var themeManager: ThemeManager
 @Environment(\.dismiss) var dismiss
 @Binding var selectedColor: Color
 @Binding var colorHex: String
@@ -137,7 +140,7 @@ Circle()
 .padding(.vertical, 8)
 }
 }
-            .scrollContentBackground(.hidden)
+            .globalTheme()
 .navigationTitle(.localized("Choose Color"))
 .navigationBarTitleDisplayMode(.inline)
 .toolbar {

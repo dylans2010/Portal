@@ -2,6 +2,7 @@ import SwiftUI
 
 // MARK: - View
 struct AppearanceTintColorView: View {
+    @EnvironmentObject var themeManager: ThemeManager
 	@AppStorage("Feather.userTintColor") private var selectedColorHex: String = "#0077BE"
 	@AppStorage("Feather.userTintColorType") private var colorType: String = "solid"
 	@AppStorage("Feather.userTintGradientStart") private var gradientStartHex: String = "#0077BE"
@@ -113,10 +114,10 @@ struct AppearanceTintColorView: View {
 				VStack(alignment: .leading, spacing: 2) {
 					Text("Theme Color")
 						.font(.system(size: 16, weight: .semibold))
-						.foregroundStyle(.primary)
+						.themedText(.primary)
 					Text(colorName)
 						.font(.system(size: 13))
-						.foregroundStyle(.secondary)
+						.themedText(.secondary)
 				}
 
 				Spacer()
@@ -158,6 +159,7 @@ struct AppearanceTintColorView: View {
 }
 
 struct ThemeColorPickerSheet: View {
+    @EnvironmentObject var themeManager: ThemeManager
 	@Environment(\.dismiss) var dismiss
 	@Binding var selectedColorHex: String
 	@Binding var colorType: String
@@ -241,7 +243,7 @@ struct ThemeColorPickerSheet: View {
 						.fontWeight(.bold)
 				}
 			}
-			.background(Color.clear)
+			.globalTheme()
 			.sheet(isPresented: $showCustomPicker) {
 				CustomColorPickerView(
 					colorType: $colorType,
@@ -256,6 +258,7 @@ struct ThemeColorPickerSheet: View {
 
 // MARK: - Custom Color Picker View
 struct CustomColorPickerView: View {
+    @EnvironmentObject var themeManager: ThemeManager
 	@Environment(\.dismiss) var dismiss
 	@Binding var colorType: String
 	@Binding var selectedColorHex: String
@@ -316,7 +319,7 @@ struct CustomColorPickerView: View {
 												Circle()
 													.stroke(
 														gradientStartHex == preset.start && gradientEndHex == preset.end
-															? Color.accentColor
+															? themeManager.accentColor
 															: Color.white.opacity(0.2),
 														lineWidth: 3
 													)
@@ -354,7 +357,7 @@ struct CustomColorPickerView: View {
 				}
 				.listRowBackground(Color.clear)
 			}
-            .scrollContentBackground(.hidden)
+            .globalTheme()
 			.navigationTitle("Advanced Color")
 			.navigationBarTitleDisplayMode(.inline)
 			.toolbar {

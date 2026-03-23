@@ -4,6 +4,8 @@ import NimbleViews
 
 // MARK: - View
 struct FRIconCellView: View {
+    @EnvironmentObject var themeManager: ThemeManager
+
 	var title: String
 	var subtitle: String
 	var iconUrl: URL?
@@ -11,7 +13,7 @@ struct FRIconCellView: View {
 	var isCircle: Bool = false
 	var onColorExtracted: ((Color) -> Void)? = nil
 	
-	@State private var extractedColor: Color = .accentColor
+	@State private var extractedColor: Color = .blue
 	
 	// MARK: Body
 	var body: some View {
@@ -59,12 +61,12 @@ struct FRIconCellView: View {
 	var standardIcon: some View {
 		ZStack {
 			RoundedRectangle(cornerRadius: isCircle ? size / 2.0 : size * 0.2237, style: .continuous)
-				.fill(Color.accentColor.opacity(0.15))
+				.fill(themeManager.accentColor.opacity(0.15))
 				.frame(width: size, height: size)
 			
 			Image(systemName: "globe")
 				.font(.system(size: size * 0.5))
-				.foregroundStyle(Color.accentColor)
+				.foregroundStyle(themeManager.accentColor)
 		}
 	}
 }

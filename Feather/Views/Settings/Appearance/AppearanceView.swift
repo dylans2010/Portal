@@ -4,6 +4,7 @@ import UIKit
 
 // MARK: - Appearance View
 struct AppearanceView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     @Environment(\.dismiss) private var dismiss
     @AppStorage("Feather.userInterfaceStyle") private var userInterfaceStyle: Int = UIUserInterfaceStyle.unspecified.rawValue
     @AppStorage(UserDefaults.Keys.installTrigger) private var installTrigger: Int = 0 // 0: Manual, 1: Automatic
@@ -49,7 +50,7 @@ struct AppearanceView: View {
             Section {
                 NavigationLink(destination: ColorCustomizationView()) {
                     Label("Visual Design", systemImage: "hand.rays")
-                        .foregroundStyle(Color.accentColor)
+                        .foregroundStyle(themeManager.accentColor)
                 }
             } header: {
                 Label("Color", systemImage: "paintpalette.fill")
@@ -60,8 +61,9 @@ struct AppearanceView: View {
                 Section {
                     Toggle(isOn: $_shouldTintIcons) {
                         Label("Tint App Icons", systemImage: "paintpalette")
-                            .foregroundStyle(Color.accentColor)
+                            .foregroundStyle(themeManager.accentColor)
                     }
+                    .themedAccent()
                 } header: {
                     Label("Tint Icons", systemImage: "paintpalette")
                 } footer: {
@@ -75,16 +77,19 @@ struct AppearanceView: View {
             Section {
                 Toggle(isOn: $showIconsInAppearance) {
                     Label("Show Icons", systemImage: "square.grid.2x2")
-                        .foregroundStyle(Color.accentColor)
+                        .foregroundStyle(themeManager.accentColor)
                 }
+                .themedAccent()
                 Toggle(isOn: $showNews) {
                     Label("Show News", systemImage: "newspaper")
-                        .foregroundStyle(Color.accentColor)
+                        .foregroundStyle(themeManager.accentColor)
                 }
+                .themedAccent()
                 Toggle(isOn: $showHeaderViews) {
                     Label("Show Header Views", systemImage: "platter.filled.top.and.arrow.up.iphone")
-                        .foregroundStyle(Color.accentColor)
+                        .foregroundStyle(themeManager.accentColor)
                 }
+                .themedAccent()
             } header: {
                 Label("Display", systemImage: "eye.fill")
             }
@@ -93,8 +98,9 @@ struct AppearanceView: View {
             Section {
                 Toggle(isOn: $hapticsManager.isEnabled) {
                     Label("Enable Haptics", systemImage: "iphone.radiowaves.left.and.right")
-                        .foregroundStyle(Color.accentColor)
+                        .foregroundStyle(themeManager.accentColor)
                 }
+                .themedAccent()
 
                 if hapticsManager.isEnabled {
                     ForEach(HapticsManager.HapticIntensity.allCases, id: \.self) { intensity in
@@ -115,11 +121,11 @@ struct AppearanceView: View {
             Section {
                 HStack {
                     Label("Your Name", systemImage: "person.fill")
-                        .foregroundStyle(Color.accentColor)
+                        .foregroundStyle(themeManager.accentColor)
                     Spacer()
                     TextField("Enter Name", text: $greetingsName)
                         .multilineTextAlignment(.trailing)
-                        .foregroundStyle(.secondary)
+                        .themedText(.secondary)
                 }
             } header: {
                 Label("Personalization", systemImage: "person.crop.circle.fill")
@@ -132,12 +138,12 @@ struct AppearanceView: View {
                 if !isEnterprise {
                     NavigationLink(destination: AppIconView()) {
                         Label("App Icons", systemImage: "app.badge.fill")
-                            .foregroundStyle(Color.accentColor)
+                            .foregroundStyle(themeManager.accentColor)
                     }
                 }
                 NavigationLink(destination: LostView(onGoBack: { dismiss() })) {
                     Label("Gestures", systemImage: "hand.tap.fill")
-                        .foregroundStyle(Color.accentColor)
+                        .foregroundStyle(themeManager.accentColor)
                 }
             } header: {
                 Label("Customization", systemImage: "slider.horizontal.3")
@@ -148,8 +154,9 @@ struct AppearanceView: View {
                 Section {
                     Toggle(isOn: $ignoreSolariumLinkedOnCheck) {
                         Label("Enable Liquid Glass", systemImage: "sparkles")
-                            .foregroundStyle(Color.accentColor)
+                            .foregroundStyle(themeManager.accentColor)
                     }
+                    .themedAccent()
                 } header: {
                     Label("Liquid Glass", systemImage: "sparkle")
                 } footer: {
@@ -159,7 +166,7 @@ struct AppearanceView: View {
                 EmptyView()
             }
         }
-        .background(Color.clear)
+        .globalTheme()
         .navigationTitle("Appearance")
         .navigationBarTitleDisplayMode(.inline)
         .onChange(of: userInterfaceStyle) { value in
@@ -206,6 +213,7 @@ struct AppearanceView: View {
 // MARK: - Appearance Components
 
 struct AppearanceSectionHeader: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let title: String
     let icon: String
     
@@ -213,10 +221,10 @@ struct AppearanceSectionHeader: View {
         HStack(spacing: 8) {
             Image(systemName: icon)
                 .font(.system(size: 14, weight: .semibold))
-                .foregroundStyle(Color.accentColor)
+                .foregroundStyle(themeManager.accentColor)
             Text(title)
                 .font(.system(size: 14, weight: .bold, design: .rounded))
-                .foregroundStyle(.secondary)
+                .themedText(.secondary)
         }
     }
 }
@@ -278,6 +286,7 @@ struct AppearanceNavRow<Destination: View>: View {
 }
 
 private struct HapticIntensityRow: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let intensity: HapticsManager.HapticIntensity
     let isSelected: Bool
     let action: () -> Void
@@ -293,15 +302,15 @@ private struct HapticIntensityRow: View {
         Button(action: action) {
             HStack(spacing: 12) {
                 Image(systemName: icon)
-                    .foregroundStyle(isSelected ? Color.accentColor : .secondary)
+                    .foregroundStyle(isSelected ? themeManager.accentColor : Color(hex: themeManager.resolvedColors.secondaryText))
                     .frame(width: 24)
                 Text(intensity.title)
                     .font(.system(.body, design: .rounded))
-                    .foregroundStyle(.primary)
+                    .themedText(.primary)
                 Spacer()
                 if isSelected {
                     Image(systemName: "checkmark")
-                        .foregroundStyle(Color.accentColor)
+                        .foregroundStyle(themeManager.accentColor)
                         .fontWeight(.medium)
                 }
             }

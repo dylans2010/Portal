@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct IPAExplorerBinaryViewer: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let fileURL: URL
     @State private var machoInfo: FileAnalysisEngine.MachOInformation?
     @State private var fileSize: Int64 = 0
@@ -25,7 +26,7 @@ struct IPAExplorerBinaryViewer: View {
                 Text(.localized("Analyzing..."))
             }
         }
-            .scrollContentBackground(.hidden)
+        .globalTheme()
         .navigationTitle(.localized("Binary Info"))
         .onAppear {
             analyze()
@@ -40,15 +41,17 @@ struct IPAExplorerBinaryViewer: View {
 }
 
 private struct BinaryInfoRow: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let label: String
     let value: String
 
     var body: some View {
         HStack {
             Text(label)
-                .foregroundStyle(.secondary)
+                .themedText(.secondary)
             Spacer()
             Text(value)
+                .themedText(.primary)
                 .textSelection(.enabled)
         }
     }

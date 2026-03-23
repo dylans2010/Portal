@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct UUIDGeneratorView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     @State private var count: Int = 1
     @State private var uuids: [String] = [UUID().uuidString]
 
@@ -15,11 +16,12 @@ struct UUIDGeneratorView: View {
                     }
                 }
 
-                Section(header: Text(.localized("Generated UUIDs"))) {
+                Section(header: Text(.localized("Generated UUIDs")).themedText(.header)) {
                     ForEach(uuids, id: \.self) { uuid in
                         HStack {
                             Text(uuid)
                                 .font(.system(.caption, design: .monospaced))
+                                .themedText(.primary)
                             Spacer()
                             Button {
                                 UIPasteboard.general.string = uuid
@@ -38,7 +40,7 @@ struct UUIDGeneratorView: View {
                     }
                 }
             }
-            .scrollContentBackground(.hidden)
+            .globalTheme()
             .navigationTitle(.localized("UUID Generator"))
             .navigationBarTitleDisplayMode(.inline)
         }

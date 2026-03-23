@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct IPAExplorerProvisionViewer: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let fileURL: URL
     @State private var certificate: Certificate?
 
@@ -16,7 +17,7 @@ struct IPAExplorerProvisionViewer: View {
                 Text(.localized("Loading..."))
             }
         }
-            .scrollContentBackground(.hidden)
+        .globalTheme()
         .navigationTitle("embedded.mobileprovision")
         .onAppear {
             loadProvision()
@@ -69,6 +70,7 @@ private struct ProvisionEntitlementsSection: View {
 }
 
 private struct ProvisionEntitlementRow: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let key: String
     let value: AnyCodable?
 
@@ -76,23 +78,26 @@ private struct ProvisionEntitlementRow: View {
         VStack(alignment: .leading, spacing: 4) {
             Text(key)
                 .font(.caption)
-                .foregroundStyle(.secondary)
+                .themedText(.secondary)
             Text(value.map { String(describing: $0.value) } ?? "")
                 .font(.system(.body, design: .monospaced))
+                .themedText(.primary)
         }
     }
 }
 
 private struct ProvisionInfoRow: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let label: String
     let value: String
 
     var body: some View {
         HStack {
             Text(label)
-                .foregroundStyle(.secondary)
+                .themedText(.secondary)
             Spacer()
             Text(value)
+                .themedText(.primary)
                 .textSelection(.enabled)
         }
     }

@@ -2,6 +2,7 @@ import SwiftUI
 import Foundation
 
 struct DiskSpaceView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     @State private var totalSpace: Int64 = 0
     @State private var freeSpace: Int64 = 0
     @State private var usedSpace: Int64 = 0
@@ -9,7 +10,7 @@ struct DiskSpaceView: View {
     var body: some View {
         NavigationStack {
             List {
-                Section(header: Text(.localized("Storage Info"))) {
+                Section(header: Text(.localized("Storage Info")).themedText(.header)) {
                     StorageRow(label: .localized("Total"), value: totalSpace, color: .gray)
                     StorageRow(label: .localized("Free"), value: freeSpace, color: .green)
                     StorageRow(label: .localized("Used"), value: usedSpace, color: .blue)
@@ -19,14 +20,14 @@ struct DiskSpaceView: View {
                     let usedPercent = totalSpace > 0 ? Double(usedSpace) / Double(totalSpace) : 0
                     VStack {
                         ProgressView(value: usedPercent)
-                            .tint(.blue)
+                            .tint(themeManager.accentColor)
                         Text("\(Int(usedPercent * 100))% used")
                             .font(.caption)
-                            .foregroundStyle(.secondary)
+                            .themedText(.secondary)
                     }
                 }
             }
-            .scrollContentBackground(.hidden)
+            .globalTheme()
             .navigationTitle(.localized("Disk Space"))
             .navigationBarTitleDisplayMode(.inline)
             .onAppear {
@@ -49,6 +50,7 @@ struct DiskSpaceView: View {
 }
 
 struct StorageRow: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let label: String
     let value: Int64
     let color: Color
@@ -57,10 +59,11 @@ struct StorageRow: View {
         HStack {
             Circle().fill(color).frame(width: 10, height: 10)
             Text(label)
+                .themedText(.primary)
             Spacer()
             Text(ByteCountFormatter.string(fromByteCount: value, countStyle: .file))
                 .font(.system(.body, design: .monospaced))
-                .foregroundStyle(.secondary)
+                .themedText(.secondary)
         }
     }
 }

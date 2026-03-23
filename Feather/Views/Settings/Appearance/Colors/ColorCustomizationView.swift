@@ -1142,39 +1142,113 @@ private struct AppWideColorPickerSheet: View {
                 Section("ACCENTS") {
                     ColorPickerRow(label: "Accent / Tint", color: $draft.accent)
                     ColorPickerRow(label: "Separator", color: $draft.separator)
+                    ColorPickerRow(label: "Destructive", color: $draft.destructive)
+                }
+
+                Section("BUTTONS") {
+                    ColorPickerRow(label: "Button Background",  color: $draft.buttonBackground)
+                    ColorPickerRow(label: "Button Text",        color: $draft.buttonText)
+                }
+
+                Section("ICONS & INDICATORS") {
+                    ColorPickerRow(label: "Icon Tint",          color: $draft.iconTint)
+                    ColorPickerRow(label: "Switch Tint",        color: $draft.switchTint)
+                    ColorPickerRow(label: "Selection / Check",  color: $draft.selectionIndicator)
+                }
+
+                Section("STRUCTURE") {
+                    ColorPickerRow(label: "Grouped Background", color: $draft.groupedBackground)
+                    ColorPickerRow(label: "Section Headers",    color: $draft.headerText)
+                    ColorPickerRow(label: "Cell Highlight",     color: $draft.cellHighlight)
+                }
+
+                Section("BADGES") {
+                    ColorPickerRow(label: "Badge Background",   color: $draft.badgeBackground)
+                    ColorPickerRow(label: "Badge Text",         color: $draft.badgeText)
                 }
 
                 Section("PREVIEW") {
-                    ZStack {
-                        RoundedRectangle(cornerRadius: 16)
-                            .fill(Color(hex: draft.appBackground))
-                            .frame(height: 160)
+                    VStack(spacing: 16) {
+                        // Card Preview
+                        ZStack {
+                            RoundedRectangle(cornerRadius: 16)
+                                .fill(Color(hex: draft.appBackground))
+                                .frame(height: 220)
 
-                        VStack(spacing: 12) {
-                            HStack {
-                                RoundedRectangle(cornerRadius: 8)
+                            VStack(spacing: 12) {
+                                // Row with icon and toggle
+                                RoundedRectangle(cornerRadius: 12)
                                     .fill(Color(hex: draft.cardBackground))
-                                    .frame(height: 60)
+                                    .frame(height: 70)
                                     .overlay(
-                                        HStack {
-                                            VStack(alignment: .leading, spacing: 4) {
+                                        HStack(spacing: 12) {
+                                            Image(systemName: "star.fill")
+                                                .foregroundStyle(Color(hex: draft.iconTint))
+
+                                            VStack(alignment: .leading, spacing: 2) {
                                                 Text("Settings Row")
                                                     .font(.headline)
                                                     .foregroundStyle(Color(hex: draft.primaryText))
-                                                Text("Subtitle text description")
+                                                Text("Subtitle description")
                                                     .font(.caption)
                                                     .foregroundStyle(Color(hex: draft.secondaryText))
                                             }
+
                                             Spacer()
-                                            Circle()
-                                                .fill(Color(hex: draft.accent))
-                                                .frame(width: 12, height: 12)
+
+                                            Toggle("", isOn: .constant(true))
+                                                .labelsHidden()
+                                                .tint(Color(hex: draft.switchTint))
+                                                .scaleEffect(0.8)
                                         }
                                         .padding()
                                     )
+                                    .padding(.horizontal)
+
+                                // Row with badge and indicator
+                                RoundedRectangle(cornerRadius: 12)
+                                    .fill(Color(hex: draft.cellHighlight))
+                                    .frame(height: 50)
+                                    .overlay(
+                                        HStack {
+                                            Text("Badge Item")
+                                                .font(.subheadline)
+                                                .foregroundStyle(Color(hex: draft.primaryText))
+
+                                            Spacer()
+
+                                            Text("NEW")
+                                                .font(.system(size: 10, weight: .bold))
+                                                .foregroundStyle(Color(hex: draft.badgeText))
+                                                .padding(.horizontal, 8)
+                                                .padding(.vertical, 4)
+                                                .background(Color(hex: draft.badgeBackground), in: Capsule())
+
+                                            Image(systemName: "checkmark")
+                                                .font(.caption.bold())
+                                                .foregroundStyle(Color(hex: draft.selectionIndicator))
+                                        }
+                                        .padding(.horizontal)
+                                    )
+                                    .padding(.horizontal)
+
+                                // Filled Button
+                                Button {} label: {
+                                    Text("Action Button")
+                                        .font(.subheadline.bold())
+                                        .frame(maxWidth: .infinity)
+                                        .padding(.vertical, 10)
+                                        .background(Color(hex: draft.buttonBackground))
+                                        .foregroundStyle(Color(hex: draft.buttonText))
+                                        .cornerRadius(10)
+                                }
+                                .padding(.horizontal)
                             }
-                            .padding(.horizontal)
                         }
+
+                        Text("Preview reflects your app-wide overrides")
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
                     }
                     .listRowInsets(EdgeInsets())
                     .listRowBackground(Color.clear)
@@ -1205,6 +1279,20 @@ private struct AppWideColorPickerSheet: View {
                         themeManager.updateColor(keyPath: \.secondaryText, hex: draft.secondaryText)
                         themeManager.updateColor(keyPath: \.accent, hex: draft.accent)
                         themeManager.updateColor(keyPath: \.separator, hex: draft.separator)
+
+                        // New slots
+                        themeManager.updateColor(keyPath: \.cellHighlight, hex: draft.cellHighlight)
+                        themeManager.updateColor(keyPath: \.destructive, hex: draft.destructive)
+                        themeManager.updateColor(keyPath: \.buttonBackground, hex: draft.buttonBackground)
+                        themeManager.updateColor(keyPath: \.buttonText, hex: draft.buttonText)
+                        themeManager.updateColor(keyPath: \.iconTint, hex: draft.iconTint)
+                        themeManager.updateColor(keyPath: \.groupedBackground, hex: draft.groupedBackground)
+                        themeManager.updateColor(keyPath: \.headerText, hex: draft.headerText)
+                        themeManager.updateColor(keyPath: \.badgeBackground, hex: draft.badgeBackground)
+                        themeManager.updateColor(keyPath: \.badgeText, hex: draft.badgeText)
+                        themeManager.updateColor(keyPath: \.switchTint, hex: draft.switchTint)
+                        themeManager.updateColor(keyPath: \.selectionIndicator, hex: draft.selectionIndicator)
+
                         dismiss()
                     }
                 }

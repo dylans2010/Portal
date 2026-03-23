@@ -2,6 +2,7 @@ import SwiftUI
 
 // MARK: - Right Panel: Appearance & Content
 struct AppearanceContentPanel: View {
+    @EnvironmentObject var themeManager: ThemeManager
     @ObservedObject var viewModel: StatusBarViewModel
     @State private var showColorPicker = false
     @State private var showBackgroundColorPicker = false
@@ -38,7 +39,7 @@ struct AppearanceContentPanel: View {
             // MARK: - Reset
             resetSection
         }
-            .scrollContentBackground(.hidden)
+        .globalTheme()
         .listStyle(.insetGrouped)
         .sheet(isPresented: $showColorPicker) {
             ColorPickerSheet(selectedColor: $viewModel.selectedColor, colorHex: $viewModel.colorHex)
@@ -99,7 +100,7 @@ struct AppearanceContentPanel: View {
                     Spacer()
                     Image(systemName: viewModel.sfSymbol)
                         .font(.title2)
-                        .foregroundColor(.accentColor)
+                        .foregroundStyle(themeManager.accentColor)
                     Text(viewModel.sfSymbol)
                         .foregroundStyle(.secondary)
                         .font(.caption)
@@ -680,6 +681,7 @@ struct AppearanceContentPanel: View {
 
 // MARK: - Gradient Color Picker Sheet
 struct GradientColorPickerSheet: View {
+    @EnvironmentObject var themeManager: ThemeManager
     @Environment(\.dismiss) var dismiss
     @Binding var colorHex: String
     let title: String
@@ -719,7 +721,7 @@ struct GradientColorPickerSheet: View {
                     .padding(.vertical, 8)
                 }
             }
-            .scrollContentBackground(.hidden)
+            .globalTheme()
             .navigationTitle(title)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {

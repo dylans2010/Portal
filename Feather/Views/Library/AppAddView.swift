@@ -4,6 +4,7 @@ import UniformTypeIdentifiers
 import UIKit
 
 struct AppAddView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     @Environment(\.dismiss) private var dismiss
     @ObservedObject var downloadManager = DownloadManager.shared
 
@@ -30,11 +31,11 @@ struct AppAddView: View {
             VStack(spacing: 4) {
                 Text(String.localized("Sign App"))
                     .font(.system(size: 28, weight: .black, design: .rounded))
-                    .foregroundStyle(.primary)
+                    .themedText(.primary)
 
                 Text(String.localized("Choose between importing from files or downloading from a URL."))
                     .font(.subheadline)
-                    .foregroundStyle(.secondary)
+                    .themedText(.secondary)
                     .multilineTextAlignment(.center)
             }
             .padding(.top, 24)
@@ -60,7 +61,7 @@ struct AppAddView: View {
             }
         }
         .padding(30)
-        .background(Color.clear)
+        .globalTheme()
         .sheet(isPresented:  $_isImportingPresenting) {
             FileImporterRepresentableView(
                 allowedContentTypes: [.ipa, .tipa],
@@ -107,6 +108,7 @@ struct AppAddView: View {
 }
 
 struct ImportOptionButton: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let title: String
     let icon: String
     let color: Color
@@ -127,17 +129,13 @@ struct ImportOptionButton: View {
 
                 Text(title)
                     .font(.system(size: 14, weight: .bold, design: .rounded))
-                    .foregroundStyle(.primary)
+                    .themedText(.primary)
             }
             .frame(maxWidth: .infinity)
             .padding(.vertical, 14)
-            .background(
-                RoundedRectangle(cornerRadius: 16, style: .continuous)
-                    .fill(Color(UIColor.secondarySystemGroupedBackground))
-                    .shadow(color: .black.opacity(0.05), radius: 10, x: 0, y: 5)
-            )
+            .themedCard()
             .overlay(
-                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
                     .stroke(color.opacity(0.1), lineWidth: 1)
             )
             .contentShape(Rectangle())

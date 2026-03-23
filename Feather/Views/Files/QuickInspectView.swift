@@ -3,6 +3,7 @@ import NimbleViews
 
 // MARK: - QuickInspectView
 struct QuickInspectView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let file: FileItem
     @Environment(\.dismiss) private var dismiss
     @State private var fileInfo: FileAnalysisEngine.FileInformation?
@@ -46,12 +47,14 @@ struct QuickInspectView: View {
                         
                         Text(file.name)
                             .font(.headline)
+                            .themedText(.primary)
                             .multilineTextAlignment(.center)
                     }
                     .padding(.top)
                     
                     if isLoading {
                         ProgressView()
+                            .tint(themeManager.accentColor)
                             .padding()
                     } else if !hasContent {
                         // Error state when file doesn't support Quick Inspect
@@ -63,10 +66,11 @@ struct QuickInspectView: View {
                             Text(.localized("Quick Inspect Not Supported"))
                                 .font(.title3)
                                 .fontWeight(.semibold)
+                                .themedText(.primary)
                             
                             Text(.localized("This file type cannot be inspected with Quick Inspect. Try opening it with a specific editor or viewer."))
                                 .font(.subheadline)
-                                .foregroundStyle(.secondary)
+                                .themedText(.secondary)
                                 .multilineTextAlignment(.center)
                                 .padding(.horizontal, 30)
                         }
@@ -95,6 +99,7 @@ struct QuickInspectView: View {
                 }
                 .padding()
             }
+            .globalTheme()
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button(.localized("Close")) {
@@ -113,7 +118,7 @@ struct QuickInspectView: View {
         VStack(alignment: .leading, spacing: 12) {
             Text(.localized("File Information"))
                 .font(.headline)
-                .foregroundStyle(.primary)
+                .themedText(.header)
             
             GroupBox {
                 VStack(spacing: 10) {
@@ -136,7 +141,7 @@ struct QuickInspectView: View {
         VStack(alignment: .leading, spacing: 12) {
             Text(.localized("Hashes"))
                 .font(.headline)
-                .foregroundStyle(.primary)
+                .themedText(.header)
             
             GroupBox {
                 VStack(spacing: 10) {
@@ -153,7 +158,7 @@ struct QuickInspectView: View {
         VStack(alignment: .leading, spacing: 12) {
             Text(.localized("IPA Information"))
                 .font(.headline)
-                .foregroundStyle(.primary)
+                .themedText(.header)
             
             GroupBox {
                 VStack(spacing: 10) {
@@ -174,7 +179,7 @@ struct QuickInspectView: View {
         VStack(alignment: .leading, spacing: 12) {
             Text(.localized("Mach-O Information"))
                 .font(.headline)
-                .foregroundStyle(.primary)
+                .themedText(.header)
             
             GroupBox {
                 VStack(spacing: 10) {
@@ -239,6 +244,7 @@ struct QuickInspectView: View {
 
 // MARK: - QuickInfoRow
 private struct QuickInfoRow: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let label: String
     let value: String
     
@@ -246,12 +252,12 @@ private struct QuickInfoRow: View {
         HStack(alignment: .top) {
             Text(label)
                 .font(.subheadline)
-                .foregroundStyle(.secondary)
+                .themedText(.secondary)
                 .frame(width: 100, alignment: .leading)
             
             Text(value)
                 .font(.subheadline)
-                .foregroundStyle(.primary)
+                .themedText(.primary)
                 .textSelection(.enabled)
             
             Spacer()
@@ -261,6 +267,7 @@ private struct QuickInfoRow: View {
 
 // MARK: - HashRow
 private struct HashRow: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let label: String
     let value: String
     @State private var copied = false
@@ -271,7 +278,7 @@ private struct HashRow: View {
                 Text(label)
                     .font(.subheadline)
                     .fontWeight(.medium)
-                    .foregroundStyle(.secondary)
+                    .themedText(.secondary)
                 
                 Spacer()
                 
@@ -286,14 +293,14 @@ private struct HashRow: View {
                     }
                 } label: {
                     Image(systemName: copied ? "checkmark.circle.fill" : "doc.on.doc")
-                        .foregroundStyle(copied ? .green : .blue)
+                        .foregroundStyle(copied ? .green : themeManager.accentColor)
                         .font(.caption)
                 }
             }
             
             Text(value)
                 .font(.system(.caption, design: .monospaced))
-                .foregroundStyle(.primary)
+                .themedText(.primary)
                 .textSelection(.enabled)
                 .lineLimit(nil)
         }

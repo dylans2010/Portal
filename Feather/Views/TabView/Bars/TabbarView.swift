@@ -2,6 +2,7 @@
 import SwiftUI
 
 struct TabbarView: View {
+	@EnvironmentObject var themeManager: ThemeManager
 	@AppStorage("Feather.tabBar.dashboard") private var showDashboard = false
 	@AppStorage("Feather.tabBar.sources") private var showSources = true
 	@AppStorage("Feather.tabBar.library") private var showLibrary = true
@@ -99,6 +100,7 @@ struct TabbarView: View {
 					.tag(tab)
 			}
 		}
+		.globalTheme()
 		.onAppear {
 			if !AppStateManager.shared.hasSelectedInitialTab {
 				selectedTab = getInitialTab()

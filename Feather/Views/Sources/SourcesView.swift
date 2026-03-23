@@ -6,6 +6,7 @@ import NukeUI
 
 // MARK: - Modern Sources View with Blue Gradient Background
 struct SourcesView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     private static let certificateURL = "https://wsfteam.xyz/#purchase"
     
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
@@ -108,6 +109,7 @@ struct SourcesView: View {
                     await viewModel.fetchSources(Array(_sources), refresh: true)
                 }
             }
+            .globalTheme()
             .navigationBarHidden(true)
             .fullScreenCover(isPresented: $_isAddingPresenting) {
                 SourcesAddView()
@@ -152,7 +154,7 @@ struct SourcesView: View {
             VStack(alignment: .leading, spacing: 2) {
                 Text(String.localized("Sources"))
                     .font(.system(size: 24, weight: .bold, design: .rounded))
-                    .foregroundStyle(.primary)
+                    .themedText(.primary)
                     .lineLimit(1)
                     .minimumScaleFactor(0.8)
                     .onTapGesture(count: 7) {
@@ -164,7 +166,7 @@ struct SourcesView: View {
                 if !hideManager.isHidden("sources.headerSubtitle") {
                     Text("View All Your Sources")
                         .font(.system(size: 12, weight: .medium))
-                        .foregroundStyle(.secondary)
+                        .themedText(.secondary)
                 }
             }
             
@@ -176,7 +178,7 @@ struct SourcesView: View {
                     Button {
                         _showCertificateTooltip = true
                     } label: {
-                        navBarButton(systemImage: "sparkles", color: .cyan)
+                        navBarButton(systemImage: "sparkles", color: Color(hex: themeManager.resolvedColors.iconTint))
                     }
                 }
                 
@@ -185,7 +187,7 @@ struct SourcesView: View {
                     Button {
                         _showEditSourcesView = true
                     } label: {
-                        navBarButton(systemImage: "pencil", color: .orange)
+                        navBarButton(systemImage: "pencil", color: themeManager.accentColor)
                     }
                 }
                 
@@ -194,7 +196,7 @@ struct SourcesView: View {
                     Button {
                         _isAddingPresenting = true
                     } label: {
-                        navBarButton(systemImage: "plus", color: .green)
+                        navBarButton(systemImage: "plus", color: Color.green)
                     }
                     .disabled(_addingSourceLoading)
                 }
@@ -283,11 +285,11 @@ struct SourcesView: View {
             VStack(spacing: 12) {
                 Text(String.localized("No Sources Found"))
                     .font(.system(size: 24, weight: .bold, design: .rounded))
-                    .foregroundStyle(.primary)
+                    .themedText(.primary)
                 
                 Text(String.localized("Get started by adding Sources to view the listed apps here."))
                     .font(.system(size: 16, weight: .medium))
-                    .foregroundStyle(.secondary)
+                    .themedText(.secondary)
                     .multilineTextAlignment(.center)
             }
             
@@ -300,14 +302,14 @@ struct SourcesView: View {
                     Text(String.localized("Add Source"))
                         .font(.system(size: 16, weight: .semibold))
                 }
-                .foregroundStyle(.white)
+                .foregroundStyle(Color(hex: themeManager.resolvedColors.buttonText))
                 .padding(.horizontal, 28)
                 .padding(.vertical, 14)
                 .background(
                     Capsule()
-                        .fill(.cyan)
+                        .fill(themeManager.accentColor)
                 )
-                .shadow(color: .cyan.opacity(0.2), radius: 4, x: 0, y: 2)
+                .shadow(color: themeManager.accentColor.opacity(0.2), radius: 4, x: 0, y: 2)
             }
             
             Spacer(minLength: 60)
@@ -460,6 +462,7 @@ struct SourcesView: View {
 
 // MARK: - Modern Source Card (Generic) - Clean Style
 struct ModernSourceCard: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let title: String
     let subtitle: String
     let iconSystemName: String
@@ -477,12 +480,12 @@ struct ModernSourceCard: View {
             VStack(alignment: .leading, spacing: 3) {
                 Text(title)
                     .font(.system(size: 17, weight: .semibold))
-                    .foregroundStyle(.primary)
+                    .themedText(.primary)
                     .lineLimit(1)
                 
                 Text(subtitle)
                     .font(.system(size: 13, weight: .regular))
-                    .foregroundStyle(.secondary)
+                    .themedText(.secondary)
                     .lineLimit(1)
             }
             
@@ -508,6 +511,7 @@ struct ModernSourceCard: View {
 
 // MARK: - Modern Source Card with Icon from URL - Clean Style
 struct ModernSourceCardWithIcon: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let source: AltSource
     @ObservedObject var viewModel: SourcesViewModel
     @State private var dominantColor: Color = .cyan
@@ -558,7 +562,7 @@ struct ModernSourceCardWithIcon: View {
                 HStack(spacing: 6) {
                     Text(source.name ?? String.localized("Unknown"))
                         .font(.system(size: 17, weight: .semibold))
-                        .foregroundStyle(.primary)
+                        .themedText(.primary)
                         .lineLimit(1)
                     
                     if isRequired {
@@ -570,7 +574,7 @@ struct ModernSourceCardWithIcon: View {
                 
                 Text("\(appCount) \(appCount == 1 ? "App" : "Apps")")
                     .font(.system(size: 13, weight: .regular))
-                    .foregroundStyle(.secondary)
+                    .themedText(.secondary)
             }
             
             Spacer()
@@ -590,6 +594,7 @@ struct ModernSourceCardWithIcon: View {
         .padding(.vertical, 12)
         .padding(.horizontal, 4)
         .contentShape(Rectangle())
+        .themedCard()
         .contextMenu {
             Button {
                 viewModel.togglePin(for: source)
@@ -636,6 +641,7 @@ struct ModernSourceCardWithIcon: View {
 
 // MARK: - AllAppsCardView
 private struct AllAppsCardView: View {
+	@EnvironmentObject var themeManager: ThemeManager
 	@AppStorage("Feather.useGradients") private var _useGradients: Bool = true
 	
 	let horizontalSizeClass: UserInterfaceSizeClass?
@@ -718,10 +724,10 @@ private struct AllAppsCardView: View {
 		VStack(alignment: .leading, spacing: 4) {
 			Text(.localized("All Apps"))
 				.font(.system(size: 16, weight: .bold))
-				.foregroundStyle(.primary)
+				.themedText(.primary)
 			Text(.localized("See all yor apps in one page"))
 				.font(.caption)
-				.foregroundStyle(.secondary)
+				.themedText(.secondary)
 				.lineLimit(1)
 			
 			appsBadge
@@ -735,23 +741,23 @@ private struct AllAppsCardView: View {
 			Text("\(totalApps) \(totalApps == 1 ? "App" : "Apps")")
 				.font(.system(size: 10, weight: .bold))
 		}
-		.foregroundStyle(.white)
+		.foregroundStyle(Color(hex: themeManager.resolvedColors.badgeText))
 		.padding(.horizontal, 8)
 		.padding(.vertical, 3.5)
 		.background(
 			Capsule()
-				.fill(appIconColor)
+				.fill(Color(hex: themeManager.resolvedColors.badgeBackground))
 		)
-		.shadow(color: appIconColor.opacity(0.2), radius: 2, x: 0, y: 1)
+		.shadow(color: Color(hex: themeManager.resolvedColors.badgeBackground).opacity(0.2), radius: 2, x: 0, y: 1)
 	}
 	
 	private var cardBackground: some View {
 		RoundedRectangle(cornerRadius: 14, style: .continuous)
-			.fill(Color.clear)
+			.fill(Color(hex: themeManager.resolvedColors.cardBackground))
 	}
 	
 	private var cardStroke: some View {
 		RoundedRectangle(cornerRadius: 14, style: .continuous)
-			.stroke(Color.primary.opacity(0.1), lineWidth: 1)
+			.stroke(Color(hex: themeManager.resolvedColors.separator), lineWidth: 1)
 	}
 }

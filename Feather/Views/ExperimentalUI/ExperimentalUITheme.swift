@@ -106,13 +106,14 @@ struct ExperimentalUITheme {
 
 // MARK: - Experimental UI Card Modifier
 struct ExperimentalCardModifier: ViewModifier {
+    @EnvironmentObject var themeManager: ThemeManager
     var padding: CGFloat = ExperimentalUITheme.Spacing.md
     var cornerRadius: CGFloat = ExperimentalUITheme.CornerRadius.lg
     
     func body(content: Content) -> some View {
         content
             .padding(padding)
-            .background(ExperimentalUITheme.Colors.cardBackground)
+            .background(Color(hex: themeManager.resolvedColors.cardBackground))
             .cornerRadius(cornerRadius)
             .shadow(
                 color: ExperimentalUITheme.Shadow.md.color,
@@ -132,9 +133,10 @@ extension View {
 
 // MARK: - Experimental UI Gradient Background Modifier
 struct ExperimentalGradientBackground: ViewModifier {
+    @EnvironmentObject var themeManager: ThemeManager
     func body(content: Content) -> some View {
         ZStack {
-            ExperimentalUITheme.Gradients.subtle
+            Color(hex: themeManager.resolvedColors.appBackground)
                 .ignoresSafeArea()
             content
         }
