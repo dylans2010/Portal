@@ -51,27 +51,15 @@ struct FeatherApp: App {
                                 } else if !hasCompletedOnboarding {
                                         if #available(iOS 17.0, *) {
                                                 OnboardingView()
-                                                        .onAppear {
-                                                                _setupTheme()
-                                                        }
                                         } else {
                                                 // Fallback for iOS 16
                                                 OnboardingViewLegacy()
-                                                        .onAppear {
-                                                                _setupTheme()
-                                                        }
                                         }
                                 } else if !hasSeenNearbyShareIntro {
                                         if #available(iOS 17.0, *) {
                                                 NearbyShareIntroView()
-                                                        .onAppear {
-                                                                _setupTheme()
-                                                        }
                                         } else {
                                                 NearbyShareIntroViewLegacy()
-                                                        .onAppear {
-                                                                _setupTheme()
-                                                        }
                                         }
                                 } else {
                                         VStack(spacing: 0) {
@@ -173,8 +161,6 @@ struct FeatherApp: App {
                                         }
                                         // dear god help me
                                         .onAppear {
-                                                themeManager.applyUIKitAppearance()
-                                                _setupTheme()
                                                 _checkForUpdates()
                                                 _handlePendingWidgetAction()
                                                 _checkForPendingNearbyRestore()
