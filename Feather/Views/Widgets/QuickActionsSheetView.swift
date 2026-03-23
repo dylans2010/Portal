@@ -3,6 +3,7 @@ import NimbleViews
 
 struct QuickActionsSheetView: View {
     @Environment(\.dismiss) var dismiss
+    @EnvironmentObject var themeManager: ThemeManager
 
     var body: some View {
         NBNavigationView(.localized("Quick Actions")) {
@@ -113,6 +114,7 @@ struct QuickActionsSheetView: View {
 }
 
 private struct SectionHeader: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let title: String
 
     var body: some View {
@@ -127,6 +129,7 @@ private struct SectionHeader: View {
 }
 
 private struct QuickActionRow: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let icon: String
     let title: String
     let subtitle: String
