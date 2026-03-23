@@ -53,6 +53,7 @@ private struct _ScreenshotPreventingView<Content: View>: UIViewRepresentable {
 }
 
 struct ScreenshotPreventionView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     @Environment(\.dismiss) private var dismiss
     var onDismiss: (() -> Void)?
 

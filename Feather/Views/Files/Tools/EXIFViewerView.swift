@@ -2,6 +2,7 @@ import SwiftUI
 import ImageIO
 
 struct EXIFViewerView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let fileURL: URL
     @State private var metadata: [String: Any] = [:]
     @State private var isLoading = true

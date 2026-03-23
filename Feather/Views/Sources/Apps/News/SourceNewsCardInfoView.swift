@@ -5,6 +5,7 @@ import NimbleViews
 
 // MARK: - View
 struct SourceNewsCardInfoView: View {
+    @EnvironmentObject var themeManager: ThemeManager
 	var new: ASRepository.News
 	
 	// MARK: - Placeholder View

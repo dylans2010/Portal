@@ -3,6 +3,7 @@ import NimbleViews
 
 // MARK: - ImageViewerView
 struct ImageViewerView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let fileURL: URL
     @Environment(\.dismiss) var dismiss
     @State private var image: UIImage?

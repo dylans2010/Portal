@@ -4,6 +4,7 @@ import NimbleViews
 
 
 struct JITStatusView: View {
+    @EnvironmentObject var themeManager: ThemeManager
 
     @ObservedObject var manager: JITManager
 

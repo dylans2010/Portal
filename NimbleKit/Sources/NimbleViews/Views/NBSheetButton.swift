@@ -1,6 +1,7 @@
 import SwiftUI
 
 public struct NBSheetButton: View {
+    @EnvironmentObject var themeManager: ThemeManager
 	public enum NSSheetButtonStyle {
 		case prominent
 		case standard

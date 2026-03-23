@@ -2,6 +2,7 @@ import SwiftUI
 
 // MARK: - BreadcrumbView
 struct BreadcrumbView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let currentPath: String
     let baseDirectory: URL
     let onNavigate: (URL) -> Void

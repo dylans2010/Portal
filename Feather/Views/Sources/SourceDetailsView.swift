@@ -5,6 +5,7 @@ import NukeUI
 
 // MARK: - Modern Source Details View with Blue Gradient Background
 struct SourceDetailsView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     @Environment(\.dismiss) var dismiss
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     @AppStorage("Feather.showNews") private var _showNews: Bool = true
@@ -431,6 +432,7 @@ struct SourceDetailsView: View {
 
 // MARK: - News List View
 struct SourceNewsListView: View {
+    @EnvironmentObject var themeManager: ThemeManager
 	let news: [ASRepository.News]
 	let dominantColor: Color
 	@State private var _selectedNewsPresenting: ASRepository.News?
@@ -486,6 +488,7 @@ struct SourceNewsListView: View {
 
 // MARK: - Apps List View (iOS 26 Style with Bottom Search)
 struct SourceAppsListView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let repository: ASRepository
     let dominantColor: Color
     @State private var _selectedRoute: SourceAppRoute?
@@ -657,6 +660,7 @@ struct SourceAppsListView: View {
 
 // MARK: - Modern App List Row
 struct ModernAppListRow: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let app: ASRepository.App
     let dominantColor: Color
     

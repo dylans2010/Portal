@@ -9,6 +9,7 @@ import simd
 /// - A color sweep travels bottom-to-top in sync with `morphProgress`.
 /// - Rendering uses `TimelineView` + `Canvas` for smooth 60 fps performance.
 struct PairingCodeSphere: View {
+    @EnvironmentObject var themeManager: ThemeManager
 
     // MARK: - Configuration
 

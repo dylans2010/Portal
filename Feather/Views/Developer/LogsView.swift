@@ -4,6 +4,7 @@ import UniformTypeIdentifiers
 
 // MARK: - App Logs View
 struct AppLogsView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     @StateObject private var logManager = AppLogManager.shared
     @State private var searchText = ""
     @State private var selectedLevel: LogEntry.LogLevel?
@@ -275,6 +276,7 @@ struct AppLogsView: View {
 
 // MARK: - Filter Pill
 struct FilterPill: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let title: String
     var icon: String?
     let isSelected: Bool
@@ -331,6 +333,7 @@ struct FilterPill: View {
 
 // MARK: - Log Entry Row
 struct LogEntryRow: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let entry: LogEntry
     @State private var isExpanded = false
     @State private var showErrorCodeDetail = false
@@ -466,6 +469,7 @@ struct LogEntryRow: View {
 
 // MARK: - Detail Row
 struct DetailRow: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let label: String
     let value: String
 
@@ -515,6 +519,7 @@ struct LogDocument: FileDocument {
 
 // MARK: - Error Code Detail View
 struct ErrorCodeDetailView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let code: LogErrorCode
     @Environment(\.dismiss) var dismiss
 
@@ -603,6 +608,7 @@ struct ErrorCodeDetailView: View {
 
 // MARK: - Log Info View
 struct LogInfoView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     @Environment(\.dismiss) var dismiss
     @State private var expandedCodes: Set<LogErrorCode> = []
 
@@ -693,6 +699,7 @@ struct LogInfoView: View {
 
 // MARK: - Log Error Code Row
 struct LogErrorCodeRow: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let code: LogErrorCode
     let isExpanded: Bool
     let onToggle: () -> Void

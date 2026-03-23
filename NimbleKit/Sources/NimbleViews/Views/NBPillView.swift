@@ -1,6 +1,7 @@
 import SwiftUI
 
 public struct NBPillView: View {
+    @EnvironmentObject var themeManager: ThemeManager
 	public var title: String
 	public var icon: String
 	public var color: Color

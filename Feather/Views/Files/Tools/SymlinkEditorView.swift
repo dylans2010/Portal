@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct SymlinkEditorView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let fileURL: URL
     @State private var targetPath: String = ""
     @State private var isLoading = true

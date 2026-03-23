@@ -3,6 +3,7 @@ import NimbleViews
 
 // MARK: - View
 struct InstallationView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     @AppStorage("Feather.showHeaderViews") private var showHeaderViews = true
     @State private var _showServerSheet = false
 

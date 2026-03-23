@@ -2,6 +2,7 @@ import SwiftUI
 import IDeviceSwift
 
 struct ExportingIPAView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let app: AppInfoPresentable
     let onDismiss: () -> Void
 

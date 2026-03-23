@@ -3,6 +3,7 @@ import NimbleViews
 
 // MARK: - CertificateQuickAddView
 struct CertificateQuickAddView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let p12URL: URL
     let mobileprovisionURL: URL
     @Environment(\.dismiss) var dismiss

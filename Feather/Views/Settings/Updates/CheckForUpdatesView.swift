@@ -639,6 +639,7 @@ struct CheckForUpdatesView: View {
 
 // MARK: - Circular Progress View
 struct CircularProgressView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let progress: Double
     let color: Color
     var size: CGFloat = 20
@@ -745,6 +746,7 @@ struct ModernProgressBar: View {
 
 // MARK: - Downloading Wave Animation
 struct DownloadingWaveAnimation: View {
+    @EnvironmentObject var themeManager: ThemeManager
     @State private var phase = 0.0
 
     var body: some View {
@@ -766,6 +768,7 @@ struct DownloadingWaveAnimation: View {
 
 // MARK: - Loading Dots Animation View
 struct LoadingDotsView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     @State private var animationPhase = 0
     
     var body: some View {

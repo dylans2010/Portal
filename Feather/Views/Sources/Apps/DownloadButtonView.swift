@@ -5,6 +5,7 @@ import AltSourceKit
 import NimbleViews
 
 struct DownloadButtonView: View {
+    @EnvironmentObject var themeManager: ThemeManager
 	let app: ASRepository.App
 	@ObservedObject private var downloadManager = DownloadManager.shared
 

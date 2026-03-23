@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct FRAppIconView: View {
+    @EnvironmentObject var themeManager: ThemeManager
 	private var _app: AppInfoPresentable
 	private var _size: CGFloat
 	@AppStorage("Feather.shouldTintIcons") private var _shouldTintIcons: Bool = false

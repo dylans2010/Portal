@@ -120,6 +120,7 @@ enum AppIconOption: String, CaseIterable, Identifiable {
 
 // MARK: - View
 struct AppIconView: View {
+    @EnvironmentObject var themeManager: ThemeManager
 	@Environment(\.scenePhase) private var scenePhase
 	@AppStorage("Feather.showHeaderViews") private var showHeaderViews = true
 	@State private var currentIcon: String? = UIApplication.shared.alternateIconName

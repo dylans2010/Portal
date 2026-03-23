@@ -3,6 +3,7 @@ import NimbleViews
 
 // MARK: - FilesSettingsView
 struct FilesSettingsView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     @AppStorage("files_viewStyle") private var viewStyle: String = "list"
     @AppStorage("files_sortOption") private var sortOption: String = "name"
     @AppStorage("files_showHiddenFiles") private var showHiddenFiles = false

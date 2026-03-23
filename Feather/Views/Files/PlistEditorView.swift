@@ -396,6 +396,7 @@ struct PlistEditorView: View {
 }
 
 struct PlistTreeView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let plist: Any
 
     var body: some View {

@@ -8,6 +8,7 @@
 import SwiftUI
 
 struct ExperimentalTabbarView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     @State private var selectedTab: TabEnum?
     @AppStorage("Feather.tabBar.dashboard") private var showDashboard = false
     @AppStorage("Feather.tabBar.sources") private var showSources = true
@@ -89,6 +90,7 @@ struct ExperimentalTabbarView: View {
 
 // MARK: - Experimental Tab Content
 struct ExperimentalTabContent: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let tab: TabEnum
     
     init(for tab: TabEnum) {
@@ -119,6 +121,7 @@ struct ExperimentalTabContent: View {
 
 // MARK: - Custom Tab Bar
 struct ExperimentalCustomTabBar: View {
+    @EnvironmentObject var themeManager: ThemeManager
     @Binding var selectedTab: TabEnum
     let tabs: [TabEnum]
     let namespace: Namespace.ID
@@ -155,6 +158,7 @@ struct ExperimentalCustomTabBar: View {
 
 // MARK: - Tab Bar Item
 struct ExperimentalTabBarItem: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let tab: TabEnum
     let isSelected: Bool
     let namespace: Namespace.ID

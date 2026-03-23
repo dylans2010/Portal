@@ -3,6 +3,7 @@ import NimbleViews
 
 // MARK: - View
 struct SigningEntitlementsView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     @Environment(\.colorScheme) var colorScheme
     @State private var _isAddingPresenting = false
     @State private var _isCreatingPresenting = false

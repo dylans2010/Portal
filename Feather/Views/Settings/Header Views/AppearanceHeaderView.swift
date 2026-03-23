@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct AppearanceHeaderView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     // MARK: - Body
     var body: some View {
         headerCard

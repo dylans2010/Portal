@@ -4,6 +4,7 @@ import IDeviceSwift
 
 // MARK: - Batch Signing View
 struct BatchSigningView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     @Environment(\.dismiss) private var dismiss
     let apps: [AppInfoPresentable]
     let onComplete: () -> Void
@@ -639,6 +640,7 @@ struct BatchSigningView: View {
 
 // MARK: - Batch App Edit Sheet
 struct BatchAppEditSheet: View {
+    @EnvironmentObject var themeManager: ThemeManager
     @Environment(\.dismiss) private var dismiss
     let app: AppInfoPresentable
     @Binding var options: Options

@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct PairingThroughOTPHeaderView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     // MARK: - Body
     var body: some View {
         headerCard

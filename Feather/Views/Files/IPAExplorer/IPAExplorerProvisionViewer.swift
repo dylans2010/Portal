@@ -31,6 +31,7 @@ struct IPAExplorerProvisionViewer: View {
 }
 
 private struct ProvisionMetadataSection: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let cert: Certificate
 
     var body: some View {
@@ -47,6 +48,7 @@ private struct ProvisionMetadataSection: View {
 }
 
 private struct ProvisionCapabilitiesSection: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let cert: Certificate
 
     var body: some View {
@@ -58,6 +60,7 @@ private struct ProvisionCapabilitiesSection: View {
 }
 
 private struct ProvisionEntitlementsSection: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let entitlements: [String: AnyCodable]
 
     var body: some View {

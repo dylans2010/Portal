@@ -77,6 +77,7 @@ enum ToastType {
 
 // MARK: - Toast View
 struct ToastView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let message: String
     let type: ToastType
     let onDismiss: () -> Void

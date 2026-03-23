@@ -4,6 +4,7 @@ import NimbleViews
 
 // MARK: - View
 struct ArchiveView: View {
+    @EnvironmentObject var themeManager: ThemeManager
 	@AppStorage("Feather.compressionLevel") private var _compressionLevel: Int = ZipCompression.DefaultCompression.rawValue
 	@AppStorage("Feather.useShareSheetForArchiving") private var _useShareSheet: Bool = false
 	@AppStorage("Feather.showHeaderViews") private var showHeaderViews = true

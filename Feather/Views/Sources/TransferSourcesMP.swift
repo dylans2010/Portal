@@ -3,6 +3,7 @@ import MultipeerConnectivity
 import AltSourceKit
 
 struct TransferSourcesMP: View {
+    @EnvironmentObject var themeManager: ThemeManager
     @Environment(\.dismiss) private var dismiss
     @StateObject private var transferService = SourcesTransferService()
     var sourceURLs: [String] = []

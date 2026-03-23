@@ -2,6 +2,7 @@ import SwiftUI
 
 // MARK: - Status Bar Preview (Read-Only)
 struct StatusBarPreviewView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     @ObservedObject var viewModel: StatusBarViewModel
     @State private var currentTime = Date()
     @State private var batteryLevel: Float = 0.0

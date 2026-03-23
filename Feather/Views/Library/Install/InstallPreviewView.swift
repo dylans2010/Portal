@@ -11,6 +11,7 @@ import IDeviceSwift
 import OSLog
 
 struct InstallPreviewView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     var onDismiss: () -> Void
 
     @AppStorage("Feather.useShareSheetForArchiving") private var _useShareSheet: Bool = false

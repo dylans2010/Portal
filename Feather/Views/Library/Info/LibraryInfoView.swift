@@ -4,6 +4,7 @@ import Zsign
 
 // MARK: - View
 struct LibraryInfoView: View {
+    @EnvironmentObject var themeManager: ThemeManager
 	@AppStorage("Feather.useGradients") private var _useGradients: Bool = true
 	var app: AppInfoPresentable
 	@State private var dominantColors: [Color] = []
@@ -557,6 +558,7 @@ struct LibraryInfoView: View {
 
 // MARK: - Mesh Gradient Background
 struct MeshGradientBackground: View {
+    @EnvironmentObject var themeManager: ThemeManager
 	let colors: [Color]
 	@State private var animate = false
 	

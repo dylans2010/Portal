@@ -3,6 +3,7 @@ import NimbleViews
 
 // MARK: - Transfer Setup View
 struct TransferSetupView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     @AppStorage("Feather.showHeaderViews") private var showHeaderViews = true
     @Environment(\.dismiss) var dismiss
     

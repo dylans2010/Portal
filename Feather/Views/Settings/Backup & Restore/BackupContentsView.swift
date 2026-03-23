@@ -3,6 +3,7 @@ import ZIPFoundation
 import CryptoKit
 
 struct BackupContentsView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     @Environment(\.dismiss) private var dismiss
     let backupURL: URL
     let isEncrypted: Bool
@@ -444,6 +445,7 @@ struct BackupContentsView: View {
 // MARK: - Flow Tags View
 
 private struct FlowTagsView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let tags: [String]
 
     var body: some View {

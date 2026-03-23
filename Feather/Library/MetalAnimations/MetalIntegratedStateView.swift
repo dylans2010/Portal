@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct MetalIntegratedStateView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     @Binding var state: MetalAnimationState
 
     var body: some View {

@@ -5,6 +5,7 @@ import Zip
 
 // MARK: - App Tweaks View
 struct AppTweaksView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     @Environment(\.dismiss) var dismiss
     @Environment(\.colorScheme) var colorScheme
 
@@ -310,6 +311,7 @@ struct AppTweaksView: View {
 
 // MARK: - Add Tweak URL View
 struct AddTweakUrlView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     @Environment(\.dismiss) var dismiss
     @State private var urlString = ""
     let onAdd: (URL) -> Void
@@ -353,6 +355,7 @@ struct AddTweakUrlView: View {
 
 // MARK: - Extract Tweaks View
 struct ExtractTweaksView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     @Environment(\.dismiss) var dismiss
 
     var app: AppInfoPresentable

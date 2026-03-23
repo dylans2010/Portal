@@ -3,6 +3,7 @@ import NimbleViews
 
 @available(iOS 17.0, *)
 struct SigningProcessView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     @Environment(\.dismiss) var dismiss
     @State private var progress: Double = 0.0
     @State private var currentStep: String = "Initializing Signing Engine..."

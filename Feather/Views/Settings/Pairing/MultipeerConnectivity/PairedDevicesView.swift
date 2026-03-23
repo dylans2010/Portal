@@ -2,6 +2,7 @@ import SwiftUI
 import NimbleViews
 
 struct PairedDevicesView: View {
+    @EnvironmentObject var themeManager: ThemeManager
 
     @State private var records: [PairRecord] = []
     @State private var selectedRecord: PairRecord?

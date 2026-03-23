@@ -2,6 +2,7 @@ import SwiftUI
 import SQLite3
 
 struct SQLiteBrowserView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let fileURL: URL
     @State private var tables: [String] = []
     @State private var selectedTable: String?

@@ -25,6 +25,7 @@ struct EasterEggInfo: Identifiable {
 }
 
 struct EasterEggsView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let eggs: [EasterEggInfo] = [
         // Easy
         EasterEggInfo(name: "Matrix Rain", hint: "Shake your device on the Home screen.", difficulty: .easy),

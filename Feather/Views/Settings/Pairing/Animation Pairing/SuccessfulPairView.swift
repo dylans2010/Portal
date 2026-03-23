@@ -3,6 +3,7 @@ import AudioToolbox
 import NimbleViews
 
 struct SuccessfulPairView: View {
+    @EnvironmentObject var themeManager: ThemeManager
 
     // MARK: - Input
 

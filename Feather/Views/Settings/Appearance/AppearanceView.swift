@@ -230,6 +230,7 @@ struct AppearanceSectionHeader: View {
 }
 
 struct AppearanceRowLabel: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let icon: String
     let title: String
     let color: Color
@@ -251,6 +252,7 @@ struct AppearanceRowLabel: View {
 }
 
 struct AppearanceToggle: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let icon: String
     let title: String
     @Binding var isOn: Bool

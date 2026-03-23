@@ -3,6 +3,7 @@ import NimbleViews
 
 // MARK: - View
 struct SigningAlternativeIconView: View {
+    @EnvironmentObject var themeManager: ThemeManager
 	@Environment(\.dismiss) var dismiss
 	
 	@State private var _alternateIcons: [(name: String, path: String)] = []

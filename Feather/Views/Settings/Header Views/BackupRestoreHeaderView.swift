@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct BackupRestoreHeaderView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     // MARK: - Body
     var body: some View {
         headerCard

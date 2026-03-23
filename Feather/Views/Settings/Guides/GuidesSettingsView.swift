@@ -2,6 +2,7 @@ import SwiftUI
 import NimbleViews
 
 struct GuidesSettingsView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     @ObservedObject private var settingsManager = GuideAISettingsManager.shared
     @AppStorage("Feather.showHeaderViews") private var showHeaderViews = true
     @State private var apiKeyInput: String = ""
@@ -372,6 +373,7 @@ struct GuidesSettingsView: View {
 }
 
 struct StatusPill: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let title: String
     let isAvailable: Bool
     let icon: String
@@ -395,6 +397,7 @@ struct StatusPill: View {
 }
 
 struct GuideAISettingsRow: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let guide: Guide
     @ObservedObject var settingsManager: GuideAISettingsManager
     @State private var isExpanded = false

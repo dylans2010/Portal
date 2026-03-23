@@ -4,6 +4,7 @@ import NimbleViews
 
 // MARK: - View
 struct SourceNewsView: View {
+    @EnvironmentObject var themeManager: ThemeManager
 	@State var isLoading = true
 	@State var hasLoadedInitialData = false
 	

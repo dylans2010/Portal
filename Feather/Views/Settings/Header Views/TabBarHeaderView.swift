@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct TabBarHeaderView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     // MARK: - Body
     var body: some View {
         headerCard

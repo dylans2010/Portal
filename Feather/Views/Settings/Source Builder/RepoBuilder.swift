@@ -262,6 +262,7 @@ struct RepoSource: Codable, Identifiable {
 }
 
 struct RepoBuilder: View {
+    @EnvironmentObject var themeManager: ThemeManager
     @AppStorage("Feather.repoBuilder.savedSources") private var savedSourcesData: Data = Data()
     @AppStorage("Feather.showHeaderViews") private var showHeaderViews = true
 
@@ -827,6 +828,7 @@ struct IdentifiableURL: Identifiable {
 }
 
 struct AddRepoAppView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     @Environment(\.dismiss) var dismiss
     @State private var app: RepoApp
     @State private var converterValue: String = ""
@@ -1082,6 +1084,7 @@ struct AddRepoAppView: View {
 }
 
 struct RepoBuilderGuideView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     @Environment(\.dismiss) var dismiss
 
     var body: some View {

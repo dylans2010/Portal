@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct KeyboardDynamicGradientView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     @Environment(\.dismiss) var dismiss
     @ObservedObject var manager = KeyboardCustomizeManager.shared
 

@@ -11,6 +11,7 @@ enum OTPPairingMode {
 
 // MARK: - Pairing Through OTP View
 struct PairingThroughOTPView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     @Environment(\.dismiss) var dismiss
     @AppStorage("Feather.showHeaderViews") private var showHeaderViews = true
     @StateObject private var viewModel = OTPPairingViewModel()

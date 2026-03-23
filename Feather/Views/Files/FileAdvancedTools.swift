@@ -3,6 +3,7 @@ import UniformTypeIdentifiers
 
 // MARK: - File Tools Detail Row
 struct FileToolsDetailRow: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let title: String
     let value: String
     
@@ -21,6 +22,7 @@ struct FileToolsDetailRow: View {
 
 // MARK: - File Advanced Tools View
 struct FileAdvancedToolsView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     @State private var selectedTool: AdvancedFileTool? = nil
     @Environment(\.colorScheme) var colorScheme
     
@@ -218,6 +220,7 @@ struct AdvancedFileTool: Identifiable {
 
 // MARK: - Tool Category Card
 struct ToolCategoryCard: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let title: String
     let icon: String
     let color: Color
@@ -317,6 +320,7 @@ struct ToolCategoryCard: View {
 
 // MARK: - Advanced Tool Detail View
 struct AdvancedToolDetailView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let tool: AdvancedFileTool
     let color: Color
     @State private var selectedFile: URL? = nil
@@ -658,6 +662,7 @@ struct AdvancedToolDetailView: View {
 
 // MARK: - Tool Option Row
 struct ToolOptionRow: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let title: String
     let icon: String
     let isToggle: Bool
@@ -687,6 +692,7 @@ struct ToolOptionRow: View {
 
 // MARK: - File Picker View
 struct FilePickerView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let onSelect: (URL) -> Void
     @Environment(\.dismiss) var dismiss
     @State private var files: [FileItem] = []
@@ -812,6 +818,7 @@ struct FilePickerView: View {
 
 // MARK: - Binary Analysis View
 struct BinaryAnalysisView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let fileURL: URL?
     @State private var analysisResult: BinaryAnalysisResult?
     @State private var isAnalyzing = false
@@ -930,6 +937,7 @@ struct BinaryAnalysisView: View {
 
 // MARK: - Hex Editor Advanced View
 struct HexEditorAdvancedView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let fileURL: URL?
     @State private var hexData: [UInt8] = []
     @State private var selectedOffset: Int? = nil
@@ -1028,6 +1036,7 @@ struct HexEditorAdvancedView: View {
 
 // MARK: - Hex Row
 struct HexRow: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let offset: Int
     let bytes: [UInt8]
     let bytesPerRow: Int
@@ -1088,6 +1097,7 @@ struct HexRow: View {
 
 // MARK: - Entropy Analyzer View
 struct EntropyAnalyzerView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let fileURL: URL?
     @State private var entropyData: [Double] = []
     @State private var overallEntropy: Double = 0

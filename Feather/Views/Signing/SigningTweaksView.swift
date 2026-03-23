@@ -3,6 +3,7 @@ import NimbleViews
 
 // MARK: - View
 struct SigningTweaksView: View {
+    @EnvironmentObject var themeManager: ThemeManager
 	@State private var _isAddingPresenting = false
 	@StateObject private var _defaultFrameworksManager = DefaultFrameworksManager.shared
 	

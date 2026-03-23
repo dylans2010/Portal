@@ -4,6 +4,7 @@ import NimbleViews
 import IDeviceSwift
 
 struct JITAppSelectionView: View, InstallationProxyAppsDelegate {
+    @EnvironmentObject var themeManager: ThemeManager
 
     @Environment(\.dismiss) private var dismiss
     let onSelect: (String) -> Void

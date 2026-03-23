@@ -4,6 +4,7 @@ import ActivityKit
 
 /// Settings view for customizing Live Activity appearance and behavior
 struct LiveActivitySettingsView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     @AppStorage("Feather.liveActivityEnabled") private var liveActivityEnabled: Bool = true
     
     // Live Activity settings managed by LiveActivityManager
@@ -512,6 +513,7 @@ struct LiveActivitySettingsView: View {
 // MARK: - Color Picker View
 
 struct ColorPickerView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     @Binding var selectedColor: CodableColor
     let onDismiss: () -> Void
     @Environment(\.dismiss) private var dismiss
@@ -609,6 +611,7 @@ struct ColorPickerView: View {
 // MARK: - Supporting Views
 
 private struct LiveActivityInfoRow: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let icon: String
     let title: String
     let description: String

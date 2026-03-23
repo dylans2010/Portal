@@ -60,6 +60,7 @@ struct ExperimentalGuidesView: View {
 
 // MARK: - Guides List
 struct ExperimentalGuidesList: View {
+    @EnvironmentObject var themeManager: ThemeManager
     var body: some View {
         VStack(spacing: ExperimentalUITheme.Spacing.md) {
             ForEach(0..<5) { index in

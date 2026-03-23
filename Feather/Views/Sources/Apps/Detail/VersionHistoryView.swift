@@ -3,6 +3,7 @@ import AltSourceKit
 
 // MARK: - VersionHistoryView
 struct VersionHistoryView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     @Environment(\.dismiss) var dismiss
     @State private var dominantColor: Color = .accentColor
     @State private var expandedVersions: Set<String> = []

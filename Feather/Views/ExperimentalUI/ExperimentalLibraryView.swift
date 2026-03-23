@@ -89,6 +89,7 @@ struct ExperimentalFilterChip: View {
 
 // MARK: - Library Apps Grid
 struct ExperimentalLibraryAppsGrid: View {
+    @EnvironmentObject var themeManager: ThemeManager
     var body: some View {
         VStack(spacing: ExperimentalUITheme.Spacing.md) {
             ForEach(0..<4) { index in

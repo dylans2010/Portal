@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct EntitlementsSplashView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     @Environment(\.dismiss) var dismiss
     @AppStorage("Feather.showEntitlementsSplash") private var showSplash = true
 
@@ -88,6 +89,7 @@ struct EntitlementsSplashView: View {
 }
 
 struct SplashStepRow: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let icon: String
     let color: Color
     let title: String

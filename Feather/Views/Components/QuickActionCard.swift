@@ -2,6 +2,7 @@ import SwiftUI
 
 // MARK: - Quick Action Card
 struct QuickActionCard: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let icon: String
     let title: LocalizedStringKey
     let subtitle: LocalizedStringKey

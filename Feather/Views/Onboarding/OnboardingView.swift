@@ -3,6 +3,7 @@ import NimbleViews
 
 @available(iOS 17.0, *)
 struct OnboardingView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     @AppStorage("hasCompletedOnboarding") var hasCompletedOnboarding: Bool = false
     @State private var animateContent = false
     @State private var animateButton = false
@@ -131,6 +132,7 @@ struct OnboardingView: View {
 
 @available(iOS 17.0, *)
 struct FeatureRow: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let icon: String
     let title: String
     let description: String
@@ -185,6 +187,7 @@ struct FeatureRow: View {
 
 // MARK: - Legacy iOS 16 Support
 struct OnboardingViewLegacy: View {
+    @EnvironmentObject var themeManager: ThemeManager
     @AppStorage("hasCompletedOnboarding") var hasCompletedOnboarding: Bool = false
     @State private var animateContent = false
     @State private var animateButton = false
@@ -301,6 +304,7 @@ struct OnboardingViewLegacy: View {
 }
 
 struct FeatureRowLegacy: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let icon: String
     let title: String
     let description: String

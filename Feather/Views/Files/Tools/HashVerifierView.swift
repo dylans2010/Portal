@@ -2,6 +2,7 @@ import SwiftUI
 import CryptoKit
 
 struct HashVerifierView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let fileURL: URL
     @State private var expectedHash: String = ""
     @State private var actualHash: String = ""
