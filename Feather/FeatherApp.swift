@@ -175,7 +175,6 @@ struct FeatherApp: App {
                                         .onAppear {
                                                 themeManager.applyUIKitAppearance()
                                                 _setupTheme()
-                                                _checkForUpdates()
                                                 _handlePendingWidgetAction()
                                                 _checkForPendingNearbyRestore()
                                                 CheckUpdatesManager.shared.checkIfNeeded()
@@ -213,17 +212,21 @@ struct FeatherApp: App {
         }
     
     private func _setupTheme() {
+        guard let window = UIApplication.topViewController()?.view.window else {
+            return
+        }
+
         if let style = UIUserInterfaceStyle(rawValue: UserDefaults.standard.integer(forKey: "Feather.userInterfaceStyle")) {
-            UIApplication.topViewController()?.view.window?.overrideUserInterfaceStyle = style
+            window.overrideUserInterfaceStyle = style
         }
 
         let colorType = UserDefaults.standard.string(forKey: "Feather.userTintColorType") ?? "solid"
         if colorType == "gradient" {
             // For gradient, use the start color as the tint
             let gradientStartHex = UserDefaults.standard.string(forKey: "Feather.userTintGradientStart") ?? "#0077BE"
-            UIApplication.topViewController()?.view.window?.tintColor = UIColor(SwiftUI.Color(hex: gradientStartHex))
+            window.tintColor = UIColor(SwiftUI.Color(hex: gradientStartHex))
         } else {
-            UIApplication.topViewController()?.view.window?.tintColor = UIColor(SwiftUI.Color(hex: UserDefaults.standard.string(forKey: "Feather.userTintColor") ?? "#0077BE"))
+            window.tintColor = UIColor(SwiftUI.Color(hex: UserDefaults.standard.string(forKey: "Feather.userTintColor") ?? "#0077BE"))
         }
     }
     
@@ -235,68 +238,6 @@ struct FeatherApp: App {
         }
     }
     
-    private func _checkForUpdates() {
-        // Check for updates on GitHub
-        let urlString = "https://api.github.com/repos/aoyn1xw/Portal/releases/latest"
-        guard let url = URL(string: urlString) else { return }
-        
-        var request = URLRequest(url: url)
-        request.setValue("application/vnd.github.v3+json", forHTTPHeaderField: "Accept")
-        request.timeoutInterval = 10
-        
-        URLSession.shared.dataTask(with: request) { [self] data, response, error in
-            guard let data = data, error == nil else {
-                AppLogManager.shared.warning("Failed to check for updates: \(error?.localizedDescription ?? "Unknown error")", category: "Updates", errorCode: .CONNECTION_FAILED)
-                return
-            }
-            
-            do {
-                let decoder = JSONDecoder()
-                decoder.dateDecodingStrategy = .iso8601
-                let release = try decoder.decode(GitHubRelease.self, from: data)
-                
-                // Get current version
-                let currentVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "0.0.0"
-                let releaseVersion = release.tagName.replacingOccurrences(of: "v", with: "")
-                
-                // Compare versions using proper semantic versioning
-                if self.compareVersions(releaseVersion, currentVersion) == .orderedDescending {
-                    DispatchQueue.main.async {
-                        self.latestVersion = releaseVersion
-                        self.latestReleaseURL = release.htmlUrl
-                        self.showUpdateBanner = true
-                        AppLogManager.shared.info("Update available: \(release.tagName)", category: "Updates")
-                    }
-                } else {
-                    AppLogManager.shared.info("App is up to date", category: "Updates")
-                }
-            } catch {
-                AppLogManager.shared.warning("Failed to parse update info: \(error.localizedDescription)", category: "Updates", errorCode: .DECODE_ERR)
-            }
-        }.resume()
-    }
-    
-    /// Compare two semantic version strings (e.g., "1.2.3" vs "1.3.0")
-    /// Returns .orderedAscending if v1 < v2, .orderedDescending if v1 > v2, .orderedSame if equal
-    private func compareVersions(_ v1: String, _ v2: String) -> ComparisonResult {
-        let components1 = v1.split(separator: ".").compactMap { Int($0) }
-        let components2 = v2.split(separator: ".").compactMap { Int($0) }
-        
-        let maxLength = max(components1.count, components2.count)
-        
-        for i in 0..<maxLength {
-            let num1 = i < components1.count ? components1[i] : 0
-            let num2 = i < components2.count ? components2[i] : 0
-            
-            if num1 < num2 {
-                return .orderedAscending
-            } else if num1 > num2 {
-                return .orderedDescending
-            }
-        }
-        
-        return .orderedSame
-    }
     
         
         private func _handleURL(_ url: URL) {

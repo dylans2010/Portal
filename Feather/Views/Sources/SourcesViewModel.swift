@@ -88,6 +88,8 @@ final class SourcesViewModel: ObservableObject {
         let allSources = Storage.shared.getSources()
         guard !allSources.isEmpty else { return }
 
+        var loadedSources: [AltSource: ASRepository] = [:]
+
         await withTaskGroup(of: (AltSource, ASRepository?).self) { group in
             for source in allSources {
                 group.addTask {
@@ -100,11 +102,12 @@ final class SourcesViewModel: ObservableObject {
 
             for await (source, repo) in group {
                 if let repo = repo {
-                    self.sources[source] = repo
+                    loadedSources[source] = repo
                 }
             }
         }
 
+        self.sources = loadedSources
         AppLogManager.shared.info("Loaded \(sources.count)/\(allSources.count) sources from cache on startup", category: "Sources")
     }
 
@@ -192,9 +195,8 @@ final class SourcesViewModel: ObservableObject {
         }
         
         // Load from cache first if not refreshing
+        var currentSources: [AltSource: ASRepository] = [:]
         if !refresh {
-            self.sources = [:]
-            
             // Load cached data in parallel
             await withTaskGroup(of: (AltSource, ASRepository?).self) { group in
                 for source in sources {
@@ -208,13 +210,12 @@ final class SourcesViewModel: ObservableObject {
                 
                 for await (source, repo) in group {
                     if let repo = repo {
-                        self.sources[source] = repo
+                        currentSources[source] = repo
                     }
                 }
             }
-        } else {
-            self.sources = [:]
         }
+        self.sources = currentSources
         
         let sourcesArray = refresh ? Array(sources) : Array(sources).filter { self.sources[$0] == nil }
         let totalSources = sourcesArray.count
@@ -270,13 +271,15 @@ final class SourcesViewModel: ObservableObject {
             currentProcessedCount += batchResults.count
             let progressValue = Double(currentProcessedCount) / Double(totalSources)
             
+            var updatedSources = self.sources
             for (source, repo, error) in batchResults {
                 if let repo = repo {
-                    self.sources[source] = repo
+                    updatedSources[source] = repo
                 } else if error != nil, let urlString = source.sourceURL?.absoluteString {
                     self.failedSources.insert(urlString)
                 }
             }
+            self.sources = updatedSources
             self.fetchProgress = progressValue
         }
         
