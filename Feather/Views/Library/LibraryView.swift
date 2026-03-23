@@ -8,6 +8,7 @@ import Zip
 // MARK: - Modern Library View with Blue Gradient Background
 struct LibraryView: View {
     @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var styleManager: SectionStyleManager
     @Environment(\.managedObjectContext) private var viewContext
     @AppStorage("Feather.useGradients") private var _useGradients: Bool = true
     
@@ -124,6 +125,7 @@ struct LibraryView: View {
             .fullScreenCover(item: $_selectedSigningAppPresenting) { app in
                 ModernSigningView(app: app.base)
                     .environmentObject(themeManager)
+                    .environmentObject(styleManager)
             }
             .sheet(item: $_selectedInstallModifyAppPresenting) { app in
                 InstallModifyDialogView(app: app.base)
@@ -721,6 +723,7 @@ extension LibraryView {
 // MARK: - Simplified Library App Row
 struct LibraryAppRow: View {
     @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var styleManager: SectionStyleManager
     let app: AppInfoPresentable
     @Binding var selectedInfoAppPresenting: AnyApp?
     @Binding var selectedSigningAppPresenting: AnyApp?
@@ -812,6 +815,7 @@ struct LibraryAppRow: View {
 // MARK: - Library Download Header View
 struct LibraryDownloadHeaderView: View {
     @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var styleManager: SectionStyleManager
     @ObservedObject var downloadManager: DownloadManager
 
     var body: some View {
@@ -843,6 +847,7 @@ struct LibraryDownloadHeaderView: View {
 
 struct LibraryDownloadItemView: View {
     @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var styleManager: SectionStyleManager
     let download: Download
     @State private var progress: Double = 0
     @State private var bytesDownloaded: Int64 = 0
@@ -887,6 +892,7 @@ struct LibraryDownloadItemView: View {
 // MARK: - Modern Filter Chip
 struct ModernFilterChip: View {
     @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var styleManager: SectionStyleManager
     let title: String
     let isSelected: Bool
     let namespace: Namespace.ID
@@ -924,6 +930,7 @@ struct ModernFilterChip: View {
 // MARK: - Compact Filter Chip (New Modern Design)
 struct CompactFilterChip: View {
     @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var styleManager: SectionStyleManager
     let title: String
     let icon: String
     let isSelected: Bool

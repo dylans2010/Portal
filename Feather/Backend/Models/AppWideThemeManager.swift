@@ -222,12 +222,27 @@ final class ThemeManager: ObservableObject {
     var navigationBarColor: Color { Color(hex: resolvedColors.navigationBar) }
     var tabBarColor: Color { Color(hex: resolvedColors.tabBar) }
     var groupedBackgroundColor: Color { Color(hex: resolvedColors.groupedBackground) }
+    var borderColor: Color { separatorColor }
+    var segmentedSelectedColor: Color { selectionColor }
+    var segmentedBackgroundColor: Color { cardBackgroundColor }
+    var sliderTintColor: Color { accentColor }
+    var progressTintColor: Color { accentColor }
 
     // MARK: - UIKit Color Helpers
     var accentUIColor: UIColor { UIColor(hex: resolvedColors.accent) }
     var separatorUIColor: UIColor { UIColor(hex: resolvedColors.separator) }
     var primaryTextUIColor: UIColor { UIColor(hex: resolvedColors.primaryText) }
     var cardBackgroundUIColor: UIColor { UIColor(hex: resolvedColors.cardBackground) }
+    var appBackgroundUIColor: UIColor { UIColor(hex: resolvedColors.appBackground) }
+    var headerTextUIColor: UIColor { UIColor(headerTextColor) }
+    var segmentedSelectedUIColor: UIColor { UIColor(selectionColor) }
+    var segmentedBackgroundUIColor: UIColor { UIColor(cardBackgroundColor) }
+    var sliderTintUIColor: UIColor { UIColor(accentColor) }
+    var progressTintUIColor: UIColor { UIColor(accentColor) }
+    var switchTintUIColor: UIColor { UIColor(switchTintColor) }
+    var cellHighlightUIColor: UIColor { UIColor(cellHighlightColor) }
+    var borderUIColor: UIColor { UIColor(borderColor) }
+    var secondaryTextUIColor: UIColor { UIColor(secondaryTextColor) }
 
     private init() {
         let themeRaw = UserDefaults.standard.string(forKey: "app.selectedTheme") ?? AppTheme.darkNavy.rawValue
@@ -303,6 +318,7 @@ final class ThemeManager: ObservableObject {
 
         UISwitch.appearance().onTintColor = switchTintColor
 
+        SectionStyleManager.shared.applyGlobalUIKitStyle()
         NotificationCenter.default.post(name: Notification.Name("AppWideThemeDidChange"), object: nil)
     }
 }
