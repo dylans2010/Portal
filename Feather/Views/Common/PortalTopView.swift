@@ -51,119 +51,115 @@ struct PortalTopView: View {
     }
 
     var body: some View {
-        Group {
-            if !portalTopViewEnabled {
-                EmptyView()
-            } else {
-                GeometryReader { geometry in
-                    let safeAreaTop = geometry.safeAreaInsets.top
-                    let dynamicIslandThreshold: CGFloat = 54
-                    let hasDynamicIsland = safeAreaTop >= dynamicIslandThreshold
+        if portalTopViewEnabled {
+            GeometryReader { geometry in
+                let safeAreaTop = geometry.safeAreaInsets.top
+                let dynamicIslandThreshold: CGFloat = 54
+                let hasDynamicIsland = safeAreaTop >= dynamicIslandThreshold
 
-                    // When screenshotting, we move the pill into the Dynamic Island area (topClearance = 0)
-                    // and ignore safe areas. Normally, we respect safe area (handled by the .ignoresSafeArea modifier below)
-                    // and shift it below the island to be visible.
-                    // To "hide behind", we position it exactly where the hardware is.
-                    let topClearance = isScreenshotting ? 0 : (hasDynamicIsland ? 11 : 0)
+                // When screenshotting, we move the pill into the Dynamic Island area (topClearance = 0)
+                // and ignore safe areas. Normally, we respect safe area (handled by the .ignoresSafeArea modifier below)
+                // and shift it below the island to be visible.
+                // To "hide behind", we position it exactly where the hardware is.
+                let topClearance = isScreenshotting ? 0 : (hasDynamicIsland ? 11 : 0)
 
-                    VStack(spacing: 0) {
-                        HStack {
-                            Spacer()
+                VStack(spacing: 0) {
+                    HStack {
+                        Spacer()
 
-                            // Premium Floating Pill
-                            HStack(spacing: 10) {
-                                if portalTopViewShowIcon,
-                                   let iconName = Bundle.main.iconFileName,
-                                   let icon = UIImage(named: iconName) {
-                                    Image(uiImage: icon)
-                                        .resizable()
-                                        .aspectRatio(contentMode: .fit)
-                                        .frame(width: 18, height: 18)
-                                        .clipShape(RoundedRectangle(cornerRadius: 5, style: .continuous))
-                                        .shadow(color: .black.opacity(0.1), radius: 2, x: 0, y: 1)
-                                }
+                        // Premium Floating Pill
+                        HStack(spacing: 10) {
+                            if portalTopViewShowIcon,
+                               let iconName = Bundle.main.iconFileName,
+                               let icon = UIImage(named: iconName) {
+                                Image(uiImage: icon)
+                                    .resizable()
+                                    .aspectRatio(contentMode: .fit)
+                                    .frame(width: 18, height: 18)
+                                    .clipShape(RoundedRectangle(cornerRadius: 5, style: .continuous))
+                                    .shadow(color: .black.opacity(0.1), radius: 2, x: 0, y: 1)
+                            }
 
-                                VStack(alignment: .leading, spacing: -1) {
-                                    Text(portalTopViewTitle.isEmpty ? "Portal" : portalTopViewTitle)
-                                        .font(.system(size: 12, weight: .bold, design: .rounded))
-                                        .foregroundStyle(Color(hex: portalTopViewTextColor))
+                            VStack(alignment: .leading, spacing: -1) {
+                                Text(portalTopViewTitle.isEmpty ? "Portal" : portalTopViewTitle)
+                                    .font(.system(size: 12, weight: .bold, design: .rounded))
+                                    .foregroundStyle(Color(hex: portalTopViewTextColor))
 
-                                    if portalTopViewShowVersion {
-                                        Text(Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "3.0")
-                                            .font(.system(size: 8, weight: .bold, design: .monospaced))
-                                            .foregroundStyle(.secondary)
-                                            .opacity(0.8)
-                                    }
+                                if portalTopViewShowVersion {
+                                    Text(Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "3.0")
+                                        .font(.system(size: 8, weight: .bold, design: .monospaced))
+                                        .foregroundStyle(.secondary)
+                                        .opacity(0.8)
                                 }
                             }
-                            .padding(.horizontal, 14)
-                            .padding(.vertical, 8)
-                            .background {
-                                ZStack {
-                                    Capsule()
-                                        .fill(material)
+                        }
+                        .padding(.horizontal, 14)
+                        .padding(.vertical, 8)
+                        .background {
+                            ZStack {
+                                Capsule()
+                                    .fill(material)
 
-                                    // Gradient or solid color depth layer
-                                    if useGradient {
-                                        Capsule()
-                                            .fill(
-                                                LinearGradient(
-                                                    colors: [Color(hex: portalTopViewColor), Color(hex: gradientEndColor)],
-                                                    startPoint: gradientStartPoint,
-                                                    endPoint: gradientEndPoint
-                                                )
-                                            )
-                                            .opacity(0.45)
-                                    } else {
-                                        Capsule()
-                                            .fill(LinearGradient(colors: [Color(hex: portalTopViewColor).opacity(0.1), Color.blue.opacity(0.05)], startPoint: .topLeading, endPoint: .bottomTrailing))
-                                    }
-
-                                    // Glass effect overlay
-                                    if glassEffect {
-                                        Capsule()
-                                            .fill(glassMaterial)
-                                            .opacity(glassIntensity == 0 ? 0.3 : (glassIntensity == 1 ? 0.5 : 0.7))
-                                    }
-                                }
-                                .overlay {
+                                // Gradient or solid color depth layer
+                                if useGradient {
                                     Capsule()
-                                        .stroke(
+                                        .fill(
                                             LinearGradient(
-                                                colors: useGradient
-                                                    ? [Color(hex: portalTopViewColor).opacity(0.6), Color(hex: gradientEndColor).opacity(0.4), Color(hex: portalTopViewColor).opacity(0.1)]
-                                                    : [Color(hex: portalTopViewColor).opacity(0.5), Color.blue.opacity(0.3), Color(hex: portalTopViewColor).opacity(0.1)],
+                                                colors: [Color(hex: portalTopViewColor), Color(hex: gradientEndColor)],
                                                 startPoint: gradientStartPoint,
                                                 endPoint: gradientEndPoint
-                                            ),
-                                            lineWidth: 0.5
+                                            )
                                         )
+                                        .opacity(0.45)
+                                } else {
+                                    Capsule()
+                                        .fill(LinearGradient(colors: [Color(hex: portalTopViewColor).opacity(0.1), Color.blue.opacity(0.05)], startPoint: .topLeading, endPoint: .bottomTrailing))
+                                }
+
+                                // Glass effect overlay
+                                if glassEffect {
+                                    Capsule()
+                                        .fill(glassMaterial)
+                                        .opacity(glassIntensity == 0 ? 0.3 : (glassIntensity == 1 ? 0.5 : 0.7))
                                 }
                             }
-
-                            Spacer()
+                            .overlay {
+                                Capsule()
+                                    .stroke(
+                                        LinearGradient(
+                                            colors: useGradient
+                                                ? [Color(hex: portalTopViewColor).opacity(0.6), Color(hex: gradientEndColor).opacity(0.4), Color(hex: portalTopViewColor).opacity(0.1)]
+                                                : [Color(hex: portalTopViewColor).opacity(0.5), Color.blue.opacity(0.3), Color(hex: portalTopViewColor).opacity(0.1)],
+                                            startPoint: gradientStartPoint,
+                                            endPoint: gradientEndPoint
+                                        ),
+                                        lineWidth: 0.5
+                                    )
+                            }
                         }
-                        .shadow(color: .black.opacity(0.12), radius: 12, x: 0, y: 6)
 
-                        Spacer(minLength: 0)
+                        Spacer()
                     }
-                    .frame(maxWidth: .infinity)
-                    .padding(.top, topClearance)
-                    .animation(.spring(response: 0.5, dampingFraction: 0.8), value: isScreenshotting)
+                    .shadow(color: .black.opacity(0.12), radius: 12, x: 0, y: 6)
+
+                    Spacer(minLength: 0)
                 }
+                .frame(maxWidth: .infinity)
+                .padding(.top, topClearance)
+                .animation(.spring(response: 0.5, dampingFraction: 0.8), value: isScreenshotting)
             }
-        }
-        .allowsHitTesting(false)
-        .zIndex(isScreenshotting ? 999999 : 1000)
-        .ignoresSafeArea(.all, edges: .top)
-        .onReceive(NotificationCenter.default.publisher(for: UIApplication.userDidTakeScreenshotNotification)) { _ in
-            withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) {
-                isScreenshotting = true
-            }
-            // Return to normal state after capture
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+            .allowsHitTesting(false)
+            .zIndex(isScreenshotting ? 999999 : 1000)
+            .ignoresSafeArea(.all, edges: .top)
+            .onReceive(NotificationCenter.default.publisher(for: UIApplication.userDidTakeScreenshotNotification)) { _ in
                 withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) {
-                    isScreenshotting = false
+                    isScreenshotting = true
+                }
+                // Return to normal state after capture
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                    withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) {
+                        isScreenshotting = false
+                    }
                 }
             }
         }
