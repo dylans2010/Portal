@@ -302,7 +302,8 @@ extension SigningView {
             #if NIGHTLY || DEBUG
             NavigationLink {
                 SigningEntitlementsView(
-                    bindingValue: $_temporaryOptions.appEntitlementsFile
+                    bindingValue: $_temporaryOptions.appEntitlementsFile,
+                    app: app
                 )
             } label: {
                 Label(.localized("Entitlements") + " (BETA)", systemImage: "lock.shield")

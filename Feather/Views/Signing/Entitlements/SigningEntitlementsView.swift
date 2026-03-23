@@ -12,6 +12,7 @@ struct SigningEntitlementsView: View {
     @AppStorage("Feather.showEntitlementsSplash") private var _showSplash = true
     
     @Binding var bindingValue: URL?
+    var app: AppInfoPresentable?
     
     // MARK: Body
     var body: some View {
@@ -80,6 +81,10 @@ struct SigningEntitlementsView: View {
             withAnimation(.easeInOut(duration: 4).repeatForever(autoreverses: true)) {
                 _floatingAnimation = true
             }
+
+            if let url = bindingValue {
+                _parseEntitlements(at: url)
+            }
         }
         .sheet(isPresented: $_showSplash) {
             EntitlementsSplashView()
@@ -131,12 +136,16 @@ struct SigningEntitlementsView: View {
     private var mainButtonsSection: some View {
         HStack(spacing: 16) {
             Button {
-                _isAddingPresenting = true
+                if let app = app {
+                    _loadFromApp(app)
+                } else {
+                    _isAddingPresenting = true
+                }
             } label: {
                 VStack(spacing: 12) {
                     Image(systemName: "doc.badge.plus")
                         .font(.system(size: 24))
-                    Text("Load Entitlements")
+                    Text(app != nil ? "Load From App" : "Load Entitlements")
                         .font(.subheadline.weight(.semibold))
                 }
                 .frame(maxWidth: .infinity)
@@ -313,7 +322,11 @@ struct SigningEntitlementsView: View {
             } else {
                 // Empty state - select file
                 Button {
-                    _isAddingPresenting = true
+                    if let app = app {
+                        _loadFromApp(app)
+                    } else {
+                        _isAddingPresenting = true
+                    }
                 } label: {
                     VStack(spacing: 16) {
                         ZStack {
@@ -327,11 +340,11 @@ struct SigningEntitlementsView: View {
                         }
                         
                         VStack(spacing: 6) {
-                            Text("Select Entitlements File")
+                            Text(app != nil ? "Load From App" : "Select Entitlements File")
                                 .font(.headline.weight(.semibold))
                                 .foregroundStyle(.primary)
                             
-                            Text("Choose Entitlements File")
+                            Text(app != nil ? "Extract entitlements from the app bundle" : "Choose Entitlements File")
                                 .font(.caption)
                                 .foregroundStyle(.secondary)
                         }
@@ -375,6 +388,41 @@ struct SigningEntitlementsView: View {
         }
     }
     
+    private func _loadFromApp(_ app: AppInfoPresentable) {
+        guard let appURL = Storage.shared.getAppDirectory(for: app) else { return }
+        let provisioningPath = appURL.appendingPathComponent("embedded.mobileprovision")
+
+        guard FileManager.default.fileExists(atPath: provisioningPath.path) else {
+            AppLogManager.shared.error("embedded.mobileprovision not found", category: "Entitlements")
+            return
+        }
+
+        do {
+            let provisioningData = try Data(contentsOf: provisioningPath)
+            if let xmlStart = provisioningData.range(of: Data("<?xml".utf8)),
+               let plistEnd = provisioningData.range(of: Data("</plist>".utf8)) {
+                let xmlEndIndex = plistEnd.upperBound
+                let xmlData = provisioningData.subdata(in: xmlStart.lowerBound..<xmlEndIndex)
+
+                if let plist = try PropertyListSerialization.propertyList(from: xmlData, format: nil) as? [String: Any],
+                   let entitlements = plist["Entitlements"] as? [String: Any] {
+
+                    let data = try PropertyListSerialization.data(fromPropertyList: entitlements, format: .xml, options: 0)
+                    let tempURL = FileManager.default.temporaryDirectory.appendingPathComponent("\(app.name ?? "App").entitlements")
+                    try data.write(to: tempURL)
+
+                    FileManager.default.moveAndStore(tempURL, with: "FeatherEntitlement") { url in
+                        bindingValue = url
+                        _parseEntitlements(at: url)
+                        HapticsManager.shared.success()
+                    }
+                }
+            }
+        } catch {
+            AppLogManager.shared.error("Failed to extract entitlements: \(error.localizedDescription)", category: "Entitlements")
+        }
+    }
+
     private func _parseEntitlements(at url: URL) {
         guard let data = try? Data(contentsOf: url),
               let plist = try? PropertyListSerialization.propertyList(from: data, options: [], format: nil) as? [String: Any] else {

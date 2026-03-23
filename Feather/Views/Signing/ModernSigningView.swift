@@ -667,7 +667,10 @@ struct ModernSigningView: View {
                     Divider().padding(.leading, 52)
                     
                     NavigationLink {
-                        SigningEntitlementsView(bindingValue: $_temporaryOptions.appEntitlementsFile)
+                        SigningEntitlementsView(
+                            bindingValue: $_temporaryOptions.appEntitlementsFile,
+                            app: app
+                        )
                     } label: {
                         cleanNavigationRow(title: "Entitlements", icon: "lock.shield.fill", color: .orange)
                     }
