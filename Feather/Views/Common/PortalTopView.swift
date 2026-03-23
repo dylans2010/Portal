@@ -57,10 +57,8 @@ struct PortalTopView: View {
                 let dynamicIslandThreshold: CGFloat = 54
                 let hasDynamicIsland = safeAreaTop >= dynamicIslandThreshold
 
-                // When screenshotting, we move the pill into the Dynamic Island area (topClearance = 0)
-                // and ignore safe areas. Normally, we respect safe area (handled by the .ignoresSafeArea modifier below)
-                // and shift it below the island to be visible.
-                // To "hide behind", we position it exactly where the hardware is.
+                // Exact Dynamic Island Hardware Positioning Logic
+                // To "hide behind" or match the Island, we position it exactly where the hardware is.
                 let topClearance = isScreenshotting ? 0 : (hasDynamicIsland ? 11 : 0)
 
                 VStack(spacing: 0) {
@@ -94,7 +92,7 @@ struct PortalTopView: View {
                             }
                         }
                         .frame(width: hasDynamicIsland ? 126 : nil, height: hasDynamicIsland ? 37.33 : nil)
-                        .padding(.horizontal, 14)
+                        .padding(.horizontal, hasDynamicIsland ? 0 : 14)
                         .padding(.vertical, 8)
                         .background {
                             ZStack {

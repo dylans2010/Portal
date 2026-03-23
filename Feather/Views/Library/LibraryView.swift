@@ -133,8 +133,25 @@ struct LibraryView: View {
                     .presentationDragIndicator(.visible)
                     .compatPresentationRadius(24)
             }
-            .overlay { installPreviewOverlay }
-            .overlay { exportIPAOverlay }
+            .sheet(item: $_selectedInstallAppPresenting) { app in
+                InstallPreviewView(
+                    app: app.base,
+                    isSharing: app.archive,
+                    onDismiss: {
+                        _selectedInstallAppPresenting = nil
+                    }
+                )
+                .presentationDetents([.large])
+            }
+            .sheet(item: $_selectedExportIPAPresenting) { app in
+                ExportingIPAView(
+                    app: app.base,
+                    onDismiss: {
+                        _selectedExportIPAPresenting = nil
+                    }
+                )
+                .presentationDetents([.large])
+            }
             .fullScreenCover(isPresented: $_showBatchSigningSheet) {
                 BatchSigningView(
                     apps: getSelectedUnsignedApps(),
@@ -329,42 +346,6 @@ struct LibraryView: View {
         }
     }
 
-    @ViewBuilder
-    private var installPreviewOverlay: some View {
-        Group {
-            if let installApp = _selectedInstallAppPresenting {
-                InstallPreviewView(
-                    app: installApp.base,
-                    isSharing: installApp.archive,
-                    onDismiss: {
-                        withAnimation(.easeInOut(duration: 0.25)) {
-                            _selectedInstallAppPresenting = nil
-                        }
-                    }
-                )
-                .transition(.opacity.combined(with: .scale(scale: 0.97)))
-            }
-        }
-        .animation(.easeInOut(duration: 0.25), value: _selectedInstallAppPresenting?.id)
-    }
-
-    @ViewBuilder
-    private var exportIPAOverlay: some View {
-        Group {
-            if let exportApp = _selectedExportIPAPresenting {
-                ExportingIPAView(
-                    app: exportApp.base,
-                    onDismiss: {
-                        withAnimation(.easeInOut(duration: 0.25)) {
-                            _selectedExportIPAPresenting = nil
-                        }
-                    }
-                )
-                .transition(.opacity.combined(with: .scale(scale: 0.97)))
-            }
-        }
-        .animation(.easeInOut(duration: 0.25), value: _selectedExportIPAPresenting?.id)
-    }
 
     private func handleSearchChange(_ newValue: String) {
         if newValue.uppercased() == "FEATHER" {
