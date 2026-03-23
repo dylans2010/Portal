@@ -67,6 +67,7 @@ struct ColorCustomizationView: View {
     }
 
     @EnvironmentObject private var backgroundManager: ColorBackgroundManager
+    @EnvironmentObject private var themeManager: ThemeManager
     @AppStorage("Feather.animateBackground") private var animateBackground: Bool = false
 
     @AppStorage(UserDefaults.Keys.uiElement) private var uiElementColorHex: String = Color.defaultUIElement
@@ -138,6 +139,7 @@ struct ColorCustomizationView: View {
     @State private var showResetAlert = false
     @State private var showImagePicker = false
     @State private var selectedImage: UIImage?
+    @State private var showingAppWideColorPicker: Bool = false
     @ObservedObject private var appState = AppStateManager.shared
     @Environment(\.colorScheme) var colorScheme
 
@@ -313,6 +315,54 @@ struct ColorCustomizationView: View {
             colorPickerRow(title: String.localized("Primary Text"), subtext: String.localized("Titles and body text"), color: $textColor, icon: "textformat")
             colorPickerRow(title: String.localized("Secondary Text"), subtext: String.localized("Descriptions and helper labels"), color: $secondaryTextColor, icon: "textformat.size")
             colorPickerRow(title: String.localized("Accent"), subtext: String.localized("Interactive highlights and focus"), color: $tintColor, icon: "sparkles")
+
+            Button {
+                showingAppWideColorPicker = true
+            } label: {
+                HStack(spacing: 12) {
+                    VStack(alignment: .leading, spacing: 3) {
+                        Text(String.localized("App Wide"))
+                            .font(.system(size: 16, weight: .semibold, design: .rounded))
+                        Text(String.localized("Customize all app colors"))
+                            .font(.system(size: 11))
+                            .foregroundStyle(.secondary)
+                    }
+
+                    Spacer()
+
+                    HStack(spacing: 0) {
+                        RoundedRectangle(cornerRadius: 0)
+                            .fill(Color(hex: themeManager.resolvedColors.appBackground))
+                            .frame(width: 12, height: 24)
+                        RoundedRectangle(cornerRadius: 0)
+                            .fill(Color(hex: themeManager.resolvedColors.navigationBar))
+                            .frame(width: 12, height: 24)
+                        RoundedRectangle(cornerRadius: 0)
+                            .fill(Color(hex: themeManager.resolvedColors.accent))
+                            .frame(width: 12, height: 24)
+                    }
+                    .clipShape(RoundedRectangle(cornerRadius: 6))
+
+                    if themeManager.appWideColors != nil {
+                        Button {
+                            themeManager.resetToThemeDefaults()
+                        } label: {
+                            Image(systemName: "xmark.circle.fill")
+                                .foregroundStyle(.gray)
+                        }
+                        .buttonStyle(.plain)
+                    }
+
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundStyle(.secondary)
+                }
+                .padding(.vertical, 4)
+            }
+            .buttonStyle(.plain)
+            .sheet(isPresented: $showingAppWideColorPicker) {
+                AppWideColorPickerSheet()
+            }
         } header: {
             Text(String.localized("Core Palette"))
         }
@@ -1061,6 +1111,144 @@ struct ThemeLibraryView: View {
                 }
             }
             .background(Color.clear)
+        }
+    }
+}
+
+private struct AppWideColorPickerSheet: View {
+    @EnvironmentObject var themeManager: ThemeManager
+    @Environment(\.dismiss) var dismiss
+    @State private var draft: AppWideColors
+
+    init() {
+        _draft = State(initialValue: ThemeManager.shared.resolvedColors)
+    }
+
+    var body: some View {
+        NavigationStack {
+            List {
+                Section("BACKGROUNDS") {
+                    ColorPickerRow(label: "App Background", color: $draft.appBackground)
+                    ColorPickerRow(label: "Navigation Bar", color: $draft.navigationBar)
+                    ColorPickerRow(label: "Tab Bar", color: $draft.tabBar)
+                    ColorPickerRow(label: "Card / Row", color: $draft.cardBackground)
+                }
+
+                Section("TEXT") {
+                    ColorPickerRow(label: "Primary Text", color: $draft.primaryText)
+                    ColorPickerRow(label: "Secondary Text", color: $draft.secondaryText)
+                }
+
+                Section("ACCENTS") {
+                    ColorPickerRow(label: "Accent / Tint", color: $draft.accent)
+                    ColorPickerRow(label: "Separator", color: $draft.separator)
+                }
+
+                Section("PREVIEW") {
+                    ZStack {
+                        RoundedRectangle(cornerRadius: 16)
+                            .fill(Color(hex: draft.appBackground))
+                            .frame(height: 160)
+
+                        VStack(spacing: 12) {
+                            HStack {
+                                RoundedRectangle(cornerRadius: 8)
+                                    .fill(Color(hex: draft.cardBackground))
+                                    .frame(height: 60)
+                                    .overlay(
+                                        HStack {
+                                            VStack(alignment: .leading, spacing: 4) {
+                                                Text("Settings Row")
+                                                    .font(.headline)
+                                                    .foregroundStyle(Color(hex: draft.primaryText))
+                                                Text("Subtitle text description")
+                                                    .font(.caption)
+                                                    .foregroundStyle(Color(hex: draft.secondaryText))
+                                            }
+                                            Spacer()
+                                            Circle()
+                                                .fill(Color(hex: draft.accent))
+                                                .frame(width: 12, height: 12)
+                                        }
+                                        .padding()
+                                    )
+                            }
+                            .padding(.horizontal)
+                        }
+                    }
+                    .listRowInsets(EdgeInsets())
+                    .listRowBackground(Color.clear)
+                }
+
+                Section("RESET") {
+                    Button(role: .destructive) {
+                        themeManager.resetToThemeDefaults()
+                        draft = themeManager.resolvedColors
+                    } label: {
+                        Text("Reset to Theme Defaults")
+                    }
+                }
+            }
+            .navigationTitle("App Wide Colors")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") { dismiss() }
+                }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Apply") {
+                        themeManager.updateColor(keyPath: \.appBackground, hex: draft.appBackground)
+                        themeManager.updateColor(keyPath: \.navigationBar, hex: draft.navigationBar)
+                        themeManager.updateColor(keyPath: \.tabBar, hex: draft.tabBar)
+                        themeManager.updateColor(keyPath: \.cardBackground, hex: draft.cardBackground)
+                        themeManager.updateColor(keyPath: \.primaryText, hex: draft.primaryText)
+                        themeManager.updateColor(keyPath: \.secondaryText, hex: draft.secondaryText)
+                        themeManager.updateColor(keyPath: \.accent, hex: draft.accent)
+                        themeManager.updateColor(keyPath: \.separator, hex: draft.separator)
+                        dismiss()
+                    }
+                }
+            }
+        }
+    }
+}
+
+private struct ColorPickerRow: View {
+    let label: String
+    @Binding var color: String
+    @State private var showingPicker = false
+
+    var body: some View {
+        HStack {
+            Text(label)
+            Spacer()
+            RoundedRectangle(cornerRadius: 6)
+                .fill(Color(hex: color))
+                .frame(width: 28, height: 28)
+                .onTapGesture {
+                    showingPicker = true
+                }
+        }
+        .sheet(isPresented: $showingPicker) {
+            NavigationStack {
+                VStack {
+                    ColorPicker(label, selection: Binding(
+                        get: { Color(hex: color) },
+                        set: { color = $0.hexString }
+                    ), supportsOpacity: false)
+                    .labelsHidden()
+                    .scaleEffect(3)
+                    .padding()
+                }
+                .navigationTitle(label)
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbar {
+                    ToolbarItem(placement: .confirmationAction) {
+                        Button("Done") { showingPicker = false }
+                    }
+                }
+            }
+            .presentationDetents([.height(200)])
         }
     }
 }
