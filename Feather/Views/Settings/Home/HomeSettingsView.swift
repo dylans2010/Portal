@@ -625,6 +625,7 @@ private struct ReorderableWidgetRow: View {
 }
 
 private struct WidgetToggleRow: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let widgetType: HomeWidgetType
     let isEnabled: Bool
     let isPinned: Bool
@@ -1341,4 +1342,5 @@ private struct FilterChipButton: View {
     NavigationStack {
         HomeSettingsView()
     }
+    .environmentObject(ThemeManager.shared)
 }
