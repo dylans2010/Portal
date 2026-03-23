@@ -279,6 +279,9 @@ struct RepoBuilder: View {
     @State private var showingAddApp = false
     @State private var showingGuide = false
     @State private var showingImportPicker = false
+    @State private var showingURLImportAlert = false
+    @State private var importURL = ""
+    @State private var isFetching = false
     @State private var showingExportDialog = false
     @State private var exportDocument: SourceDocument?
     @State private var editingApp: RepoApp?
@@ -534,6 +537,17 @@ struct RepoBuilder: View {
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     HStack(spacing: 12) {
+                        if isFetching {
+                            ProgressView()
+                                .scaleEffect(0.8)
+                        } else {
+                            Button {
+                                showingURLImportAlert = true
+                            } label: {
+                                Image(systemName: "link.badge.plus")
+                            }
+                        }
+
                         Button {
                             showingImportPicker = true
                         } label: {
@@ -602,6 +616,19 @@ struct RepoBuilder: View {
                 Button(String.localized("Cancel"), role: .cancel) { }
             } message: {
                 Text(String.localized("This will replace all current information in the builder with the data from the saved source."))
+            }
+            .alert(String.localized("Add From URL"), isPresented: $showingURLImportAlert) {
+                TextField(String.localized("https://..."), text: $importURL)
+                    .keyboardType(.URL)
+                    .autocapitalization(.none)
+                Button(String.localized("Fetch")) {
+                    importFromURL(importURL)
+                }
+                Button(String.localized("Cancel"), role: .cancel) {
+                    importURL = ""
+                }
+            } message: {
+                Text(String.localized("Enter the URL of the repository JSON you want to import and edit."))
             }
         }
         .navigationTitle(String.localized("Source Builder"))
@@ -702,6 +729,39 @@ struct RepoBuilder: View {
         } catch {
             ToastManager.shared.show(String.localized("Failed to import JSON: \(error.localizedDescription)"), type: .error)
         }
+    }
+
+    private func importFromURL(_ urlString: String) {
+        guard let url = URL(string: urlString) else {
+            ToastManager.shared.show(String.localized("Invalid URL"), type: .error)
+            return
+        }
+
+        isFetching = true
+        URLSession.shared.dataTask(with: url) { data, response, error in
+            DispatchQueue.main.async {
+                self.isFetching = false
+                if let error = error {
+                    ToastManager.shared.show(String.localized("Fetch failed: \(error.localizedDescription)"), type: .error)
+                    return
+                }
+
+                guard let data = data else {
+                    ToastManager.shared.show(String.localized("No data received"), type: .error)
+                    return
+                }
+
+                do {
+                    let decoder = JSONDecoder()
+                    let source = try decoder.decode(RepoSource.self, from: data)
+                    self.loadSource(source)
+                    self.importURL = ""
+                    ToastManager.shared.show(String.localized("Source Imported from URL!"), type: .success)
+                } catch {
+                    ToastManager.shared.show(String.localized("Failed to parse JSON: \(error.localizedDescription)"), type: .error)
+                }
+            }
+        }.resume()
     }
 
     private func saveCurrentToSavedSources(withName name: String) {
@@ -813,8 +873,8 @@ struct AddRepoAppView: View {
                             .keyboardType(.decimalPad)
 
                         Picker("", selection: $converterUnit) {
-                            Text("MB").tag("MB")
-                            Text("GB").tag("GB")
+                            Text(String.localized("MB")).tag("MB")
+                            Text(String.localized("GB")).tag("GB")
                         }
                         .pickerStyle(.menu)
                         .labelsHidden()

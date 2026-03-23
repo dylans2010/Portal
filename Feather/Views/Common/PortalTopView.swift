@@ -63,10 +63,10 @@ struct PortalTopView: View {
                     // When screenshotting, we move the pill into the Dynamic Island area (topClearance = 0)
                     // and ignore safe areas. Normally, we respect safe area (handled by the .ignoresSafeArea modifier below)
                     // and shift it below the island to be visible.
-                    let topClearance = isScreenshotting ? 0 : (hasDynamicIsland ? safeAreaTop + 14 : max((safeAreaTop - 30) / 2, 6))
+                    // To "hide behind", we position it exactly where the hardware is.
+                    let topClearance = isScreenshotting ? 0 : (hasDynamicIsland ? 11 : 0)
 
                     VStack(spacing: 0) {
-                        Spacer(minLength: 0)
                         HStack {
                             Spacer()
 
@@ -147,20 +147,15 @@ struct PortalTopView: View {
 
                         Spacer(minLength: 0)
                     }
-                    // On Dynamic Island devices the pill sits below the island;
-                    // on notch / no-notch devices it is vertically centred inside
-                    // the top inset as before.
-                    .frame(height: max(safeAreaTop + 70, 88))
+                    .frame(maxWidth: .infinity)
                     .padding(.top, topClearance)
                     .animation(.spring(response: 0.5, dampingFraction: 0.8), value: isScreenshotting)
-
-                    Spacer()
                 }
             }
         }
         .allowsHitTesting(false)
         .zIndex(isScreenshotting ? 999999 : 1000)
-        .ignoresSafeArea(isScreenshotting ? .all : [], edges: .top)
+        .ignoresSafeArea(.all, edges: .top)
         .onReceive(NotificationCenter.default.publisher(for: UIApplication.userDidTakeScreenshotNotification)) { _ in
             withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) {
                 isScreenshotting = true

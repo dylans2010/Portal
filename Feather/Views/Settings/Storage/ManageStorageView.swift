@@ -64,7 +64,7 @@ struct ManageStorageView: View {
     var body: some View {
         NBNavigationView(.localized("Manage Storage"), displayMode: .inline) {
             ScrollView {
-                VStack(spacing: 20) {
+                VStack(spacing: 24) {
                     // Modern Storage Ring Card
                     storageRingCard
 
@@ -84,7 +84,7 @@ struct ManageStorageView: View {
                     dangerZoneSection
                 }
                 .padding(.horizontal, 16)
-                .padding(.vertical, 12)
+                .padding(.vertical, 20)
             }
             .background(Color(UIColor.systemGroupedBackground))
             .onAppear {
@@ -135,145 +135,89 @@ struct ManageStorageView: View {
                 }
             }
 
-            // Animated Ring Progress
-            HStack(spacing: 30) {
+            // Animated Ring Progress & Stats
+            HStack(spacing: 24) {
                 ZStack {
-                    // Background ring
                     Circle()
-                        .stroke(Color.gray.opacity(0.2), lineWidth: 16)
-                        .frame(width: 140, height: 140)
+                        .stroke(Color.gray.opacity(0.15), lineWidth: 14)
+                        .frame(width: 120, height: 120)
 
-                    // Progress ring with gradient
                     Circle()
                         .trim(from: 0, to: animateProgress ? CGFloat(usedSpace) / CGFloat(max(totalSpace, 1)) : 0)
                         .stroke(
-                            AngularGradient(
-                                colors: [.blue, .cyan, .purple, .pink, .blue],
-                                center: .center
-                            ),
-                            style: StrokeStyle(lineWidth: 16, lineCap: .round)
+                            LinearGradient(colors: [.blue, .cyan], startPoint: .top, endPoint: .bottom),
+                            style: StrokeStyle(lineWidth: 14, lineCap: .round)
                         )
-                        .frame(width: 140, height: 140)
+                        .frame(width: 120, height: 120)
                         .rotationEffect(.degrees(-90))
                         .animation(.easeInOut(duration: 1.2), value: animateProgress)
 
-                    // Center content
-                    VStack(spacing: 4) {
+                    VStack(spacing: 2) {
                         if totalSpace > 0 {
-                            Text("\(Int((Double(usedSpace) / Double(totalSpace)) * 100))%")
-                                .font(.system(size: 28, weight: .bold, design: .rounded))
-                                .foregroundStyle(.primary)
+                            Text(String(format: "%d%%", Int((Double(usedSpace) / Double(totalSpace)) * 100)))
+                                .font(.system(size: 24, weight: .bold, design: .rounded))
                         }
                         Text(.localized("Used"))
-                            .font(.caption)
+                            .font(.system(size: 10, weight: .medium))
                             .foregroundStyle(.secondary)
                     }
                 }
 
-                // Stats
-                VStack(alignment: .leading, spacing: 16) {
-                    StorageStatRow(
-                        label: .localized("Used"),
-                        value: formatBytes(usedSpace),
-                        color: .blue
-                    )
-                    StorageStatRow(
-                        label: .localized("Available"),
-                        value: formatBytes(availableSpace),
-                        color: .green
-                    )
-                    StorageStatRow(
-                        label: .localized("Total"),
-                        value: formatBytes(totalSpace),
-                        color: .gray
-                    )
+                VStack(alignment: .leading, spacing: 12) {
+                    StorageStatRowCompact(label: .localized("Used"), value: formatBytes(usedSpace), color: .blue)
+                    StorageStatRowCompact(label: .localized("Available"), value: formatBytes(availableSpace), color: .green)
+                    StorageStatRowCompact(label: .localized("Total"), value: formatBytes(totalSpace), color: .gray)
                 }
             }
             .padding(.vertical, 8)
 
             // App Storage Bar
-            VStack(alignment: .leading, spacing: 8) {
+            VStack(alignment: .leading, spacing: 10) {
                 HStack {
                     Text(.localized("App Storage"))
-                        .font(.subheadline.bold())
+                        .font(.system(size: 14, weight: .bold))
                     Spacer()
                     Text(formatBytes(totalFeatherStorage))
-                        .font(.subheadline.bold())
+                        .font(.system(size: 14, weight: .bold))
                         .foregroundStyle(.blue)
                 }
 
                 GeometryReader { geometry in
                     HStack(spacing: 2) {
                         ForEach(storageCategories.filter { $0.size > 0 }) { category in
-                            RoundedRectangle(cornerRadius: 4)
+                            RoundedRectangle(cornerRadius: 3)
                                 .fill(category.color)
-                                .frame(width: max(4, geometry.size.width * CGFloat(category.size) / CGFloat(max(totalFeatherStorage, 1))))
+                                .frame(width: max(2, geometry.size.width * CGFloat(category.size) / CGFloat(max(totalFeatherStorage, 1))))
                         }
                     }
                 }
-                .frame(height: 8)
-                .background(
-                    RoundedRectangle(cornerRadius: 4)
-                        .fill(Color.gray.opacity(0.2))
-                )
+                .frame(height: 6)
+                .background(RoundedRectangle(cornerRadius: 3).fill(Color.gray.opacity(0.1)))
 
-                // Legend
-                LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 8) {
-                    ForEach(storageCategories.filter { $0.size > 0 }.prefix(6)) { category in
-                        HStack(spacing: 6) {
-                            Circle()
-                                .fill(category.color)
-                                .frame(width: 8, height: 8)
-                            Text(category.name)
-                                .font(.caption2)
-                                .foregroundStyle(.secondary)
-                                .lineLimit(1)
+                // Legend Scroll
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 12) {
+                        ForEach(storageCategories.filter { $0.size > 0 }) { category in
+                            HStack(spacing: 4) {
+                                Circle().fill(category.color).frame(width: 6, height: 6)
+                                Text(category.name).font(.system(size: 10)).foregroundStyle(.secondary)
+                            }
                         }
                     }
                 }
             }
         }
-        .padding(20)
-        .background(
-            RoundedRectangle(cornerRadius: 20, style: .continuous)
-                .fill(Color(UIColor.secondarySystemGroupedBackground))
-        )
+        .padding(18)
+        .background(Color(UIColor.secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 20, style: .continuous))
     }
 
     // MARK: - Quick Actions Grid
     private var quickActionsGrid: some View {
-        LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
-            QuickActionCard(
-                icon: "sparkles",
-                title: .localized("Quick Clean"),
-                subtitle: LocalizedStringKey(formatBytes(reclaimableSpace)),
-                gradient: [.orange, .yellow],
-                action: performCleanup
-            )
-
-            QuickActionCard(
-                icon: "chart.pie.fill",
-                title: .localized("Analyze"),
-                subtitle: .localized("Deep Scan"),
-                gradient: [.purple, .pink],
-                action: { showStorageAnalyzer = true }
-            )
-
-            QuickActionCard(
-                icon: "doc.on.doc.fill",
-                title: .localized("Duplicates"),
-                subtitle: duplicateFilesCount > 0 ? LocalizedStringKey("\(duplicateFilesCount) Found") : .localized("Scan"),
-                gradient: [.blue, .cyan],
-                action: { showDuplicateFinder = true }
-            )
-
-            QuickActionCard(
-                icon: "arrow.up.doc.fill",
-                title: .localized("Large Files"),
-                subtitle: largeFilesCount > 0 ? LocalizedStringKey("\(largeFilesCount) Found") : .localized("Find"),
-                gradient: [.pink, .red],
-                action: { showLargeFilesFinder = true }
-            )
+        HStack(spacing: 12) {
+            StorageQuickActionButton(icon: "sparkles", title: .localized("Clean"), color: .orange, action: performCleanup)
+            StorageQuickActionButton(icon: "chart.pie.fill", title: .localized("Analyze"), color: .purple, action: { showStorageAnalyzer = true })
+            StorageQuickActionButton(icon: "doc.on.doc.fill", title: .localized("Duplicates"), color: .blue, action: { showDuplicateFinder = true })
+            StorageQuickActionButton(icon: "arrow.up.doc.fill", title: .localized("Large"), color: .pink, action: { showLargeFilesFinder = true })
         }
     }
 
@@ -281,58 +225,53 @@ struct ManageStorageView: View {
     private var storageBreakdownCards: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text(.localized("Storage Breakdown"))
-                .font(.headline)
+                .font(.system(size: 14, weight: .bold))
                 .padding(.horizontal, 4)
 
-            ForEach(storageCategories) { category in
-                StorageCategoryRow(category: category) {
-                    if let action = category.action {
-                        showResetAlert(
-                            title: String(format: .localized("Clear %@"), category.name),
-                            message: category.formattedSize,
-                            action: action
-                        )
+            VStack(spacing: 0) {
+                ForEach(storageCategories) { category in
+                    StorageCategoryRow(category: category) {
+                        if let action = category.action {
+                            showResetAlert(
+                                title: String(format: .localized("Clear %@"), category.name),
+                                message: category.formattedSize,
+                                action: action
+                            )
+                        }
+                    }
+                    if category.id != storageCategories.last?.id {
+                        Divider().padding(.leading, 36)
                     }
                 }
             }
+            .padding(12)
+            .background(Color(UIColor.secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 16))
         }
     }
 
     // MARK: - Smart Cleanup Card
     private var smartCleanupCard: some View {
         VStack(spacing: 16) {
-            HStack {
-                ZStack {
-                    Circle()
-                        .fill(
-                            LinearGradient(
-                                colors: [.orange, .yellow],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            )
-                        )
-                        .frame(width: 44, height: 44)
+            HStack(spacing: 12) {
+                Image(systemName: "wand.and.stars")
+                    .font(.title3.bold())
+                    .foregroundStyle(.orange)
+                    .frame(width: 32, height: 32)
+                    .background(Color.orange.opacity(0.1), in: Circle())
 
-                    Image(systemName: "wand.and.stars")
-                        .font(.title3.bold())
-                        .foregroundStyle(.white)
-                }
-
-                VStack(alignment: .leading, spacing: 2) {
+                VStack(alignment: .leading, spacing: 0) {
                     Text(.localized("Smart Cleanup"))
-                        .font(.headline)
-                    Text(.localized("Automatically Free Up Space"))
-                        .font(.caption)
+                        .font(.system(size: 16, weight: .bold))
+                    Text(.localized("Free up space automatically"))
+                        .font(.system(size: 11))
                         .foregroundStyle(.secondary)
                 }
-
                 Spacer()
             }
 
-            // Cleanup Period Picker
             HStack {
-                Text(.localized("Remove items older than"))
-                    .font(.subheadline)
+                Text(.localized("Cutoff Period"))
+                    .font(.system(size: 13))
                 Spacer()
                 Menu {
                     ForEach(CleanupPeriod.allCases, id: \.self) { period in
@@ -343,215 +282,94 @@ struct ManageStorageView: View {
                     }
                 } label: {
                     HStack(spacing: 4) {
-                        Text(cleanupPeriod.displayName)
-                            .font(.subheadline.bold())
-                        Image(systemName: "chevron.down")
-                            .font(.caption)
+                        Text(cleanupPeriod.displayName).bold()
+                        Image(systemName: "chevron.down").font(.caption2)
                     }
+                    .font(.system(size: 13))
                     .foregroundStyle(.blue)
                 }
             }
 
-            // Reclaimable Space Indicator
-            HStack(spacing: 12) {
-                Image(systemName: "arrow.down.circle.fill")
-                    .font(.title2)
-                    .foregroundStyle(.orange)
-
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(.localized("Can Be Freed"))
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                    Text(formatBytes(reclaimableSpace))
-                        .font(.title3.bold())
-                        .foregroundStyle(.orange)
+            HStack {
+                VStack(alignment: .leading, spacing: 1) {
+                    Text(.localized("Reclaimable")).font(.system(size: 10)).foregroundStyle(.secondary)
+                    Text(formatBytes(reclaimableSpace)).font(.system(size: 18, weight: .bold)).foregroundStyle(.orange)
                 }
-
                 Spacer()
-
-                Button {
-                    performCleanup()
-                } label: {
-                    Text(.localized("Clean"))
-                        .font(.subheadline.bold())
+                Button(action: performCleanup) {
+                    Text(.localized("Clean Now"))
+                        .font(.system(size: 14, weight: .bold))
                         .foregroundStyle(.white)
-                        .padding(.horizontal, 20)
-                        .padding(.vertical, 10)
-                        .background(
-                            Capsule()
-                                .fill(
-                                    LinearGradient(
-                                        colors: [.orange, .orange.opacity(0.8)],
-                                        startPoint: .leading,
-                                        endPoint: .trailing
-                                    )
-                                )
-                        )
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 8)
+                        .background(Color.orange, in: Capsule())
                 }
                 .disabled(reclaimableSpace == 0 || isCalculating)
                 .opacity(reclaimableSpace == 0 ? 0.5 : 1)
             }
             .padding(12)
-            .background(
-                RoundedRectangle(cornerRadius: 12, style: .continuous)
-                    .fill(Color.orange.opacity(0.1))
-            )
+            .background(Color.orange.opacity(0.08), in: RoundedRectangle(cornerRadius: 12))
         }
-        .padding(20)
-        .background(
-            RoundedRectangle(cornerRadius: 20, style: .continuous)
-                .fill(Color(UIColor.secondarySystemGroupedBackground))
-        )
+        .padding(16)
+        .background(Color(UIColor.secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 16))
     }
 
     // MARK: - Advanced Tools Section
     private var advancedToolsSection: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text(.localized("Advanced Tools"))
-                .font(.headline)
+                .font(.system(size: 14, weight: .bold))
                 .padding(.horizontal, 4)
 
-            VStack(spacing: 1) {
-                AdvancedToolRow(
-                    icon: "network.badge.shield.half.filled",
-                    title: .localized("Clear Network Cache"),
-                    subtitle: .localized("Images, API responses"),
-                    color: .blue
-                ) {
-                    let cacheSize = URLCache.shared.currentDiskUsage
-                    showResetAlert(
-                        title: .localized("Clear Network Cache"),
-                        message: formatBytes(Int64(cacheSize)),
-                        action: clearNetworkCache
-                    )
+            VStack(spacing: 0) {
+                AdvancedToolButton(icon: "network", title: .localized("Network Cache"), color: .blue) {
+                    showResetAlert(title: .localized("Clear Network Cache"), message: formatBytes(Int64(URLCache.shared.currentDiskUsage)), action: clearNetworkCache)
                 }
-
-                Divider().padding(.leading, 56)
-
-                AdvancedToolRow(
-                    icon: "folder.badge.minus",
-                    title: .localized("Clear Work Cache"),
-                    subtitle: .localized("Temporary Processing Files"),
-                    color: .purple
-                ) {
-                    showResetAlert(
-                        title: .localized("Clear Work Cache"),
-                        message: "",
-                        action: clearWorkCache
-                    )
+                Divider().padding(.leading, 36)
+                AdvancedToolButton(icon: "folder", title: .localized("Work Cache"), color: .purple) {
+                    showResetAlert(title: .localized("Clear Work Cache"), action: clearWorkCache)
                 }
-
-                Divider().padding(.leading, 56)
-
-                AdvancedToolRow(
-                    icon: "doc.text.magnifyingglass",
-                    title: .localized("Clear Logs"),
-                    subtitle: .localized("App Diagnostic Logs"),
-                    color: .green
-                ) {
-                    showResetAlert(
-                        title: .localized("Clear Logs"),
-                        message: formatBytes(logsSize),
-                        action: clearLogs
-                    )
+                Divider().padding(.leading, 36)
+                AdvancedToolButton(icon: "doc.text", title: .localized("App Logs"), color: .green) {
+                    showResetAlert(title: .localized("Clear Logs"), message: formatBytes(logsSize), action: clearLogs)
                 }
-
-                Divider().padding(.leading, 56)
-
-                AdvancedToolRow(
-                    icon: "square.stack.3d.down.right",
-                    title: .localized("Reset Source Cache"),
-                    subtitle: .localized("Cached repository data"),
-                    color: .cyan
-                ) {
-                    showResetAlert(
-                        title: .localized("Reset Source Cache"),
-                        message: "",
-                        action: resetSourceCache
-                    )
+                Divider().padding(.leading, 36)
+                AdvancedToolButton(icon: "square.stack", title: .localized("Source Cache"), color: .cyan) {
+                    showResetAlert(title: .localized("Reset Source Cache"), action: resetSourceCache)
                 }
             }
-            .background(
-                RoundedRectangle(cornerRadius: 16, style: .continuous)
-                    .fill(Color(UIColor.secondarySystemGroupedBackground))
-            )
+            .padding(.horizontal, 12)
+            .background(Color(UIColor.secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 16))
         }
     }
 
     // MARK: - Danger Zone Section
     private var dangerZoneSection: some View {
         VStack(alignment: .leading, spacing: 12) {
-            HStack(spacing: 6) {
-                Image(systemName: "exclamationmark.triangle.fill")
-                    .foregroundStyle(.red)
-                Text(.localized("Danger Zone"))
-                    .font(.headline)
-            }
-            .padding(.horizontal, 4)
+            Text(.localized("Danger Zone"))
+                .font(.system(size: 14, weight: .bold))
+                .foregroundStyle(.red)
+                .padding(.horizontal, 4)
 
-            VStack(spacing: 1) {
-                DangerZoneRow(
-                    icon: "doc.badge.minus",
-                    title: .localized("Delete All Signed Apps"),
-                    subtitle: formatBytes(signedAppsSize)
-                ) {
-                    showResetAlert(
-                        title: .localized("Delete All Signed Apps"),
-                        message: formatBytes(signedAppsSize),
-                        action: deleteSignedApps
-                    )
+            VStack(spacing: 0) {
+                DangerZoneButtonCompact(title: .localized("Clear Signed Apps"), size: formatBytes(signedAppsSize)) {
+                    showResetAlert(title: .localized("Clear Signed Apps"), message: formatBytes(signedAppsSize), action: deleteSignedApps)
                 }
-
-                Divider().padding(.leading, 56)
-
-                DangerZoneRow(
-                    icon: "square.and.arrow.down.on.square",
-                    title: .localized("Delete All Imported Apps"),
-                    subtitle: formatBytes(importedAppsSize)
-                ) {
-                    showResetAlert(
-                        title: .localized("Delete All Imported Apps"),
-                        message: formatBytes(importedAppsSize),
-                        action: deleteImportedApps
-                    )
+                Divider().padding(.leading, 12)
+                DangerZoneButtonCompact(title: .localized("Clear Imported Apps"), size: formatBytes(importedAppsSize)) {
+                    showResetAlert(title: .localized("Clear Imported Apps"), message: formatBytes(importedAppsSize), action: deleteImportedApps)
                 }
-
-                Divider().padding(.leading, 56)
-
-                DangerZoneRow(
-                    icon: "key.horizontal",
-                    title: .localized("Delete All Certificates"),
-                    subtitle: formatBytes(certificatesSize)
-                ) {
-                    showResetAlert(
-                        title: .localized("Delete All Certificates"),
-                        message: formatBytes(certificatesSize),
-                        action: resetCertificates
-                    )
+                Divider().padding(.leading, 12)
+                DangerZoneButtonCompact(title: .localized("Clear Certificates"), size: formatBytes(certificatesSize)) {
+                    showResetAlert(title: .localized("Clear Certificates"), message: formatBytes(certificatesSize), action: resetCertificates)
                 }
-
-                Divider().padding(.leading, 56)
-
-                DangerZoneRow(
-                    icon: "square.stack.3d.down.right",
-                    title: .localized("Reset All Sources"),
-                    subtitle: .localized("Remove all added sources")
-                ) {
-                    showResetAlert(
-                        title: .localized("Reset All Sources"),
-                        message: "",
-                        action: resetSources
-                    )
+                Divider().padding(.leading, 12)
+                DangerZoneButtonCompact(title: .localized("Reset All Sources")) {
+                    showResetAlert(title: .localized("Reset All Sources"), action: resetSources)
                 }
             }
-            .background(
-                RoundedRectangle(cornerRadius: 16, style: .continuous)
-                    .fill(Color(UIColor.secondarySystemGroupedBackground))
-            )
-            .overlay(
-                RoundedRectangle(cornerRadius: 16, style: .continuous)
-                    .stroke(Color.red.opacity(0.2), lineWidth: 1)
-            )
+            .background(Color(UIColor.secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 16))
+            .overlay(RoundedRectangle(cornerRadius: 16).stroke(Color.red.opacity(0.1), lineWidth: 1))
         }
         .padding(.bottom, 20)
     }
@@ -660,7 +478,7 @@ struct ManageStorageView: View {
                     // Percentage indicator
                     if totalSpace > 0 {
                         let percentage = Int((Double(usedSpace) / Double(totalSpace)) * 100)
-                        Text("\(percentage)% Used")
+                        Text(String(format: .localized("%d%% Used"), percentage))
                             .font(.caption)
                             .fontWeight(.medium)
                             .foregroundStyle(.secondary)
@@ -1395,8 +1213,8 @@ enum CleanupPeriod: CaseIterable {
     }
 }
 
-// MARK: - Storage Stat Row
-struct StorageStatRow: View {
+// MARK: - Storage Stat Row Compact
+struct StorageStatRowCompact: View {
     let label: String
     let value: String
     let color: Color
@@ -1405,16 +1223,41 @@ struct StorageStatRow: View {
         HStack(spacing: 8) {
             Circle()
                 .fill(color)
-                .frame(width: 10, height: 10)
+                .frame(width: 8, height: 8)
 
-            VStack(alignment: .leading, spacing: 2) {
+            VStack(alignment: .leading, spacing: 1) {
                 Text(label)
-                    .font(.caption)
+                    .font(.system(size: 10))
                     .foregroundStyle(.secondary)
                 Text(value)
-                    .font(.subheadline.bold())
+                    .font(.system(size: 13, weight: .bold))
             }
         }
+    }
+}
+
+// MARK: - Storage Quick Action Button
+struct StorageQuickActionButton: View {
+    let icon: String
+    let title: LocalizedStringKey
+    let color: Color
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            VStack(spacing: 8) {
+                Image(systemName: icon)
+                    .font(.system(size: 18, weight: .bold))
+                    .foregroundStyle(color)
+                Text(title)
+                    .font(.system(size: 10, weight: .bold))
+                    .foregroundStyle(.primary)
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 12)
+            .background(Color(UIColor.secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 12))
+        }
+        .buttonStyle(.plain)
     }
 }
 
@@ -1425,127 +1268,84 @@ struct StorageCategoryRow: View {
 
     var body: some View {
         HStack(spacing: 12) {
-            ZStack {
-                Circle()
-                    .fill(category.color.opacity(0.15))
-                    .frame(width: 40, height: 40)
+            Image(systemName: category.icon)
+                .font(.system(size: 16))
+                .foregroundStyle(category.color)
+                .frame(width: 24)
 
-                Image(systemName: category.icon)
-                    .font(.body.bold())
-                    .foregroundStyle(category.color)
-            }
-
-            VStack(alignment: .leading, spacing: 2) {
+            VStack(alignment: .leading, spacing: 1) {
                 Text(category.name)
-                    .font(.subheadline)
-                    .foregroundStyle(.primary)
+                    .font(.system(size: 14, weight: .medium))
                 Text(category.formattedSize)
-                    .font(.caption)
+                    .font(.system(size: 11))
                     .foregroundStyle(.secondary)
             }
 
             Spacer()
 
             if category.action != nil && category.size > 0 {
-                Button {
-                    onClear()
-                } label: {
-                    Text(.localized("Clear"))
-                        .font(.caption.bold())
-                        .foregroundStyle(category.color)
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 6)
-                        .background(
-                            Capsule()
-                                .fill(category.color.opacity(0.15))
-                        )
+                Button(action: onClear) {
+                    Image(systemName: "trash")
+                        .font(.system(size: 12))
+                        .foregroundStyle(.red.opacity(0.7))
+                        .padding(8)
+                        .background(Color.red.opacity(0.1), in: Circle())
                 }
                 .buttonStyle(.plain)
             }
         }
-        .padding(12)
-        .background(
-            RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .fill(Color(UIColor.secondarySystemGroupedBackground))
-        )
+        .padding(.vertical, 4)
     }
 }
 
-// MARK: - Advanced Tool Row
-struct AdvancedToolRow: View {
+// MARK: - Advanced Tool Button
+struct AdvancedToolButton: View {
     let icon: String
-    let title: String
-    let subtitle: String
+    let title: LocalizedStringKey
     let color: Color
     let action: () -> Void
 
     var body: some View {
         Button(action: action) {
             HStack(spacing: 12) {
-                ZStack {
-                    Circle()
-                        .fill(color.opacity(0.15))
-                        .frame(width: 40, height: 40)
-
-                    Image(systemName: icon)
-                        .font(.body)
-                        .foregroundStyle(color)
-                }
-
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(title)
-                        .font(.subheadline)
-                        .foregroundStyle(.primary)
-                    Text(subtitle)
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
-
+                Image(systemName: icon)
+                    .font(.system(size: 14))
+                    .foregroundStyle(color)
+                    .frame(width: 24)
+                Text(title)
+                    .font(.system(size: 14))
                 Spacer()
-
                 Image(systemName: "chevron.right")
-                    .font(.caption)
+                    .font(.system(size: 10, weight: .bold))
                     .foregroundStyle(.tertiary)
             }
-            .padding(12)
+            .padding(.vertical, 12)
         }
         .buttonStyle(.plain)
     }
 }
 
-// MARK: - Danger Zone Row
-struct DangerZoneRow: View {
-    let icon: String
-    let title: String
-    let subtitle: String
+// MARK: - Danger Zone Button Compact
+struct DangerZoneButtonCompact: View {
+    let title: LocalizedStringKey
+    var size: String? = nil
     let action: () -> Void
 
     var body: some View {
         Button(action: action) {
-            HStack(spacing: 12) {
-                ZStack {
-                    Circle()
-                        .fill(Color.red.opacity(0.15))
-                        .frame(width: 40, height: 40)
-
-                    Image(systemName: icon)
-                        .font(.body)
-                        .foregroundStyle(.red)
-                }
-
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(title)
-                        .font(.subheadline)
-                        .foregroundStyle(.red)
-                    Text(subtitle)
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
-
+            HStack {
+                Text(title)
+                    .font(.system(size: 14, weight: .medium))
+                    .foregroundStyle(.red)
                 Spacer()
-
+                if let size = size {
+                    Text(size)
+                        .font(.system(size: 11, design: .monospaced))
+                        .foregroundStyle(.secondary)
+                        .padding(.trailing, 4)
+                }
                 Image(systemName: "chevron.right")
-                    .font(.caption)
+                    .font(.system(size: 10, weight: .bold))
                     .foregroundStyle(.tertiary)
             }
             .padding(12)
