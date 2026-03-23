@@ -378,7 +378,7 @@ struct AdvancedInfoDisplayView<Footer: View>: View {
 
             if _isDebugExpanded {
                 VStack(alignment: .leading, spacing: 8) {
-                    _infoRow(label: "Internal ID", value: app.id.uuidString)
+                    _infoRow(label: "Internal ID", value: app.uuid ?? "N/A")
                     _infoRow(label: "Status Code", value: "\(viewModel.currentStep)")
                     _infoRow(label: "Method ID", value: "\(_installationMethod)")
                 }
