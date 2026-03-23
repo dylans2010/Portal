@@ -3,6 +3,7 @@ import UniformTypeIdentifiers
 
 struct EntitlementItem: Identifiable {
     let id = UUID()
+    var name: String
     var key: String
     var value: Any
     var isEnabled: Bool
@@ -11,16 +12,31 @@ struct EntitlementItem: Identifiable {
 struct EntitlementsCreateView: View {
     @Environment(\.dismiss) var dismiss
     @State private var _entitlements: [EntitlementItem] = [
-        EntitlementItem(key: "get-task-allow", value: true, isEnabled: true),
-        EntitlementItem(key: "com.apple.security.application-groups", value: ["group.com.example.app"], isEnabled: false),
-        EntitlementItem(key: "com.apple.developer.aps-environment", value: "development", isEnabled: false),
-        EntitlementItem(key: "com.apple.developer.icloud-container-identifiers", value: ["iCloud.com.example.app"], isEnabled: false),
-        EntitlementItem(key: "com.apple.developer.networking.wifi-info", value: true, isEnabled: false),
-        EntitlementItem(key: "com.apple.developer.associated-domains", value: ["applinks:example.com"], isEnabled: false),
-        EntitlementItem(key: "inter-app-audio", value: true, isEnabled: false),
-        EntitlementItem(key: "com.apple.developer.healthkit", value: true, isEnabled: false),
-        EntitlementItem(key: "com.apple.developer.homekit", value: true, isEnabled: false),
-        EntitlementItem(key: "com.apple.developer.nfc.readersession.formats", value: ["NDEF"], isEnabled: false)
+        EntitlementItem(name: "Can be debugged", key: "get-task-allow", value: true, isEnabled: true),
+        EntitlementItem(name: "App Groups", key: "com.apple.security.application-groups", value: ["group.com.example.app"], isEnabled: false),
+        EntitlementItem(name: "Push Notifications", key: "com.apple.developer.aps-environment", value: "development", isEnabled: false),
+        EntitlementItem(name: "iCloud Containers", key: "com.apple.developer.icloud-container-identifiers", value: ["iCloud.com.example.app"], isEnabled: false),
+        EntitlementItem(name: "Wi-Fi Information", key: "com.apple.developer.networking.wifi-info", value: true, isEnabled: false),
+        EntitlementItem(name: "Associated Domains", key: "com.apple.developer.associated-domains", value: ["applinks:example.com"], isEnabled: false),
+        EntitlementItem(name: "Inter-App Audio", key: "inter-app-audio", value: true, isEnabled: false),
+        EntitlementItem(name: "HealthKit", key: "com.apple.developer.healthkit", value: true, isEnabled: false),
+        EntitlementItem(name: "HomeKit", key: "com.apple.developer.homekit", value: true, isEnabled: false),
+        EntitlementItem(name: "NFC Tag Reading", key: "com.apple.developer.nfc.readersession.formats", value: ["NDEF"], isEnabled: false),
+        EntitlementItem(name: "Sign In with Apple", key: "com.apple.developer.applesignin", value: ["Default"], isEnabled: false),
+        EntitlementItem(name: "Siri", key: "com.apple.developer.siri", value: true, isEnabled: false),
+        EntitlementItem(name: "Network Extensions", key: "com.apple.developer.networking.networkextension", value: ["dns-proxy", "app-proxy", "content-filter", "packet-tunnel"], isEnabled: false),
+        EntitlementItem(name: "Multipath TCP", key: "com.apple.developer.networking.multipath", value: true, isEnabled: false),
+        EntitlementItem(name: "AutoFill Credential Provider", key: "com.apple.developer.authentication-services.autofill-credential-provider", value: true, isEnabled: false),
+        EntitlementItem(name: "App Attest", key: "com.apple.developer.devicecheck.appattest-environment", value: "development", isEnabled: false),
+        EntitlementItem(name: "User Fonts", key: "com.apple.developer.user-fonts", value: ["app-usage"], isEnabled: false),
+        EntitlementItem(name: "Push to Talk", key: "com.apple.developer.push-to-talk", value: true, isEnabled: false),
+        EntitlementItem(name: "Tap to Pay on iPhone", key: "com.apple.developer.proximity-reader.payment.acceptance", value: true, isEnabled: false),
+        EntitlementItem(name: "Increased Memory Limit", key: "com.apple.developer.kernel.increased-memory-limit", value: true, isEnabled: false),
+        EntitlementItem(name: "JIT Compilation", key: "dynamic-codesigning", value: true, isEnabled: false),
+        EntitlementItem(name: "Critical Alerts", key: "com.apple.developer.critical-alerts", value: true, isEnabled: false),
+        EntitlementItem(name: "Time Sensitive Notifications", key: "com.apple.developer.time-sensitive-notifications", value: true, isEnabled: false),
+        EntitlementItem(name: "Extended Virtual Address Space", key: "com.apple.developer.kernel.extended-virtual-addressing", value: true, isEnabled: false),
+        EntitlementItem(name: "ClassKit", key: "com.apple.developer.ClassKit-environment", value: "development", isEnabled: false)
     ]
 
     @State private var _customKey = ""
@@ -40,9 +56,12 @@ struct EntitlementsCreateView: View {
                 ForEach($_entitlements) { $item in
                     Toggle(isOn: $item.isEnabled) {
                         VStack(alignment: .leading, spacing: 4) {
+                            Text(item.name)
+                                .font(.subheadline.weight(.semibold))
+
                             Text(item.key)
-                                .font(.system(.subheadline, design: .monospaced))
-                                .fontWeight(.medium)
+                                .font(.system(.caption2, design: .monospaced))
+                                .foregroundStyle(.secondary)
 
                             if item.isEnabled {
                                 if let arrayValue = item.value as? [String] {
@@ -110,7 +129,7 @@ struct EntitlementsCreateView: View {
                         .foregroundStyle(.white)
                         .clipShape(Capsule())
                 }
-                .presentationDetents([.medium])
+                .presentationDetents([.height(240)])
             }
         }
     }
@@ -125,7 +144,7 @@ struct EntitlementsCreateView: View {
             value = _customValue
         }
 
-        let newItem = EntitlementItem(key: _customKey, value: value, isEnabled: true)
+        let newItem = EntitlementItem(name: "Custom Entitlement", key: _customKey, value: value, isEnabled: true)
         _entitlements.append(newItem)
         _customKey = ""
         _customValue = ""
