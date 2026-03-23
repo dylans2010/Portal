@@ -54,8 +54,8 @@ final class SectionStyleManager: ObservableObject {
         currentStyle = style
     }
 
-    func applyGlobalUIKitStyle() {
-        let tm = ThemeManager.shared
+    func applyGlobalUIKitStyle(themeManager: ThemeManager? = nil) {
+        let tm = themeManager ?? ThemeManager.shared
         switch currentStyle {
         case .native:
             UITableView.appearance().backgroundColor = nil
