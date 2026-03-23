@@ -786,7 +786,10 @@ struct GuideDetailView: View {
     }
     
     private func generateGuideWithAI() async {
-        guard #available(iOS 26.0, *) else { return }
+        guard #available(iOS 18.0, *) else {
+            guideGenerationError = "Guide generation requires iOS 18.0 or later"
+            return
+        }
         
         isGeneratingGuide = true
         guideGenerationError = nil
