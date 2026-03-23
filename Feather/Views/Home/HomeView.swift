@@ -193,6 +193,7 @@ struct HomeView: View {
             .navigationDestination(isPresented: $_navigateToSigning) {
                 if let app = _selectedAppForSigning {
                     ModernSigningView(app: app)
+                        .environmentObject(themeManager)
                 }
             }
         }
