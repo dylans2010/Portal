@@ -6459,17 +6459,17 @@ struct EntitlementsPlistEditorView: View {
 
 // MARK: - Entitlements Editor Tab
 struct EntitlementsEditorTab: View {
-    @State private var entitlements: [EntitlementItem] = [
-        EntitlementItem(key: "application-identifier", value: "$(AppIdentifierPrefix)$(CFBundleIdentifier)", type: .string),
-        EntitlementItem(key: "get-task-allow", value: "true", type: .boolean),
-        EntitlementItem(key: "keychain-access-groups", value: "$(AppIdentifierPrefix)$(CFBundleIdentifier)", type: .array),
-        EntitlementItem(key: "com.apple.developer.team-identifier", value: "TEAM_ID", type: .string),
-        EntitlementItem(key: "aps-environment", value: "development", type: .string)
+    @State private var entitlements: [DevEntitlementItem] = [
+        DevEntitlementItem(key: "application-identifier", value: "$(AppIdentifierPrefix)$(CFBundleIdentifier)", type: .string),
+        DevEntitlementItem(key: "get-task-allow", value: "true", type: .boolean),
+        DevEntitlementItem(key: "keychain-access-groups", value: "$(AppIdentifierPrefix)$(CFBundleIdentifier)", type: .array),
+        DevEntitlementItem(key: "com.apple.developer.team-identifier", value: "TEAM_ID", type: .string),
+        DevEntitlementItem(key: "aps-environment", value: "development", type: .string)
     ]
     @State private var showAddEntitlement = false
     @State private var newKey = ""
     @State private var newValue = ""
-    @State private var newType: EntitlementItem.ValueType = .string
+    @State private var newType: DevEntitlementItem.ValueType = .string
     
     var body: some View {
         List {
@@ -6536,7 +6536,7 @@ struct EntitlementsEditorTab: View {
     
     private func addEntitlement() {
         guard !newKey.isEmpty else { return }
-        entitlements.append(EntitlementItem(key: newKey, value: newValue, type: newType))
+        entitlements.append(DevEntitlementItem(key: newKey, value: newValue, type: newType))
         newKey = ""
         newValue = ""
         HapticsManager.shared.success()
@@ -6548,9 +6548,9 @@ struct EntitlementsEditorTab: View {
     
     private func addCommonEntitlements() {
         let common = [
-            EntitlementItem(key: "com.apple.security.app-sandbox", value: "true", type: .boolean),
-            EntitlementItem(key: "com.apple.security.network.client", value: "true", type: .boolean),
-            EntitlementItem(key: "com.apple.security.files.user-selected.read-write", value: "true", type: .boolean)
+            DevEntitlementItem(key: "com.apple.security.app-sandbox", value: "true", type: .boolean),
+            DevEntitlementItem(key: "com.apple.security.network.client", value: "true", type: .boolean),
+            DevEntitlementItem(key: "com.apple.security.files.user-selected.read-write", value: "true", type: .boolean)
         ]
         entitlements.append(contentsOf: common)
         HapticsManager.shared.success()
@@ -6559,8 +6559,8 @@ struct EntitlementsEditorTab: View {
     
     private func addDebugEntitlements() {
         let debug = [
-            EntitlementItem(key: "get-task-allow", value: "true", type: .boolean),
-            EntitlementItem(key: "com.apple.private.security.no-sandbox", value: "true", type: .boolean)
+            DevEntitlementItem(key: "get-task-allow", value: "true", type: .boolean),
+            DevEntitlementItem(key: "com.apple.private.security.no-sandbox", value: "true", type: .boolean)
         ]
         entitlements.append(contentsOf: debug)
         HapticsManager.shared.success()
@@ -6599,7 +6599,7 @@ struct EntitlementsEditorTab: View {
 }
 
 // MARK: - Entitlement Item
-struct EntitlementItem: Identifiable {
+struct DevEntitlementItem: Identifiable {
     let id = UUID()
     var key: String
     var value: String
@@ -6615,7 +6615,7 @@ struct EntitlementItem: Identifiable {
 
 // MARK: - Entitlement Row
 struct EntitlementRow: View {
-    @Binding var item: EntitlementItem
+    @Binding var item: DevEntitlementItem
     
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
@@ -6754,7 +6754,7 @@ struct PlistItem: Identifiable {
     let id = UUID()
     var key: String
     var value: String
-    var type: EntitlementItem.ValueType
+    var type: DevEntitlementItem.ValueType
 }
 
 // MARK: - Plist Item Row
