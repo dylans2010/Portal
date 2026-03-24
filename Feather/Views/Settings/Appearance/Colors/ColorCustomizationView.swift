@@ -46,7 +46,6 @@ struct ColorTheme: Identifiable, Codable, Equatable {
 struct ColorCustomizationView: View {
     private enum EditorSection: String, CaseIterable, Identifiable {
         case overview = "Overview"
-        case colors = "Colors"
         case intelligent = "Intelligent"
         case advanced = "Advanced"
         case sections = "Sections"
@@ -56,7 +55,6 @@ struct ColorCustomizationView: View {
         var icon: String {
             switch self {
             case .overview: return "sparkles"
-            case .colors: return "paintpalette.fill"
             case .intelligent: return "cpu"
             case .advanced: return "wand.and.rays"
             case .sections: return "square.grid.2x2.fill"
@@ -132,7 +130,6 @@ struct ColorCustomizationView: View {
     @State private var warningColor: Color = Color(hex: "#FF9500")
     @State private var errorColor: Color = Color(hex: "#FF3B30")
     @State private var selectedSection: EditorSection = .overview
-    @State private var showAllThemes = false
     @State private var themeName: String = ""
     @State private var showSaveAlert = false
     @State private var showResetAlert = false
@@ -195,18 +192,10 @@ struct ColorCustomizationView: View {
             switch selectedSection {
             case .overview:
                 overviewSection
-            case .colors:
-                paletteSection
             case .intelligent:
-                contextAwareSection
-                timeBasedSection
-                wallpaperIntegrationSection
-                perScreenSection
+                intelligentThemeFeaturesSection
             case .advanced:
-                accessibilitySection
-                feedbackSection
-                experimentalSection
-                sharingSection
+                advancedThemeFeaturesSection
             case .sections:
                 customizationLinksSection
             }
@@ -215,16 +204,6 @@ struct ColorCustomizationView: View {
         }
         .navigationTitle("Visual Design")
         .appWideHeaderTitle(displayMode: .inline)
-        .toolbar {
-            ToolbarItem(placement: .topBarTrailing) {
-                Button {
-                    showAllThemes = true
-                } label: {
-                    Image(systemName: "square.grid.2x2.fill")
-                        .font(.system(size: 14, weight: .bold))
-                }
-            }
-        }
         .onAppear(perform: loadColors)
         .sheet(isPresented: $showImagePicker) {
             ImagePicker(image: $selectedImage)
@@ -238,13 +217,6 @@ struct ColorCustomizationView: View {
                 syncThemeManagerColors()
                 HapticsManager.shared.success()
             }
-        }
-        .sheet(isPresented: $showAllThemes) {
-            ThemeLibraryView(themes: allThemes) { theme in
-                applyTheme(theme)
-                showAllThemes = false
-            }
-            .presentationDetents([.medium, .large])
         }
         .alert(String.localized("Save Theme"), isPresented: $showSaveAlert) {
             TextField(String.localized("Theme Name"), text: $themeName)
@@ -288,6 +260,49 @@ struct ColorCustomizationView: View {
 
             appWideThemesSection
         }
+    }
+
+    private var intelligentThemeFeaturesSection: some View {
+        IntelligentThemeFeaturesView(
+            contextTheming: $contextTheming,
+            lowPowerThemeId: $lowPowerThemeId,
+            focusThemeId: $focusThemeId,
+            timeBasedTheming: $timeBasedTheming,
+            morningThemeId: $morningThemeId,
+            sunsetThemeId: $sunsetThemeId,
+            nightThemeId: $nightThemeId,
+            showImagePicker: $showImagePicker,
+            allThemes: allThemes
+        )
+    }
+
+    private var advancedThemeFeaturesSection: some View {
+        AdvancedThemeFeaturesView(
+            highContrast: $highContrast,
+            autoContrastCorrection: $autoContrastCorrection,
+            colorBlindnessFilter: $colorBlindnessFilter,
+            hapticIntensity: $hapticIntensity,
+            visualFeedbackStrength: $visualFeedbackStrength,
+            layerBlendMode: $layerBlendMode,
+            parallaxEnabled: $parallaxEnabled,
+            motionGradients: $motionGradients,
+            performanceMode: $performanceMode,
+            advancedSliderRow: { title, value, range, step, unit, isPercent, icon in
+                AnyView(
+                    advancedSliderRow(
+                        title: title,
+                        value: value,
+                        range: range,
+                        step: step,
+                        unit: unit,
+                        isPercent: isPercent,
+                        icon: icon
+                    )
+                )
+            },
+            onExportTheme: exportTheme,
+            onImportTheme: importTheme
+        )
     }
 
     private var appWideThemesSection: some View {
@@ -1145,7 +1160,6 @@ struct ColorCustomizationView: View {
         successColor = Color(hex: successColorHex)
         warningColor = Color(hex: warningColorHex)
         errorColor = Color(hex: errorColorHex)
-        syncThemeManagerColors()
     }
 
     private func applyTheme(_ theme: ColorTheme) {
