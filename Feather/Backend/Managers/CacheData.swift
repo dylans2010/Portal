@@ -117,11 +117,11 @@ final class CacheData: @unchecked Sendable {
                     sourceName: entry.source.name ?? "Unknown Source",
                     sourceIdentifier: entry.source.id ?? entry.source.name ?? "unknown_source",
                     appName: entry.app.currentName,
-                    bundleID: entry.app.bundleIdentifier ?? "unknown.bundle.id",
+                    bundleID: entry.app.id ?? "unknown.bundle.id",
                     version: entry.app.currentVersion ?? "N/A",
                     developer: entry.app.developer ?? "Unknown",
                     subtitle: entry.app.subtitle ?? "",
-                    size: entry.app.size ?? 0,
+                    size: entry.app.size.map { Int($0) } ?? 0,
                     iconRemoteURL: iconRemote?.absoluteString,
                     iconLocalFileName: iconFileName,
                     cachedDate: cacheDate
