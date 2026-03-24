@@ -2,7 +2,7 @@ import SwiftUI
 import Combine
 
 struct PortalTopView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @ObservedObject private var themeManager = ThemeManager.shared
     @AppStorage("Feather.portalTopViewEnabled") private var portalTopViewEnabled: Bool = true
     @AppStorage("Feather.portalTopViewColor") private var portalTopViewColor: String = "#0077BE"
     @AppStorage("Feather.portalTopViewStyle") private var portalTopViewStyle: Int = 0 // 0: Ultra Thin, 1: Thin, 2: Regular, 3: Thick
@@ -17,6 +17,7 @@ struct PortalTopView: View {
     @AppStorage("Feather.portalTopViewGlassIntensity") private var glassIntensity: Int = 0
 
     @State private var isScreenshotting = false
+    @State private var hasDynamicIsland = false
 
     private var material: Material {
         switch portalTopViewStyle {
@@ -52,15 +53,16 @@ struct PortalTopView: View {
     }
 
     var body: some View {
-        if portalTopViewEnabled {
+        if portalTopViewEnabled && !hasDynamicIsland {
             GeometryReader { geometry in
                 let safeAreaTop = geometry.safeAreaInsets.top
-                let dynamicIslandThreshold: CGFloat = 54
-                let hasDynamicIsland = safeAreaTop >= dynamicIslandThreshold
+                let dynamicIslandThreshold: CGFloat = 51
+                let isPhone = UIDevice.current.userInterfaceIdiom == .phone
+                let currentlyDynamicIsland = isPhone && safeAreaTop >= dynamicIslandThreshold
 
                 // Exact Dynamic Island Hardware Positioning Logic
                 // To "hide behind" or match the Island, we position it exactly where the hardware is.
-                let topClearance = isScreenshotting ? 0 : (hasDynamicIsland ? 11 : 0)
+                let topClearance = isScreenshotting ? 0 : 0
 
                 VStack(spacing: 0) {
                     HStack {
@@ -76,7 +78,7 @@ struct PortalTopView: View {
                                     .aspectRatio(contentMode: .fit)
                                     .frame(width: 18, height: 18)
                                     .clipShape(RoundedRectangle(cornerRadius: 5, style: .continuous))
-                                    .shadow(color: .black.opacity(0.1), radius: 2, x: 0, y: 1)
+                                    .shadow(color: themeManager.primaryTextColor.opacity(0.1), radius: 2, x: 0, y: 1)
                             }
 
                             VStack(alignment: .leading, spacing: -1) {
@@ -113,7 +115,7 @@ struct PortalTopView: View {
                                         .opacity(0.45)
                                 } else {
                                     Capsule()
-                                        .fill(LinearGradient(colors: [Color(hex: portalTopViewColor).opacity(0.1), Color.blue.opacity(0.05)], startPoint: .topLeading, endPoint: .bottomTrailing))
+                                        .fill(LinearGradient(colors: [Color(hex: portalTopViewColor).opacity(0.1), themeManager.accentColor.opacity(0.05)], startPoint: .topLeading, endPoint: .bottomTrailing))
                                 }
 
                                 // Glass effect overlay
@@ -129,7 +131,7 @@ struct PortalTopView: View {
                                         LinearGradient(
                                             colors: useGradient
                                                 ? [Color(hex: portalTopViewColor).opacity(0.6), Color(hex: gradientEndColor).opacity(0.4), Color(hex: portalTopViewColor).opacity(0.1)]
-                                                : [Color(hex: portalTopViewColor).opacity(0.5), Color.blue.opacity(0.3), Color(hex: portalTopViewColor).opacity(0.1)],
+                                                : [Color(hex: portalTopViewColor).opacity(0.5), themeManager.accentColor.opacity(0.3), Color(hex: portalTopViewColor).opacity(0.1)],
                                             startPoint: gradientStartPoint,
                                             endPoint: gradientEndPoint
                                         ),
@@ -140,13 +142,19 @@ struct PortalTopView: View {
 
                         Spacer()
                     }
-                    .shadow(color: .black.opacity(0.12), radius: 12, x: 0, y: 6)
+                    .shadow(color: themeManager.primaryTextColor.opacity(0.12), radius: 12, x: 0, y: 6)
 
                     Spacer(minLength: 0)
                 }
                 .frame(maxWidth: .infinity)
                 .padding(.top, CGFloat(topClearance))
                 .animation(.spring(response: 0.5, dampingFraction: 0.8), value: isScreenshotting)
+                .onAppear {
+                    hasDynamicIsland = currentlyDynamicIsland
+                }
+                .onChange(of: safeAreaTop) { topInset in
+                    hasDynamicIsland = isPhone && topInset >= dynamicIslandThreshold
+                }
             }
             .allowsHitTesting(false)
             .zIndex(isScreenshotting ? 999999 : 1000)

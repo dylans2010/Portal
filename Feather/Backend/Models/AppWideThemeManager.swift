@@ -176,6 +176,22 @@ struct AppWideColors: Codable, Equatable {
     }
 }
 
+struct AppWideTypography {
+    let titleFont: UIFont
+    let largeTitleFont: UIFont
+    let headerAlignment: TextAlignment
+    let horizontalPadding: CGFloat
+    let topSafeAreaSpacing: CGFloat
+
+    static let `default` = AppWideTypography(
+        titleFont: .systemFont(ofSize: 17, weight: .semibold),
+        largeTitleFont: .systemFont(ofSize: 34, weight: .bold),
+        headerAlignment: .leading,
+        horizontalPadding: 16,
+        topSafeAreaSpacing: 8
+    )
+}
+
 @MainActor
 final class ThemeManager: ObservableObject {
     static let shared = ThemeManager()
@@ -227,6 +243,8 @@ final class ThemeManager: ObservableObject {
     var segmentedBackgroundColor: Color { cardBackgroundColor }
     var sliderTintColor: Color { accentColor }
     var progressTintColor: Color { accentColor }
+    var warningColor: Color { .orange }
+    var typography: AppWideTypography { .default }
 
     // MARK: - UIKit Color Helpers
     var accentUIColor: UIColor { UIColor(hex: resolvedColors.accent) }
@@ -294,8 +312,14 @@ final class ThemeManager: ObservableObject {
         let nav = UINavigationBarAppearance()
         nav.configureWithOpaqueBackground()
         nav.backgroundColor = navigationBarColor
-        nav.titleTextAttributes = [.foregroundColor: primaryTextColor]
-        nav.largeTitleTextAttributes = [.foregroundColor: primaryTextColor]
+        nav.titleTextAttributes = [
+            .foregroundColor: primaryTextColor,
+            .font: typography.titleFont
+        ]
+        nav.largeTitleTextAttributes = [
+            .foregroundColor: primaryTextColor,
+            .font: typography.largeTitleFont
+        ]
 
         UINavigationBar.appearance().standardAppearance = nav
         UINavigationBar.appearance().scrollEdgeAppearance = nav
@@ -321,6 +345,26 @@ final class ThemeManager: ObservableObject {
         // Avoid recursively touching ThemeManager.shared while this singleton is initializing.
         SectionStyleManager.shared.applyGlobalUIKitStyle(themeManager: self)
         NotificationCenter.default.post(name: Notification.Name("AppWideThemeDidChange"), object: nil)
+    }
+}
+
+typealias AppWideThemeManager = ThemeManager
+
+struct AppWideHeaderTitleModifier: ViewModifier {
+    @ObservedObject private var themeManager = ThemeManager.shared
+    let displayMode: NavigationBarItem.TitleDisplayMode
+
+    func body(content: Content) -> some View {
+        content
+            .navigationBarTitleDisplayMode(displayMode)
+            .toolbarBackground(themeManager.navigationBarColor, for: .navigationBar)
+            .toolbarColorScheme(.dark, for: .navigationBar)
+    }
+}
+
+extension View {
+    func appWideHeaderTitle(displayMode: NavigationBarItem.TitleDisplayMode = .inline) -> some View {
+        modifier(AppWideHeaderTitleModifier(displayMode: displayMode))
     }
 }
 

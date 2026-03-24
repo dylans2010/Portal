@@ -225,7 +225,7 @@ struct ColorCustomizationView: View {
             actionsSection
         }
         .navigationTitle("Visual Design")
-        .navigationBarTitleDisplayMode(.inline)
+        .appWideHeaderTitle(displayMode: .inline)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Button {
@@ -246,6 +246,7 @@ struct ColorCustomizationView: View {
                 backgroundManager.baseColor = palette.primary
                 uiElementColor = palette.secondary
                 tintColor = palette.accent
+                syncThemeManagerColors()
                 HapticsManager.shared.success()
             }
         }
@@ -1164,6 +1165,7 @@ struct ColorCustomizationView: View {
         successColor = Color(hex: successColorHex)
         warningColor = Color(hex: warningColorHex)
         errorColor = Color(hex: errorColorHex)
+        syncThemeManagerColors()
     }
 
     private func applyTheme(_ theme: ColorTheme) {
@@ -1185,6 +1187,7 @@ struct ColorCustomizationView: View {
         if let bw = theme.borderWidth { borderWidth = bw }
         if let co = theme.cardOpacity { cardOpacity = co }
         loadColors()
+        syncThemeManagerColors()
         HapticsManager.shared.success()
     }
 
@@ -1291,7 +1294,28 @@ struct ColorCustomizationView: View {
         cardOpacity = 1.0
         tintColorHex = "#0077BE"
         loadColors()
+        syncThemeManagerColors()
         HapticsManager.shared.success()
+    }
+
+    private func syncThemeManagerColors() {
+        var colors = themeManager.resolvedColors
+        colors.appBackground = backgroundManager.baseColor.toHex() ?? Color.defaultBackground
+        colors.navigationBar = navBarColor.toHex() ?? navBarColorHex
+        colors.tabBar = tabBarColor.toHex() ?? tabBarColorHex
+        colors.primaryText = textColor.toHex() ?? textColorHex
+        colors.secondaryText = secondaryTextColor.toHex() ?? secondaryTextColorHex
+        colors.cardBackground = uiElementColor.toHex() ?? uiElementColorHex
+        colors.accent = tintColor.toHex() ?? tintColorHex
+        colors.separator = dividerColor.toHex() ?? dividerColorHex
+        colors.buttonBackground = tintColor.toHex() ?? tintColorHex
+        colors.buttonText = textColor.toHex() ?? textColorHex
+        colors.iconTint = tintColor.toHex() ?? tintColorHex
+        colors.headerText = secondaryTextColor.toHex() ?? secondaryTextColorHex
+        colors.switchTint = tintColor.toHex() ?? tintColorHex
+        colors.selectionIndicator = tintColor.toHex() ?? tintColorHex
+        themeManager.appWideColors = colors
+        themeManager.applyUIKitAppearance()
     }
 }
 

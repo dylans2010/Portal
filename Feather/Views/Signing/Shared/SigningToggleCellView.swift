@@ -2,6 +2,7 @@
 import SwiftUI
 
 struct SigningToggleCellView<T>: View {
+	@ObservedObject private var themeManager = ThemeManager.shared
 	let title: String
 	@Binding var options: T?
 	let arrayKeyPath: WritableKeyPath<T, [String]>
@@ -20,6 +21,7 @@ struct SigningToggleCellView<T>: View {
 				}
 			}
 		))
+		.tint(themeManager.switchTintColor)
 	}
 	
 	private func _removeItem() {

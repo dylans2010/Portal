@@ -2,7 +2,7 @@ import SwiftUI
 import IDeviceSwift
 
 struct AdvancedInfoDisplayView<Footer: View>: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @ObservedObject private var themeManager = ThemeManager.shared
     @Environment(\.dismiss) var dismiss
     @AppStorage("Feather.installationMethod") private var _installationMethod: Int = 0
     @AppStorage("Feather.serverMethod") private var _serverMethod: Int = 0
@@ -68,7 +68,7 @@ struct AdvancedInfoDisplayView<Footer: View>: View {
                 _actionSection()
             }
             .navigationTitle("Installation Diagnostics")
-            .navigationBarTitleDisplayMode(.inline)
+            .appWideHeaderTitle(displayMode: .inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Done") {
@@ -86,6 +86,24 @@ struct AdvancedInfoDisplayView<Footer: View>: View {
                 _loadExtendedAppInfo()
                 _loadDeviceDiagnostics()
                 _loadSigningInfo()
+            }
+            .safeAreaInset(edge: .bottom) {
+                if _canShowInstallButton, let url = _installURL {
+                    Button {
+                        UIApplication.shared.open(url)
+                    } label: {
+                        Label("Install App", systemImage: "arrow.down.circle.fill")
+                            .frame(maxWidth: .infinity)
+                            .fontWeight(.bold)
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .tint(themeManager.buttonBackgroundColor)
+                    .foregroundStyle(themeManager.buttonTextColor)
+                    .padding(.horizontal, 16)
+                    .padding(.top, 8)
+                    .padding(.bottom, 8)
+                    .background(themeManager.appBackgroundColor.opacity(0.96))
+                }
             }
         }
     }
@@ -287,17 +305,6 @@ struct AdvancedInfoDisplayView<Footer: View>: View {
                     .buttonStyle(.borderedProminent)
                 } else {
                     VStack(spacing: 12) {
-                        Button {
-                            if let installer = installer {
-                                UIApplication.shared.open(URL(string: installer.iTunesLink)!)
-                            }
-                        } label: {
-                            Label("Install App", systemImage: "arrow.down.circle.fill")
-                                .frame(maxWidth: .infinity)
-                                .fontWeight(.bold)
-                        }
-                        .buttonStyle(.borderedProminent)
-
                         HStack {
                             Button {
                                 onOpen?()
@@ -328,13 +335,9 @@ struct AdvancedInfoDisplayView<Footer: View>: View {
                 }
                 .buttonStyle(.borderedProminent)
             } else {
-                Button(role: .destructive) {
-                    onCancel?()
-                } label: {
-                    Label("Cancel Installation", systemImage: "stop.fill")
-                        .frame(maxWidth: .infinity)
-                }
-                .buttonStyle(.borderedProminent)
+                Label("Install App button is pinned at the bottom.", systemImage: "arrow.down.circle.fill")
+                    .font(.subheadline)
+                    .foregroundStyle(themeManager.secondaryTextColor)
             }
         }
         .listRowBackground(Color.clear)
@@ -366,9 +369,18 @@ struct AdvancedInfoDisplayView<Footer: View>: View {
         case .debug: return themeManager.secondaryTextColor
         case .info: return themeManager.accentColor
         case .success: return themeManager.selectionColor
-        case .warning: return Color(hex: "#FF9500")
+        case .warning: return themeManager.warningColor
         case .error, .critical: return themeManager.destructiveColor
         }
+    }
+
+    private var _installURL: URL? {
+        guard let installer, let url = URL(string: installer.iTunesLink) else { return nil }
+        return url
+    }
+
+    private var _canShowInstallButton: Bool {
+        _installURL != nil && !viewModel.isError
     }
 
     private func _computeAppSize() {
