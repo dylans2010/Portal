@@ -35,6 +35,8 @@ enum SectionStyle: String, CaseIterable, Identifiable, Codable {
 final class SectionStyleManager: ObservableObject {
     static let shared = SectionStyleManager()
     private let key = "app.sectionStyle"
+    private let maxRefreshDepth = 64
+    private var isApplyingStyle = false
 
     @Published private(set) var currentStyle: SectionStyle {
         didSet {
@@ -46,7 +48,14 @@ final class SectionStyleManager: ObservableObject {
 
     private init() {
         let saved = UserDefaults.standard.string(forKey: key)
-        currentStyle = SectionStyle(rawValue: saved ?? "") ?? .native
+        let restoredStyle = SectionStyle(rawValue: saved ?? "") ?? .native
+        currentStyle = restoredStyle
+
+        // Repair corrupted persisted values so subsequent launches stay in a valid state.
+        if saved != nil, restoredStyle.rawValue != saved {
+            UserDefaults.standard.set(restoredStyle.rawValue, forKey: key)
+        }
+
         DispatchQueue.main.async { [weak self] in
             self?.applyGlobalUIKitStyle()
         }
@@ -64,6 +73,11 @@ final class SectionStyleManager: ObservableObject {
             }
             return
         }
+
+        // Prevent re-entrant styling passes (for example while UIKit is already applying appearance).
+        guard !isApplyingStyle else { return }
+        isApplyingStyle = true
+        defer { isApplyingStyle = false }
 
         let tm = ThemeManager.shared
 
@@ -105,28 +119,27 @@ final class SectionStyleManager: ObservableObject {
             UITextField.appearance().tintColor = tm.accentUIColor
         }
 
-        DispatchQueue.main.async { [weak self] in
-            guard let self else { return }
-            let style = self.currentStyle
-            let theme = ThemeManager.shared
-
-            UIApplication.shared.connectedScenes
-                .compactMap { $0 as? UIWindowScene }
-                .flatMap { $0.windows }
-                .forEach { window in
-                    self.refreshViewHierarchy(window, style: style, tm: theme)
-                }
-        }
+        // Refresh currently live windows only; avoid forcing UIKit work during scene startup.
+        let style = currentStyle
+        UIApplication.shared.connectedScenes
+            .compactMap { $0 as? UIWindowScene }
+            .flatMap { $0.windows }
+            .filter { !$0.isHidden }
+            .forEach { [weak self] window in
+                self?.refreshViewHierarchy(window, style: style, tm: tm, depth: 0)
+            }
     }
 
-    private func refreshViewHierarchy(_ view: UIView, style: SectionStyle, tm: ThemeManager) {
+    private func refreshViewHierarchy(_ view: UIView, style: SectionStyle, tm: ThemeManager, depth: Int) {
+        guard depth <= maxRefreshDepth else { return }
+
         autoreleasepool {
             if let tv = view as? UITableView {
                 tv.backgroundColor = style == .colorMatch ? tm.appBackgroundUIColor : nil
                 tv.separatorColor = style == .colorMatch ? tm.separatorUIColor : nil
-                if tv.dataSource != nil {
-                    tv.reloadData()
-                }
+                // Safer than reloadData during startup/layout transitions.
+                tv.setNeedsLayout()
+                tv.layoutIfNeeded()
             }
             if let cell = view as? UITableViewCell {
                 cell.backgroundColor = style == .colorMatch ? tm.cardBackgroundUIColor : nil
@@ -147,7 +160,7 @@ final class SectionStyleManager: ObservableObject {
             }
 
             for subview in view.subviews {
-                refreshViewHierarchy(subview, style: style, tm: tm)
+                refreshViewHierarchy(subview, style: style, tm: tm, depth: depth + 1)
             }
         }
     }
