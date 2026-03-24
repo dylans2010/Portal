@@ -78,7 +78,7 @@ struct EntitlementsCreateView: View {
             Section {
                 Text("Your signing certificate needs to have these entitlements available in order for this app to offer these capabilities.")
                     .font(.caption)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(themeManager.secondaryTextColor)
             }
 
             Section("Common Entitlements") {
@@ -135,8 +135,8 @@ struct EntitlementsCreateView: View {
                     Label("Share Entitlements File", systemImage: "square.and.arrow.up")
                         .font(.headline)
                         .padding()
-                        .background(Color.accentColor)
-                        .foregroundStyle(.white)
+                        .background(themeManager.accentColor)
+                        .foregroundStyle(themeManager.buttonTextColor)
                         .clipShape(Capsule())
                 }
                 .presentationDetents([.height(240)])
@@ -168,7 +168,7 @@ struct EntitlementsCreateView: View {
                 HStack(spacing: 12) {
                     Image(systemName: item.wrappedValue.symbol)
                         .font(.title3)
-                        .foregroundColor(.accentColor)
+                        .foregroundStyle(themeManager.accentColor)
                         .frame(width: 24)
 
                     VStack(alignment: .leading, spacing: 4) {
@@ -177,7 +177,7 @@ struct EntitlementsCreateView: View {
 
                         Text(item.wrappedValue.key)
                             .font(.system(.caption2, design: .monospaced))
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(themeManager.secondaryTextColor)
                     }
                 }
 
@@ -200,7 +200,7 @@ struct EntitlementsCreateView: View {
                         } else if let boolValue = item.wrappedValue.value as? Bool {
                             Text(boolValue ? "Enabled (Boolean)" : "Disabled (Boolean)")
                                 .font(.caption2)
-                                .foregroundStyle(.secondary)
+                                .foregroundStyle(themeManager.secondaryTextColor)
                         }
                     }
                     .transition(.opacity.combined(with: .move(edge: .top)))

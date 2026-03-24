@@ -24,7 +24,7 @@ struct FilesSettingsView: View {
                     Section {
                         FilesHeaderView()
                             .listRowInsets(EdgeInsets())
-                            .listRowBackground(Color.clear)
+                            .listRowBackground(themeManager.cardBackgroundColor)
                     }
                 }
 
@@ -127,7 +127,7 @@ struct FilesSettingsView: View {
                         HStack {
                             Spacer()
                             Text(.localized("Reset To Defaults"))
-                                .foregroundStyle(.red)
+                                .foregroundStyle(themeManager.destructiveColor)
                             Spacer()
                         }
                     }
@@ -160,5 +160,6 @@ struct FilesSettingsView: View {
 struct FilesSettingsView_Previews: PreviewProvider {
     static var previews: some View {
         FilesSettingsView()
+            .environmentObject(AppWideThemeManager())
     }
 }

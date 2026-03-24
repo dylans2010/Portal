@@ -196,9 +196,9 @@ struct SourcesAddView: View {
                                 } label: {
                                         Image(systemName: "xmark")
                         .font(.system(size: 16, weight: .bold))
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(themeManager.secondaryTextColor)
                         .padding(8)
-                        .background(Color.primary.opacity(0.05))
+                        .background(themeManager.primaryTextColor.opacity(0.05))
                         .clipShape(Circle())
                                 }
                         }
@@ -261,9 +261,9 @@ struct SourcesAddView: View {
                                 HStack(spacing: 12) {
                                         Image(systemName: "link")
                                                 .font(.system(size: 18, weight: .bold))
-                                                .foregroundStyle(Color.accentColor)
+                                                .foregroundStyle(themeManager.accentColor)
                                                 .frame(width: 44, height: 44)
-                                                .background(Color.accentColor.opacity(0.12))
+                                                .background(themeManager.accentColor.opacity(0.12))
                                                 .clipShape(Circle())
                                         
                                         TextField(.localized("Repository URL"), text: $_sourceURL)
@@ -336,7 +336,7 @@ struct SourcesAddView: View {
                                         .scaleEffect(1.2)
                                 Text(.localized("Loading Featured Sources"))
                                         .font(.subheadline)
-                                        .foregroundStyle(.secondary)
+                                        .foregroundStyle(themeManager.secondaryTextColor)
                         }
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 40)
@@ -358,10 +358,10 @@ struct SourcesAddView: View {
                                 Spacer()
                                 Text(.localized("Recommended"))
                                         .font(.caption.bold())
-                                        .foregroundStyle(.secondary)
+                                        .foregroundStyle(themeManager.secondaryTextColor)
                                         .padding(.horizontal, 8)
                                         .padding(.vertical, 4)
-                                        .background(Color.secondary.opacity(0.1))
+                                        .background(themeManager.secondaryTextColor.opacity(0.1))
                                         .clipShape(Capsule())
                         }
                 } footer: {
@@ -393,10 +393,10 @@ struct SourcesAddView: View {
                         } label: {
                                 Text(.localized("Add"))
                                         .font(.system(size: 14, weight: .bold, design: .rounded))
-                                        .foregroundStyle(.white)
+                                        .foregroundStyle(themeManager.buttonTextColor)
                                         .padding(.horizontal, 16)
                                         .padding(.vertical, 6)
-                                        .background(Color.accentColor)
+                                        .background(themeManager.accentColor)
                                         .clipShape(Capsule())
                         }
                         .buttonStyle(.plain)
@@ -415,7 +415,7 @@ struct SourcesAddView: View {
                                                 .scaleEffect(1.2)
                                         Text(.localized("Processing \(_currentImportProgress) Of \(_totalImportCount)..."))
                                                 .font(.subheadline)
-                                                .foregroundStyle(.secondary)
+                                                .foregroundStyle(themeManager.secondaryTextColor)
                                 }
                                 .padding()
                                 .frame(maxWidth: .infinity)
@@ -430,7 +430,7 @@ struct SourcesAddView: View {
                                 VStack(alignment: .leading, spacing: 12) {
                                         Text(.localized("Valid Sources"))
                                                 .font(.headline)
-                                                .foregroundStyle(.white)
+                                                .foregroundStyle(themeManager.buttonTextColor)
                                                 .padding(.horizontal, 4)
                                         
                                         VStack(spacing: 0) {
@@ -438,13 +438,13 @@ struct SourcesAddView: View {
                                                         HStack(spacing: 12) {
                                                                 Image(systemName: "checkmark.circle.fill")
                                                                         .font(.title3)
-                                                                        .foregroundStyle(.white)
+                                                                        .foregroundStyle(themeManager.buttonTextColor)
                                                                 
                                                                 VStack(alignment: .leading, spacing: 2) {
                                                                         Text(source.data?.name ?? .localized("Unknown"))
                                                                                 .font(.body)
                                                                                 .fontWeight(.medium)
-                                                                                .foregroundStyle(.white)
+                                                                                .foregroundStyle(themeManager.buttonTextColor)
                                                                         Text(source.url.absoluteString)
                                                                                 .font(.caption)
                                                                                 .foregroundStyle(.white.opacity(0.8))
@@ -465,9 +465,9 @@ struct SourcesAddView: View {
                                         .background(
                                                 LinearGradient(
                                                         colors: [
-                                                                Color.green,
-                                                                Color.green.opacity(0.85),
-                                                                Color.green.opacity(0.7)
+                                                                themeManager.accentColor,
+                                                                themeManager.accentColor.opacity(0.85),
+                                                                themeManager.accentColor.opacity(0.7)
                                                         ],
                                                         startPoint: .topLeading,
                                                         endPoint: .bottomTrailing
@@ -485,7 +485,7 @@ struct SourcesAddView: View {
                                 VStack(alignment: .leading, spacing: 12) {
                                         Text(.localized("Sources With Errors"))
                                                 .font(.headline)
-                                                .foregroundStyle(.white)
+                                                .foregroundStyle(themeManager.buttonTextColor)
                                                 .padding(.horizontal, 4)
                                         
                                         VStack(spacing: 0) {
@@ -493,13 +493,13 @@ struct SourcesAddView: View {
                                                         HStack(spacing: 12) {
                                                                 Image(systemName: "xmark.circle.fill")
                                                                         .font(.title3)
-                                                                        .foregroundStyle(.white)
+                                                                        .foregroundStyle(themeManager.buttonTextColor)
                                                                 
                                                                 VStack(alignment: .leading, spacing: 2) {
                                                                         Text(source.url.absoluteString)
                                                                                 .font(.body)
                                                                                 .fontWeight(.medium)
-                                                                                .foregroundStyle(.white)
+                                                                                .foregroundStyle(themeManager.buttonTextColor)
                                                                                 .lineLimit(1)
                                                                         if let error = source.error {
                                                                                 Text(error.localizedDescription)
@@ -523,9 +523,9 @@ struct SourcesAddView: View {
                                         .background(
                                                 LinearGradient(
                                                         colors: [
-                                                                Color.red,
-                                                                Color.red.opacity(0.85),
-                                                                Color.red.opacity(0.7)
+                                                                themeManager.destructiveColor,
+                                                                themeManager.destructiveColor.opacity(0.85),
+                                                                themeManager.destructiveColor.opacity(0.7)
                                                         ],
                                                         startPoint: .topLeading,
                                                         endPoint: .bottomTrailing
@@ -545,11 +545,11 @@ struct SourcesAddView: View {
                 VStack(alignment: .leading, spacing: 6) {
                         Text(.localized("Select Sources To Export"))
                                 .font(.system(.title2, design: .rounded).bold())
-                                .foregroundStyle(.primary)
+                                .foregroundStyle(themeManager.primaryTextColor)
 
                         Text(.localized("Choose the repositories you want to share"))
                                 .font(.system(.subheadline, design: .rounded, weight: .medium))
-                                .foregroundStyle(.secondary)
+                                .foregroundStyle(themeManager.secondaryTextColor)
                 }
                 .padding(.horizontal, 16)
         }
@@ -586,10 +586,10 @@ struct SourcesAddView: View {
                                         Text(.localized("Deselect All"))
                                 }
                                 .font(.system(size: 13, weight: .bold, design: .rounded))
-                                .foregroundStyle(.secondary)
+                                .foregroundStyle(themeManager.secondaryTextColor)
                                 .padding(.horizontal, 16)
                                 .padding(.vertical, 10)
-                                .background(Color.secondary.opacity(0.1))
+                                .background(themeManager.secondaryTextColor.opacity(0.1))
                                 .clipShape(Capsule())
                         }
                 }
@@ -628,7 +628,7 @@ struct SourcesAddView: View {
                 )
                 .overlay(
                         RoundedRectangle(cornerRadius: 24, style: .continuous)
-                                .stroke(Color.primary.opacity(0.05), lineWidth: 1)
+                                .stroke(themeManager.primaryTextColor.opacity(0.05), lineWidth: 1)
                 )
         }
 
@@ -988,7 +988,7 @@ struct PortalExportView: View {
 
                         Text(isImportMode ? .localized("Paste your Portal Transfer code to import.") : .localized("Share your sources with a Portal Transfer code."))
                                 .font(.subheadline)
-                                .foregroundStyle(.secondary)
+                                .foregroundStyle(themeManager.secondaryTextColor)
                                 .multilineTextAlignment(.center)
                                 .padding(.horizontal)
                 }
@@ -1002,7 +1002,7 @@ struct PortalExportView: View {
                                         HStack {
                                                 Label(.localized("Transfer Code"), systemImage: "key.fill")
                                                         .font(.headline)
-                                                        .foregroundStyle(.purple)
+                                                        .foregroundStyle(themeManager.accentColor)
                                                 Spacer()
                                                 if !exportData.isEmpty {
                                                         Button {
@@ -1017,7 +1017,7 @@ struct PortalExportView: View {
                                                                         .font(.caption.bold())
                                                         }
                                                         .buttonStyle(.bordered)
-                                                        .tint(.purple)
+                                                        .tint(themeManager.accentColor)
                                                 }
                                         }
                                         
@@ -1036,10 +1036,10 @@ struct PortalExportView: View {
                                                         VStack(spacing: 16) {
                                                                 Image(systemName: "exclamationmark.triangle")
                                                                         .font(.system(size: 48))
-                                                                        .foregroundStyle(.secondary)
+                                                                        .foregroundStyle(themeManager.secondaryTextColor)
                                                                 Text(.localized("No Data"))
                                                                         .font(.headline)
-                                                                        .foregroundStyle(.secondary)
+                                                                        .foregroundStyle(themeManager.secondaryTextColor)
                                                         }
                                                         .padding()
                                                         .frame(maxWidth: .infinity)
@@ -1071,7 +1071,7 @@ struct PortalExportView: View {
                                                                 .font(.caption.bold())
                                                 }
                                                 .buttonStyle(.bordered)
-                                                .tint(.cyan)
+                                                .tint(themeManager.accentColor)
                                         }
                                         
                                         TextEditor(text: $importText)
@@ -1109,10 +1109,10 @@ struct PortalExportView: View {
                                 switch result {
                                 case .success(let count):
                                         Label(.localized("\(count) Sources Added"), systemImage: "checkmark.circle.fill")
-                                                .foregroundStyle(.green)
+                                                .foregroundStyle(themeManager.accentColor)
                                 case .error(let message):
                                         Label(message, systemImage: "xmark.circle.fill")
-                                                .foregroundStyle(.red)
+                                                .foregroundStyle(themeManager.destructiveColor)
                                 }
                                 Spacer()
                         }
@@ -1125,7 +1125,7 @@ struct PortalExportView: View {
                         VStack(alignment: .leading, spacing: 10) {
                                 Label(.localized("Quick Tips"), systemImage: "lightbulb.fill")
                                         .font(.headline)
-                                        .foregroundStyle(.orange)
+                                        .foregroundStyle(themeManager.accentColor)
 
                                 VStack(alignment: .leading, spacing: 8) {
                                         tipRow(icon: "1.circle.fill", text: isImportMode ? .localized("Paste the Portal code you received") : .localized("Copy the transfer code to share"))
@@ -1139,8 +1139,8 @@ struct PortalExportView: View {
         
         private func tipRow(icon: String, text: String) -> some View {
                 HStack(spacing: 8) {
-                        Image(systemName: icon).foregroundStyle(.orange)
-                        Text(text).font(.caption).foregroundStyle(.secondary)
+                        Image(systemName: icon).foregroundStyle(themeManager.accentColor)
+                        Text(text).font(.caption).foregroundStyle(themeManager.secondaryTextColor)
                 }
         }
         
@@ -1187,26 +1187,26 @@ private struct ExportSourceRow: View {
             HStack(spacing: 16) {
                 ZStack {
                     Circle()
-                        .stroke(isSelected ? Color.accentColor : Color.secondary.opacity(0.3), lineWidth: 1.5)
+                        .stroke(isSelected ? themeManager.accentColor : themeManager.secondaryTextColor.opacity(0.3), lineWidth: 1.5)
                         .frame(width: 22, height: 22)
 
                     if isSelected {
                         Image(systemName: "checkmark")
                             .font(.system(size: 10, weight: .bold))
-                            .foregroundStyle(.white)
+                            .foregroundStyle(themeManager.buttonTextColor)
                             .frame(width: 22, height: 22)
-                            .background(Circle().fill(Color.accentColor))
+                            .background(Circle().fill(themeManager.accentColor))
                     }
                 }
 
                 VStack(alignment: .leading, spacing: 2) {
                     Text(source.name ?? .localized("Unknown"))
                         .font(.system(.body, design: .rounded, weight: .bold))
-                        .foregroundStyle(.primary)
+                        .foregroundStyle(themeManager.primaryTextColor)
 
                     Text(source.sourceURL?.absoluteString ?? "")
                         .font(.system(.caption, design: .monospaced))
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(themeManager.secondaryTextColor)
                         .lineLimit(1)
                 }
 

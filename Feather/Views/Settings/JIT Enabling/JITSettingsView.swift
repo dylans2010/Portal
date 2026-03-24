@@ -85,11 +85,11 @@ struct JITSettingsView: View {
                     if case .failed(let error) = manager.state {
                         Text(error.localizedDescription)
                             .font(.caption)
-                            .foregroundStyle(.red)
+                            .foregroundStyle(themeManager.destructiveColor)
                     } else {
                         Text(statusSubtitle)
                             .font(.caption)
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(themeManager.secondaryTextColor)
                     }
                 }
                 Spacer()
@@ -111,20 +111,20 @@ struct JITSettingsView: View {
                 HStack(spacing: 12) {
                     ZStack {
                         Circle()
-                            .fill(Color.blue.opacity(0.15))
+                            .fill(themeManager.accentColor.opacity(0.15))
                             .frame(width: 36, height: 36)
                         Image(systemName: "square.and.arrow.down")
                             .font(.system(size: 16))
-                            .foregroundStyle(.blue)
+                            .foregroundStyle(themeManager.accentColor)
                     }
                     VStack(alignment: .leading, spacing: 2) {
                         Text(String.localized("Import Pairing File"))
                             .font(.subheadline)
                             .fontWeight(.semibold)
-                            .foregroundStyle(.primary)
+                            .foregroundStyle(themeManager.primaryTextColor)
                         Text(String.localized("Required For Device Connection"))
                             .font(.caption)
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(themeManager.secondaryTextColor)
                     }
                     Spacer()
                     Image(systemName: hasPairing ? "checkmark.circle.fill" : "chevron.right")
@@ -138,10 +138,10 @@ struct JITSettingsView: View {
         } footer: {
             if hasPairing {
                 Text(String.localized("Pairing file loaded and validated."))
-                    .foregroundStyle(.green)
+                    .foregroundStyle(themeManager.accentColor)
             } else {
                 Text(String.localized("No pairing file found. Import one to continue."))
-                    .foregroundStyle(.orange)
+                    .foregroundStyle(themeManager.accentColor)
             }
         }
     }
@@ -155,25 +155,25 @@ struct JITSettingsView: View {
                     HStack(spacing: 12) {
                         ZStack {
                             Circle()
-                                .fill(Color.green.opacity(0.15))
+                                .fill(themeManager.accentColor.opacity(0.15))
                                 .frame(width: 36, height: 36)
                             Image(systemName: "link")
                                 .font(.system(size: 16))
-                                .foregroundStyle(.green)
+                                .foregroundStyle(themeManager.accentColor)
                         }
                         VStack(alignment: .leading, spacing: 2) {
                             Text(String.localized("Connect to LocalDevVPN"))
                                 .font(.subheadline)
                                 .fontWeight(.semibold)
-                                .foregroundStyle(.primary)
+                                .foregroundStyle(themeManager.primaryTextColor)
                             Text(String.localized("Enable Loopback VPN"))
                                 .font(.caption)
-                                .foregroundStyle(.secondary)
+                                .foregroundStyle(themeManager.secondaryTextColor)
                         }
                         Spacer()
                         Image(systemName: "arrow.up.right")
                             .font(.caption)
-                            .foregroundStyle(.tertiary)
+                            .foregroundStyle(themeManager.secondaryTextColor.opacity(0.7))
                     }
                     .padding(.vertical, 2)
                 }
@@ -184,25 +184,25 @@ struct JITSettingsView: View {
                     HStack(spacing: 12) {
                         ZStack {
                             Circle()
-                                .fill(Color.orange.opacity(0.15))
+                                .fill(themeManager.accentColor.opacity(0.15))
                                 .frame(width: 36, height: 36)
                             Image(systemName: "arrow.down.app")
                                 .font(.system(size: 16))
-                                .foregroundStyle(.orange)
+                                .foregroundStyle(themeManager.accentColor)
                         }
                         VStack(alignment: .leading, spacing: 2) {
                             Text(String.localized("Download LocalDevVPN"))
                                 .font(.subheadline)
                                 .fontWeight(.semibold)
-                                .foregroundStyle(.primary)
+                                .foregroundStyle(themeManager.primaryTextColor)
                             Text(String.localized("Required For Loopback Routing"))
                                 .font(.caption)
-                                .foregroundStyle(.secondary)
+                                .foregroundStyle(themeManager.secondaryTextColor)
                         }
                         Spacer()
                         Image(systemName: "arrow.up.right")
                             .font(.caption)
-                            .foregroundStyle(.tertiary)
+                            .foregroundStyle(themeManager.secondaryTextColor.opacity(0.7))
                     }
                     .padding(.vertical, 2)
                 }
@@ -220,25 +220,25 @@ struct JITSettingsView: View {
                 HStack(spacing: 12) {
                     ZStack {
                         Circle()
-                            .fill(Color.indigo.opacity(0.15))
+                            .fill(themeManager.accentColor.opacity(0.15))
                             .frame(width: 36, height: 36)
                         Image(systemName: "arrow.uturn.backward.circle")
                             .font(.system(size: 16))
-                            .foregroundStyle(.indigo)
+                            .foregroundStyle(themeManager.accentColor)
                     }
                     VStack(alignment: .leading, spacing: 2) {
                         Text(String.localized(manager.selectedFallbackStrategy.displayName))
                             .font(.subheadline)
                             .fontWeight(.semibold)
-                            .foregroundStyle(.primary)
+                            .foregroundStyle(themeManager.primaryTextColor)
                         Text(String.localized(manager.selectedFallbackStrategy.strategyDescription))
                             .font(.caption)
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(themeManager.secondaryTextColor)
                     }
                     Spacer()
                     Image(systemName: "checkmark")
                         .font(.system(size: 14, weight: .semibold))
-                        .foregroundStyle(Color.accentColor)
+                        .foregroundStyle(themeManager.accentColor)
                 }
                 .padding(.vertical, 2)
             } else {
@@ -249,31 +249,31 @@ struct JITSettingsView: View {
                         HStack(spacing: 12) {
                             ZStack {
                                 Circle()
-                                    .fill(Color.indigo.opacity(0.15))
+                                    .fill(themeManager.accentColor.opacity(0.15))
                                     .frame(width: 36, height: 36)
                                 Image(systemName: "arrow.uturn.backward.circle")
                                     .font(.system(size: 16))
-                                    .foregroundStyle(.indigo)
+                                    .foregroundStyle(themeManager.accentColor)
                             }
                             VStack(alignment: .leading, spacing: 2) {
                                 Text(String.localized(strategy.displayName))
                                     .font(.subheadline)
                                     .fontWeight(.semibold)
-                                    .foregroundStyle(.primary)
+                                    .foregroundStyle(themeManager.primaryTextColor)
                                 Text(String.localized(strategy.strategyDescription))
                                     .font(.caption)
-                                    .foregroundStyle(.secondary)
+                                    .foregroundStyle(themeManager.secondaryTextColor)
                             }
                             Spacer()
                             if manager.selectedFallbackStrategyIdentifier == strategy.identifier {
                                 Image(systemName: "checkmark")
                                     .font(.system(size: 14, weight: .semibold))
-                                    .foregroundStyle(Color.accentColor)
+                                    .foregroundStyle(themeManager.accentColor)
                             }
                         }
                         .padding(.vertical, 2)
                     }
-                    .foregroundStyle(.primary)
+                    .foregroundStyle(themeManager.primaryTextColor)
                 }
             }
         } header: {
@@ -295,27 +295,27 @@ struct JITSettingsView: View {
                 HStack(spacing: 12) {
                     ZStack {
                         Circle()
-                            .fill(Color.accentColor.opacity(0.15))
+                            .fill(themeManager.accentColor.opacity(0.15))
                             .frame(width: 36, height: 36)
                         Image(systemName: "bolt.fill")
                             .font(.system(size: 16))
-                            .foregroundStyle(Color.accentColor)
+                            .foregroundStyle(themeManager.accentColor)
                     }
                     VStack(alignment: .leading, spacing: 2) {
                         Text(String.localized("Enable JIT for App"))
                             .font(.subheadline)
                             .fontWeight(.semibold)
-                            .foregroundStyle(.primary)
+                            .foregroundStyle(themeManager.primaryTextColor)
                         Text(selectedBundleID.isEmpty
                              ? String.localized("Select An Installed App")
                              : selectedBundleID)
                             .font(.caption)
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(themeManager.secondaryTextColor)
                     }
                     Spacer()
                     Image(systemName: "chevron.right")
                         .font(.caption)
-                        .foregroundStyle(.tertiary)
+                        .foregroundStyle(themeManager.secondaryTextColor.opacity(0.7))
                 }
                 .padding(.vertical, 2)
             }
@@ -324,10 +324,10 @@ struct JITSettingsView: View {
             if manager.state == .jitEnabled {
                 HStack {
                     Image(systemName: "checkmark.circle.fill")
-                        .foregroundStyle(.green)
+                        .foregroundStyle(themeManager.accentColor)
                     Text(String.localized("JIT Enabled Successfully!"))
                         .font(.subheadline)
-                        .foregroundStyle(.green)
+                        .foregroundStyle(themeManager.accentColor)
                 }
             }
         } header: {
@@ -343,25 +343,25 @@ struct JITSettingsView: View {
                 HStack(spacing: 12) {
                     ZStack {
                         Circle()
-                            .fill(Color.purple.opacity(0.15))
+                            .fill(themeManager.accentColor.opacity(0.15))
                             .frame(width: 36, height: 36)
                         Image(systemName: "questionmark.circle")
                             .font(.system(size: 16))
-                            .foregroundStyle(.purple)
+                            .foregroundStyle(themeManager.accentColor)
                     }
                     VStack(alignment: .leading, spacing: 2) {
                         Text(String.localized("Pairing File Guide"))
                             .font(.subheadline)
                             .fontWeight(.semibold)
-                            .foregroundStyle(.primary)
+                            .foregroundStyle(themeManager.primaryTextColor)
                         Text(String.localized("Learn how to get a pairing file"))
                             .font(.caption)
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(themeManager.secondaryTextColor)
                     }
                     Spacer()
                     Image(systemName: "arrow.up.right")
                         .font(.caption)
-                        .foregroundStyle(.tertiary)
+                        .foregroundStyle(themeManager.secondaryTextColor.opacity(0.7))
                 }
                 .padding(.vertical, 2)
             }
@@ -377,13 +377,13 @@ struct JITSettingsView: View {
                 Section {
                     JITStatusView(manager: manager)
                         .listRowInsets(EdgeInsets())
-                        .listRowBackground(Color.clear)
+                        .listRowBackground(themeManager.cardBackgroundColor)
                 }
                 if case .failed(let error) = manager.state {
                     Section {
                         Text(error.localizedDescription)
                             .font(.subheadline)
-                            .foregroundStyle(.red)
+                            .foregroundStyle(themeManager.destructiveColor)
                     } header: {
                         SettingsSectionHeader(title: String.localized("Error Detail"), icon: "exclamationmark.triangle.fill")
                     }

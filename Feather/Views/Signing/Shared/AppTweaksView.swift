@@ -52,24 +52,24 @@ struct AppTweaksView: View {
         Section {
             HStack {
                 Label(String.localized("Frameworks"), systemImage: "cube.box.fill")
-                    .foregroundStyle(.blue)
+                    .foregroundStyle(themeManager.accentColor)
                 Spacer()
                 Text("\(frameworks.count)")
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(themeManager.secondaryTextColor)
             }
             HStack {
                 Label(String.localized("Bundles"), systemImage: "shippingbox.fill")
-                    .foregroundStyle(.purple)
+                    .foregroundStyle(themeManager.accentColor)
                 Spacer()
                 Text("\(bundles.count)")
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(themeManager.secondaryTextColor)
             }
             HStack {
                 Label(String.localized("Dylibs"), systemImage: "puzzlepiece.fill")
-                    .foregroundStyle(.orange)
+                    .foregroundStyle(themeManager.accentColor)
                 Spacer()
                 Text("\(dylibs.count)")
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(themeManager.secondaryTextColor)
             }
         } header: {
             Text(String.localized("Overview"))
@@ -88,7 +88,7 @@ struct AppTweaksView: View {
                 ForEach(options.injectionFiles, id: \.self) { url in
                     HStack {
                         Label(url.lastPathComponent, systemImage: "syringe.fill")
-                            .foregroundStyle(.green)
+                            .foregroundStyle(themeManager.accentColor)
                         Spacer()
                         Button(role: .destructive) {
                             withAnimation {
@@ -96,7 +96,7 @@ struct AppTweaksView: View {
                             }
                         } label: {
                             Image(systemName: "xmark.circle.fill")
-                                .foregroundStyle(.secondary)
+                                .foregroundStyle(themeManager.secondaryTextColor)
                         }
                         .buttonStyle(.plain)
                     }
@@ -116,21 +116,21 @@ struct AppTweaksView: View {
                 componentList(items: frameworks, prefix: "Frameworks/", optionsKey: "removeFiles")
             } label: {
                 Label(String.localized("Frameworks"), systemImage: "cube.fill")
-                    .foregroundStyle(.blue)
+                    .foregroundStyle(themeManager.accentColor)
             }
 
             DisclosureGroup {
                 componentList(items: bundles, prefix: "PlugIns/", optionsKey: "removeFiles")
             } label: {
                 Label(String.localized("Bundles & Extensions"), systemImage: "shippingbox.fill")
-                    .foregroundStyle(.purple)
+                    .foregroundStyle(themeManager.accentColor)
             }
 
             DisclosureGroup {
                 componentList(items: dylibs, prefix: "", optionsKey: "disInjectionFiles")
             } label: {
                 Label(String.localized("Dylibs"), systemImage: "puzzlepiece.fill")
-                    .foregroundStyle(.orange)
+                    .foregroundStyle(themeManager.accentColor)
             }
         } header: {
             Text(String.localized("Components"))
@@ -144,7 +144,7 @@ struct AppTweaksView: View {
         if filteredItems.isEmpty {
             Text(String.localized("No Items Found"))
                 .font(.caption)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(themeManager.secondaryTextColor)
         } else {
             ForEach(filteredItems, id: \.self) { item in
                 let fullPath = prefix.isEmpty ? item : "\(prefix)\(item)"
@@ -174,7 +174,7 @@ struct AppTweaksView: View {
                     } label: {
                         Image(systemName: "ellipsis")
                             .font(.caption)
-                            .foregroundStyle(.tertiary)
+                            .foregroundStyle(themeManager.secondaryTextColor.opacity(0.7))
                     }
                 }
             }
@@ -188,7 +188,7 @@ struct AppTweaksView: View {
                 dismiss()
             } label: {
                 Image(systemName: "xmark.circle.fill")
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(themeManager.secondaryTextColor)
             }
         }
 
@@ -378,7 +378,7 @@ struct ExtractTweaksView: View {
                             .scaleEffect(1.5)
                         Text(String.localized("Extracting Components..."))
                             .font(.subheadline)
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(themeManager.secondaryTextColor)
                     }
                 } else {
                     List {
@@ -425,8 +425,8 @@ struct ExtractTweaksView: View {
                                 .font(.headline)
                                 .frame(maxWidth: .infinity)
                                 .padding()
-                                .background(Color.accentColor)
-                                .foregroundStyle(.white)
+                                .background(themeManager.accentColor)
+                                .foregroundStyle(themeManager.buttonTextColor)
                                 .clipShape(RoundedRectangle(cornerRadius: 12))
                         }
                         .padding()

@@ -33,7 +33,7 @@ struct AppLogsView: View {
                 VStack(spacing: 10) {
                     HStack(spacing: 10) {
                         Image(systemName: "magnifyingglass")
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(themeManager.secondaryTextColor)
                             .font(.system(size: 14, weight: .medium))
 
                         TextField("Search Logs", text: $searchText)
@@ -43,7 +43,7 @@ struct AppLogsView: View {
                         if !searchText.isEmpty {
                             Button(action: { searchText = "" }) {
                                 Image(systemName: "xmark.circle.fill")
-                                    .foregroundStyle(.secondary)
+                                    .foregroundStyle(themeManager.secondaryTextColor)
                                     .contentShape(Rectangle())
                             }
                         }
@@ -105,7 +105,7 @@ struct AppLogsView: View {
 
                             Image(systemName: "doc.text.magnifyingglass")
                                 .font(.system(size: 40))
-                                .foregroundStyle(.secondary)
+                                .foregroundStyle(themeManager.secondaryTextColor)
                         }
 
                         VStack(spacing: 8) {
@@ -115,7 +115,7 @@ struct AppLogsView: View {
                             if !logManager.logs.isEmpty {
                                 Text("There is currently no logs, try adjusting your search or filters.")
                                     .font(.subheadline)
-                                    .foregroundStyle(.secondary)
+                                    .foregroundStyle(themeManager.secondaryTextColor)
                                     .multilineTextAlignment(.center)
                                     .padding(.horizontal, 40)
                             }
@@ -139,11 +139,11 @@ struct AppLogsView: View {
                                 VStack(spacing: 8) {
                                     Image(systemName: "hand.raised.shield.fill")
                                         .font(.system(size: 24))
-                                        .foregroundStyle(.secondary)
+                                        .foregroundStyle(themeManager.secondaryTextColor)
 
                                     Text("These logs always remain on device and never shared with anyone. You can choose to share them when reporting feedback, on the Include section, click the Logs button to send these logs on the GitHub Issue. ")
                                         .font(.system(size: 12, weight: .medium))
-                                        .foregroundStyle(.secondary)
+                                        .foregroundStyle(themeManager.secondaryTextColor)
                                         .multilineTextAlignment(.center)
                                         .padding(.horizontal, 40)
                                 }
@@ -187,7 +187,7 @@ struct AppLogsView: View {
                 // Auto-scroll toggle
                 Button(action: { autoScroll.toggle() }) {
                     Image(systemName: autoScroll ? "arrow.down.circle.fill" : "arrow.down.circle")
-                        .foregroundStyle(autoScroll ? Color.accentColor : .secondary)
+                        .foregroundStyle(autoScroll ? themeManager.accentColor : .secondary)
                 }
 
                 // Share menu
@@ -304,7 +304,7 @@ struct FilterPill: View {
                 ZStack {
                     if isSelected {
                         LinearGradient(
-                            colors: [Color.accentColor, Color.accentColor.opacity(0.8)],
+                            colors: [themeManager.accentColor, themeManager.accentColor.opacity(0.8)],
                             startPoint: .topLeading,
                             endPoint: .bottomTrailing
                         )
@@ -315,7 +315,7 @@ struct FilterPill: View {
             )
             .foregroundStyle(isSelected ? .white : .primary.opacity(0.8))
             .clipShape(Capsule())
-            .shadow(color: isSelected ? Color.accentColor.opacity(0.4) : .black.opacity(0.05), radius: 8, x: 0, y: 4)
+            .shadow(color: isSelected ? themeManager.accentColor.opacity(0.4) : .black.opacity(0.05), radius: 8, x: 0, y: 4)
             .overlay(
                 Capsule()
                     .stroke(.white.opacity(colorScheme == .dark ? 0.1 : 0.3), lineWidth: 1)
@@ -358,15 +358,15 @@ struct LogEntryRow: View {
 
                             Text(entry.formattedTimestamp)
                                 .font(.system(size: 10, weight: .medium, design: .monospaced))
-                                .foregroundStyle(.secondary)
+                                .foregroundStyle(themeManager.secondaryTextColor)
 
                             if let code = entry.errorCode {
                                 Text(code.rawValue)
                                     .font(.system(size: 9, weight: .bold, design: .monospaced))
                                     .padding(.horizontal, 4)
                                     .padding(.vertical, 1)
-                                    .background(Color.red.opacity(0.1))
-                                    .foregroundStyle(.red)
+                                    .background(themeManager.destructiveColor.opacity(0.1))
+                                    .foregroundStyle(themeManager.destructiveColor)
                                     .cornerRadius(4)
                             }
 
@@ -383,7 +383,7 @@ struct LogEntryRow: View {
 
                         Text(entry.message)
                             .font(.system(size: 12, weight: .medium, design: .monospaced))
-                            .foregroundStyle(.primary)
+                            .foregroundStyle(themeManager.primaryTextColor)
                             .lineLimit(isExpanded ? nil : 3)
                             .multilineTextAlignment(.leading)
                     }
@@ -392,7 +392,7 @@ struct LogEntryRow: View {
 
                     Image(systemName: "chevron.right")
                         .font(.system(size: 10, weight: .bold))
-                        .foregroundStyle(.tertiary)
+                        .foregroundStyle(themeManager.secondaryTextColor.opacity(0.7))
                         .rotationEffect(.degrees(isExpanded ? 90 : 0))
                         .padding(.top, 4)
                 }
@@ -474,12 +474,12 @@ struct DetailRow: View {
         HStack(alignment: .top, spacing: 4) {
             Text("\(label):")
                 .font(.system(size: 11, weight: .bold, design: .monospaced))
-                .foregroundStyle(.secondary)
+                .foregroundStyle(themeManager.secondaryTextColor)
                 .frame(width: 70, alignment: .leading)
 
             Text(value)
                 .font(.system(size: 11, weight: .medium, design: .monospaced))
-                .foregroundStyle(.primary)
+                .foregroundStyle(themeManager.primaryTextColor)
                 .textSelection(.enabled)
 
             Spacer()
@@ -532,13 +532,13 @@ struct ErrorCodeDetailView: View {
 
                             Image(systemName: "exclamationmark.triangle.fill")
                                 .font(.system(size: 40))
-                                .foregroundStyle(.red)
+                                .foregroundStyle(themeManager.destructiveColor)
                         }
 
                         Text(code.rawValue)
                             .font(.system(.title3, design: .monospaced))
                             .fontWeight(.bold)
-                            .foregroundStyle(.red)
+                            .foregroundStyle(themeManager.destructiveColor)
                     }
                     .padding(.top, 20)
 
@@ -547,7 +547,7 @@ struct ErrorCodeDetailView: View {
                         VStack(alignment: .leading, spacing: 8) {
                             Label("DESCRIPTION", systemImage: "text.alignleft")
                                 .font(.system(size: 12, weight: .black))
-                                .foregroundStyle(.secondary)
+                                .foregroundStyle(themeManager.secondaryTextColor)
 
                             Text(code.info.description)
                                 .font(.body)
@@ -555,14 +555,14 @@ struct ErrorCodeDetailView: View {
                         }
                         .padding()
                         .frame(maxWidth: .infinity, alignment: .leading)
-                        .background(Color.secondary.opacity(0.05))
+                        .background(themeManager.secondaryTextColor.opacity(0.05))
                         .cornerRadius(12)
 
                         // Suggestion
                         VStack(alignment: .leading, spacing: 8) {
                             Label("SUGGESTION", systemImage: "lightbulb.fill")
                                 .font(.system(size: 12, weight: .black))
-                                .foregroundStyle(.orange)
+                                .foregroundStyle(themeManager.accentColor)
 
                             Text(code.info.suggestion)
                                 .font(.body)
@@ -570,7 +570,7 @@ struct ErrorCodeDetailView: View {
                         }
                         .padding()
                         .frame(maxWidth: .infinity, alignment: .leading)
-                        .background(Color.orange.opacity(0.1))
+                        .background(themeManager.accentColor.opacity(0.1))
                         .cornerRadius(12)
                     }
                     .padding(.horizontal)
@@ -582,10 +582,10 @@ struct ErrorCodeDetailView: View {
                     } label: {
                         Text("Got it")
                             .font(.headline)
-                            .foregroundStyle(.white)
+                            .foregroundStyle(themeManager.buttonTextColor)
                             .frame(maxWidth: .infinity)
                             .padding()
-                            .background(Color.accentColor)
+                            .background(themeManager.accentColor)
                             .cornerRadius(12)
                     }
                     .padding()
@@ -633,11 +633,11 @@ struct LogInfoView: View {
             VStack(alignment: .leading, spacing: 10) {
                 Text("Logs are essential for debugging issues within Portal. They capture events, errors, and warnings that occur during operations like signing and installation.")
                     .font(.subheadline)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(themeManager.secondaryTextColor)
 
                 Text("Sharing these logs when reporting a bug helps developers identify and fix the issue much faster.")
                     .font(.subheadline)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(themeManager.secondaryTextColor)
             }
             .padding(.vertical, 8)
         }
@@ -654,7 +654,7 @@ struct LogInfoView: View {
                             .font(.headline)
                         Text(description(for: level))
                             .font(.caption)
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(themeManager.secondaryTextColor)
                     }
                 }
             }
@@ -708,12 +708,12 @@ struct LogErrorCodeRow: View {
                 Text(info.code)
                     .font(.system(.subheadline, design: .monospaced))
                     .fontWeight(.bold)
-                    .foregroundStyle(.red)
+                    .foregroundStyle(themeManager.destructiveColor)
                 Spacer()
 
                 Image(systemName: "chevron.down")
                     .font(.system(size: 10, weight: .bold))
-                    .foregroundStyle(.tertiary)
+                    .foregroundStyle(themeManager.secondaryTextColor.opacity(0.7))
                     .rotationEffect(.degrees(isExpanded ? 180 : 0))
             }
 
@@ -724,20 +724,20 @@ struct LogErrorCodeRow: View {
                 VStack(alignment: .leading, spacing: 4) {
                     Text("SUGGESTION")
                         .font(.system(size: 10, weight: .black))
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(themeManager.secondaryTextColor)
                     Text(info.suggestion)
                         .font(.caption)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(themeManager.secondaryTextColor)
                 }
                 .padding(8)
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .background(Color.secondary.opacity(0.05))
+                .background(themeManager.secondaryTextColor.opacity(0.05))
                 .cornerRadius(8)
                 .transition(.opacity.combined(with: .move(edge: .top)))
             } else {
                 Text("Click to see suggestion")
                     .font(.system(size: 10, weight: .bold))
-                    .foregroundStyle(Color.accentColor)
+                    .foregroundStyle(themeManager.accentColor)
                     .padding(.vertical, 4)
             }
         }

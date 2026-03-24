@@ -103,7 +103,7 @@ struct SigningEntitlementsView: View {
                 Circle()
                     .fill(
                         RadialGradient(
-                            colors: [Color.orange.opacity(0.15), Color.orange.opacity(0)],
+                            colors: [themeManager.accentColor.opacity(0.15), themeManager.accentColor.opacity(0)],
                             center: .center,
                             startRadius: 0,
                             endRadius: 200
@@ -117,7 +117,7 @@ struct SigningEntitlementsView: View {
                 Circle()
                     .fill(
                         RadialGradient(
-                            colors: [Color.purple.opacity(0.1), Color.purple.opacity(0)],
+                            colors: [themeManager.accentColor.opacity(0.1), themeManager.accentColor.opacity(0)],
                             center: .center,
                             startRadius: 0,
                             endRadius: 150
@@ -152,7 +152,7 @@ struct SigningEntitlementsView: View {
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 16)
                 .background(RoundedRectangle(cornerRadius: 16).fill(.ultraThinMaterial))
-                .overlay(RoundedRectangle(cornerRadius: 16).stroke(Color.primary.opacity(0.1), lineWidth: 1))
+                .overlay(RoundedRectangle(cornerRadius: 16).stroke(themeManager.primaryTextColor.opacity(0.1), lineWidth: 1))
             }
 
             Button {
@@ -167,7 +167,7 @@ struct SigningEntitlementsView: View {
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 16)
                 .background(RoundedRectangle(cornerRadius: 16).fill(.ultraThinMaterial))
-                .overlay(RoundedRectangle(cornerRadius: 16).stroke(Color.primary.opacity(0.1), lineWidth: 1))
+                .overlay(RoundedRectangle(cornerRadius: 16).stroke(themeManager.primaryTextColor.opacity(0.1), lineWidth: 1))
             }
         }
     }
@@ -178,7 +178,7 @@ struct SigningEntitlementsView: View {
         VStack(alignment: .leading, spacing: 16) {
             HStack {
                 Image(systemName: "list.bullet.rectangle.fill")
-                    .foregroundStyle(.orange)
+                    .foregroundStyle(themeManager.accentColor)
                 Text("Entitlements Content")
                     .font(.headline)
                 Spacer()
@@ -191,23 +191,23 @@ struct SigningEntitlementsView: View {
                             Text(key)
                                 .font(.system(.caption, design: .monospaced))
                                 .fontWeight(.bold)
-                                .foregroundStyle(.primary)
+                                .foregroundStyle(themeManager.primaryTextColor)
                             Spacer()
                         }
 
                         Text(String(describing: _parsedEntitlements[key] ?? ""))
                             .font(.caption2)
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(themeManager.secondaryTextColor)
                             .padding(8)
                             .frame(maxWidth: .infinity, alignment: .leading)
-                            .background(RoundedRectangle(cornerRadius: 8).fill(Color.primary.opacity(0.05)))
+                            .background(RoundedRectangle(cornerRadius: 8).fill(themeManager.primaryTextColor.opacity(0.05)))
                     }
                 }
             }
         }
         .padding(16)
         .background(RoundedRectangle(cornerRadius: 20).fill(.ultraThinMaterial))
-        .overlay(RoundedRectangle(cornerRadius: 20).stroke(Color.primary.opacity(0.1), lineWidth: 1))
+        .overlay(RoundedRectangle(cornerRadius: 20).stroke(themeManager.primaryTextColor.opacity(0.1), lineWidth: 1))
     }
 
     // MARK: - Header Section
@@ -217,7 +217,7 @@ struct SigningEntitlementsView: View {
             ZStack {
                 // Glow effect
                 Circle()
-                    .fill(Color.orange.opacity(_floatingAnimation ? 0.3 : 0.2))
+                    .fill(themeManager.accentColor.opacity(_floatingAnimation ? 0.3 : 0.2))
                     .frame(width: 100, height: 100)
                     .blur(radius: 25)
                     .scaleEffect(_floatingAnimation ? 1.1 : 1.0)
@@ -227,7 +227,7 @@ struct SigningEntitlementsView: View {
                     RoundedRectangle(cornerRadius: 24, style: .continuous)
                         .fill(
                             LinearGradient(
-                                colors: [Color.orange.opacity(0.3), Color.orange.opacity(0.15)],
+                                colors: [themeManager.accentColor.opacity(0.3), themeManager.accentColor.opacity(0.15)],
                                 startPoint: .topLeading,
                                 endPoint: .bottomTrailing
                             )
@@ -244,29 +244,29 @@ struct SigningEntitlementsView: View {
                             )
                         )
                 }
-                .shadow(color: Color.orange.opacity(0.3), radius: 15, x: 0, y: 8)
+                .shadow(color: themeManager.accentColor.opacity(0.3), radius: 15, x: 0, y: 8)
             }
             
             VStack(spacing: 8) {
                 HStack(spacing: 8) {
                     Text("Entitlements")
                         .font(.title2.weight(.bold))
-                        .foregroundStyle(.primary)
+                        .foregroundStyle(themeManager.primaryTextColor)
                     
                     Text("Beta")
                         .font(.system(size: 10, weight: .bold))
-                        .foregroundStyle(.white)
+                        .foregroundStyle(themeManager.buttonTextColor)
                         .padding(.horizontal, 8)
                         .padding(.vertical, 4)
                         .background(
                             Capsule()
-                                .fill(Color.orange)
+                                .fill(themeManager.accentColor)
                         )
                 }
                 
                 Text("Customize App Permissions And Capabilities")
                     .font(.subheadline)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(themeManager.secondaryTextColor)
                     .multilineTextAlignment(.center)
             }
         }
@@ -283,7 +283,7 @@ struct SigningEntitlementsView: View {
                         RoundedRectangle(cornerRadius: 12, style: .continuous)
                             .fill(
                                 LinearGradient(
-                                    colors: [Color.green.opacity(0.3), Color.green.opacity(0.15)],
+                                    colors: [themeManager.accentColor.opacity(0.3), themeManager.accentColor.opacity(0.15)],
                                     startPoint: .topLeading,
                                     endPoint: .bottomTrailing
                                 )
@@ -292,16 +292,16 @@ struct SigningEntitlementsView: View {
                         
                         Image(systemName: "doc.badge.checkmark.fill")
                             .font(.system(size: 20, weight: .semibold))
-                            .foregroundStyle(.green)
+                            .foregroundStyle(themeManager.accentColor)
                     }
                     
                     VStack(alignment: .leading, spacing: 4) {
                         Text("Selected File")
                             .font(.caption)
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(themeManager.secondaryTextColor)
                         Text(ent.lastPathComponent)
                             .font(.subheadline.weight(.medium))
-                            .foregroundStyle(.primary)
+                            .foregroundStyle(themeManager.primaryTextColor)
                             .lineLimit(1)
                     }
                     
@@ -316,7 +316,7 @@ struct SigningEntitlementsView: View {
                     } label: {
                         Image(systemName: "xmark.circle.fill")
                             .font(.system(size: 24))
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(themeManager.secondaryTextColor)
                     }
                 }
                 .padding(16)
@@ -332,22 +332,22 @@ struct SigningEntitlementsView: View {
                     VStack(spacing: 16) {
                         ZStack {
                             Circle()
-                                .fill(Color.orange.opacity(0.1))
+                                .fill(themeManager.accentColor.opacity(0.1))
                                 .frame(width: 64, height: 64)
                             
                             Image(systemName: "plus.circle.fill")
                                 .font(.system(size: 28, weight: .semibold))
-                                .foregroundStyle(.orange)
+                                .foregroundStyle(themeManager.accentColor)
                         }
                         
                         VStack(spacing: 6) {
                             Text(app != nil ? "Load From App" : "Select Entitlements File")
                                 .font(.headline.weight(.semibold))
-                                .foregroundStyle(.primary)
+                                .foregroundStyle(themeManager.primaryTextColor)
                             
                             Text(app != nil ? "Extract entitlements from the app bundle" : "Choose Entitlements File")
                                 .font(.caption)
-                                .foregroundStyle(.secondary)
+                                .foregroundStyle(themeManager.secondaryTextColor)
                         }
                     }
                     .frame(maxWidth: .infinity)
@@ -369,11 +369,11 @@ struct SigningEntitlementsView: View {
             HStack(spacing: 8) {
                 Image(systemName: "info.circle.fill")
                     .font(.system(size: 14, weight: .semibold))
-                    .foregroundStyle(.orange)
+                    .foregroundStyle(themeManager.accentColor)
                 
                 Text("About Entitlements")
                     .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(themeManager.secondaryTextColor)
             }
             
             VStack(alignment: .leading, spacing: 10) {
@@ -442,7 +442,7 @@ struct SigningEntitlementsView: View {
             
             Text(text)
                 .font(.subheadline)
-                .foregroundStyle(.primary)
+                .foregroundStyle(themeManager.primaryTextColor)
         }
     }
 }

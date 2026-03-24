@@ -271,7 +271,7 @@ struct AllAppsView: View {
                                 } label: {
                                     Image(systemName: "ellipsis.circle")
                                         .font(.system(size: 20))
-                                        .foregroundStyle(Color.accentColor)
+                                        .foregroundStyle(themeManager.accentColor)
                                 }
 
                                 Button {
@@ -280,7 +280,7 @@ struct AllAppsView: View {
                                 } label: {
                                     Image(systemName: "arrow.clockwise")
                                         .font(.system(size: 18))
-                                        .foregroundStyle(Color.accentColor)
+                                        .foregroundStyle(themeManager.accentColor)
                                 }
                                 .disabled(_isLoading)
                             }
@@ -345,7 +345,7 @@ struct AllAppsView: View {
                         .padding()
                     Text("Loading...")
                         .font(.subheadline)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(themeManager.secondaryTextColor)
                     Spacer()
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -375,7 +375,7 @@ struct AllAppsView: View {
                             HStack {
                                 Text("\(_filteredApps.count) Result\(_filteredApps.count == 1 ? "" : "s")")
                                     .font(.system(size: 13, weight: .medium))
-                                    .foregroundStyle(.secondary)
+                                    .foregroundStyle(themeManager.secondaryTextColor)
                                 Spacer()
                             }
                             .padding(.horizontal, 20)
@@ -418,9 +418,9 @@ struct AllAppsView: View {
                 } label: {
                     Image(systemName: "chevron.left")
                         .font(.system(size: 18, weight: .bold))
-                        .foregroundStyle(Color.accentColor)
+                        .foregroundStyle(themeManager.accentColor)
                         .frame(width: 40, height: 40)
-                        .background(Color.accentColor.opacity(0.1))
+                        .background(themeManager.accentColor.opacity(0.1))
                         .clipShape(Circle())
                 }
             }
@@ -431,15 +431,15 @@ struct AllAppsView: View {
                 VStack(alignment: .leading, spacing: 4) {
                     Text("\(_totalAppCount)")
                         .font(.system(size: 34, weight: .bold, design: .rounded))
-                        .foregroundStyle(.primary)
+                        .foregroundStyle(themeManager.primaryTextColor)
                     Text("Apps Available")
                         .font(.system(size: 15, weight: .medium))
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(themeManager.secondaryTextColor)
                 }
             } else {
                 Text("All Apps")
                     .font(.system(size: 24, weight: .bold, design: .rounded))
-                    .foregroundStyle(.primary)
+                    .foregroundStyle(themeManager.primaryTextColor)
             }
 
             Spacer()
@@ -452,9 +452,9 @@ struct AllAppsView: View {
                     } label: {
                         Image(systemName: "arrow.clockwise")
                             .font(.system(size: 18, weight: .bold))
-                            .foregroundStyle(Color.accentColor)
+                            .foregroundStyle(themeManager.accentColor)
                             .frame(width: 40, height: 40)
-                            .background(Color.accentColor.opacity(0.1))
+                            .background(themeManager.accentColor.opacity(0.1))
                             .clipShape(Circle())
                     }
                     .disabled(_isLoading)
@@ -480,9 +480,9 @@ struct AllAppsView: View {
                     } label: {
                         Image(systemName: "ellipsis.circle.fill")
                             .font(.system(size: 22))
-                            .foregroundStyle(Color.accentColor)
+                            .foregroundStyle(themeManager.accentColor)
                             .padding(8)
-                            .background(Color.accentColor.opacity(0.1))
+                            .background(themeManager.accentColor.opacity(0.1))
                             .clipShape(Circle())
                             .contentShape(Circle())
                     }
@@ -523,7 +523,7 @@ struct AllAppsView: View {
             HStack(spacing: 8) {
                 Image(systemName: "magnifyingglass")
                     .font(.system(size: 16, weight: .medium))
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(themeManager.secondaryTextColor)
 
                 TextField("Search \(_totalAppCount) Apps", text: $_searchText)
                     .font(.system(size: 16))
@@ -540,7 +540,7 @@ struct AllAppsView: View {
                     } label: {
                         Image(systemName: "xmark.circle.fill")
                             .font(.system(size: 18))
-                            .foregroundStyle(.tertiary)
+                            .foregroundStyle(themeManager.secondaryTextColor.opacity(0.7))
                             .contentShape(Rectangle())
                     }
                 }
@@ -552,9 +552,9 @@ struct AllAppsView: View {
                 } label: {
                     Image(systemName: "line.3.horizontal.decrease.circle.fill")
                         .font(.system(size: 22))
-                        .foregroundStyle(Color.accentColor)
+                        .foregroundStyle(themeManager.accentColor)
                         .padding(8)
-                        .background(Color.accentColor.opacity(0.1))
+                        .background(themeManager.accentColor.opacity(0.1))
                         .clipShape(Circle())
                         .contentShape(Circle())
                 }
@@ -578,7 +578,7 @@ struct AllAppsView: View {
                     }
                     .overlay(
                         RoundedRectangle(cornerRadius: _searchBarStyle == 1 ? 20 : 14, style: .continuous)
-                            .stroke(Color.primary.opacity(0.1), lineWidth: 0.5)
+                            .stroke(themeManager.primaryTextColor.opacity(0.1), lineWidth: 0.5)
                     )
                 }
             }
@@ -586,12 +586,12 @@ struct AllAppsView: View {
         .overlay(alignment: .bottom) {
             if _searchBarStyle == 2 {
                 Rectangle()
-                    .fill(Color.secondary.opacity(0.3))
+                    .fill(themeManager.secondaryTextColor.opacity(0.3))
                     .frame(height: 1)
                     .offset(y: 8)
             }
         }
-        .shadow(color: _searchBarFloating ? Color.black.opacity(0.1) : Color.clear, radius: 10, x: 0, y: 5)
+        .shadow(color: _searchBarFloating ? themeManager.primaryTextColor.opacity(0.1) : Color.clear, radius: 10, x: 0, y: 5)
         .padding(.horizontal, 20)
         .padding(.bottom, _searchBarFloating ? 0 : 16)
     }
@@ -665,12 +665,12 @@ struct AllAppsView: View {
                     VStack(alignment: .leading, spacing: 4) {
                         Text(app.appName)
                             .font(.system(size: _nameFontSize, weight: _useBoldTitles ? .bold : .semibold))
-                            .foregroundStyle(.primary)
+                            .foregroundStyle(themeManager.primaryTextColor)
                             .lineLimit(1)
 
                         Text("\(app.version) • \(app.developer)")
                             .font(.system(size: _metadataFontSize))
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(themeManager.secondaryTextColor)
                             .lineLimit(1)
                     }
 
@@ -692,18 +692,18 @@ struct AllAppsView: View {
             AsyncImage(url: localURL) { image in
                 image.resizable().aspectRatio(contentMode: .fill)
             } placeholder: {
-                RoundedRectangle(cornerRadius: _iconCornerRadius).fill(Color.secondary.opacity(0.15))
+                RoundedRectangle(cornerRadius: _iconCornerRadius).fill(themeManager.secondaryTextColor.opacity(0.15))
             }
         } else if let remote = app.iconRemoteURL, let url = URL(string: remote) {
             LazyImage(url: url) { state in
                 if let image = state.image {
                     image.resizable().aspectRatio(contentMode: .fill)
                 } else {
-                    RoundedRectangle(cornerRadius: _iconCornerRadius).fill(Color.secondary.opacity(0.15))
+                    RoundedRectangle(cornerRadius: _iconCornerRadius).fill(themeManager.secondaryTextColor.opacity(0.15))
                 }
             }
         } else {
-            RoundedRectangle(cornerRadius: _iconCornerRadius).fill(Color.secondary.opacity(0.15))
+            RoundedRectangle(cornerRadius: _iconCornerRadius).fill(themeManager.secondaryTextColor.opacity(0.15))
         }
     }
 
@@ -711,19 +711,19 @@ struct AllAppsView: View {
         VStack(spacing: 20) {
             ZStack {
                 Circle()
-                    .fill(Color.secondary.opacity(0.1))
+                    .fill(themeManager.secondaryTextColor.opacity(0.1))
                     .frame(width: 80, height: 80)
                 Image(systemName: "magnifyingglass")
                     .font(.system(size: 32, weight: .medium))
-                    .foregroundStyle(.tertiary)
+                    .foregroundStyle(themeManager.secondaryTextColor.opacity(0.7))
             }
             VStack(spacing: 6) {
                 Text("No Results Found")
                     .font(.system(size: 18, weight: .semibold))
-                    .foregroundStyle(.primary)
+                    .foregroundStyle(themeManager.primaryTextColor)
                 Text("Try a different search term.")
                     .font(.system(size: 14))
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(themeManager.secondaryTextColor)
             }
         }
         .frame(maxWidth: .infinity)
@@ -735,18 +735,18 @@ struct AllAppsView: View {
             Spacer()
             ZStack {
                 Circle()
-                    .fill(Color.secondary.opacity(0.1))
+                    .fill(themeManager.secondaryTextColor.opacity(0.1))
                     .frame(width: 100, height: 100)
                 Image(systemName: "tray")
                     .font(.system(size: 40))
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(themeManager.secondaryTextColor)
             }
             Text("No Sources")
                 .font(.system(size: 20, weight: .bold))
-                .foregroundStyle(.primary)
+                .foregroundStyle(themeManager.primaryTextColor)
             Text("Add sources to view all your apps here.")
                 .font(.system(size: 15))
-                .foregroundStyle(.secondary)
+                .foregroundStyle(themeManager.secondaryTextColor)
                 .multilineTextAlignment(.center)
             Spacer()
         }
@@ -760,7 +760,7 @@ struct AllAppsView: View {
                 .fill(.ultraThinMaterial)
                 .ignoresSafeArea()
 
-			LinearGradient(colors: [Color.accentColor.opacity(0.1), Color.blue.opacity(0.05), Color.purple.opacity(0.1)], startPoint: .topLeading, endPoint: .bottomTrailing)
+			LinearGradient(colors: [themeManager.accentColor.opacity(0.1), themeManager.accentColor.opacity(0.05), themeManager.accentColor.opacity(0.1)], startPoint: .topLeading, endPoint: .bottomTrailing)
 				.ignoresSafeArea()
 			
 			VStack(spacing: 40) {
@@ -772,7 +772,7 @@ struct AllAppsView: View {
 				VStack(spacing: 12) {
 					Text("Refreshing Library")
 						.font(.system(size: 28, weight: .bold, design: .rounded))
-						.foregroundStyle(.primary)
+						.foregroundStyle(themeManager.primaryTextColor)
 
                     VStack(spacing: 8) {
                         HStack(spacing: 8) {
@@ -781,7 +781,7 @@ struct AllAppsView: View {
                             Text("\(_loadedSourcesCount) / \(object.count) Sources")
                                 .font(.system(.subheadline, design: .monospaced))
                                 .fontWeight(.bold)
-                                .foregroundStyle(.secondary)
+                                .foregroundStyle(themeManager.secondaryTextColor)
                         }
 
                         if let startTime = _fetchStartTime, _loadedSourcesCount > 0 {
@@ -794,7 +794,7 @@ struct AllAppsView: View {
 
                             Text("Time Remaining: \(minutes)m \(seconds)s")
                                 .font(.system(size: 12, weight: .medium, design: .rounded))
-                                .foregroundStyle(.secondary)
+                                .foregroundStyle(themeManager.secondaryTextColor)
                                 .transition(.opacity)
                         } else if _isLoading && _loadedSourcesCount == 0 {
                             Text("Estimating time...")
@@ -804,7 +804,7 @@ struct AllAppsView: View {
                     }
                     .padding(.horizontal, 16)
                     .padding(.vertical, 10)
-                    .background(Color.primary.opacity(0.05))
+                    .background(themeManager.primaryTextColor.opacity(0.05))
                     .cornerRadius(12)
 				}
 				
@@ -815,20 +815,20 @@ struct AllAppsView: View {
 					HStack(spacing: 10) {
                         ZStack {
                             Circle()
-                                .fill(Color.yellow.opacity(0.2))
+                                .fill(themeManager.accentColor.opacity(0.2))
                                 .frame(width: 32, height: 32)
                             Image(systemName: "lightbulb.fill")
                                 .font(.system(size: 16))
-                                .foregroundStyle(.yellow)
+                                .foregroundStyle(themeManager.accentColor)
                         }
 						Text("Did You Know?")
 							.font(.system(size: 18, weight: .bold, design: .rounded))
-							.foregroundStyle(.primary)
+							.foregroundStyle(themeManager.primaryTextColor)
 					}
 
 					Text(_currentFact)
 						.font(.system(size: 15, weight: .medium, design: .rounded))
-						.foregroundStyle(.secondary)
+						.foregroundStyle(themeManager.secondaryTextColor)
 						.multilineTextAlignment(.center)
 						.lineLimit(4)
 						.padding(.horizontal, 20)
@@ -1136,7 +1136,7 @@ struct AllAppsRowView: View {
                                     .frame(width: config.iconSize * 0.35, height: config.iconSize * 0.35)
                                     .clipShape(Circle())
                                     .background(Circle().fill(Color(UIColor.systemBackground)))
-                                    .overlay(Circle().stroke(Color.primary.opacity(0.1), lineWidth: 1))
+                                    .overlay(Circle().stroke(themeManager.primaryTextColor.opacity(0.1), lineWidth: 1))
                                     .offset(x: config.iconSize * 0.7, y: 0)
                             }
                         }
@@ -1149,7 +1149,7 @@ struct AllAppsRowView: View {
                     // App name
                     Text(app.currentName)
                         .font(.system(size: config.nameFontSize, weight: config.useBoldTitles ? .bold : .semibold))
-                        .foregroundStyle(.primary)
+                        .foregroundStyle(themeManager.primaryTextColor)
                         .lineLimit(1)
 
                     // Metadata Row
@@ -1157,46 +1157,46 @@ struct AllAppsRowView: View {
                         if config.showStatus && !statusText.isEmpty {
                             Text(statusText)
                                 .font(.system(size: config.metadataFontSize, weight: .bold))
-                                .foregroundStyle(Color.accentColor)
+                                .foregroundStyle(themeManager.accentColor)
                         } else if config.showDeveloper, let developer = app.developer {
                             Text(developer)
                                 .font(.system(size: config.metadataFontSize))
-                                .foregroundStyle(.secondary)
+                                .foregroundStyle(themeManager.secondaryTextColor)
                                 .lineLimit(1)
                         }
 
                         if (config.showStatus && !statusText.isEmpty) || (config.showDeveloper && app.developer != nil) {
                             Text("•")
                                 .font(.system(size: config.metadataFontSize))
-                                .foregroundStyle(.tertiary)
+                                .foregroundStyle(themeManager.secondaryTextColor.opacity(0.7))
                         }
 
                         if config.showVersion, let version = app.currentVersion {
                             Text("v\(version)")
                                 .font(.system(size: config.metadataFontSize))
-                                .foregroundStyle(.secondary)
+                                .foregroundStyle(themeManager.secondaryTextColor)
                         }
 
                         if config.showSize, !fileSize.isEmpty {
                             Text("•")
                                 .font(.system(size: config.metadataFontSize))
-                                .foregroundStyle(.tertiary)
+                                .foregroundStyle(themeManager.secondaryTextColor.opacity(0.7))
 
                             Text(fileSize)
                                 .font(.system(size: config.metadataFontSize))
-                                .foregroundStyle(.secondary)
+                                .foregroundStyle(themeManager.secondaryTextColor)
                         }
                     }
 
                     if isDownloading {
                         Text("Downloading \(Int(downloadProgress * 100))%")
                             .font(.system(size: config.metadataFontSize, weight: .bold, design: .monospaced))
-                            .foregroundStyle(Color.accentColor)
+                            .foregroundStyle(themeManager.accentColor)
                             .transition(.opacity)
                     } else if config.showDescription, let description = app.localizedDescription {
                         Text(description)
                             .font(.system(size: config.metadataFontSize))
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(themeManager.secondaryTextColor)
                             .lineLimit(1)
                     }
                 }
@@ -1251,14 +1251,14 @@ struct AllAppsRowView: View {
             VStack(spacing: 2) {
                 Text(app.currentName)
                     .font(.system(size: config.nameFontSize - 2, weight: config.useBoldTitles ? .bold : .semibold))
-                    .foregroundStyle(.primary)
+                    .foregroundStyle(themeManager.primaryTextColor)
                     .lineLimit(1)
                     .multilineTextAlignment(.center)
 
                 if config.showVersion, let version = app.currentVersion {
                     Text("v\(version)")
                         .font(.system(size: config.subtitleFontSize - 2))
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(themeManager.secondaryTextColor)
                         .lineLimit(1)
                 }
             }
@@ -1276,7 +1276,7 @@ struct AllAppsRowView: View {
             .opacity(config.cardBackgroundOpacity)
         )
         .cornerRadius(config.iconCornerRadius + 4)
-        .shadow(color: Color.black.opacity(0.05), radius: 8, x: 0, y: 4)
+        .shadow(color: themeManager.primaryTextColor.opacity(0.05), radius: 8, x: 0, y: 4)
     }
 
     private var downloadProgressBar: some View {
@@ -1313,18 +1313,18 @@ struct AllAppsRowView: View {
 					VStack(spacing: 4) {
 						ZStack {
 							Circle()
-								.stroke(Color.accentColor.opacity(0.2), lineWidth: 3)
+								.stroke(themeManager.accentColor.opacity(0.2), lineWidth: 3)
 
 							Circle()
 								.trim(from: 0, to: downloadProgress)
-								.stroke(Color.accentColor, style: StrokeStyle(lineWidth: 3, lineCap: .round))
+								.stroke(themeManager.accentColor, style: StrokeStyle(lineWidth: 3, lineCap: .round))
 								.rotationEffect(.degrees(-90))
 						}
 						.frame(width: 32, height: 32)
 
 						Text("\(Int(downloadProgress * 100))%")
 							.font(.system(size: 10, weight: .bold, design: .monospaced))
-							.foregroundStyle(.primary)
+							.foregroundStyle(themeManager.primaryTextColor)
 					}
 				}
 				.clipShape(RoundedRectangle(cornerRadius: config.iconCornerRadius, style: .continuous))
@@ -1335,11 +1335,11 @@ struct AllAppsRowView: View {
 	
 	private var iconPlaceholder: some View {
 		RoundedRectangle(cornerRadius: config.iconCornerRadius, style: .continuous)
-			.fill(Color.secondary.opacity(0.2))
+			.fill(themeManager.secondaryTextColor.opacity(0.2))
 			.overlay(
 				Image(systemName: "square.dashed")
 					.font(.system(size: config.iconSize * 0.4))
-					.foregroundStyle(.secondary)
+					.foregroundStyle(themeManager.secondaryTextColor)
 			)
             .overlay(
                 RoundedRectangle(cornerRadius: config.iconCornerRadius, style: .continuous)
@@ -1359,19 +1359,19 @@ struct AllAppsRowView: View {
 				ZStack {
 					// Background circle
 					Circle()
-						.stroke(Color.primary.opacity(0.15), lineWidth: 2.5)
+						.stroke(themeManager.primaryTextColor.opacity(0.15), lineWidth: 2.5)
 					
 					// Progress circle
 					Circle()
 						.trim(from: 0, to: downloadProgress)
-						.stroke(Color.accentColor, style: StrokeStyle(lineWidth: 2.5, lineCap: .round))
+						.stroke(themeManager.accentColor, style: StrokeStyle(lineWidth: 2.5, lineCap: .round))
 						.rotationEffect(.degrees(-90))
 						.animation(.linear(duration: 0.2), value: downloadProgress)
 					
 					// Cancel icon
 					Image(systemName: "xmark")
 						.font(.system(size: 12, weight: .semibold))
-						.foregroundStyle(Color.accentColor)
+						.foregroundStyle(themeManager.accentColor)
 				}
 			}
 		} else {
@@ -1383,11 +1383,11 @@ struct AllAppsRowView: View {
 			} label: {
 				ZStack {
 					Circle()
-						.fill(Color.accentColor.opacity(0.15))
+						.fill(themeManager.accentColor.opacity(0.15))
 					
 					Image(systemName: "arrow.down.circle.fill")
 						.font(.system(size: 28))
-						.foregroundStyle(Color.accentColor)
+						.foregroundStyle(themeManager.accentColor)
 				}
 			}
 		}
