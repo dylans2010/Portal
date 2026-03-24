@@ -2,6 +2,8 @@ import SwiftUI
 import Combine
 
 struct PortalTopView: View {
+    @EnvironmentObject var themeManager: AppWideThemeManager
+
     @ObservedObject private var themeManager = ThemeManager.shared
     @AppStorage("Feather.portalTopViewEnabled") private var portalTopViewEnabled: Bool = true
     @AppStorage("Feather.portalTopViewColor") private var portalTopViewColor: String = "#0077BE"

@@ -2,7 +2,7 @@ import SwiftUI
 import CryptoKit
 
 struct DuplicateFinderView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     let baseDirectory: URL
     @State private var duplicates: [String: [URL]] = [:]
     @State private var isSearching = false

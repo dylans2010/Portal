@@ -4,7 +4,7 @@ import CryptoKit
 
 // MARK: - ChecksumCalculatorView
 struct ChecksumCalculatorView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     let fileURL: URL
     @Environment(\.dismiss) var dismiss
     
@@ -117,7 +117,7 @@ struct ChecksumCalculatorView: View {
 
 // MARK: - ChecksumRow
 struct ChecksumRow: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     let algorithm: String
     let checksum: String
     

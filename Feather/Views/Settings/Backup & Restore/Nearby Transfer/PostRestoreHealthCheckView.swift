@@ -37,7 +37,7 @@ enum IssueSeverity {
 
 // MARK: - Post Restore Health Check View
 struct PostRestoreHealthCheckView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     @Environment(\.dismiss) var dismiss
     @StateObject private var viewModel = PostRestoreHealthCheckViewModel()
     @State private var showRestartDialog = false
@@ -195,7 +195,7 @@ struct PostRestoreHealthCheckView: View {
 
 // MARK: - Health Issue Row
 struct HealthIssueRow: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     let issue: HealthIssue
     
     var body: some View {

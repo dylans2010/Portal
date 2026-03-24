@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct UUIDGeneratorView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     @State private var count: Int = 1
     @State private var uuids: [String] = [UUID().uuidString]
 

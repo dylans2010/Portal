@@ -3,7 +3,7 @@ import MultipeerConnectivity
 import NimbleViews
 
 struct PairingMPCView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
 
     var isEmbedded: Bool = false
 

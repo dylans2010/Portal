@@ -5,7 +5,7 @@ import NimbleViews
 
 // MARK: - View
 struct SourceNewsCardView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
 	var new: ASRepository.News
 	
 	// MARK: Body

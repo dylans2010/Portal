@@ -3,7 +3,7 @@ import NimbleViews
 
 // MARK: - Modern Install/Modify Dialog (Full Screen)
 struct InstallModifyDialogView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     @EnvironmentObject var styleManager: SectionStyleManager
     @Environment(\.dismiss) var dismiss
     let app: AppInfoPresentable

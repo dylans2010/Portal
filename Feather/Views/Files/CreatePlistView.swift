@@ -2,7 +2,7 @@ import SwiftUI
 import NimbleViews
 
 struct CreatePlistView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     @Environment(\.dismiss) var dismiss
     let directoryURL: URL
     

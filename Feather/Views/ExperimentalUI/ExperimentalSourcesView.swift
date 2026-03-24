@@ -11,7 +11,7 @@ import CoreData
 import AltSourceKit
 
 struct ExperimentalSourcesView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     @StateObject var viewModel = SourcesViewModel.shared
     @State private var searchText = ""
     @State private var showAddSource = false
@@ -70,7 +70,7 @@ struct ExperimentalSourcesView: View {
 
 // MARK: - Hero Header
 struct ExperimentalHeroHeader: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     let title: String
     let subtitle: String
     let icon: String
@@ -108,7 +108,7 @@ struct ExperimentalHeroHeader: View {
 
 // MARK: - Search Bar
 struct ExperimentalSearchBar: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     @Binding var text: String
     let placeholder: String
     
@@ -139,7 +139,7 @@ struct ExperimentalSearchBar: View {
 
 // MARK: - Featured Section
 struct ExperimentalFeaturedSection: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     let sources: [AltSource]
     @ObservedObject var viewModel: SourcesViewModel
     
@@ -174,7 +174,7 @@ struct ExperimentalFeaturedSection: View {
 
 // MARK: - Featured Card
 struct ExperimentalFeaturedCard: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     let source: AltSource
     @ObservedObject var viewModel: SourcesViewModel
     
@@ -212,7 +212,7 @@ struct ExperimentalFeaturedCard: View {
 
 // MARK: - Sources Grid
 struct ExperimentalSourcesGrid: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     let sources: [AltSource]
     @ObservedObject var viewModel: SourcesViewModel
     
@@ -250,7 +250,7 @@ struct ExperimentalSourcesGrid: View {
 
 // MARK: - Source Card
 struct ExperimentalSourceCard: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     let source: AltSource
     @ObservedObject var viewModel: SourcesViewModel
     

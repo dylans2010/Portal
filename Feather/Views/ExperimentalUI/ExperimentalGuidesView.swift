@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct ExperimentalGuidesView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     @State private var selectedCategory: GuideCategory = .all
     
     enum GuideCategory: String, CaseIterable {
@@ -60,7 +60,7 @@ struct ExperimentalGuidesView: View {
 
 // MARK: - Guides List
 struct ExperimentalGuidesList: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     var body: some View {
         VStack(spacing: ExperimentalUITheme.Spacing.md) {
             ForEach(0..<5) { index in
@@ -73,7 +73,7 @@ struct ExperimentalGuidesList: View {
 
 // MARK: - Guide Card
 struct ExperimentalGuideCard: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     let index: Int
     
     var body: some View {

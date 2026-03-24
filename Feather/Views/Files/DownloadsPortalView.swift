@@ -195,7 +195,7 @@ class DownloadsPortalService: ObservableObject {
 
 // MARK: - Downloads Portal View
 struct DownloadsPortalView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     @StateObject private var service = DownloadsPortalService()
     @Environment(\.dismiss) var dismiss
     @State private var _searchText = ""
@@ -455,7 +455,7 @@ struct DownloadsPortalView: View {
 
 // MARK: - Download Item Card
 struct DownloadItemCard: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     let item: DownloadsPortalItem
     @ObservedObject var service: DownloadsPortalService
     @State private var isDownloading = false

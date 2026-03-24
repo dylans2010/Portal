@@ -2,7 +2,7 @@ import SwiftUI
 import NimbleViews
 
 struct PortalShortcutsGuideView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     @AppStorage("Feather.showHeaderViews") private var showHeaderViews = true
 
     var body: some View {
@@ -269,7 +269,7 @@ struct PortalShortcutsGuideView: View {
 // MARK: - Supporting Views
 
 private struct FeaturePill: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     let icon: String
     let text: String
 
@@ -290,7 +290,7 @@ private struct FeaturePill: View {
 }
 
 private struct PortalShortcutStepRow: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     let number: String
     let title: String
     let description: String
@@ -321,7 +321,7 @@ private struct PortalShortcutStepRow: View {
 }
 
 private struct RecommendedShortcutRow: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     let icon: String
     let iconColor: Color
     let title: String
@@ -352,7 +352,7 @@ private struct RecommendedShortcutRow: View {
 }
 
 private struct CategorySection: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     let category: PortalIntentCategory
     @State private var isExpanded = false
 
@@ -413,7 +413,7 @@ private struct CategorySection: View {
 }
 
 private struct AutomationIdeaRow: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     let icon: String
     let iconColor: Color
     let title: String

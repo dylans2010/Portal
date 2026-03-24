@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct IPAExplorerProvisionViewer: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     let fileURL: URL
     @State private var certificate: Certificate?
 
@@ -31,7 +31,7 @@ struct IPAExplorerProvisionViewer: View {
 }
 
 private struct ProvisionMetadataSection: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     let cert: Certificate
 
     var body: some View {
@@ -48,7 +48,7 @@ private struct ProvisionMetadataSection: View {
 }
 
 private struct ProvisionCapabilitiesSection: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     let cert: Certificate
 
     var body: some View {
@@ -60,7 +60,7 @@ private struct ProvisionCapabilitiesSection: View {
 }
 
 private struct ProvisionEntitlementsSection: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     let entitlements: [String: AnyCodable]
 
     var body: some View {
@@ -73,7 +73,7 @@ private struct ProvisionEntitlementsSection: View {
 }
 
 private struct ProvisionEntitlementRow: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     let key: String
     let value: AnyCodable?
 
@@ -90,7 +90,7 @@ private struct ProvisionEntitlementRow: View {
 }
 
 private struct ProvisionInfoRow: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     let label: String
     let value: String
 

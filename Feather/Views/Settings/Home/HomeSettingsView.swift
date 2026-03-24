@@ -302,7 +302,7 @@ class ProfilePictureManager: ObservableObject {
 
 // MARK: - Home Settings View
 struct HomeSettingsView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     @StateObject private var settingsManager = HomeSettingsManager.shared
     @StateObject private var profileManager = ProfilePictureManager.shared
     @AppStorage("Feather.showHeaderViews") private var showHeaderViews = true
@@ -575,7 +575,7 @@ struct HomeSettingsView: View {
 
 // MARK: - Supporting Views
 private struct SettingsRowView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     let icon: String
     let title: String
     let color: Color
@@ -594,7 +594,7 @@ private struct SettingsRowView: View {
 }
 
 private struct ReorderableWidgetRow: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     let widget: HomeWidgetConfig
     
     var body: some View {
@@ -627,7 +627,7 @@ private struct ReorderableWidgetRow: View {
 }
 
 private struct WidgetToggleRow: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     let widgetType: HomeWidgetType
     let isEnabled: Bool
     let isPinned: Bool
@@ -767,7 +767,7 @@ struct ProfileImagePicker: UIViewControllerRepresentable {
 
 // MARK: - App Update Tracking Settings View
 struct AppUpdateTrackingSettingsView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     @Environment(\.dismiss) private var dismiss
     @StateObject private var updateManager = AppUpdateTrackingManager.shared
     @StateObject private var sourcesViewModel = SourcesViewModel.shared
@@ -988,7 +988,7 @@ struct AppUpdateTrackingSettingsView: View {
 
 // MARK: - Tracked App Row
 private struct TrackedAppRow: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     let app: TrackedAppConfig
     let onToggle: () -> Void
     let onRemove: () -> Void
@@ -1051,7 +1051,7 @@ private struct TrackedAppRow: View {
 
 // MARK: - Select App To Track View
 struct SelectAppToTrackView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     @Environment(\.dismiss) private var dismiss
     @StateObject private var updateManager = AppUpdateTrackingManager.shared
     let sources: [AltSource: ASRepository]
@@ -1228,7 +1228,7 @@ struct SelectAppToTrackView: View {
 
 // MARK: - Cached App Row (for fast loading)
 private struct CachedAppRow: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     let app: CachedAppInfo
     let onSelect: () -> Void
     
@@ -1319,7 +1319,7 @@ private struct CachedAppRow: View {
 
 // MARK: - Filter Chip Button
 private struct FilterChipButton: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     let title: String
     let isSelected: Bool
     let action: () -> Void

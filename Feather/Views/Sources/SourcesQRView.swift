@@ -2,7 +2,7 @@ import SwiftUI
 import CoreImage.CIFilterBuiltins
 
 struct SourcesQRView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     @Environment(\.dismiss) private var dismiss
     let data: String
 

@@ -2,7 +2,7 @@ import SwiftUI
 import NimbleViews
 
 struct CustomAnimationView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     // Reusability Parameters
     var iconName: String = "bell.badge.fill"
     var title: String = "Enable Notifications"

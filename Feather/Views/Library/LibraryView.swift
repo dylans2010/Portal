@@ -7,7 +7,7 @@ import Zip
 
 // MARK: - Modern Library View with Blue Gradient Background
 struct LibraryView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     @EnvironmentObject var styleManager: SectionStyleManager
     @Environment(\.managedObjectContext) private var viewContext
     @AppStorage("Feather.useGradients") private var _useGradients: Bool = true
@@ -722,7 +722,7 @@ extension LibraryView {
 
 // MARK: - Simplified Library App Row
 struct LibraryAppRow: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     @EnvironmentObject var styleManager: SectionStyleManager
     let app: AppInfoPresentable
     @Binding var selectedInfoAppPresenting: AnyApp?
@@ -814,7 +814,7 @@ struct LibraryAppRow: View {
 
 // MARK: - Library Download Header View
 struct LibraryDownloadHeaderView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     @EnvironmentObject var styleManager: SectionStyleManager
     @ObservedObject var downloadManager: DownloadManager
 
@@ -846,7 +846,7 @@ struct LibraryDownloadHeaderView: View {
 }
 
 struct LibraryDownloadItemView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     @EnvironmentObject var styleManager: SectionStyleManager
     let download: Download
     @State private var progress: Double = 0
@@ -891,7 +891,7 @@ struct LibraryDownloadItemView: View {
 
 // MARK: - Modern Filter Chip
 struct ModernFilterChip: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     @EnvironmentObject var styleManager: SectionStyleManager
     let title: String
     let isSelected: Bool
@@ -929,7 +929,7 @@ struct ModernFilterChip: View {
 
 // MARK: - Compact Filter Chip (New Modern Design)
 struct CompactFilterChip: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     @EnvironmentObject var styleManager: SectionStyleManager
     let title: String
     let icon: String

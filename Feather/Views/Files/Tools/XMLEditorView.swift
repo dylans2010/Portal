@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct XMLEditorView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     let fileURL: URL
     @Environment(\.dismiss) var dismiss
     @State private var xmlContent: String = ""

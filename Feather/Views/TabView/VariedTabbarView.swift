@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct VariedTabbarView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     @AppStorage("feature_experimentalUI") var experimentalUI = false
     @AppStorage("Feather.enableCustomTabBar") var enableCustomTabBar = false
     

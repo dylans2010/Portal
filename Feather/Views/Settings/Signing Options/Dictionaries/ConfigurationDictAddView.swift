@@ -3,7 +3,7 @@ import NimbleViews
 
 // MARK: - View
 struct ConfigurationDictAddView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
 	@Environment(\.dismiss) var dismiss
 	
 	@State private var _newKey = ""

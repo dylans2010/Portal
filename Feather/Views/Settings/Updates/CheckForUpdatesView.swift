@@ -3,7 +3,7 @@
 import SwiftUI
 
 struct CheckForUpdatesView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     @AppStorage("Feather.showHeaderViews") private var showHeaderViews = true
     @StateObject private var updateManager = UpdateManager()
     @State private var selectedReleaseForNotes: GitHubRelease? = nil
@@ -639,7 +639,7 @@ struct CheckForUpdatesView: View {
 
 // MARK: - Circular Progress View
 struct CircularProgressView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     let progress: Double
     let color: Color
     var size: CGFloat = 20
@@ -662,7 +662,7 @@ struct CircularProgressView: View {
 
 // MARK: - Looking For Releases Animation
 struct LookingForReleasesView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     @State private var isAnimating = false
 
     var body: some View {
@@ -701,7 +701,7 @@ struct LookingForReleasesView: View {
 
 // MARK: - Modern Progress Bar
 struct ModernProgressBar: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     let progress: Double?
     @State private var indeterminateOffset: CGFloat = -1
 
@@ -746,7 +746,7 @@ struct ModernProgressBar: View {
 
 // MARK: - Downloading Wave Animation
 struct DownloadingWaveAnimation: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     @State private var phase = 0.0
 
     var body: some View {
@@ -768,7 +768,7 @@ struct DownloadingWaveAnimation: View {
 
 // MARK: - Loading Dots Animation View
 struct LoadingDotsView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     @State private var animationPhase = 0
     
     var body: some View {
@@ -794,7 +794,7 @@ struct LoadingDotsView: View {
 
 // MARK: - Full Release Notes View
 struct FullReleaseNotesView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     let release: GitHubRelease
     @Environment(\.dismiss) private var dismiss
     
@@ -1307,7 +1307,7 @@ class DownloadDelegate: NSObject, URLSessionDownloadDelegate {
 
 // MARK: - Update Finished View
 struct UpdateFinishedView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     let ipaURL: URL
     let fileName: String
     let onDismiss: () -> Void
@@ -1620,7 +1620,7 @@ struct UpdateFinishedView: View {
 
 // MARK: - Modern Markdown View
 struct ModernMarkdownView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     let markdown: String
     @Environment(\.colorScheme) private var colorScheme
     

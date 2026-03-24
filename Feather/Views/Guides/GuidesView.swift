@@ -3,7 +3,7 @@ import NimbleViews
 
 // MARK: - GuidesView
 struct GuidesView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     @State private var selectedGuide: Guide?
     @AppStorage("forceShowGuides") private var forceShowGuides = false
     @StateObject private var hideManager = GuidesHideManager.shared

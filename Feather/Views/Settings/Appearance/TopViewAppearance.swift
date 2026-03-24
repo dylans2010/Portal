@@ -8,7 +8,7 @@ import NimbleViews
 /// Options include background color, text color, material style, version
 /// display, and visual effects like gradients and glass overlays.
 struct TopViewAppearance: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     @AppStorage("Feather.portalTopViewColor") private var portalTopViewColor: String = "#0077BE"
     @AppStorage("Feather.portalTopViewStyle") private var portalTopViewStyle: Int = 0
     @AppStorage("Feather.portalTopViewTextColor") private var portalTopViewTextColor: String = "#FFFFFF"

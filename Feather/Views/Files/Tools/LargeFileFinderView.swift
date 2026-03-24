@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct LargeFileFinderView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     let baseDirectory: URL
     @State private var files: [FileInfo] = []
     @State private var isSearching = false

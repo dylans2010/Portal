@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct AllAppsCustomizationView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     @AppStorage("Feather.allApps.showVersion") private var showVersion: Bool = true
     @AppStorage("Feather.allApps.showSize") private var showSize: Bool = true
     @AppStorage("Feather.allApps.showDeveloper") private var showDeveloper: Bool = true

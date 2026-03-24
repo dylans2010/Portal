@@ -90,7 +90,7 @@ struct AllAppsRowConfig {
 // MARK: - All Apps View (Modern Integrated Style)
 @MainActor
 struct AllAppsView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     var isTab: Bool = false
     @Environment(\.dismiss) private var dismiss
     @AppStorage("Feather.useGradients") private var _useGradients: Bool = true
@@ -973,7 +973,7 @@ struct AllAppsView: View {
 
 // MARK: - All Apps Row View
 struct AllAppsRowView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
 	let source: ASRepository
 	let app: ASRepository.App
 	let onTap: () -> Void
@@ -1359,7 +1359,7 @@ extension View {
 // MARK: - AllAppsWrapperView
 /// Wrapper view that switches between AllAppsView and SourceAppsView based on settings
 struct AllAppsWrapperView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
 	@AppStorage("Feather.allApps.useNewAllAppsView") private var useNewAllAppsView: Bool = true
 	
 	var object: [AltSource]

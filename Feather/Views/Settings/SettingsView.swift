@@ -14,7 +14,7 @@ enum CertificateExperience: String, CaseIterable {
 
 // MARK: - Settings View
 struct SettingsView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     @EnvironmentObject var styleManager: SectionStyleManager
     @State private var developerTapCount = 0
     @State private var lastTapTime: Date?

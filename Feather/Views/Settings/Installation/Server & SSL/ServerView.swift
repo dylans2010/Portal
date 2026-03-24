@@ -79,7 +79,7 @@ extension ServerView {
 
 // MARK: - View
 struct ServerView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     @Environment(\.dismiss) private var dismiss
         @AppStorage("Feather.ipFix") private var _ipFix: Bool = false
         @AppStorage("Feather.serverMethod") private var _serverMethod: Int = 0

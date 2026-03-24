@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct TransferSetupHeaderView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     // MARK: - Body
     var body: some View {
         headerCard

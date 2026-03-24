@@ -3,7 +3,7 @@ import NimbleViews
 
 // MARK: - FileInfoView
 struct FileInfoView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     let file: FileItem
     @Environment(\.dismiss) var dismiss
     
@@ -138,7 +138,7 @@ struct FileInfoView: View {
 
 // MARK: - InfoRow
 struct FileInfoRow: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     let label: String
     let value: String
     var icon: String? = nil

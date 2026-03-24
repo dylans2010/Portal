@@ -4,7 +4,7 @@ import NukeUI
 
 // MARK: - View
 struct SourcesCellView: View {
-	@EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
 	@Environment(\.horizontalSizeClass) private var horizontalSizeClass
 	@StateObject var viewModel = SourcesViewModel.shared
 	@State private var dominantColor: Color = .accentColor

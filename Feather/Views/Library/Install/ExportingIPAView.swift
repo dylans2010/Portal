@@ -2,7 +2,7 @@ import SwiftUI
 import IDeviceSwift
 
 struct ExportingIPAView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     let app: AppInfoPresentable
     let onDismiss: () -> Void
 

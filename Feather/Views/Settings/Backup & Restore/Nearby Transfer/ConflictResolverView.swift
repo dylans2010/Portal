@@ -48,7 +48,7 @@ enum ConflictType {
 
 // MARK: - Conflict Resolver View
 struct ConflictResolverView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     @Environment(\.dismiss) var dismiss
     @StateObject private var viewModel = ConflictResolverViewModel()
     
@@ -186,7 +186,7 @@ struct ConflictResolverView: View {
 
 // MARK: - Conflict Item Section
 struct ConflictItemSection: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     @Binding var conflict: ConflictItem
     
     var body: some View {

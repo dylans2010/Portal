@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct BackupDiffView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     @Environment(\.dismiss) private var dismiss
     let snapshotID: String
     let backupMetadata: [String: Any]

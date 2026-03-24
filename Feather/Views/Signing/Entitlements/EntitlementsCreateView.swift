@@ -11,7 +11,7 @@ struct EntitlementItem: Identifiable {
 }
 
 struct EntitlementsCreateView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     @Environment(\.dismiss) var dismiss
     @State private var _entitlements: [EntitlementItem] = [
         EntitlementItem(name: "Can be debugged", key: "get-task-allow", value: true, isEnabled: true, symbol: "ladybug.fill"),

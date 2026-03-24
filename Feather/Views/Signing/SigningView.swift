@@ -4,7 +4,7 @@ import NimbleViews
 
 // MARK: - View
 struct SigningView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
 	@Environment(\.dismiss) var dismiss
     @AppStorage("Feather.serverMethod") private var _serverMethod: Int = 0
 	@StateObject private var _optionsManager = OptionsManager.shared

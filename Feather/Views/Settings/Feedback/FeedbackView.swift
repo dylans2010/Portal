@@ -4,7 +4,7 @@ import PhotosUI
 
 // MARK: - Category Info Dialog
 struct CategoryInfoDialog: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     @Binding var isPresented: Bool
     @State private var appearAnimation: Bool = false
     
@@ -130,7 +130,7 @@ struct CategoryInfoDialog: View {
 
 // MARK: - Category Info Card
 private struct CategoryInfoCard: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     let category: FeedbackView.FeedbackCategory
     let description: String
     
@@ -169,7 +169,7 @@ private struct CategoryInfoCard: View {
 
 // MARK: - Link Dialog
 struct LinkInsertDialog: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     @Binding var isPresented: Bool
     @Binding var text: String
     @State private var linkTitle: String = ""
@@ -363,7 +363,7 @@ struct LinkInsertDialog: View {
 
 // MARK: - Screenshot Error Dialog
 struct ScreenshotErrorDialog: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     @Binding var isPresented: Bool
     
     var body: some View {
@@ -478,7 +478,7 @@ struct ScreenshotErrorDialog: View {
 
 // MARK: - Formatting Toolbar
 struct FormattingToolbar: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     @Binding var text: String
     @Binding var showLinkDialog: Bool
     @Environment(\.colorScheme) private var colorScheme
@@ -617,7 +617,7 @@ struct FormattingToolbar: View {
 
 // MARK: - Formatting Button
 private struct FormattingButton: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     let format: FormattingToolbar.FormatType
     let action: () -> Void
     
@@ -645,7 +645,7 @@ private struct FormattingButton: View {
 
 // MARK: - Modern Formatting Toolbar
 struct ModernFormattingToolbar: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     @Binding var text: String
     @Binding var showLinkDialog: Bool
     @Environment(\.colorScheme) private var colorScheme
@@ -779,7 +779,7 @@ struct ModernFormattingToolbar: View {
 
 // MARK: - Modern Format Button
 private struct ModernFormatButton: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     let format: ModernFormattingToolbar.FormatType
     let action: () -> Void
     
@@ -811,7 +811,7 @@ private struct ModernFormatButton: View {
 
 // MARK: - Modern Feedback View
 struct FeedbackView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     @Environment(\.dismiss) private var dismiss
     @Environment(\.colorScheme) private var colorScheme
     @AppStorage("Feather.showHeaderViews") private var showHeaderViews = true
@@ -1211,7 +1211,7 @@ struct FeedbackView: View {
 
 // MARK: - Modern Category Chip
 struct ModernCategoryChip: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     let category: FeedbackView.FeedbackCategory
     let isSelected: Bool
     let action: () -> Void
@@ -1265,7 +1265,7 @@ struct ModernCategoryChip: View {
 
 // MARK: - Clean Category Chip
 struct CleanCategoryChip: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     let category: FeedbackView.FeedbackCategory
     let isSelected: Bool
     let action: () -> Void
@@ -1292,7 +1292,7 @@ struct CleanCategoryChip: View {
 
 // MARK: - Clean Attachment Toggle
 struct CleanAttachmentToggle: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     let icon: String
     let title: String
     @Binding var isOn: Bool
@@ -1331,7 +1331,7 @@ struct CleanAttachmentToggle: View {
 
 // MARK: - Code Editor Sheet
 struct CodeEditorSheet: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     @Environment(\.dismiss) private var dismiss
     @Environment(\.colorScheme) private var colorScheme
     @Binding var code: String
@@ -1563,7 +1563,7 @@ struct CodeEditorSheet: View {
 
 // MARK: - Stat Pill Component
 private struct StatPill: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     let icon: String
     let value: String
     let label: String

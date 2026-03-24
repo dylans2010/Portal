@@ -2,7 +2,7 @@ import SwiftUI
 import OSLog
 
 struct PortalTransferView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     @Environment(\.dismiss) private var dismiss
     @Binding var exportData: String
 

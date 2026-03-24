@@ -3,7 +3,7 @@ import SwiftUI
 import NukeUI
 
 struct ScreenshotPreviewView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     @Environment(\.dismiss) var dismiss
     @State private var currentIndex: Int
     

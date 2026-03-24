@@ -3,7 +3,7 @@ import UIKit
 
 /// A view that displays the system battery level and charging state with proper indicators
 struct SystemBatteryView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     @State private var batteryLevel: Float = 0.0
     @State private var batteryState: UIDevice.BatteryState = .unknown
     @State private var isLowPowerMode: Bool = false
@@ -166,7 +166,7 @@ struct SystemBatteryView: View {
 
 // MARK: - Enhanced Battery View with More Details
 struct EnhancedBatteryView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     @State private var batteryLevel: Float = 0.0
     @State private var batteryState: UIDevice.BatteryState = .unknown
     @State private var isLowPowerMode: Bool = false

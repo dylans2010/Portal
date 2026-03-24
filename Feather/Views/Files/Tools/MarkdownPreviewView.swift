@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct MarkdownPreviewView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     let fileURL: URL
     @State private var content: String = ""
 

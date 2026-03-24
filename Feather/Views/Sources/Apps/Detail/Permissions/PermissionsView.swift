@@ -4,7 +4,7 @@ import NimbleViews
 
 // MARK: - PermissionsView
 struct PermissionsView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     var appPermissions: ASRepository.AppPermissions
     var dominantColor: Color = .accentColor
     

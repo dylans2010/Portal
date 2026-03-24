@@ -56,7 +56,7 @@ extension SourceAppsView {
 // MARK: - SourceAppsView
 @MainActor
 struct SourceAppsView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     @AppStorage("Feather.sortOptionRawValue") private var sortOptionRawValue: String = SortOption.default.rawValue
     @AppStorage("Feather.sortAscending") private var sortAscending: Bool = true
     @AppStorage("Feather.appsViewStyle") private var viewStyleRawValue: String = ViewStyle.list.rawValue
@@ -386,7 +386,7 @@ struct SourceAppsView: View {
 
 // MARK: - Modern App List Card
 struct ModernAppListCard: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     let app: ASRepository.App
     let source: ASRepository
     @State private var dominantColor: Color = .accentColor
@@ -546,7 +546,7 @@ struct ModernAppListCard: View {
 
 // MARK: - Modern App Grid Card
 struct ModernAppGridCard: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     let app: ASRepository.App
     let source: ASRepository
     @State private var dominantColor: Color = .accentColor
@@ -668,7 +668,7 @@ struct ModernAppGridCard: View {
 
 // MARK: - Modern App Compact Row
 struct ModernAppCompactRow: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     let app: ASRepository.App
     let source: ASRepository
     

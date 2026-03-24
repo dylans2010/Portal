@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct ExperimentalFilesView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     @StateObject private var fileManager = FileManagerService.shared
     @State private var selectedFolder: FileFolder = .all
     
@@ -72,7 +72,7 @@ struct ExperimentalFilesView: View {
 
 // MARK: - Quick Stats
 struct ExperimentalQuickStats: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     let totalFiles: Int
     let storageUsed: Int64
     
@@ -96,7 +96,7 @@ struct ExperimentalQuickStats: View {
 
 // MARK: - Stat Card
 struct ExperimentalStatCard: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     let icon: String
     let value: String
     let label: String
@@ -135,7 +135,7 @@ struct ExperimentalStatCard: View {
 
 // MARK: - Folder Section
 struct ExperimentalFolderSection: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     let folder: ExperimentalFilesView.FileFolder
     let files: [FileItem]
     @ObservedObject var fileManager: FileManagerService
@@ -193,7 +193,7 @@ struct ExperimentalFolderSection: View {
 
 // MARK: - File Row
 struct ExperimentalFileRow: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     let file: FileItem
     let folder: ExperimentalFilesView.FileFolder
     

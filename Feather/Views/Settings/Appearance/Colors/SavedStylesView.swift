@@ -258,7 +258,7 @@ class SavedStylesManager: ObservableObject {
 
 // MARK: - Saved Styles View
 struct SavedStylesView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     @ObservedObject var viewModel: StatusBarViewModel
     @StateObject private var stylesManager = SavedStylesManager()
     @State private var showSaveDialog = false

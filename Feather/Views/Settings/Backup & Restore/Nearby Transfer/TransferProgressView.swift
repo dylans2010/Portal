@@ -2,7 +2,7 @@ import SwiftUI
 
 // MARK: - Transfer Progress View
 struct TransferProgressView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     @ObservedObject var service: NearbyTransferService
     let onCancel: () -> Void
     let onRetry: () -> Void

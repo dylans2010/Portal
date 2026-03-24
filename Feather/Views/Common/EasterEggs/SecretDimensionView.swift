@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct SecretDimensionView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     @Environment(\.dismiss) private var dismiss
     @State private var rotation: Double = 0
     @State private var scale: CGFloat = 0.8
@@ -70,7 +70,7 @@ struct SecretDimensionView: View {
 }
 
 struct SecretInfoRow: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     let label: String
     let value: String
 

@@ -4,7 +4,7 @@ import Zip
 
 // MARK: - ZipOperationView
 struct ZipOperationView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     let files: [FileItem]
     let operation: Operation
     let directoryURL: URL

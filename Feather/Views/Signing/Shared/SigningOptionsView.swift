@@ -3,7 +3,7 @@ import NimbleViews
 
 // MARK: - View
 struct SigningOptionsView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     @Binding var options: Options
     var temporaryOptions: Options?
     @State private var accentColor: Color = .accentColor

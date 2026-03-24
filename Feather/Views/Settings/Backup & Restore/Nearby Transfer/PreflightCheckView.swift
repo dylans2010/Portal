@@ -14,7 +14,7 @@ struct PreflightItem: Identifiable {
 
 // MARK: - Preflight Check View
 struct PreflightCheckView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     @Environment(\.dismiss) var dismiss
     @AppStorage("Feather.showHeaderViews") private var showHeaderViews = true
     @StateObject private var viewModel = PreflightCheckViewModel()
@@ -196,7 +196,7 @@ struct PreflightCheckView: View {
 
 // MARK: - Preflight Item Row
 struct PreflightItemRow: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     let item: PreflightItem
     
     var body: some View {

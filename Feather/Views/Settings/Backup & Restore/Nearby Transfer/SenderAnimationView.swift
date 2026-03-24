@@ -2,7 +2,7 @@ import SwiftUI
 
 // MARK: - Sender Animation View
 struct SenderAnimationView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     let state: TransferState
     @State private var isAnimating = false
     @State private var pulseAnimation = false

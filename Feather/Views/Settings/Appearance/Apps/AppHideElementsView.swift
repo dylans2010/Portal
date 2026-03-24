@@ -2,7 +2,7 @@ import SwiftUI
 import NimbleViews
 
 struct AppHideElementsView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     @StateObject private var sourcesManager = SourcesHideManager.shared
     @StateObject private var libraryManager = LibraryHideManager.shared
     @StateObject private var filesManager = FilesHideManager.shared

@@ -3,7 +3,7 @@ import SwiftUI
 // MARK: - Settings Row Components
 
 struct SettingsActionRow: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     let icon: String
     let title: String
     let color: Color
@@ -25,7 +25,7 @@ struct SettingsActionRow: View {
 }
 
 struct SettingsRow<Destination: View>: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     let icon: String
     let title: String
     let color: Color
@@ -39,7 +39,7 @@ struct SettingsRow<Destination: View>: View {
 }
 
 struct SettingsRowContent: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     let icon: String
     let title: String
     let color: Color
@@ -60,7 +60,7 @@ struct SettingsRowContent: View {
 }
 
 struct SettingsSectionHeader: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     let title: String
     let icon: String
 

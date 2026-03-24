@@ -2,7 +2,7 @@ import SwiftUI
 
 // MARK: - Configure Layouts View (Simplified & Modern)
 struct ConfigureLayoutsView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     @Environment(\.dismiss) var dismiss
     @ObservedObject var viewModel: StatusBarViewModel
     @State private var selectedLayout: LayoutType = .text

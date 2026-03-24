@@ -3,7 +3,7 @@ import NimbleViews
 import UniformTypeIdentifiers
 
 struct InfoPlistEntriesView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     @Environment(\.dismiss) var dismiss
     @Binding var options: Options
     
@@ -1120,6 +1120,8 @@ struct InfoPlistEntriesView: View {
     }
 
     struct PresetButton: View {
+    @EnvironmentObject var themeManager: AppWideThemeManager
+
         let title: String
         let subtitle: String
         let icon: String
@@ -1326,7 +1328,7 @@ struct InfoPlistEntriesView: View {
 }
 
 struct ModernEntryRow: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     let key: String
     let value: AnyCodable
     let isFirst: Bool

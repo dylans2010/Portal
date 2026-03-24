@@ -4,7 +4,7 @@ import UIKit
 
 // MARK: - Appearance View
 struct AppearanceView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     @Environment(\.dismiss) private var dismiss
     @AppStorage("Feather.userInterfaceStyle") private var userInterfaceStyle: Int = UIUserInterfaceStyle.unspecified.rawValue
     @AppStorage(UserDefaults.Keys.installTrigger) private var installTrigger: Int = 0 // 0: Manual, 1: Automatic
@@ -213,7 +213,7 @@ struct AppearanceView: View {
 // MARK: - Appearance Components
 
 struct AppearanceSectionHeader: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     let title: String
     let icon: String
     
@@ -230,7 +230,7 @@ struct AppearanceSectionHeader: View {
 }
 
 struct AppearanceRowLabel: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     let icon: String
     let title: String
     let color: Color
@@ -252,7 +252,7 @@ struct AppearanceRowLabel: View {
 }
 
 struct AppearanceToggle: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     let icon: String
     let title: String
     @Binding var isOn: Bool
@@ -288,7 +288,7 @@ struct AppearanceNavRow<Destination: View>: View {
 }
 
 private struct HapticIntensityRow: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     let intensity: HapticsManager.HapticIntensity
     let isSelected: Bool
     let action: () -> Void

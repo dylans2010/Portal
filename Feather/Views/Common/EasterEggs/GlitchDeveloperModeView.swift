@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct GlitchDeveloperModeView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     @Environment(\.dismiss) private var dismiss
     @State private var glitchOffset: CGFloat = 0
     @State private var timer = Timer.publish(every: 0.1, on: .main, in: .common).autoconnect()

@@ -3,7 +3,7 @@ import NimbleViews
 
 // MARK: - QuickInspectView
 struct QuickInspectView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     let file: FileItem
     @Environment(\.dismiss) private var dismiss
     @State private var fileInfo: FileAnalysisEngine.FileInformation?
@@ -244,7 +244,7 @@ struct QuickInspectView: View {
 
 // MARK: - QuickInfoRow
 private struct QuickInfoRow: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     let label: String
     let value: String
     
@@ -267,7 +267,7 @@ private struct QuickInfoRow: View {
 
 // MARK: - HashRow
 private struct HashRow: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     let label: String
     let value: String
     @State private var copied = false

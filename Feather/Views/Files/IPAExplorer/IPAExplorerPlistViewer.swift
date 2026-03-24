@@ -2,7 +2,7 @@ import SwiftUI
 import NimbleViews
 
 struct IPAExplorerPlistViewer: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     let fileURL: URL
     @ObservedObject var viewModel: IPAExplorerViewModel
     @AppStorage("isDeveloperModeEnabled") private var isDeveloperModeEnabled = false
@@ -67,7 +67,7 @@ struct IPAExplorerPlistViewer: View {
 }
 
 struct PlistRow: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     let key: String
     let value: Any?
 

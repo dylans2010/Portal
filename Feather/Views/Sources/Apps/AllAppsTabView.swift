@@ -2,7 +2,7 @@ import SwiftUI
 import AltSourceKit
 
 struct AllAppsTabView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     @AppStorage("Feather.useNewAllAppsView") private var useNewAllAppsView: Bool = true
     @StateObject private var viewModel = SourcesViewModel.shared
 

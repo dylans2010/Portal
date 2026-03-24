@@ -4,7 +4,7 @@ import WidgetKit
 
 @available(iOS 16.1, *)
 struct InstallationLiveActivityView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     let context: ActivityViewContext<InstallationActivityAttributes>
 
     private var settings: LiveActivitySettings {

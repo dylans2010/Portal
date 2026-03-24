@@ -6,7 +6,7 @@ import NukeUI
 
 // another sources view ffs
 struct SourceAppsCellView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
 	@AppStorage("Feather.storeCellAppearance") private var _storeCellAppearance: Int = 0
 	
 	var source: ASRepository

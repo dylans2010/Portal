@@ -3,7 +3,7 @@ import SwiftUI
 // MARK: - Backup Verification Results View
 
 struct BackupVerificationResultsView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     let entries: [BackupVerificationEntry]
     let isVerifying: Bool
     let lastVerified: Date?
@@ -133,7 +133,7 @@ struct BackupVerificationResultsView: View {
 // MARK: - Backup Chain Validation View
 
 struct BackupChainValidationView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     let validation: BackupChainValidation
     @Environment(\.dismiss) var dismiss
 

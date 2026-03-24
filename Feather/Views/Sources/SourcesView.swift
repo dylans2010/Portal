@@ -6,7 +6,7 @@ import NukeUI
 
 // MARK: - Modern Sources View with Blue Gradient Background
 struct SourcesView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     private static let certificateURL = "https://wsfteam.xyz/#purchase"
     
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
@@ -462,7 +462,7 @@ struct SourcesView: View {
 
 // MARK: - Modern Source Card (Generic) - Clean Style
 struct ModernSourceCard: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     let title: String
     let subtitle: String
     let iconSystemName: String
@@ -511,7 +511,7 @@ struct ModernSourceCard: View {
 
 // MARK: - Modern Source Card with Icon from URL - Clean Style
 struct ModernSourceCardWithIcon: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     let source: AltSource
     @ObservedObject var viewModel: SourcesViewModel
     @State private var dominantColor: Color = .cyan
@@ -641,7 +641,7 @@ struct ModernSourceCardWithIcon: View {
 
 // MARK: - AllAppsCardView
 private struct AllAppsCardView: View {
-        @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
         @AppStorage("Feather.useGradients") private var _useGradients: Bool = true
         
         let horizontalSizeClass: UserInterfaceSizeClass?

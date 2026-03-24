@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct WidgetHeaderView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     // MARK: - Body
     var body: some View {
         headerCard

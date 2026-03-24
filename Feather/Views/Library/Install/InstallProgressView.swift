@@ -8,7 +8,7 @@ enum InstallSource {
 }
 
 struct InstallProgressView<Footer: View>: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     @State private var _isPulsing = false
     @State private var _installStarted = false
     @State private var _appeared = false

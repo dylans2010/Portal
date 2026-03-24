@@ -4,7 +4,7 @@ import Zip
 
 // MARK: - Configuration View
 struct ConfigurationView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     @StateObject private var optionsManager = OptionsManager.shared
     @State private var isRandomAlertPresenting = false
     @State private var randomString = ""
@@ -112,7 +112,7 @@ struct ConfigurationView: View {
 
 // MARK: - Modern Signing Options Card
 struct ModernSigningOptionsCard: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     @Binding var options: Options
     @State private var showPPQInfo = false
     @AppStorage("Feather.certificateExperience") private var certificateExperience: String = "Developer"

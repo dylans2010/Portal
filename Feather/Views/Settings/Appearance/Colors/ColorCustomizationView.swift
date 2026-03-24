@@ -67,7 +67,7 @@ struct ColorCustomizationView: View {
     }
 
     @EnvironmentObject private var backgroundManager: ColorBackgroundManager
-    @EnvironmentObject private var themeManager: ThemeManager
+    @EnvironmentObject private var themeManager: AppWideThemeManager
     @EnvironmentObject private var styleManager: SectionStyleManager
     @AppStorage("Feather.animateBackground") private var animateBackground: Bool = false
 
@@ -1320,7 +1320,7 @@ struct ColorCustomizationView: View {
 }
 
 struct ModernThemeCard: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     let theme: ColorTheme
     let action: () -> Void
 
@@ -1356,7 +1356,7 @@ struct ModernThemeCard: View {
 }
 
 struct PerScreenThemeView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     @AppStorage("Feather.appearance.screenOverride") private var screenOverride: [String: String] = [:]
     let allThemes: [ColorTheme]
 
@@ -1393,7 +1393,7 @@ struct PerScreenThemeView: View {
 }
 
 struct ThemeLibraryView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     @Environment(\.dismiss) var dismiss
     let themes: [ColorTheme]
     let onSelect: (ColorTheme) -> Void
@@ -1424,7 +1424,7 @@ struct ThemeLibraryView: View {
 }
 
 private struct AppWideColorPickerSheet: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     @Environment(\.dismiss) var dismiss
     @State private var draft: AppWideColors
 
@@ -1610,7 +1610,7 @@ private struct AppWideColorPickerSheet: View {
 }
 
 private struct ColorPickerRow: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     let label: String
     @Binding var color: String
     @State private var showingPicker = false

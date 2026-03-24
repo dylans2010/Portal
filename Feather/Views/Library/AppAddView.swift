@@ -4,7 +4,7 @@ import UniformTypeIdentifiers
 import UIKit
 
 struct AppAddView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     @Environment(\.dismiss) private var dismiss
     @ObservedObject var downloadManager = DownloadManager.shared
 
@@ -108,7 +108,7 @@ struct AppAddView: View {
 }
 
 struct ImportOptionButton: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     let title: String
     let icon: String
     let color: Color

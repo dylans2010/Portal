@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct IPAExplorerBinaryViewer: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     let fileURL: URL
     @State private var machoInfo: FileAnalysisEngine.MachOInformation?
     @State private var fileSize: Int64 = 0
@@ -41,7 +41,7 @@ struct IPAExplorerBinaryViewer: View {
 }
 
 private struct BinaryInfoRow: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     let label: String
     let value: String
 
