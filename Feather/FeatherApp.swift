@@ -181,11 +181,11 @@ struct FeatherApp: App {
                                         .overlay(PortalTopView())
                                 }
                         }
-                        .globalTheme()
-                        .tint(themeManager.accentColor)
                         .environmentObject(themeManager)
                         .environmentObject(styleManager)
                         .environmentObject(ColorBackgroundManager.shared)
+                        .globalTheme()
+                        .tint(themeManager.accentColor)
                         .handleStatusBarHiding()
                         .onAppear {
                                 themeManager.applyUIKitAppearance()
