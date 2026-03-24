@@ -640,5 +640,5 @@ private struct LiveActivityInfoRow: View {
 // MARK: - Preview
 #Preview {
     LiveActivitySettingsView()
-        .environmentObject(AppWideThemeManager())
+        .environmentObject(AppWideThemeManager.shared)
 }

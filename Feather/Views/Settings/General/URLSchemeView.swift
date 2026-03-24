@@ -83,5 +83,5 @@ struct URLSchemeView: View {
     NavigationView {
         URLSchemeView()
     }
-    .environmentObject(AppWideThemeManager())
+    .environmentObject(AppWideThemeManager.shared)
 }

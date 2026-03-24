@@ -160,6 +160,6 @@ struct FilesSettingsView: View {
 struct FilesSettingsView_Previews: PreviewProvider {
     static var previews: some View {
         FilesSettingsView()
-            .environmentObject(AppWideThemeManager())
+            .environmentObject(AppWideThemeManager.shared)
     }
 }
