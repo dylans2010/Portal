@@ -49,7 +49,6 @@ struct ColorCustomizationView: View {
         case colors = "Colors"
         case intelligent = "Intelligent"
         case advanced = "Advanced"
-        case styling = "Styling"
         case sections = "Sections"
 
         var id: String { rawValue }
@@ -60,7 +59,6 @@ struct ColorCustomizationView: View {
             case .colors: return "paintpalette.fill"
             case .intelligent: return "cpu"
             case .advanced: return "wand.and.rays"
-            case .styling: return "slider.horizontal.3"
             case .sections: return "square.grid.2x2.fill"
             }
         }
@@ -185,12 +183,6 @@ struct ColorCustomizationView: View {
             }
 
             Section {
-                appearancePreviewCard
-                    .listRowInsets(EdgeInsets())
-                    .listRowBackground(Color.clear)
-            }
-
-            Section {
                 Picker("Section", selection: $selectedSection) {
                     ForEach(EditorSection.allCases) { section in
                         Label(section.rawValue, systemImage: section.icon).tag(section)
@@ -215,9 +207,6 @@ struct ColorCustomizationView: View {
                 feedbackSection
                 experimentalSection
                 sharingSection
-            case .styling:
-                stylingSection
-                advancedEffectsSection
             case .sections:
                 customizationLinksSection
             }
@@ -294,20 +283,7 @@ struct ColorCustomizationView: View {
     private var overviewSection: some View {
         Group {
             Section {
-                appearancePreviewCard
-                quickActionsRow
-            } header: {
-                Text(String.localized("Live Preview"))
-                    .foregroundStyle(themeManager.headerTextColor)
-            } footer: {
-                Text(String.localized("Use the quick actions to instantly sync surfaces, soften the interface, or add a more vivid look without leaving this screen."))
-            }
-
-            Section {
-                themeGallerySection
-            } header: {
-                Text(String.localized("Theme Shortcuts"))
-                    .foregroundStyle(themeManager.headerTextColor)
+                appWideButton
             }
 
             appWideThemesSection
@@ -405,7 +381,7 @@ struct ColorCustomizationView: View {
                 .listRowInsets(EdgeInsets(top: 4, leading: 16, bottom: 4, trailing: 16))
             }
         } header: {
-            Text(String.localized("Built-in Themes"))
+            Text(String.localized("Built In Themes"))
                 .foregroundStyle(themeManager.headerTextColor)
         }
     }
@@ -459,60 +435,64 @@ struct ColorCustomizationView: View {
 
                 sectionStylePreviewCard
 
-                Button {
-                    showingAppWideColorPicker = true
-                } label: {
-                    HStack(spacing: 12) {
-                        VStack(alignment: .leading, spacing: 3) {
-                            Text(String.localized("App Wide"))
-                                .font(.system(size: 16, weight: .semibold, design: .rounded))
-                                .foregroundStyle(themeManager.primaryTextColor)
-                            Text(String.localized("Customize all app colors"))
-                                .font(.system(size: 11))
-                                .foregroundStyle(themeManager.secondaryTextColor)
-                        }
-
-                        Spacer()
-
-                        HStack(spacing: 0) {
-                            RoundedRectangle(cornerRadius: 0)
-                                .fill(themeManager.appBackgroundColor)
-                                .frame(width: 12, height: 24)
-                            RoundedRectangle(cornerRadius: 0)
-                                .fill(themeManager.navigationBarColor)
-                                .frame(width: 12, height: 24)
-                            RoundedRectangle(cornerRadius: 0)
-                                .fill(themeManager.accentColor)
-                                .frame(width: 12, height: 24)
-                        }
-                        .clipShape(RoundedRectangle(cornerRadius: 6))
-
-                        if themeManager.appWideColors != nil {
-                            Button {
-                                themeManager.resetToThemeDefaults()
-                            } label: {
-                                Image(systemName: "xmark.circle.fill")
-                                    .foregroundStyle(themeManager.secondaryTextColor)
-                            }
-                            .buttonStyle(.plain)
-                        }
-
-                        Image(systemName: "chevron.right")
-                            .font(.system(size: 14, weight: .semibold))
-                            .foregroundStyle(themeManager.secondaryTextColor)
-                    }
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 13)
-                    .background(themeManager.cardBackgroundColor)
-                }
-                .buttonStyle(.plain)
-                .sheet(isPresented: $showingAppWideColorPicker) {
-                    AppWideColorPickerSheet()
-                }
             }
             .environmentObject(themeManager)
             .environmentObject(styleManager)
             .listRowBackground(Color.clear)
+        }
+    }
+
+    private var appWideButton: some View {
+        Button {
+            showingAppWideColorPicker = true
+        } label: {
+            HStack(spacing: 12) {
+                VStack(alignment: .leading, spacing: 3) {
+                    Text(String.localized("App Wide"))
+                        .font(.system(size: 16, weight: .semibold, design: .rounded))
+                        .foregroundStyle(themeManager.primaryTextColor)
+                    Text(String.localized("Customize all app colors"))
+                        .font(.system(size: 11))
+                        .foregroundStyle(themeManager.secondaryTextColor)
+                }
+
+                Spacer()
+
+                HStack(spacing: 0) {
+                    RoundedRectangle(cornerRadius: 0)
+                        .fill(themeManager.appBackgroundColor)
+                        .frame(width: 12, height: 24)
+                    RoundedRectangle(cornerRadius: 0)
+                        .fill(themeManager.navigationBarColor)
+                        .frame(width: 12, height: 24)
+                    RoundedRectangle(cornerRadius: 0)
+                        .fill(themeManager.accentColor)
+                        .frame(width: 12, height: 24)
+                }
+                .clipShape(RoundedRectangle(cornerRadius: 6))
+
+                if themeManager.appWideColors != nil {
+                    Button {
+                        themeManager.resetToThemeDefaults()
+                    } label: {
+                        Image(systemName: "xmark.circle.fill")
+                            .foregroundStyle(themeManager.secondaryTextColor)
+                    }
+                    .buttonStyle(.plain)
+                }
+
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundStyle(themeManager.secondaryTextColor)
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 13)
+            .background(themeManager.cardBackgroundColor)
+            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+        }
+        .buttonStyle(.plain)
+        .sheet(isPresented: $showingAppWideColorPicker) {
+            AppWideColorPickerSheet()
         }
     }
 

@@ -271,7 +271,7 @@ struct LibraryView: View {
 
     private var appListScrollView: some View {
         ScrollView {
-            LazyVStack(spacing: 24) {
+            LazyVStack(spacing: 12) {
                 if displayedApps.isEmpty {
                     emptyStateView
                         .padding(.top, 40)
@@ -327,11 +327,7 @@ struct LibraryView: View {
         Text(title)
             .font(.system(size: 12, weight: .bold, design: .rounded))
             .themedText(.header)
-            .padding(.horizontal, 12)
-            .padding(.vertical, 4)
-            .background(Color(hex: themeManager.resolvedColors.badgeBackground).opacity(0.1))
-            .clipShape(Capsule())
-            .padding(.horizontal, 24)
+            .padding(.horizontal, 20)
     }
 
     @ToolbarContentBuilder
@@ -807,8 +803,8 @@ struct LibraryAppRow: View {
             }
         }
         .padding(.vertical, 10)
-        .padding(.horizontal, 12)
-        .themedCard()
+        .padding(.horizontal, 4)
+        .background(themeManager.cardBackgroundColor.opacity(0.001))
     }
 }
 

@@ -95,6 +95,7 @@ struct AllAppsView: View {
     @Environment(\.dismiss) private var dismiss
     @AppStorage("Feather.useGradients") private var _useGradients: Bool = true
     @AppStorage("Feather.allApps.showSorting") private var _showSorting: Bool = true
+    @AppStorage("Feather.cacheDataOnStart") private var _cacheDataOnStart: Bool = false
     @AppStorage("Feather.allApps.rowSpacing") private var _rowSpacing: Double = 0
     @AppStorage("Feather.allApps.rowStyle") private var _rowStyle: AllAppsRowStyle = .minimal
     @AppStorage("Feather.allApps.rowHorizontalPadding") private var _rowHorizontalPadding: Double = 20.0
@@ -216,6 +217,7 @@ struct AllAppsView: View {
     @State private var _allApps: [AppEntry] = []
     @State private var _filteredApps: [AppEntry] = []
     @State private var _filterTask: Task<Void, Never>?
+    @State private var _cachedApps: [CachedSourceApp] = []
 
     init(isTab: Bool = false, object: [AltSource], viewModel: SourcesViewModel) {
         self.isTab = isTab
@@ -289,6 +291,11 @@ struct AllAppsView: View {
             }
         }
         .onAppear {
+            if _cacheDataOnStart {
+                Task {
+                    _cachedApps = await CacheData.shared.loadCache()
+                }
+            }
             _loadAllSources()
         }
         .onChange(of: viewModel.allApps.count) { count in
@@ -378,6 +385,8 @@ struct AllAppsView: View {
                         // Apps list
                         if _filteredApps.isEmpty && !_searchText.isEmpty {
                             emptySearchResultsView
+                        } else if _filteredApps.isEmpty && !_cachedApps.isEmpty {
+                            cachedAppsListView
                         } else {
                             appsListView
                         }
@@ -645,6 +654,59 @@ struct AllAppsView: View {
         }
     }
 
+    private var cachedAppsListView: some View {
+        LazyVStack(spacing: 0) {
+            ForEach(_cachedApps, id: \.id) { app in
+                HStack(spacing: 12) {
+                    cachedIcon(for: app)
+                        .frame(width: _iconSize, height: _iconSize)
+                        .clipShape(RoundedRectangle(cornerRadius: _iconCornerRadius, style: .continuous))
+
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(app.appName)
+                            .font(.system(size: _nameFontSize, weight: _useBoldTitles ? .bold : .semibold))
+                            .foregroundStyle(.primary)
+                            .lineLimit(1)
+
+                        Text("\(app.version) • \(app.developer)")
+                            .font(.system(size: _metadataFontSize))
+                            .foregroundStyle(.secondary)
+                            .lineLimit(1)
+                    }
+
+                    Spacer()
+                }
+                .padding(.horizontal, _rowHorizontalPadding)
+                .padding(.vertical, _rowVerticalPadding)
+
+                if _showDividers {
+                    Divider().padding(.leading, _rowHorizontalPadding + _iconSize + 12)
+                }
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func cachedIcon(for app: CachedSourceApp) -> some View {
+        if let localURL = CacheData.shared.localIconURL(for: app) {
+            AsyncImage(url: localURL) { image in
+                image.resizable().aspectRatio(contentMode: .fill)
+            } placeholder: {
+                RoundedRectangle(cornerRadius: _iconCornerRadius).fill(Color.secondary.opacity(0.15))
+            }
+        } else if let remote = app.iconRemoteURL, let url = URL(string: remote) {
+            LazyImage(url: url) { state in
+                if let image = state.image {
+                    image.resizable().aspectRatio(contentMode: .fill)
+                } else {
+                    RoundedRectangle(cornerRadius: _iconCornerRadius).fill(Color.secondary.opacity(0.15))
+                }
+            }
+        } else {
+            RoundedRectangle(cornerRadius: _iconCornerRadius).fill(Color.secondary.opacity(0.15))
+        }
+    }
+
     private var emptySearchResultsView: some View {
         VStack(spacing: 20) {
             ZStack {
@@ -908,7 +970,9 @@ struct AllAppsView: View {
 		
 		Task {
             if force {
-                RepositoryCacheManager.shared.clearCache()
+                if !_cacheDataOnStart {
+                    RepositoryCacheManager.shared.clearCache()
+                }
                 await viewModel.forceFetchAllSources(object)
             }
 
@@ -962,6 +1026,10 @@ struct AllAppsView: View {
 			_filterApps()
 			_loadedSourcesCount = object.count
 		}
+
+        if _cacheDataOnStart {
+            CacheData.shared.saveCache(from: flattenedApps)
+        }
 	}
 	
 	struct SourceAppRoute: Identifiable, Hashable {

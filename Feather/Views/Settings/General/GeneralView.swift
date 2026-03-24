@@ -7,6 +7,8 @@ struct GeneralView: View {
     @AppStorage("Feather.certificateExperience") private var certificateExperience: String = CertificateExperience.developer.rawValue
     @AppStorage("Feather.showHeaderViews") private var showHeaderViews = true
     @AppStorage("feature_useAnimationPairing") private var useAnimationPairing = false
+    @AppStorage("Feather.cacheDataOnStart") private var cacheDataOnStart = false
+    @AppStorage("Feather.cacheDataDuration") private var cacheDataDuration = CacheDataDuration.everyDay.rawValue
     @State private var navigateToCheckForUpdates = false
     @State private var showPairingView = false
     @Environment(\.navigateToUpdates) private var navigateToUpdates
@@ -185,6 +187,21 @@ struct GeneralView: View {
                 .navigationDestination(isPresented: $navigateToCheckForUpdates) {
                     CheckForUpdatesView()
                 }
+            }
+
+            Toggle(isOn: $cacheDataOnStart) {
+                SettingsRowContent(icon: "externaldrive.badge.timemachine", title: "Cache Data On Start", color: themeManager.accentColor)
+            }
+            .themedAccent()
+            .padding(.trailing, 16)
+
+            Picker(selection: $cacheDataDuration) {
+                Text("Every Hour").tag(CacheDataDuration.everyHour.rawValue)
+                Text("Every 6 Hours").tag(CacheDataDuration.every6Hours.rawValue)
+                Text("Every Day").tag(CacheDataDuration.everyDay.rawValue)
+                Text("Every Week").tag(CacheDataDuration.everyWeek.rawValue)
+            } label: {
+                SettingsRowContent(icon: "clock.arrow.trianglehead.counterclockwise.rotate.90", title: "Cache Duration", color: themeManager.accentColor)
             }
         } header: {
             SettingsSectionHeader(title: String.localized("System"), icon: "iphone")

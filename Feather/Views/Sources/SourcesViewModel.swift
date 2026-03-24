@@ -70,6 +70,10 @@ final class SourcesViewModel: ObservableObject {
     }
     
     // MARK: - Source Statistics
+    private var isCustomCacheEnabled: Bool {
+        UserDefaults.standard.bool(forKey: "Feather.cacheDataOnStart")
+    }
+
     var totalAppsCount: Int {
         sources.values.reduce(0) { $0 + $1.apps.count }
     }
@@ -91,7 +95,9 @@ final class SourcesViewModel: ObservableObject {
         await withTaskGroup(of: (AltSource, ASRepository?).self) { group in
             for source in allSources {
                 group.addTask {
-                    if let url = source.sourceURL, let cachedRepo = self._cacheManager.getCachedRepository(for: url) {
+                    if !self.isCustomCacheEnabled,
+                       let url = source.sourceURL,
+                       let cachedRepo = self._cacheManager.getCachedRepository(for: url) {
                         return (source, cachedRepo)
                     }
                     return (source, nil)
@@ -156,7 +162,9 @@ final class SourcesViewModel: ObservableObject {
     
     // MARK: - Full Manual Fetch
     func forceFetchAllSources(_ sources: [AltSource]) async {
-        _cacheManager.clearCache()
+        if !isCustomCacheEnabled {
+            _cacheManager.clearCache()
+        }
         errorMessage = nil
         await fetchSources(sources, refresh: true)
     }
@@ -192,7 +200,7 @@ final class SourcesViewModel: ObservableObject {
         }
         
         // Load from cache first if not refreshing
-        if !refresh {
+        if !refresh && !isCustomCacheEnabled {
             self.sources = [:]
             
             // Load cached data in parallel
@@ -249,7 +257,9 @@ final class SourcesViewModel: ObservableObject {
                                 switch result {
                                 case .success(let repo):
                                     // Cache the successful repository
-                                    self._cacheManager.cacheRepository(repo, for: url)
+                                    if !self.isCustomCacheEnabled {
+                                        self._cacheManager.cacheRepository(repo, for: url)
+                                    }
                                     continuation.resume(returning: (source, repo, nil))
                                 case .failure(let error):
                                     continuation.resume(returning: (source, nil, error))
