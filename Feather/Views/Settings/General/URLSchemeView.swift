@@ -60,15 +60,15 @@ struct URLSchemeView: View {
                     Text(info.scheme)
                         .font(.system(.subheadline, design: .monospaced))
                         .fontWeight(.semibold)
-                        .foregroundStyle(Color.accentColor)
+                        .foregroundStyle(themeManager.accentColor)
 
                     Text(info.description)
                         .font(.footnote)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(themeManager.secondaryTextColor)
 
                     Text(info.example)
                         .font(.system(.caption, design: .monospaced))
-                        .foregroundStyle(.tertiary)
+                        .foregroundStyle(themeManager.secondaryTextColor.opacity(0.7))
                         .lineLimit(1)
                 }
                 .padding(.vertical, 4)
@@ -83,4 +83,5 @@ struct URLSchemeView: View {
     NavigationView {
         URLSchemeView()
     }
+    .environmentObject(AppWideThemeManager())
 }

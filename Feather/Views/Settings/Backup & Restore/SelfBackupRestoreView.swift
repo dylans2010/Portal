@@ -31,22 +31,22 @@ struct SelfBackupRestoreView: View {
                 VStack(spacing: 14) {
                     ZStack {
                         Circle()
-                            .fill(Color.accentColor.opacity(0.1))
+                            .fill(themeManager.accentColor.opacity(0.1))
                             .frame(width: 72, height: 72)
                         Image(systemName: "externaldrive.fill")
                             .font(.system(size: 30, weight: .medium))
-                            .foregroundStyle(Color.accentColor)
+                            .foregroundStyle(themeManager.accentColor)
                     }
                     .padding(.top, 6)
 
                     Text(.localized("Create and restore backups locally on your device."))
                         .font(.subheadline)
                         .multilineTextAlignment(.center)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(themeManager.secondaryTextColor)
                         .padding(.bottom, 4)
                 }
                 .frame(maxWidth: .infinity)
-                .listRowBackground(Color.clear)
+                .listRowBackground(themeManager.cardBackgroundColor)
             }
 
             Section {
@@ -81,7 +81,7 @@ struct SelfBackupRestoreView: View {
                     HStack(spacing: 14) {
                         Image(systemName: "clock.circle.fill")
                             .font(.system(size: 28))
-                            .foregroundStyle(.orange)
+                            .foregroundStyle(themeManager.accentColor)
                             .frame(width: 36)
 
                         VStack(alignment: .leading, spacing: 2) {
@@ -89,7 +89,7 @@ struct SelfBackupRestoreView: View {
                                 .font(.subheadline.weight(.semibold))
                             Text(.localized("Configure Schedule & Content"))
                                 .font(.caption)
-                                .foregroundStyle(.secondary)
+                                .foregroundStyle(themeManager.secondaryTextColor)
                         }
                     }
                     .padding(.vertical, 4)
@@ -140,7 +140,7 @@ struct SelfBackupRestoreView: View {
                         if viewModel.operationProgress > 0 {
                             ProgressView(value: viewModel.operationProgress)
                                 .progressViewStyle(.linear)
-                                .tint(.accentColor)
+                                .tint(themeManager.accentColor)
                         }
                     }
                     .padding(.vertical, 6)
@@ -320,11 +320,11 @@ struct SelfBackupRestoreView: View {
                 GeometryReader { geo in
                     ZStack(alignment: .leading) {
                         RoundedRectangle(cornerRadius: 4)
-                            .fill(Color.secondary.opacity(0.2))
+                            .fill(themeManager.secondaryTextColor.opacity(0.2))
                             .frame(height: 8)
 
                         RoundedRectangle(cornerRadius: 4)
-                            .fill(Color.accentColor)
+                            .fill(themeManager.accentColor)
                             .frame(width: geo.size.width * CGFloat(advancedManager.storagePercentage), height: 8)
                     }
                 }
@@ -333,11 +333,11 @@ struct SelfBackupRestoreView: View {
                 HStack {
                     Text(String(format: "%.1f%% Consumed", advancedManager.storagePercentage * 100))
                         .font(.caption)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(themeManager.secondaryTextColor)
                     Spacer()
                     Text("\(ByteCountFormatter.string(fromByteCount: advancedManager.availableStorage, countStyle: .file)) Available")
                         .font(.caption)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(themeManager.secondaryTextColor)
                 }
             }
             .padding(.vertical, 4)
@@ -354,10 +354,10 @@ struct SelfBackupRestoreView: View {
                     VStack(alignment: .leading, spacing: 2) {
                         Text(.localized("Snapshot Versioning"))
                             .font(.headline)
-                        Text(.localized("Full and Incremental backups supported.")).font(.caption).foregroundStyle(.secondary)
+                        Text(.localized("Full and Incremental backups supported.")).font(.caption).foregroundStyle(themeManager.secondaryTextColor)
                     }
                 } icon: {
-                    Image(systemName: "clock.arrow.2.circlepath").foregroundStyle(.purple)
+                    Image(systemName: "clock.arrow.2.circlepath").foregroundStyle(themeManager.accentColor)
                 }
 
                 if let lastBackup = viewModel.localBackups.first {
@@ -366,19 +366,19 @@ struct SelfBackupRestoreView: View {
                             .font(.caption.bold())
                         Text(lastBackup.snapshotID ?? lastBackup.id.uuidString)
                             .font(.system(size: 10, design: .monospaced))
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(themeManager.secondaryTextColor)
 
                         if let type = lastBackup.snapshotType {
                             Text("Type: \(type.capitalized)")
                                 .font(.caption2)
                                 .padding(.horizontal, 6)
                                 .padding(.vertical, 2)
-                                .background(Color.blue.opacity(0.1))
+                                .background(themeManager.accentColor.opacity(0.1))
                                 .clipShape(Capsule())
                         }
                     }
                     .padding(8)
-                    .background(Color.secondary.opacity(0.05))
+                    .background(themeManager.secondaryTextColor.opacity(0.05))
                     .cornerRadius(8)
                 }
             }
@@ -404,25 +404,25 @@ struct SelfBackupRestoreView: View {
 
                         Text("Device: \(session.remoteDeviceName)")
                             .font(.caption)
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(themeManager.secondaryTextColor)
 
                         Text("Encryption: \(session.encryptionType)")
                             .font(.caption)
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(themeManager.secondaryTextColor)
 
                         HStack(spacing: 4) {
                             Text("Fingerprint:")
                                 .font(.caption)
-                                .foregroundStyle(.secondary)
+                                .foregroundStyle(themeManager.secondaryTextColor)
                             Text(session.sessionFingerprint)
                                 .font(.system(size: 11, design: .monospaced))
-                                .foregroundStyle(.secondary)
+                                .foregroundStyle(themeManager.secondaryTextColor)
                         }
 
                         if secureBackupManager.sessionBackupCount > 0 {
                             Text("\(secureBackupManager.sessionBackupCount) backup(s) in this session")
                                 .font(.caption2)
-                                .foregroundStyle(.blue)
+                                .foregroundStyle(themeManager.accentColor)
                         }
                     }
 
@@ -440,14 +440,14 @@ struct SelfBackupRestoreView: View {
                 VStack(alignment: .center, spacing: 10) {
                     Image(systemName: "shield.slash")
                         .font(.system(size: 32))
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(themeManager.secondaryTextColor)
 
                     Text("No Secure Session")
                         .font(.headline)
 
                     Text("Create a secure session to enable backup signing, integrity verification, and session-based encryption.")
                         .font(.caption)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(themeManager.secondaryTextColor)
                         .multilineTextAlignment(.center)
 
                     Button {
@@ -457,7 +457,7 @@ struct SelfBackupRestoreView: View {
                             .font(.subheadline.weight(.semibold))
                     }
                     .buttonStyle(.bordered)
-                    .tint(.blue)
+                    .tint(themeManager.accentColor)
                 }
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 8)
@@ -472,7 +472,7 @@ struct SelfBackupRestoreView: View {
                         .font(.subheadline)
                 } icon: {
                     Image(systemName: "lock.doc")
-                        .foregroundStyle(.blue)
+                        .foregroundStyle(themeManager.accentColor)
                 }
             }
         } header: {
@@ -500,11 +500,11 @@ struct SelfBackupRestoreView: View {
                             .font(.headline)
                         Text("Check all backups against the current session")
                             .font(.caption)
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(themeManager.secondaryTextColor)
                     }
                 } icon: {
                     Image(systemName: "checkmark.seal.fill")
-                        .foregroundStyle(.green)
+                        .foregroundStyle(themeManager.accentColor)
                 }
             }
             .disabled(secureBackupManager.isVerifying || viewModel.localBackups.isEmpty)
@@ -520,11 +520,11 @@ struct SelfBackupRestoreView: View {
                             .font(.headline)
                         Text("Verify incremental backup chain integrity")
                             .font(.caption)
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(themeManager.secondaryTextColor)
                     }
                 } icon: {
                     Image(systemName: "link.badge.plus")
-                        .foregroundStyle(.purple)
+                        .foregroundStyle(themeManager.accentColor)
                 }
             }
             .disabled(viewModel.localBackups.isEmpty)
@@ -534,21 +534,21 @@ struct SelfBackupRestoreView: View {
                 HStack {
                     Text("Last Verified")
                         .font(.subheadline)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(themeManager.secondaryTextColor)
                     Spacer()
                     Text(lastDate, style: .relative)
                         .font(.caption)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(themeManager.secondaryTextColor)
                 }
 
                 HStack {
                     Text("Verified Backups")
                         .font(.subheadline)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(themeManager.secondaryTextColor)
                     Spacer()
                     Text("\(secureBackupManager.verifiedBackupIDs.count) of \(viewModel.localBackups.count)")
                         .font(.caption.weight(.semibold))
-                        .foregroundStyle(.green)
+                        .foregroundStyle(themeManager.accentColor)
                 }
             }
         } header: {
@@ -572,7 +572,7 @@ struct SelfBackupRestoreView: View {
                         .font(.subheadline.weight(.semibold))
                     Text(subtitle)
                         .font(.caption)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(themeManager.secondaryTextColor)
                 }
             }
             .padding(.vertical, 4)
@@ -593,7 +593,7 @@ struct SelfBackupRestoreView: View {
                     .font(.subheadline.weight(.semibold))
                 Text(subtitle)
                     .font(.caption)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(themeManager.secondaryTextColor)
             }
         }
         .padding(.vertical, 3)
@@ -616,11 +616,11 @@ struct SelfBackupRestoreView: View {
         HStack(spacing: 14) {
             ZStack {
                 RoundedRectangle(cornerRadius: 10, style: .continuous)
-                    .fill(Color.blue.opacity(0.1))
+                    .fill(themeManager.accentColor.opacity(0.1))
                     .frame(width: 42, height: 42)
                 Image(systemName: "archivebox.fill")
                     .font(.system(size: 18))
-                    .foregroundStyle(.blue)
+                    .foregroundStyle(themeManager.accentColor)
             }
 
             VStack(alignment: .leading, spacing: 4) {
@@ -632,7 +632,7 @@ struct SelfBackupRestoreView: View {
                     if backup.isAutomatic == true {
                         Image(systemName: "clock.fill")
                             .font(.system(size: 9))
-                            .foregroundStyle(.orange)
+                            .foregroundStyle(themeManager.accentColor)
                     }
 
                     if newBackupOptions, let type = backup.snapshotType {
@@ -640,7 +640,7 @@ struct SelfBackupRestoreView: View {
                             .font(.system(size: 8, weight: .bold))
                             .padding(.horizontal, 5)
                             .padding(.vertical, 2)
-                            .background(type == "full" ? Color.blue.opacity(0.15) : Color.green.opacity(0.15))
+                            .background(type == "full" ? themeManager.accentColor.opacity(0.15) : themeManager.accentColor.opacity(0.15))
                             .foregroundStyle(type == "full" ? .blue : .green)
                             .clipShape(Capsule())
                     }
@@ -648,7 +648,7 @@ struct SelfBackupRestoreView: View {
                     if newBackupOptions && secureBackupManager.isBackupVerified(backup.id) {
                         Image(systemName: "checkmark.seal.fill")
                             .font(.system(size: 10))
-                            .foregroundStyle(.green)
+                            .foregroundStyle(themeManager.accentColor)
                     }
                 }
 
@@ -660,7 +660,7 @@ struct SelfBackupRestoreView: View {
                     Text(backup.sizeString)
                 }
                 .font(.caption)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(themeManager.secondaryTextColor)
             }
         }
         .padding(.vertical, 4)
@@ -715,11 +715,11 @@ struct SelfBackupRestoreView: View {
             VStack(alignment: .leading, spacing: 4) {
                 Text(title)
                     .font(.system(.headline, design: .rounded))
-                    .foregroundStyle(.primary)
+                    .foregroundStyle(themeManager.primaryTextColor)
                 
                 Text(description)
                     .font(.system(.subheadline, design: .rounded))
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(themeManager.secondaryTextColor)
                     .fixedSize(horizontal: false, vertical: true)
             }
         }
@@ -736,7 +736,7 @@ struct SelfBackupRestoreView: View {
             
             Text(text)
                 .font(.caption)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(themeManager.secondaryTextColor)
         }
     }
 }
@@ -1423,7 +1423,7 @@ struct RestoreSelectionView: View {
                             Text(backup.sizeString)
                         }
                         .font(.caption)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(themeManager.secondaryTextColor)
                     }
                     .padding(.vertical, 4)
                 }
@@ -1457,18 +1457,18 @@ struct ModernRestoreSelectionView: View {
                             HStack(spacing: 16) {
                                 ZStack {
                                     RoundedRectangle(cornerRadius: 12, style: .continuous)
-                                        .fill(Color.blue.opacity(0.15))
+                                        .fill(themeManager.accentColor.opacity(0.15))
                                         .frame(width: 50, height: 50)
                                     
                                     Image(systemName: "archivebox.fill")
                                         .font(.title2)
-                                        .foregroundStyle(.blue)
+                                        .foregroundStyle(themeManager.accentColor)
                                 }
                                 
                                 VStack(alignment: .leading, spacing: 4) {
                                     Text(backup.name)
                                         .font(.headline)
-                                        .foregroundStyle(.primary)
+                                        .foregroundStyle(themeManager.primaryTextColor)
                                     
                                     HStack(spacing: 8) {
                                         Image(systemName: "calendar")
@@ -1478,7 +1478,7 @@ struct ModernRestoreSelectionView: View {
                                         Text(backup.date, style: .time)
                                     }
                                     .font(.caption)
-                                    .foregroundStyle(.secondary)
+                                    .foregroundStyle(themeManager.secondaryTextColor)
                                     
                                     HStack(spacing: 8) {
                                         Image(systemName: "internaldrive")
@@ -1486,14 +1486,14 @@ struct ModernRestoreSelectionView: View {
                                         Text(backup.sizeString)
                                     }
                                     .font(.caption)
-                                    .foregroundStyle(.secondary)
+                                    .foregroundStyle(themeManager.secondaryTextColor)
                                 }
                                 
                                 Spacer()
                                 
                                 Image(systemName: "chevron.right")
                                     .font(.caption)
-                                    .foregroundStyle(.tertiary)
+                                    .foregroundStyle(themeManager.secondaryTextColor.opacity(0.7))
                             }
                             .padding(.vertical, 8)
                         }
@@ -1501,7 +1501,7 @@ struct ModernRestoreSelectionView: View {
                 } header: {
                     Text("Select A Backup To Restore")
                         .font(.subheadline)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(themeManager.secondaryTextColor)
                         .textCase(nil)
                 }
             }
@@ -1522,20 +1522,20 @@ struct LegacyRestoreSelectionView: View {
                 VStack(spacing: 16) {
                     Image(systemName: "archivebox")
                         .font(.system(size: 60))
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(themeManager.secondaryTextColor)
                     
                     Text("No Backups")
                         .font(.headline)
-                        .foregroundStyle(.primary)
+                        .foregroundStyle(themeManager.primaryTextColor)
                     
                     Text("Create a backup first before you can restore.")
                         .font(.subheadline)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(themeManager.secondaryTextColor)
                         .multilineTextAlignment(.center)
                 }
                 .frame(maxWidth: .infinity)
                 .padding()
-                .listRowBackground(Color.clear)
+                .listRowBackground(themeManager.cardBackgroundColor)
             } else {
                 Section {
                     ForEach(backups) { backup in
@@ -1545,18 +1545,18 @@ struct LegacyRestoreSelectionView: View {
                             HStack(spacing: 16) {
                                 ZStack {
                                     RoundedRectangle(cornerRadius: 12, style: .continuous)
-                                        .fill(Color.blue.opacity(0.15))
+                                        .fill(themeManager.accentColor.opacity(0.15))
                                         .frame(width: 50, height: 50)
                                     
                                     Image(systemName: "archivebox.fill")
                                         .font(.title2)
-                                        .foregroundStyle(.blue)
+                                        .foregroundStyle(themeManager.accentColor)
                                 }
                                 
                                 VStack(alignment: .leading, spacing: 4) {
                                     Text(backup.name)
                                         .font(.headline)
-                                        .foregroundStyle(.primary)
+                                        .foregroundStyle(themeManager.primaryTextColor)
                                     
                                     HStack(spacing: 8) {
                                         Image(systemName: "calendar")
@@ -1566,7 +1566,7 @@ struct LegacyRestoreSelectionView: View {
                                         Text(backup.date, style: .time)
                                     }
                                     .font(.caption)
-                                    .foregroundStyle(.secondary)
+                                    .foregroundStyle(themeManager.secondaryTextColor)
                                     
                                     HStack(spacing: 8) {
                                         Image(systemName: "internaldrive")
@@ -1574,14 +1574,14 @@ struct LegacyRestoreSelectionView: View {
                                         Text(backup.sizeString)
                                     }
                                     .font(.caption)
-                                    .foregroundStyle(.secondary)
+                                    .foregroundStyle(themeManager.secondaryTextColor)
                                 }
                                 
                                 Spacer()
                                 
                                 Image(systemName: "chevron.right")
                                     .font(.caption)
-                                    .foregroundStyle(.tertiary)
+                                    .foregroundStyle(themeManager.secondaryTextColor.opacity(0.7))
                             }
                             .padding(.vertical, 8)
                         }
@@ -1589,7 +1589,7 @@ struct LegacyRestoreSelectionView: View {
                 } header: {
                     Text("Select A Backup To Restore")
                         .font(.subheadline)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(themeManager.secondaryTextColor)
                         .textCase(nil)
                 }
             }

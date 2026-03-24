@@ -58,22 +58,22 @@ struct DefaultFrameworksView: View {
         VStack(spacing: 16) {
             ZStack {
                 Circle()
-                    .fill(Color.accentColor.opacity(0.1))
+                    .fill(themeManager.accentColor.opacity(0.1))
                     .frame(width: 64, height: 64)
                 
                 Image(systemName: "puzzlepiece.extension")
                     .font(.system(size: 28))
-                    .foregroundStyle(Color.accentColor.opacity(0.6))
+                    .foregroundStyle(themeManager.accentColor.opacity(0.6))
             }
             
             VStack(spacing: 4) {
                 Text(.localized("No Frameworks"))
                     .font(.headline)
-                    .foregroundStyle(.primary)
+                    .foregroundStyle(themeManager.primaryTextColor)
                 
                 Text(.localized("Tap + above to add your first default framework."))
                     .font(.subheadline)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(themeManager.secondaryTextColor)
             }
         }
         .frame(maxWidth: .infinity)
@@ -152,7 +152,7 @@ private struct FrameworkRowView: View {
                 HStack(spacing: 6) {
                     Text(framework.pathExtension.uppercased())
                         .font(.caption2.weight(.semibold))
-                        .foregroundStyle(.white)
+                        .foregroundStyle(themeManager.buttonTextColor)
                         .padding(.horizontal, 6)
                         .padding(.vertical, 2)
                         .background(iconColor.opacity(0.8))
@@ -161,7 +161,7 @@ private struct FrameworkRowView: View {
                     if let size = fileSize {
                         Text(size)
                             .font(.caption)
-                            .foregroundStyle(.tertiary)
+                            .foregroundStyle(themeManager.secondaryTextColor.opacity(0.7))
                     }
                 }
             }

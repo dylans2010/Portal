@@ -13,12 +13,12 @@ struct EntitlementsSplashView: View {
             VStack(spacing: 16) {
                 ZStack {
                     Circle()
-                        .fill(Color.orange.opacity(0.15))
+                        .fill(themeManager.accentColor.opacity(0.15))
                         .frame(width: 100, height: 100)
 
                     Image(systemName: "lock.shield.fill")
                         .font(.system(size: 48))
-                        .foregroundStyle(.orange)
+                        .foregroundStyle(themeManager.accentColor)
                 }
 
                 Text("Entitlements Guide")
@@ -27,7 +27,7 @@ struct EntitlementsSplashView: View {
 
                 Text("Understand and manage app permissions")
                     .font(.subheadline)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(themeManager.secondaryTextColor)
             }
 
             // Steps
@@ -67,8 +67,8 @@ struct EntitlementsSplashView: View {
                         .fontWeight(.bold)
                         .frame(maxWidth: .infinity)
                         .padding()
-                        .background(Color.accentColor)
-                        .foregroundStyle(.white)
+                        .background(themeManager.accentColor)
+                        .foregroundStyle(themeManager.buttonTextColor)
                         .clipShape(RoundedRectangle(cornerRadius: 16))
                 }
 
@@ -78,13 +78,13 @@ struct EntitlementsSplashView: View {
                 } label: {
                     Text("Don’t show again")
                         .font(.subheadline)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(themeManager.secondaryTextColor)
                 }
             }
             .padding(.horizontal, 24)
             .padding(.bottom, 32)
         }
-        .background(Color(uiColor: .systemBackground))
+        .background(themeManager.appBackgroundColor)
     }
 }
 
@@ -112,7 +112,7 @@ struct SplashStepRow: View {
                     .font(.headline)
                 Text(description)
                     .font(.subheadline)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(themeManager.secondaryTextColor)
                     .fixedSize(horizontal: false, vertical: true)
             }
         }

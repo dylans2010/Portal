@@ -255,7 +255,7 @@ struct ModernSigningView: View {
             } label: {
                 Image(systemName: "xmark.circle.fill")
                     .font(.title2)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(themeManager.secondaryTextColor)
             }
             .opacity(_contentOpacity)
         }
@@ -423,10 +423,10 @@ struct ModernSigningView: View {
                     // Simple edit indicator
                     Image(systemName: "pencil.circle.fill")
                         .font(.system(size: 24))
-                        .foregroundStyle(.white, Color.accentColor)
+                        .foregroundStyle(.white, themeManager.accentColor)
                         .background(
                             Circle()
-                                .fill(Color.accentColor)
+                                .fill(themeManager.accentColor)
                                 .frame(width: 20, height: 20)
                         )
                         .offset(x: 4, y: 4)
@@ -438,14 +438,14 @@ struct ModernSigningView: View {
             VStack(spacing: 6) {
                 Text(_temporaryOptions.appName ?? app.name ?? "Unknown")
                     .font(.title3.weight(.semibold))
-                    .foregroundStyle(.primary)
+                    .foregroundStyle(themeManager.primaryTextColor)
                     .lineLimit(1)
                 
                 HStack(spacing: 8) {
                     if let version = _temporaryOptions.appVersion ?? app.version {
                         Label(version, systemImage: "number.circle.fill")
                             .font(.caption.weight(.medium))
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(themeManager.secondaryTextColor)
                             .modifier(BounceEffectModifier(value: _appearAnimation))
                     }
                 }
@@ -454,7 +454,7 @@ struct ModernSigningView: View {
                 if let bundleId = _temporaryOptions.appIdentifier ?? app.identifier {
                     Text(bundleId)
                         .font(.system(size: 10, weight: .regular, design: .monospaced))
-                        .foregroundStyle(.tertiary)
+                        .foregroundStyle(themeManager.secondaryTextColor.opacity(0.7))
                         .lineLimit(1)
                         .truncationMode(.middle)
                         .padding(.horizontal, 12)
@@ -486,20 +486,20 @@ struct ModernSigningView: View {
                         HStack(spacing: 14) {
                             ZStack {
                                 Circle()
-                                    .fill(Color.accentColor.opacity(0.12))
+                                    .fill(themeManager.accentColor.opacity(0.12))
                                     .frame(width: 32, height: 32)
                                 Image(systemName: info.icon)
                                     .font(.system(size: 14, weight: .semibold))
-                                    .foregroundStyle(Color.accentColor)
+                                    .foregroundStyle(themeManager.accentColor)
                             }
 
                             VStack(alignment: .leading, spacing: 2) {
                                 Text(info.name)
                                     .font(.system(size: 15, weight: .medium))
-                                    .foregroundStyle(.primary)
+                                    .foregroundStyle(themeManager.primaryTextColor)
                                 Text(cap)
                                     .font(.system(size: 10, weight: .regular, design: .monospaced))
-                                    .foregroundStyle(.secondary)
+                                    .foregroundStyle(themeManager.secondaryTextColor)
                             }
 
                             Spacer()
@@ -528,7 +528,7 @@ struct ModernSigningView: View {
                 .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
                 .overlay(
                     RoundedRectangle(cornerRadius: 24, style: .continuous)
-                        .stroke(Color.primary.opacity(0.05), lineWidth: 1)
+                        .stroke(themeManager.primaryTextColor.opacity(0.05), lineWidth: 1)
                 )
             }
             .padding(.horizontal, 20)
@@ -567,23 +567,23 @@ struct ModernSigningView: View {
                     HStack(spacing: 14) {
                         Image(systemName: "plus.square.on.square")
                             .font(.system(size: 16, weight: .medium))
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(themeManager.secondaryTextColor)
                             .frame(width: 24)
 
                         VStack(alignment: .leading, spacing: 2) {
                             Text("Clone App")
                                 .font(.system(size: 12, weight: .medium))
-                                .foregroundStyle(.secondary)
+                                .foregroundStyle(themeManager.secondaryTextColor)
                             Text("Append random string to ID to clone a app.")
                                 .font(.system(size: 10))
-                                .foregroundStyle(.tertiary)
+                                .foregroundStyle(themeManager.secondaryTextColor.opacity(0.7))
                         }
 
                         Spacer()
 
                         Toggle("", isOn: $_temporaryOptions.cloneApp)
                             .labelsHidden()
-                            .tint(.accentColor)
+                            .tint(themeManager.accentColor)
                     }
                     .padding(.horizontal, 14)
                     .padding(.vertical, 10)
@@ -594,16 +594,16 @@ struct ModernSigningView: View {
                         HStack(spacing: 14) {
                             Image(systemName: "dice.fill")
                                 .font(.system(size: 16, weight: .medium))
-                                .foregroundStyle(.secondary)
+                                .foregroundStyle(themeManager.secondaryTextColor)
                                 .frame(width: 24)
 
                             VStack(alignment: .leading, spacing: 2) {
                                 Text("Clone String")
                                     .font(.system(size: 12, weight: .medium))
-                                    .foregroundStyle(.secondary)
+                                    .foregroundStyle(themeManager.secondaryTextColor)
                                 Text(_temporaryOptions.cloneString)
                                     .font(.system(size: 15, weight: .bold, design: .monospaced))
-                                    .foregroundStyle(.primary)
+                                    .foregroundStyle(themeManager.primaryTextColor)
                             }
 
                             Spacer()
@@ -614,7 +614,7 @@ struct ModernSigningView: View {
                             } label: {
                                 Image(systemName: "arrow.clockwise.circle.fill")
                                     .font(.title3)
-                                    .foregroundStyle(Color.accentColor)
+                                    .foregroundStyle(themeManager.accentColor)
                             }
                             .buttonStyle(.plain)
                         }
@@ -628,7 +628,7 @@ struct ModernSigningView: View {
                 .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
                 .overlay(
                     RoundedRectangle(cornerRadius: 24, style: .continuous)
-                        .stroke(Color.primary.opacity(0.05), lineWidth: 1)
+                        .stroke(themeManager.primaryTextColor.opacity(0.05), lineWidth: 1)
                 )
             }
             
@@ -689,7 +689,7 @@ struct ModernSigningView: View {
                 .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
                 .overlay(
                     RoundedRectangle(cornerRadius: 24, style: .continuous)
-                        .stroke(Color.primary.opacity(0.05), lineWidth: 1)
+                        .stroke(themeManager.primaryTextColor.opacity(0.05), lineWidth: 1)
                 )
             }
             
@@ -707,10 +707,10 @@ struct ModernSigningView: View {
         HStack(spacing: 6) {
             Image(systemName: icon)
                 .font(.system(size: 12, weight: .semibold))
-                .foregroundStyle(.secondary)
+                .foregroundStyle(themeManager.secondaryTextColor)
             Text(title.uppercased())
                 .font(.system(size: 12, weight: .semibold))
-                .foregroundStyle(.secondary)
+                .foregroundStyle(themeManager.secondaryTextColor)
         }
         .padding(.leading, 4)
     }
@@ -722,16 +722,16 @@ struct ModernSigningView: View {
             HStack(spacing: 14) {
                 Image(systemName: icon)
                     .font(.system(size: 16, weight: .medium))
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(themeManager.secondaryTextColor)
                     .frame(width: 24)
                 
                 VStack(alignment: .leading, spacing: 2) {
                     Text(title)
                         .font(.system(size: 12, weight: .medium))
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(themeManager.secondaryTextColor)
                     Text(value)
                         .font(.system(size: 15, weight: .medium))
-                        .foregroundStyle(.primary)
+                        .foregroundStyle(themeManager.primaryTextColor)
                         .lineLimit(1)
                 }
                 
@@ -763,7 +763,7 @@ struct ModernSigningView: View {
             
             Text(title)
                 .font(.system(size: 15, weight: .medium))
-                .foregroundStyle(.primary)
+                .foregroundStyle(themeManager.primaryTextColor)
             
             Spacer()
             
@@ -785,19 +785,19 @@ struct ModernSigningView: View {
                 HStack(spacing: 12) {
                     Image(systemName: "checkmark.seal.fill")
                         .font(.title2)
-                        .foregroundStyle(.green)
+                        .foregroundStyle(themeManager.accentColor)
                         .frame(width: 40)
                     
                     VStack(alignment: .leading, spacing: 2) {
                         Text(cert.nickname ?? "Certificate")
                             .font(.body.weight(.medium))
-                            .foregroundStyle(.primary)
+                            .foregroundStyle(themeManager.primaryTextColor)
 
                         HStack(spacing: 8) {
                             if cert.ppQCheck {
                                 Text("PPQ")
                                     .font(.system(size: 8, weight: .bold))
-                                    .foregroundStyle(.white)
+                                    .foregroundStyle(themeManager.buttonTextColor)
                                     .padding(.horizontal, 4)
                                     .padding(.vertical, 2)
                                     .background(Capsule().fill(themeManager.accentColor))
@@ -806,7 +806,7 @@ struct ModernSigningView: View {
                             if _decodedCertificate?.ProvisionedDevices != nil {
                                 Text("UDID")
                                     .font(.system(size: 8, weight: .bold))
-                                    .foregroundStyle(.white)
+                                    .foregroundStyle(themeManager.buttonTextColor)
                                     .padding(.horizontal, 4)
                                     .padding(.vertical, 2)
                                     .background(Capsule().fill(Color(hex: "#FF9500")))
@@ -815,7 +815,7 @@ struct ModernSigningView: View {
                             if let team = _decodedCertificate?.TeamName {
                                 Text(team)
                                     .font(.system(size: 10))
-                                    .foregroundStyle(.secondary)
+                                    .foregroundStyle(themeManager.secondaryTextColor)
                                     .lineLimit(1)
                             }
                         }
@@ -824,7 +824,7 @@ struct ModernSigningView: View {
                             let formattedDate = expiration.formatted(date: .abbreviated, time: .omitted)
                             Label(.localized("Expires \(formattedDate)"), systemImage: "calendar")
                                 .font(.caption)
-                                .foregroundStyle(.secondary)
+                                .foregroundStyle(themeManager.secondaryTextColor)
                         }
                     }
                     
@@ -839,7 +839,7 @@ struct ModernSigningView: View {
                 .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
                 .overlay(
                     RoundedRectangle(cornerRadius: 24, style: .continuous)
-                        .stroke(Color.primary.opacity(0.05), lineWidth: 1)
+                        .stroke(themeManager.primaryTextColor.opacity(0.05), lineWidth: 1)
                 )
             }
         } else {
@@ -849,30 +849,30 @@ struct ModernSigningView: View {
                 HStack(spacing: 12) {
                     Image(systemName: "exclamationmark.triangle.fill")
                         .font(.title2)
-                        .foregroundStyle(.orange)
+                        .foregroundStyle(themeManager.accentColor)
                         .frame(width: 40)
                     
                     VStack(alignment: .leading, spacing: 2) {
                         Text(.localized("No Certificate"))
                             .font(.body.weight(.medium))
-                            .foregroundStyle(.primary)
+                            .foregroundStyle(themeManager.primaryTextColor)
                         Text(.localized("Tap To Add"))
                             .font(.caption)
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(themeManager.secondaryTextColor)
                     }
                     
                     Spacer()
                     
                     Image(systemName: "plus.circle.fill")
                         .font(.title3)
-                        .foregroundStyle(Color.accentColor)
+                        .foregroundStyle(themeManager.accentColor)
                 }
                 .padding(14)
                 .background(.ultraThinMaterial)
                 .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
                 .overlay(
                     RoundedRectangle(cornerRadius: 24, style: .continuous)
-                        .stroke(Color.primary.opacity(0.05), lineWidth: 1)
+                        .stroke(themeManager.primaryTextColor.opacity(0.05), lineWidth: 1)
                 )
             }
             .buttonStyle(.plain)
@@ -891,7 +891,7 @@ struct ModernSigningView: View {
                 Text("Sign App")
                     .font(.system(size: 17, weight: .bold))
             }
-            .foregroundStyle(.white)
+            .foregroundStyle(themeManager.buttonTextColor)
             .frame(maxWidth: .infinity)
             .padding(.vertical, 18)
             .background(
@@ -899,8 +899,8 @@ struct ModernSigningView: View {
                     // Base accent color with gradient
                     LinearGradient(
                         colors: [
-                            Color.accentColor,
-                            Color.accentColor.opacity(0.85)
+                            themeManager.accentColor,
+                            themeManager.accentColor.opacity(0.85)
                         ],
                         startPoint: .topLeading,
                         endPoint: .bottomTrailing
@@ -930,10 +930,10 @@ struct ModernSigningView: View {
                 }
             )
             .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
-            .shadow(color: Color.accentColor.opacity(0.4), radius: _glowAnimation ? 16 : 10, x: 0, y: _glowAnimation ? 8 : 4)
+            .shadow(color: themeManager.accentColor.opacity(0.4), radius: _glowAnimation ? 16 : 10, x: 0, y: _glowAnimation ? 8 : 4)
             .overlay(
                 RoundedRectangle(cornerRadius: 24, style: .continuous)
-                    .stroke(Color.white.opacity(_glowAnimation ? 0.3 : 0), lineWidth: 2)
+                    .stroke(themeManager.buttonTextColor.opacity(_glowAnimation ? 0.3 : 0), lineWidth: 2)
                     .blur(radius: 4)
             )
         }
@@ -1107,7 +1107,7 @@ struct ModernSigningOptionsView: View {
                         .padding(.vertical, 10)
                     }
                 }
-                .listRowBackground(Color.clear)
+                .listRowBackground(themeManager.cardBackgroundColor)
                 .listRowInsets(EdgeInsets())
                 .listRowSeparator(.hidden)
                 .padding(.horizontal, 20)
@@ -1121,7 +1121,7 @@ struct ModernSigningOptionsView: View {
 
                     modernOptionPicker(title: "Minimum Requirement", icon: "ruler.fill", color: .blue, selection: $options.minimumAppRequirement, values: Options.MinimumAppRequirement.allCases)
                 }
-                .listRowBackground(Color.clear)
+                .listRowBackground(themeManager.cardBackgroundColor)
                 .listRowInsets(EdgeInsets())
                 .listRowSeparator(.hidden)
                 .padding(.horizontal, 20)
@@ -1131,7 +1131,7 @@ struct ModernSigningOptionsView: View {
                 modernOptionSection(title: "Signing", icon: "signature", color: .accentColor) {
                     modernOptionPicker(title: "Signing Type", icon: "pencil.and.scribble", color: .accentColor, selection: $options.signingOption, values: Options.SigningOption.allCases)
                 }
-                .listRowBackground(Color.clear)
+                .listRowBackground(themeManager.cardBackgroundColor)
                 .listRowInsets(EdgeInsets())
                 .listRowSeparator(.hidden)
                 .padding(.horizontal, 20)
@@ -1149,7 +1149,7 @@ struct ModernSigningOptionsView: View {
                     Divider().padding(.leading, 52)
                     modernOptionToggle(title: "iPad Fullscreen", icon: "ipad.landscape", color: .indigo, isOn: $options.ipadFullscreen)
                 }
-                .listRowBackground(Color.clear)
+                .listRowBackground(themeManager.cardBackgroundColor)
                 .listRowInsets(EdgeInsets())
                 .listRowSeparator(.hidden)
                 .padding(.horizontal, 20)
@@ -1161,7 +1161,7 @@ struct ModernSigningOptionsView: View {
                     Divider().padding(.leading, 52)
                     modernOptionToggle(title: "Remove Provisioning", icon: "doc.badge.gearshape", color: .orange, isOn: $options.removeProvisioning)
                 }
-                .listRowBackground(Color.clear)
+                .listRowBackground(themeManager.cardBackgroundColor)
                 .listRowInsets(EdgeInsets())
                 .listRowSeparator(.hidden)
                 .padding(.horizontal, 20)
@@ -1209,7 +1209,7 @@ struct ModernSigningOptionsView: View {
                     .padding(.horizontal, 14)
                     .padding(.vertical, 10)
                 }
-                .listRowBackground(Color.clear)
+                .listRowBackground(themeManager.cardBackgroundColor)
                 .listRowInsets(EdgeInsets())
                 .listRowSeparator(.hidden)
                 .padding(.horizontal, 20)
@@ -1219,7 +1219,7 @@ struct ModernSigningOptionsView: View {
                 modernOptionSection(title: "Localization", icon: "globe.badge.chevron.backward", color: .cyan) {
                     modernOptionToggle(title: "Force Localize", icon: "character.bubble.fill", color: .cyan, isOn: $options.changeLanguageFilesForCustomDisplayName)
                 }
-                .listRowBackground(Color.clear)
+                .listRowBackground(themeManager.cardBackgroundColor)
                 .listRowInsets(EdgeInsets())
                 .listRowSeparator(.hidden)
                 .padding(.horizontal, 20)
@@ -1231,7 +1231,7 @@ struct ModernSigningOptionsView: View {
                     Divider().padding(.leading, 52)
                     modernOptionToggle(title: "Delete After Signing", icon: "trash.fill", color: .red, isOn: $options.post_deleteAppAfterSigned)
                 }
-                .listRowBackground(Color.clear)
+                .listRowBackground(themeManager.cardBackgroundColor)
                 .listRowInsets(EdgeInsets())
                 .listRowSeparator(.hidden)
                 .padding(.horizontal, 20)
@@ -1243,7 +1243,7 @@ struct ModernSigningOptionsView: View {
                     Divider().padding(.leading, 52)
                     modernOptionToggle(title: "Enable Liquid Glass", icon: "drop.fill", color: .blue, isOn: $options.experiment_supportLiquidGlass)
                 }
-                .listRowBackground(Color.clear)
+                .listRowBackground(themeManager.cardBackgroundColor)
                 .listRowInsets(EdgeInsets())
                 .listRowSeparator(.hidden)
                 .padding(.horizontal, 20)
@@ -1281,7 +1281,7 @@ struct ModernSigningOptionsView: View {
                 Circle()
                     .fill(
                         RadialGradient(
-                            colors: [Color.accentColor.opacity(0.15), Color.accentColor.opacity(0)],
+                            colors: [themeManager.accentColor.opacity(0.15), themeManager.accentColor.opacity(0)],
                             center: .center,
                             startRadius: 0,
                             endRadius: 200
@@ -1331,14 +1331,14 @@ struct ModernSigningOptionsView: View {
                 }
                 Text(title)
                     .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(themeManager.secondaryTextColor)
                     .textCase(.uppercase)
                     .tracking(0.5)
                 
                 if isBeta {
                     Text("Beta")
                         .font(.system(size: 8, weight: .bold))
-                        .foregroundStyle(.white)
+                        .foregroundStyle(themeManager.buttonTextColor)
                         .padding(.horizontal, 5)
                         .padding(.vertical, 2)
                         .background(Capsule().fill(color))
@@ -1356,7 +1356,7 @@ struct ModernSigningOptionsView: View {
             .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
             .overlay(
                 RoundedRectangle(cornerRadius: 24, style: .continuous)
-                    .stroke(Color.primary.opacity(0.05), lineWidth: 1)
+                    .stroke(themeManager.primaryTextColor.opacity(0.05), lineWidth: 1)
             )
         }
     }
@@ -1383,11 +1383,11 @@ struct ModernSigningOptionsView: View {
             VStack(alignment: .leading, spacing: 2) {
                 Text(title)
                     .font(.subheadline.weight(.medium))
-                    .foregroundStyle(.primary)
+                    .foregroundStyle(themeManager.primaryTextColor)
                 if let subtitle = subtitle {
                     Text(subtitle)
                         .font(.caption)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(themeManager.secondaryTextColor)
                 }
             }
             
@@ -1396,7 +1396,7 @@ struct ModernSigningOptionsView: View {
             Toggle("", isOn: isOn)
                 .labelsHidden()
                 .disabled(disabled)
-                .tint(.accentColor)
+                .tint(themeManager.accentColor)
         }
         .padding(.horizontal, 14)
         .padding(.vertical, 12)
@@ -1423,7 +1423,7 @@ struct ModernSigningOptionsView: View {
             
             Text(title)
                 .font(.subheadline.weight(.medium))
-                .foregroundStyle(.primary)
+                .foregroundStyle(themeManager.primaryTextColor)
             
             Spacer()
             
@@ -1433,7 +1433,7 @@ struct ModernSigningOptionsView: View {
                 }
             }
             .labelsHidden()
-            .tint(.secondary)
+            .tint(themeManager.secondaryTextColor)
         }
         .padding(.horizontal, 14)
         .padding(.vertical, 10)
@@ -1464,7 +1464,7 @@ struct SwipeToSign: View {
                     .frame(height: 60)
                     .overlay(
                         Capsule()
-                            .stroke(Color.primary.opacity(0.1), lineWidth: 1)
+                            .stroke(themeManager.primaryTextColor.opacity(0.1), lineWidth: 1)
                     )
                     .overlay(
                         ZStack {
@@ -1472,7 +1472,7 @@ struct SwipeToSign: View {
                                 Capsule()
                                     .stroke(
                                         AngularGradient(
-                                            colors: [.clear, Color.accentColor.opacity(0.5), .clear],
+                                            colors: [.clear, themeManager.accentColor.opacity(0.5), .clear],
                                             center: .center,
                                             angle: .degrees(rotation)
                                         ),
@@ -1594,7 +1594,7 @@ struct HoldToSign: View {
                 .frame(height: 60)
                 .overlay(
                     Capsule()
-                        .stroke(Color.primary.opacity(0.1), lineWidth: 1)
+                        .stroke(themeManager.primaryTextColor.opacity(0.1), lineWidth: 1)
                 )
 
             // Progress Fill
@@ -1609,17 +1609,17 @@ struct HoldToSign: View {
                 if isCompleted {
                     Image(systemName: "checkmark.circle.fill")
                         .font(.title3.bold())
-                        .foregroundStyle(.green)
+                        .foregroundStyle(themeManager.accentColor)
                     Text("Signed!")
                         .font(.headline.bold())
                 } else {
                     Image(systemName: "hand.tap.fill")
                         .font(.title3.bold())
-                        .foregroundStyle(Color.accentColor)
+                        .foregroundStyle(themeManager.accentColor)
                         .scaleEffect(isHolding ? 1.2 : 1.0)
                     Text(isHolding ? "Keep Holding..." : "Hold 5s To Sign")
                         .font(.headline.bold())
-                        .foregroundStyle(.primary)
+                        .foregroundStyle(themeManager.primaryTextColor)
                 }
             }
         }
@@ -1672,17 +1672,17 @@ struct SlideToConfirm: View {
                     .frame(height: 60)
                     .overlay(
                         Capsule()
-                            .stroke(Color.primary.opacity(0.1), lineWidth: 1)
+                            .stroke(themeManager.primaryTextColor.opacity(0.1), lineWidth: 1)
                     )
 
                 Text("Slide To Confirm")
                     .font(.subheadline.bold())
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(themeManager.secondaryTextColor)
                     .frame(maxWidth: .infinity)
 
                 // Track fill
                 Capsule()
-                    .fill(LinearGradient(colors: [Color.accentColor, Color.accentColor.opacity(0.7)], startPoint: .leading, endPoint: .trailing))
+                    .fill(LinearGradient(colors: [themeManager.accentColor, themeManager.accentColor.opacity(0.7)], startPoint: .leading, endPoint: .trailing))
                     .frame(width: offset + 60, height: 60)
 
                 // Handle
@@ -1694,7 +1694,7 @@ struct SlideToConfirm: View {
 
                     Image(systemName: isCompleted ? "checkmark" : "arrow.right")
                         .font(.title3.bold())
-                        .foregroundStyle(Color.accentColor)
+                        .foregroundStyle(themeManager.accentColor)
                 }
                 .padding(.leading, 4)
                 .offset(x: offset)
@@ -1763,13 +1763,13 @@ struct DoubleTapToSign: View {
 
                 Text(isCompleted ? "Signing..." : "Double Tap To Sign")
                     .font(.headline.bold())
-                    .foregroundStyle(.primary)
+                    .foregroundStyle(themeManager.primaryTextColor)
 
                 Spacer()
 
                 Image(systemName: "chevron.right")
                     .font(.caption.bold())
-                    .foregroundStyle(.tertiary)
+                    .foregroundStyle(themeManager.secondaryTextColor.opacity(0.7))
             }
             .padding(.horizontal, 16)
             .frame(maxWidth: .infinity)
@@ -1883,11 +1883,11 @@ struct ModernEditSheet: View {
                         VStack(alignment: .leading, spacing: 2) {
                             Text(title)
                                 .font(.system(size: 18, weight: .bold, design: .rounded))
-                                .foregroundStyle(.primary)
+                                .foregroundStyle(themeManager.primaryTextColor)
 
                             Text("Enter New \(title)")
                             .font(.system(size: 12, weight: .medium))
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(themeManager.secondaryTextColor)
                         }
                         
                         Spacer()
@@ -1941,7 +1941,7 @@ struct ModernEditSheet: View {
                         } label: {
                             Text("Cancel")
                                 .font(.system(size: 15, weight: .semibold))
-                                .foregroundStyle(.secondary)
+                                .foregroundStyle(themeManager.secondaryTextColor)
                                 .frame(maxWidth: .infinity)
                                 .padding(.vertical, 12)
                                 .background(
@@ -1960,7 +1960,7 @@ struct ModernEditSheet: View {
                         } label: {
                             Text("Save")
                                 .font(.system(size: 15, weight: .bold))
-                                .foregroundStyle(.white)
+                                .foregroundStyle(themeManager.buttonTextColor)
                                 .frame(maxWidth: .infinity)
                                 .padding(.vertical, 12)
                                 .background(

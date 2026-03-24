@@ -311,8 +311,8 @@ struct RepoBuilder: View {
             ZStack {
                 LinearGradient(
                     colors: [
-                        Color.blue.opacity(0.06),
-                        Color.purple.opacity(0.04),
+                        themeManager.accentColor.opacity(0.06),
+                        themeManager.accentColor.opacity(0.04),
                         Color.clear
                     ],
                     startPoint: .topLeading,
@@ -325,50 +325,50 @@ struct RepoBuilder: View {
                         Section {
                             RepoBuilderHeaderView()
                                 .listRowInsets(EdgeInsets())
-                                .listRowBackground(Color.clear)
+                                .listRowBackground(themeManager.cardBackgroundColor)
                         }
                     }
 
                 Section(header: Label(String.localized("Source Information"), systemImage: "info.circle.fill")) {
                     HStack {
                         Image(systemName: "pencil")
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(themeManager.secondaryTextColor)
                             .frame(width: 24)
                         TextField(String.localized("Source Name"), text: $repoName)
                     }
                     HStack {
                         Image(systemName: "barcode")
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(themeManager.secondaryTextColor)
                             .frame(width: 24)
                         TextField(String.localized("Source Identifier"), text: $repoIdentifier)
                     }
                     HStack {
                         Image(systemName: "link")
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(themeManager.secondaryTextColor)
                             .frame(width: 24)
                         TextField(String.localized("Source URL"), text: $sourceURL)
                     }
                     HStack {
                         Image(systemName: "photo")
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(themeManager.secondaryTextColor)
                             .frame(width: 24)
                         TextField(String.localized("Icon URL"), text: $iconURL)
                     }
                     HStack {
                         Image(systemName: "globe")
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(themeManager.secondaryTextColor)
                             .frame(width: 24)
                         TextField(String.localized("Website (Optional)"), text: $website)
                     }
                     HStack {
                         Image(systemName: "text.alignleft")
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(themeManager.secondaryTextColor)
                             .frame(width: 24)
                         TextField(String.localized("Subtitle (Optional)"), text: $subtitle)
                     }
                     HStack {
                         Image(systemName: "doc.text")
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(themeManager.secondaryTextColor)
                             .frame(width: 24)
                         TextField(String.localized("Description (Optional)"), text: $description)
                     }
@@ -376,13 +376,13 @@ struct RepoBuilder: View {
                     Toggle(isOn: $isAltSource) {
                         HStack(spacing: 12) {
                             Image(systemName: "gearshape")
-                                .foregroundStyle(.secondary)
+                                .foregroundStyle(themeManager.secondaryTextColor)
                             VStack(alignment: .leading) {
                                 Text(String.localized("Create AltSource"))
                                     .bold()
                                 Text(String.localized("Generate a standard AltStore compatible source."))
                                     .font(.caption)
-                                    .foregroundStyle(.secondary)
+                                    .foregroundStyle(themeManager.secondaryTextColor)
                             }
                         }
                     }
@@ -423,10 +423,10 @@ struct RepoBuilder: View {
                             VStack(alignment: .leading, spacing: 4) {
                                 Text(app.name)
                                     .font(.headline)
-                                    .foregroundStyle(.primary)
+                                    .foregroundStyle(themeManager.primaryTextColor)
                                 Text(app.bundleIdentifier)
                                     .font(.caption)
-                                    .foregroundStyle(.secondary)
+                                    .foregroundStyle(themeManager.secondaryTextColor)
                             }
                         }
                     }
@@ -449,7 +449,7 @@ struct RepoBuilder: View {
                             .padding(.vertical, 8)
                     }
                     .buttonStyle(.borderedProminent)
-                    .listRowBackground(Color.clear)
+                    .listRowBackground(themeManager.cardBackgroundColor)
                     .listRowInsets(EdgeInsets())
                 }
 
@@ -506,13 +506,13 @@ struct RepoBuilder: View {
                                 VStack(alignment: .leading) {
                                     Text(saved.name ?? saved.source.name)
                                         .font(.headline)
-                                        .foregroundStyle(.primary)
+                                        .foregroundStyle(themeManager.primaryTextColor)
                                     Text(saved.source.identifier)
                                         .font(.caption)
-                                        .foregroundStyle(.secondary)
+                                        .foregroundStyle(themeManager.secondaryTextColor)
                                     Text(saved.date, style: .date)
                                         .font(.caption2)
-                                        .foregroundStyle(.tertiary)
+                                        .foregroundStyle(themeManager.secondaryTextColor.opacity(0.7))
                                 }
                             }
                             .swipeActions {
@@ -528,7 +528,7 @@ struct RepoBuilder: View {
                                 } label: {
                                     Label(String.localized("Copy"), systemImage: "doc.on.doc")
                                 }
-                                .tint(.blue)
+                                .tint(themeManager.accentColor)
                             }
                         }
                     }
@@ -869,7 +869,7 @@ struct AddRepoAppView: View {
                 Section(header: Text(String.localized("Size Converter"))) {
                     HStack(spacing: 12) {
                         Image(systemName: "scalemass")
-                            .foregroundStyle(.blue)
+                            .foregroundStyle(themeManager.accentColor)
 
                         TextField(String.localized("Value"), text: $converterValue)
                             .keyboardType(.decimalPad)
@@ -891,44 +891,44 @@ struct AddRepoAppView: View {
                     if !app.size.isEmpty && app.size != "0" {
                         Text(String.localized("Result: \(app.size) Bytes"))
                             .font(.caption2)
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(themeManager.secondaryTextColor)
                     }
                 }
 
                 Section(header: Label(String.localized("App Details"), systemImage: "app.badge.fill")) {
                     HStack {
                         Image(systemName: "app")
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(themeManager.secondaryTextColor)
                             .frame(width: 24)
                         TextField(String.localized("App Name"), text: $app.name)
                     }
                     HStack {
                         Image(systemName: "id.badge.plus")
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(themeManager.secondaryTextColor)
                             .frame(width: 24)
                         TextField(String.localized("Bundle ID"), text: $app.bundleIdentifier)
                     }
                     HStack {
                         Image(systemName: "person")
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(themeManager.secondaryTextColor)
                             .frame(width: 24)
                         TextField(String.localized("Developer Name"), text: $app.developerName)
                     }
                     HStack {
                         Image(systemName: "text.alignleft")
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(themeManager.secondaryTextColor)
                             .frame(width: 24)
                         TextField(String.localized("Subtitle"), text: $app.subtitle)
                     }
                     HStack {
                         Image(systemName: "square.grid.2x2")
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(themeManager.secondaryTextColor)
                             .frame(width: 24)
                         TextField(String.localized("Category"), text: $app.category)
                     }
                     HStack {
                         Image(systemName: "number")
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(themeManager.secondaryTextColor)
                             .frame(width: 24)
                         TextField(String.localized("Version"), text: $app.version)
                     }
@@ -957,13 +957,13 @@ struct AddRepoAppView: View {
                 Section(header: Label(String.localized("Content & Media"), systemImage: "photo.on.rectangle.fill")) {
                     HStack {
                         Image(systemName: "photo")
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(themeManager.secondaryTextColor)
                             .frame(width: 24)
                         TextField(String.localized("Icon URL"), text: $app.iconURL)
                     }
                     HStack {
                         Image(systemName: "link")
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(themeManager.secondaryTextColor)
                             .frame(width: 24)
                         TextField(String.localized("Download URL (.ipa)"), text: $app.downloadURL)
                     }
@@ -1000,11 +1000,11 @@ struct AddRepoAppView: View {
                                     }
                                 } label: {
                                     Image(systemName: "minus.circle.fill")
-                                        .foregroundStyle(.red)
+                                        .foregroundStyle(themeManager.destructiveColor)
                                 }
                             }
                             .padding(8)
-                            .background(Color.secondary.opacity(0.1))
+                            .background(themeManager.secondaryTextColor.opacity(0.1))
                             .cornerRadius(8)
                         }
                     }
@@ -1015,12 +1015,12 @@ struct AddRepoAppView: View {
                     VStack(alignment: .leading) {
                         Label(String.localized("Version Description"), systemImage: "text.badge.plus")
                             .font(.caption)
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(themeManager.secondaryTextColor)
                         TextEditor(text: $app.versionDescription)
                             .frame(minHeight: 80)
                             .overlay(
                                 RoundedRectangle(cornerRadius: 8)
-                                    .stroke(Color.secondary.opacity(0.2), lineWidth: 1)
+                                    .stroke(themeManager.secondaryTextColor.opacity(0.2), lineWidth: 1)
                             )
                     }
                     .padding(.vertical, 4)
@@ -1028,12 +1028,12 @@ struct AddRepoAppView: View {
                     VStack(alignment: .leading) {
                         Label(String.localized("Localized Description"), systemImage: "text.alignleft")
                             .font(.caption)
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(themeManager.secondaryTextColor)
                         TextEditor(text: $app.localizedDescription)
                             .frame(minHeight: 100)
                             .overlay(
                                 RoundedRectangle(cornerRadius: 8)
-                                    .stroke(Color.secondary.opacity(0.2), lineWidth: 1)
+                                    .stroke(themeManager.secondaryTextColor.opacity(0.2), lineWidth: 1)
                             )
                     }
                     .padding(.vertical, 4)
@@ -1042,19 +1042,19 @@ struct AddRepoAppView: View {
                 Section(header: Label(String.localized("News / Changelog"), systemImage: "newspaper.fill")) {
                     HStack {
                         Image(systemName: "newspaper")
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(themeManager.secondaryTextColor)
                             .frame(width: 24)
                         TextField(String.localized("News Title"), text: $app.newsTitle)
                     }
                     HStack {
                         Image(systemName: "text.bubble")
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(themeManager.secondaryTextColor)
                             .frame(width: 24)
                         TextField(String.localized("News Content"), text: $app.newsCaption)
                     }
                     HStack {
                         Image(systemName: "photo")
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(themeManager.secondaryTextColor)
                             .frame(width: 24)
                         TextField(String.localized("News Image URL"), text: $app.newsImageURL)
                     }
@@ -1162,7 +1162,7 @@ struct RepoBuilderGuideView: View {
             ForEach(content, id: \.self) { line in
                 Text(line)
                     .font(.body)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(themeManager.secondaryTextColor)
             }
         }
     }

@@ -19,7 +19,7 @@ struct ConfigurationView: View {
                 Section {
                     ConfigurationHeaderView()
                         .listRowInsets(EdgeInsets())
-                        .listRowBackground(Color.clear)
+                        .listRowBackground(themeManager.cardBackgroundColor)
                 }
             }
 
@@ -28,14 +28,14 @@ struct ConfigurationView: View {
                     showInstallationOptions = true
                 } label: {
                     Label("Installation Options", systemImage: "tray.and.arrow.down.fill")
-                        .foregroundStyle(Color.accentColor)
+                        .foregroundStyle(themeManager.accentColor)
                 }
                 
                 NavigationLink {
                     DefaultFrameworksView()
                 } label: {
                     Label("Default Frameworks", systemImage: "puzzlepiece.extension.fill")
-                        .foregroundStyle(Color.accentColor)
+                        .foregroundStyle(themeManager.accentColor)
                 }
             }
 
@@ -50,18 +50,18 @@ struct ConfigurationView: View {
                     }
                 } label: {
                     Label("Compression", systemImage: "archivebox.fill")
-                        .foregroundStyle(Color.accentColor)
+                        .foregroundStyle(themeManager.accentColor)
                 }
                 
                 Toggle(isOn: $_useShareSheet) {
                     Label {
                         VStack(alignment: .leading) {
                             Text("Share Sheet")
-                            Text("Show after exporting").font(.caption).foregroundStyle(.secondary)
+                            Text("Show after exporting").font(.caption).foregroundStyle(themeManager.secondaryTextColor)
                         }
                     } icon: {
                         Image(systemName: "square.and.arrow.up")
-                            .foregroundStyle(Color.accentColor)
+                            .foregroundStyle(themeManager.accentColor)
                     }
                 }
             }
@@ -139,10 +139,10 @@ struct ModernSigningOptionsCard: View {
                 Label {
                     VStack(alignment: .leading) {
                         Text("PPQ Protection")
-                        Text(isPPQProtectionForced ? "Required for your certificate" : "Protect against revocation").font(.caption).foregroundStyle(.secondary)
+                        Text(isPPQProtectionForced ? "Required for your certificate" : "Protect against revocation").font(.caption).foregroundStyle(themeManager.secondaryTextColor)
                     }
                 } icon: {
-                    Image(systemName: "shield.checkered").foregroundStyle(Color.accentColor)
+                    Image(systemName: "shield.checkered").foregroundStyle(themeManager.accentColor)
                 }
             }
             .disabled(isPPQProtectionForced)
@@ -151,10 +151,10 @@ struct ModernSigningOptionsCard: View {
                 Label {
                     VStack(alignment: .leading) {
                         Text("Dynamic PPQ Protection")
-                        Text("Only applies a string to the bundle IDs for apps that are on the App Store.").font(.caption).foregroundStyle(.secondary)
+                        Text("Only applies a string to the bundle IDs for apps that are on the App Store.").font(.caption).foregroundStyle(themeManager.secondaryTextColor)
                     }
                 } icon: {
-                    Image(systemName: "shield.lefthalf.filled").foregroundStyle(Color.accentColor)
+                    Image(systemName: "shield.lefthalf.filled").foregroundStyle(themeManager.accentColor)
                 }
             }
             
@@ -162,10 +162,10 @@ struct ModernSigningOptionsCard: View {
                 Label {
                     VStack(alignment: .leading) {
                         Text("Liquid Glass")
-                        Text("iOS 26 redesign support").font(.caption).foregroundStyle(.secondary)
+                        Text("iOS 26 redesign support").font(.caption).foregroundStyle(themeManager.secondaryTextColor)
                     }
                 } icon: {
-                    Image(systemName: "sparkles.rectangle.stack.fill").foregroundStyle(Color.accentColor)
+                    Image(systemName: "sparkles.rectangle.stack.fill").foregroundStyle(themeManager.accentColor)
                 }
             }
             
@@ -174,7 +174,7 @@ struct ModernSigningOptionsCard: View {
                     Text(option.localizedDescription).tag(option)
                 }
             } label: {
-                Label("Signing Type", systemImage: "signature").foregroundStyle(Color.accentColor)
+                Label("Signing Type", systemImage: "signature").foregroundStyle(themeManager.accentColor)
             }
             
             Picker(selection: $options.appAppearance) {
@@ -182,7 +182,7 @@ struct ModernSigningOptionsCard: View {
                     Text(appearance.localizedDescription).tag(appearance)
                 }
             } label: {
-                Label("Appearance", systemImage: "paintpalette.fill").foregroundStyle(Color.accentColor)
+                Label("Appearance", systemImage: "paintpalette.fill").foregroundStyle(themeManager.accentColor)
             }
             
             Picker(selection: $options.minimumAppRequirement) {
@@ -190,17 +190,17 @@ struct ModernSigningOptionsCard: View {
                     Text(req.localizedDescription).tag(req)
                 }
             } label: {
-                Label("Minimum Requirement", systemImage: "ruler.fill").foregroundStyle(Color.accentColor)
+                Label("Minimum Requirement", systemImage: "ruler.fill").foregroundStyle(themeManager.accentColor)
             }
             
             Toggle(isOn: $options.fileSharing) {
                 Label {
                     VStack(alignment: .leading) {
                         Text("File Sharing")
-                        Text("Enable document sharing").font(.caption).foregroundStyle(.secondary)
+                        Text("Enable document sharing").font(.caption).foregroundStyle(themeManager.secondaryTextColor)
                     }
                 } icon: {
-                    Image(systemName: "folder.fill.badge.person.crop").foregroundStyle(Color.accentColor)
+                    Image(systemName: "folder.fill.badge.person.crop").foregroundStyle(themeManager.accentColor)
                 }
             }
             
@@ -208,10 +208,10 @@ struct ModernSigningOptionsCard: View {
                 Label {
                     VStack(alignment: .leading) {
                         Text("iTunes File Sharing")
-                        Text("Access via iTunes/Finder").font(.caption).foregroundStyle(.secondary)
+                        Text("Access via iTunes/Finder").font(.caption).foregroundStyle(themeManager.secondaryTextColor)
                     }
                 } icon: {
-                    Image(systemName: "music.note.list").foregroundStyle(Color.accentColor)
+                    Image(systemName: "music.note.list").foregroundStyle(themeManager.accentColor)
                 }
             }
             
@@ -219,10 +219,10 @@ struct ModernSigningOptionsCard: View {
                 Label {
                     VStack(alignment: .leading) {
                         Text("Pro Motion")
-                        Text("120Hz display support").font(.caption).foregroundStyle(.secondary)
+                        Text("120Hz display support").font(.caption).foregroundStyle(themeManager.secondaryTextColor)
                     }
                 } icon: {
-                    Image(systemName: "gauge.with.dots.needle.67percent").foregroundStyle(Color.accentColor)
+                    Image(systemName: "gauge.with.dots.needle.67percent").foregroundStyle(themeManager.accentColor)
                 }
             }
             
@@ -230,10 +230,10 @@ struct ModernSigningOptionsCard: View {
                 Label {
                     VStack(alignment: .leading) {
                         Text("Game Mode")
-                        Text("Gaming Mode (iOS 18+)").font(.caption).foregroundStyle(.secondary)
+                        Text("Gaming Mode (iOS 18+)").font(.caption).foregroundStyle(themeManager.secondaryTextColor)
                     }
                 } icon: {
-                    Image(systemName: "gamecontroller.fill").foregroundStyle(Color.accentColor)
+                    Image(systemName: "gamecontroller.fill").foregroundStyle(themeManager.accentColor)
                 }
             }
             
@@ -241,10 +241,10 @@ struct ModernSigningOptionsCard: View {
                 Label {
                     VStack(alignment: .leading) {
                         Text("iPad Fullscreen")
-                        Text("Full screen on iPad").font(.caption).foregroundStyle(.secondary)
+                        Text("Full screen on iPad").font(.caption).foregroundStyle(themeManager.secondaryTextColor)
                     }
                 } icon: {
-                    Image(systemName: "ipad.landscape").foregroundStyle(Color.accentColor)
+                    Image(systemName: "ipad.landscape").foregroundStyle(themeManager.accentColor)
                 }
             }
             
@@ -252,10 +252,10 @@ struct ModernSigningOptionsCard: View {
                 Label {
                     VStack(alignment: .leading) {
                         Text("Remove URL Scheme")
-                        Text("Strip URL handlers").font(.caption).foregroundStyle(.secondary)
+                        Text("Strip URL handlers").font(.caption).foregroundStyle(themeManager.secondaryTextColor)
                     }
                 } icon: {
-                    Image(systemName: "link.badge.minus").foregroundStyle(Color.accentColor)
+                    Image(systemName: "link.badge.minus").foregroundStyle(themeManager.accentColor)
                 }
             }
             
@@ -263,10 +263,10 @@ struct ModernSigningOptionsCard: View {
                 Label {
                     VStack(alignment: .leading) {
                         Text("Remove Provisioning")
-                        Text("Exclude .mobileprovision").font(.caption).foregroundStyle(.secondary)
+                        Text("Exclude .mobileprovision").font(.caption).foregroundStyle(themeManager.secondaryTextColor)
                     }
                 } icon: {
-                    Image(systemName: "doc.badge.minus").foregroundStyle(Color.accentColor)
+                    Image(systemName: "doc.badge.minus").foregroundStyle(themeManager.accentColor)
                 }
             }
             
@@ -274,10 +274,10 @@ struct ModernSigningOptionsCard: View {
                 Label {
                     VStack(alignment: .leading) {
                         Text("Force Localize")
-                        Text("Override localized titles").font(.caption).foregroundStyle(.secondary)
+                        Text("Override localized titles").font(.caption).foregroundStyle(themeManager.secondaryTextColor)
                     }
                 } icon: {
-                    Image(systemName: "character.bubble.fill").foregroundStyle(Color.accentColor)
+                    Image(systemName: "character.bubble.fill").foregroundStyle(themeManager.accentColor)
                 }
             }
             
@@ -285,10 +285,10 @@ struct ModernSigningOptionsCard: View {
                 Label {
                     VStack(alignment: .leading) {
                         Text("Replace Substrate")
-                        Text("Use ElleKit instead").font(.caption).foregroundStyle(.secondary)
+                        Text("Use ElleKit instead").font(.caption).foregroundStyle(themeManager.secondaryTextColor)
                     }
                 } icon: {
-                    Image(systemName: "arrow.triangle.2.circlepath.circle.fill").foregroundStyle(Color.accentColor)
+                    Image(systemName: "arrow.triangle.2.circlepath.circle.fill").foregroundStyle(themeManager.accentColor)
                 }
             }
 
@@ -296,10 +296,10 @@ struct ModernSigningOptionsCard: View {
                 Label {
                     VStack(alignment: .leading) {
                         Text("Support Big Apps")
-                        Text("Allow signing and installing apps larger than 3GB").font(.caption).foregroundStyle(.secondary)
+                        Text("Allow signing and installing apps larger than 3GB").font(.caption).foregroundStyle(themeManager.secondaryTextColor)
                     }
                 } icon: {
-                    Image(systemName: "shippingbox.fill").foregroundStyle(Color.accentColor)
+                    Image(systemName: "shippingbox.fill").foregroundStyle(themeManager.accentColor)
                 }
             }
 
@@ -308,7 +308,7 @@ struct ModernSigningOptionsCard: View {
                     Text(type.label).tag(type.rawValue)
                 }
             } label: {
-                Label("Signing Control", systemImage: "hand.tap.fill").foregroundStyle(Color.accentColor)
+                Label("Signing Control", systemImage: "hand.tap.fill").foregroundStyle(themeManager.accentColor)
             }
             
             Toggle(isOn: Binding(
@@ -318,19 +318,19 @@ struct ModernSigningOptionsCard: View {
                 Label {
                     VStack(alignment: .leading) {
                         Text("Auto Sign After Download")
-                        Text("Automatically sign and install apps after download").font(.caption).foregroundStyle(.secondary)
+                        Text("Automatically sign and install apps after download").font(.caption).foregroundStyle(themeManager.secondaryTextColor)
                     }
                 } icon: {
-                    Image(systemName: "bolt.badge.a.fill").foregroundStyle(Color.accentColor)
+                    Image(systemName: "bolt.badge.a.fill").foregroundStyle(themeManager.accentColor)
                 }
             }
 
             Toggle(isOn: $options.post_installAppAfterSigned) {
-                Label("Install After Signing", systemImage: "arrow.down.circle.fill").foregroundStyle(Color.accentColor)
+                Label("Install After Signing", systemImage: "arrow.down.circle.fill").foregroundStyle(themeManager.accentColor)
             }
             
             Toggle(isOn: $options.post_deleteAppAfterSigned) {
-                Label("Delete After Signing", systemImage: "trash.fill").foregroundStyle(Color.accentColor)
+                Label("Delete After Signing", systemImage: "trash.fill").foregroundStyle(themeManager.accentColor)
             }
         }
         .onAppear {

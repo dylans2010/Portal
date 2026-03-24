@@ -46,16 +46,16 @@ struct TabBarCustomizationView: View {
                 VStack(alignment: .leading, spacing: 8) {
                     Text(verbatim: .localized("Appearance").uppercased())
                         .font(.system(size: 12, weight: .semibold))
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(themeManager.secondaryTextColor)
                         .padding(.leading, 16)
 
                     VStack(spacing: 0) {
                         Toggle(isOn: $hideTabLabels) {
                             HStack(spacing: 12) {
                                 Image(systemName: "textformat")
-                                    .foregroundStyle(.blue)
+                                    .foregroundStyle(themeManager.accentColor)
                                     .frame(width: 32, height: 32)
-                                    .background(Color.blue.opacity(0.1))
+                                    .background(themeManager.accentColor.opacity(0.1))
                                     .clipShape(Circle())
                                 Text(verbatim: .localized("Hide Tab Labels"))
                                     .font(.system(size: 16, weight: .medium))
@@ -70,7 +70,7 @@ struct TabBarCustomizationView: View {
 
                     Text(verbatim: .localized("Hide the labels under tab bar icons for a cleaner and nicer look."))
                         .font(.system(size: 12))
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(themeManager.secondaryTextColor)
                         .padding(.horizontal, 24)
                 }
 
@@ -78,7 +78,7 @@ struct TabBarCustomizationView: View {
                 VStack(alignment: .leading, spacing: 8) {
                     Text(verbatim: .localized("Tab Order").uppercased())
                         .font(.system(size: 12, weight: .semibold))
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(themeManager.secondaryTextColor)
                         .padding(.leading, 16)
 
                     VStack(spacing: 0) {
@@ -89,9 +89,9 @@ struct TabBarCustomizationView: View {
                         } label: {
                             HStack {
                                 Image(systemName: "arrow.up.arrow.down")
-                                    .foregroundStyle(.orange)
+                                    .foregroundStyle(themeManager.accentColor)
                                     .frame(width: 32, height: 32)
-                                    .background(Color.orange.opacity(0.1))
+                                    .background(themeManager.accentColor.opacity(0.1))
                                     .clipShape(Circle())
                                 Text(verbatim: .localized("Reorder Tabs"))
                                     .font(.system(size: 16, weight: .medium))
@@ -100,7 +100,7 @@ struct TabBarCustomizationView: View {
                                     .foregroundStyle(isReordering ? .green : .secondary)
                             }
                         }
-                        .foregroundStyle(.primary)
+                        .foregroundStyle(themeManager.primaryTextColor)
                         .padding(.horizontal, 16)
                         .padding(.vertical, 12)
 
@@ -112,7 +112,7 @@ struct TabBarCustomizationView: View {
                                     reorderableTabRow(for: tabId)
                                 }
                                 .onMove(perform: moveTab)
-                                .listRowBackground(Color.clear)
+                                .listRowBackground(themeManager.cardBackgroundColor)
                                 .listRowInsets(EdgeInsets(top: 0, leading: 16, bottom: 0, trailing: 16))
                             }
             .scrollContentBackground(.hidden)
@@ -127,15 +127,15 @@ struct TabBarCustomizationView: View {
                             } label: {
                                 HStack {
                                     Image(systemName: "arrow.counterclockwise")
-                                        .foregroundStyle(.red)
+                                        .foregroundStyle(themeManager.destructiveColor)
                                         .frame(width: 32, height: 32)
-                                        .background(Color.red.opacity(0.1))
+                                        .background(themeManager.destructiveColor.opacity(0.1))
                                         .clipShape(Circle())
                                 Text(verbatim: .localized("Reset To Default Order"))
                                         .font(.system(size: 16, weight: .medium))
                                 }
                             }
-                            .foregroundStyle(.red)
+                            .foregroundStyle(themeManager.destructiveColor)
                             .padding(.horizontal, 16)
                             .padding(.vertical, 12)
                         }
@@ -146,7 +146,7 @@ struct TabBarCustomizationView: View {
 
                     Text(verbatim: isReordering ? .localized("Drag tabs to reorder them. Settings will always appear last.") : .localized("Tap to customize the order of tabs in the Tab Bar."))
                         .font(.system(size: 12))
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(themeManager.secondaryTextColor)
                         .padding(.horizontal, 24)
                 }
                 
@@ -154,7 +154,7 @@ struct TabBarCustomizationView: View {
                 VStack(alignment: .leading, spacing: 8) {
                     Text(verbatim: .localized("Visible Tabs").uppercased())
                         .font(.system(size: 12, weight: .semibold))
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(themeManager.secondaryTextColor)
                         .padding(.leading, 16)
                     
                     VStack(spacing: 0) {
@@ -175,7 +175,7 @@ struct TabBarCustomizationView: View {
 
                     Text(verbatim: .localized("Choose which tabs appear in the bottom tab bar."))
                         .font(.system(size: 12))
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(themeManager.secondaryTextColor)
                         .padding(.horizontal, 24)
                 }
             }
@@ -204,7 +204,7 @@ struct TabBarCustomizationView: View {
             Spacer()
             if tabId == "settings" {
                 Image(systemName: "lock.fill")
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(themeManager.secondaryTextColor)
                     .font(.caption)
             }
         }
@@ -216,19 +216,19 @@ struct TabBarCustomizationView: View {
             switch tabId {
             case "dashboard":
                 Image(systemName: "house.fill")
-                    .foregroundStyle(.blue)
+                    .foregroundStyle(themeManager.accentColor)
             case "sources":
                 Image(systemName: "globe.desk.fill")
                     .foregroundStyle(.cyan)
             case "library":
                 Image(systemName: "square.grid.2x2")
-                    .foregroundStyle(.purple)
+                    .foregroundStyle(themeManager.accentColor)
             case "files":
                 Image(systemName: "folder.fill")
-                    .foregroundStyle(.blue)
+                    .foregroundStyle(themeManager.accentColor)
             case "guides":
                 Image(systemName: "book.fill")
-                    .foregroundStyle(.orange)
+                    .foregroundStyle(themeManager.accentColor)
             case "allapps":
                 Image(systemName: "square.stack.3d.up.fill")
                     .foregroundStyle(.pink)
@@ -237,7 +237,7 @@ struct TabBarCustomizationView: View {
                     .foregroundStyle(.gray)
             default:
                 Image(systemName: "questionmark")
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(themeManager.secondaryTextColor)
             }
         }
         .frame(width: 24)
@@ -263,7 +263,7 @@ struct TabBarCustomizationView: View {
             Toggle(isOn: $showDashboard) {
                 HStack {
                     Image(systemName: "house.fill")
-                        .foregroundStyle(.blue)
+                        .foregroundStyle(themeManager.accentColor)
                         .frame(width: 24)
                     Text(verbatim: .localized("Home"))
                 }
@@ -287,7 +287,7 @@ struct TabBarCustomizationView: View {
             Toggle(isOn: $showLibrary) {
                 HStack {
                     Image(systemName: "square.grid.2x2")
-                        .foregroundStyle(.purple)
+                        .foregroundStyle(themeManager.accentColor)
                         .frame(width: 24)
                     Text(verbatim: .localized("Library"))
                 }
@@ -299,7 +299,7 @@ struct TabBarCustomizationView: View {
             Toggle(isOn: $showFiles) {
                 HStack {
                     Image(systemName: "folder.fill")
-                        .foregroundStyle(.blue)
+                        .foregroundStyle(themeManager.accentColor)
                         .frame(width: 24)
                     Text(verbatim: .localized("Files"))
                 }
@@ -311,7 +311,7 @@ struct TabBarCustomizationView: View {
             Toggle(isOn: $showGuides) {
                 HStack {
                     Image(systemName: "book.fill")
-                        .foregroundStyle(.orange)
+                        .foregroundStyle(themeManager.accentColor)
                         .frame(width: 24)
                     Text(verbatim: .localized("Guides"))
                 }
@@ -339,7 +339,7 @@ struct TabBarCustomizationView: View {
                 Text(verbatim: .localized("Settings"))
                 Spacer()
                 Image(systemName: "lock.fill")
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(themeManager.secondaryTextColor)
                     .font(.caption)
             }
             

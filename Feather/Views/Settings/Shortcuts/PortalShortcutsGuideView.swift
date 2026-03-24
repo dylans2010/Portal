@@ -38,21 +38,21 @@ struct PortalShortcutsGuideView: View {
                         .frame(width: 48, height: 48)
                     Image(systemName: "square.stack.3d.up")
                         .font(.title3)
-                        .foregroundStyle(.white)
+                        .foregroundStyle(themeManager.buttonTextColor)
                 }
                 VStack(alignment: .leading, spacing: 2) {
                     Text("Shortcuts Integration")
                         .font(.headline)
                     Text("Automate Portal with the Shortcuts app")
                         .font(.subheadline)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(themeManager.secondaryTextColor)
                 }
                 Spacer()
             }
 
             Text("Portal supports full automation through the Apple Shortcuts app. You can install apps, refresh sources, update apps, manage downloads, and navigate Portal entirely through automated shortcuts and Siri commands — no manual interaction required.")
                 .font(.subheadline)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(themeManager.secondaryTextColor)
                 .fixedSize(horizontal: false, vertical: true)
 
             HStack(spacing: 8) {
@@ -70,7 +70,7 @@ struct PortalShortcutsGuideView: View {
         .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
         .overlay(
             RoundedRectangle(cornerRadius: 24, style: .continuous)
-                .stroke(Color.primary.opacity(0.08), lineWidth: 1)
+                .stroke(themeManager.primaryTextColor.opacity(0.08), lineWidth: 1)
         )
     }
 
@@ -80,7 +80,7 @@ struct PortalShortcutsGuideView: View {
         VStack(alignment: .leading, spacing: 16) {
             HStack {
                 Image(systemName: "list.number")
-                    .foregroundStyle(.blue)
+                    .foregroundStyle(themeManager.accentColor)
                 Text("How to Create a Shortcut")
                     .font(.headline)
             }
@@ -123,7 +123,7 @@ struct PortalShortcutsGuideView: View {
         .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
         .overlay(
             RoundedRectangle(cornerRadius: 24, style: .continuous)
-                .stroke(Color.primary.opacity(0.08), lineWidth: 1)
+                .stroke(themeManager.primaryTextColor.opacity(0.08), lineWidth: 1)
         )
     }
 
@@ -133,7 +133,7 @@ struct PortalShortcutsGuideView: View {
         VStack(alignment: .leading, spacing: 16) {
             HStack {
                 Image(systemName: "star.circle.fill")
-                    .foregroundStyle(.orange)
+                    .foregroundStyle(themeManager.accentColor)
                 Text("Recommended Shortcuts")
                     .font(.headline)
             }
@@ -176,7 +176,7 @@ struct PortalShortcutsGuideView: View {
         .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
         .overlay(
             RoundedRectangle(cornerRadius: 24, style: .continuous)
-                .stroke(Color.primary.opacity(0.08), lineWidth: 1)
+                .stroke(themeManager.primaryTextColor.opacity(0.08), lineWidth: 1)
         )
     }
 
@@ -186,7 +186,7 @@ struct PortalShortcutsGuideView: View {
         VStack(alignment: .leading, spacing: 16) {
             HStack {
                 Image(systemName: "square.grid.2x2.fill")
-                    .foregroundStyle(.purple)
+                    .foregroundStyle(themeManager.accentColor)
                 Text("Available Portal Actions")
                     .font(.headline)
             }
@@ -202,7 +202,7 @@ struct PortalShortcutsGuideView: View {
         .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
         .overlay(
             RoundedRectangle(cornerRadius: 24, style: .continuous)
-                .stroke(Color.primary.opacity(0.08), lineWidth: 1)
+                .stroke(themeManager.primaryTextColor.opacity(0.08), lineWidth: 1)
         )
     }
 
@@ -212,7 +212,7 @@ struct PortalShortcutsGuideView: View {
         VStack(alignment: .leading, spacing: 16) {
             HStack {
                 Image(systemName: "bolt.circle.fill")
-                    .foregroundStyle(.yellow)
+                    .foregroundStyle(themeManager.accentColor)
                 Text("Automation Ideas")
                     .font(.headline)
             }
@@ -261,7 +261,7 @@ struct PortalShortcutsGuideView: View {
         .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
         .overlay(
             RoundedRectangle(cornerRadius: 24, style: .continuous)
-                .stroke(Color.primary.opacity(0.08), lineWidth: 1)
+                .stroke(themeManager.primaryTextColor.opacity(0.08), lineWidth: 1)
         )
     }
 }
@@ -283,8 +283,8 @@ private struct FeaturePill: View {
         }
         .padding(.horizontal, 10)
         .padding(.vertical, 6)
-        .background(Color.accentColor.opacity(0.12))
-        .foregroundStyle(Color.accentColor)
+        .background(themeManager.accentColor.opacity(0.12))
+        .foregroundStyle(themeManager.accentColor)
         .clipShape(Capsule())
     }
 }
@@ -299,12 +299,12 @@ private struct PortalShortcutStepRow: View {
         HStack(alignment: .top, spacing: 12) {
             ZStack {
                 Circle()
-                    .fill(Color.accentColor)
+                    .fill(themeManager.accentColor)
                     .frame(width: 28, height: 28)
                 Text(number)
                     .font(.caption)
                     .fontWeight(.bold)
-                    .foregroundStyle(.white)
+                    .foregroundStyle(themeManager.buttonTextColor)
             }
             VStack(alignment: .leading, spacing: 2) {
                 Text(title)
@@ -312,7 +312,7 @@ private struct PortalShortcutStepRow: View {
                     .fontWeight(.medium)
                 Text(description)
                     .font(.caption)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(themeManager.secondaryTextColor)
                     .fixedSize(horizontal: false, vertical: true)
             }
             Spacer()
@@ -343,7 +343,7 @@ private struct RecommendedShortcutRow: View {
                     .fontWeight(.medium)
                 Text(description)
                     .font(.caption)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(themeManager.secondaryTextColor)
                     .fixedSize(horizontal: false, vertical: true)
             }
             Spacer()
@@ -366,27 +366,27 @@ private struct CategorySection: View {
                 HStack {
                     Image(systemName: category.icon)
                         .font(.subheadline)
-                        .foregroundStyle(Color.accentColor)
+                        .foregroundStyle(themeManager.accentColor)
                         .frame(width: 20)
                     Text(category.rawValue)
                         .font(.subheadline)
                         .fontWeight(.medium)
-                        .foregroundStyle(.primary)
+                        .foregroundStyle(themeManager.primaryTextColor)
                     Spacer()
                     Text("\(category.intents.count)")
                         .font(.caption)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(themeManager.secondaryTextColor)
                         .padding(.horizontal, 8)
                         .padding(.vertical, 3)
-                        .background(Color.secondary.opacity(0.15))
+                        .background(themeManager.secondaryTextColor.opacity(0.15))
                         .clipShape(Capsule())
                     Image(systemName: "chevron.right")
                         .font(.caption)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(themeManager.secondaryTextColor)
                         .rotationEffect(.degrees(isExpanded ? 90 : 0))
                 }
                 .padding(12)
-                .background(Color.primary.opacity(0.04))
+                .background(themeManager.primaryTextColor.opacity(0.04))
                 .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
             }
             .buttonStyle(.plain)
@@ -397,10 +397,10 @@ private struct CategorySection: View {
                         HStack(spacing: 8) {
                             Image(systemName: "checkmark.circle.fill")
                                 .font(.caption)
-                                .foregroundStyle(.green)
+                                .foregroundStyle(themeManager.accentColor)
                             Text(intentName)
                                 .font(.caption)
-                                .foregroundStyle(.secondary)
+                                .foregroundStyle(themeManager.secondaryTextColor)
                         }
                     }
                 }
@@ -435,7 +435,7 @@ private struct AutomationIdeaRow: View {
                     .fontWeight(.medium)
                 Text(description)
                     .font(.caption)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(themeManager.secondaryTextColor)
                     .fixedSize(horizontal: false, vertical: true)
             }
             Spacer()
@@ -449,4 +449,5 @@ private struct AutomationIdeaRow: View {
     NavigationStack {
         PortalShortcutsGuideView()
     }
+    .environmentObject(AppWideThemeManager())
 }

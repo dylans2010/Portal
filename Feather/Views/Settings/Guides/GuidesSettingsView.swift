@@ -70,7 +70,7 @@ struct GuidesSettingsView: View {
                         .font(.headline)
                     Text(getOverallStatus())
                         .font(.subheadline)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(themeManager.secondaryTextColor)
                 }
                 Spacer()
                 ZStack {
@@ -79,7 +79,7 @@ struct GuidesSettingsView: View {
                         .frame(width: 50, height: 50)
                     Image(systemName: "sparkles")
                         .font(.title2)
-                        .foregroundStyle(.white)
+                        .foregroundStyle(themeManager.buttonTextColor)
                 }
             }
             
@@ -101,7 +101,7 @@ struct GuidesSettingsView: View {
         .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
         .overlay(
             RoundedRectangle(cornerRadius: 24, style: .continuous)
-                .stroke(Color.primary.opacity(0.05), lineWidth: 1)
+                .stroke(themeManager.primaryTextColor.opacity(0.05), lineWidth: 1)
         )
     }
     
@@ -110,7 +110,7 @@ struct GuidesSettingsView: View {
         VStack(alignment: .leading, spacing: 16) {
             HStack {
                 Image(systemName: "key.fill")
-                    .foregroundStyle(.orange)
+                    .foregroundStyle(themeManager.accentColor)
                 Text("OpenRouter API")
                     .font(.headline)
             }
@@ -119,7 +119,7 @@ struct GuidesSettingsView: View {
                 HStack {
                     HStack(spacing: 8) {
                         Image(systemName: "checkmark.shield.fill")
-                            .foregroundStyle(.green)
+                            .foregroundStyle(themeManager.accentColor)
                         Text("API Key Configured")
                             .font(.subheadline)
                     }
@@ -129,11 +129,11 @@ struct GuidesSettingsView: View {
                     } label: {
                         Text("Remove")
                             .font(.subheadline)
-                            .foregroundStyle(.red)
+                            .foregroundStyle(themeManager.destructiveColor)
                     }
                 }
                 .padding()
-                .background(Color.green.opacity(0.1))
+                .background(themeManager.accentColor.opacity(0.1))
                 .cornerRadius(10)
             } else {
                 Button {
@@ -153,21 +153,21 @@ struct GuidesSettingsView: View {
                             endPoint: .trailing
                         )
                     )
-                    .foregroundStyle(.white)
+                    .foregroundStyle(themeManager.buttonTextColor)
                     .cornerRadius(10)
                 }
             }
             
             Text("Get your API key from openrouter.ai")
                 .font(.caption)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(themeManager.secondaryTextColor)
         }
         .padding(20)
         .background(Color.clear)
         .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
         .overlay(
             RoundedRectangle(cornerRadius: 24, style: .continuous)
-                .stroke(Color.primary.opacity(0.05), lineWidth: 1)
+                .stroke(themeManager.primaryTextColor.opacity(0.05), lineWidth: 1)
         )
     }
     
@@ -176,7 +176,7 @@ struct GuidesSettingsView: View {
         VStack(alignment: .leading, spacing: 16) {
             HStack {
                 Image(systemName: "cpu")
-                    .foregroundStyle(.purple)
+                    .foregroundStyle(themeManager.accentColor)
                 Text("AI Model")
                     .font(.headline)
             }
@@ -206,7 +206,7 @@ struct GuidesSettingsView: View {
                     Spacer()
                     Image(systemName: "chevron.up.chevron.down")
                         .font(.caption)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(themeManager.secondaryTextColor)
                 }
                 .padding()
                 .background(Color.clear.opacity(0.5))
@@ -229,7 +229,7 @@ struct GuidesSettingsView: View {
                     }
                 } label: {
                     Image(systemName: "plus.circle.fill")
-                        .foregroundStyle(customModelInput.isEmpty ? Color.secondary : Color.blue)
+                        .foregroundStyle(customModelInput.isEmpty ? themeManager.secondaryTextColor : themeManager.accentColor)
                 }
                 .disabled(customModelInput.isEmpty)
             }
@@ -242,7 +242,7 @@ struct GuidesSettingsView: View {
         .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
         .overlay(
             RoundedRectangle(cornerRadius: 24, style: .continuous)
-                .stroke(Color.primary.opacity(0.05), lineWidth: 1)
+                .stroke(themeManager.primaryTextColor.opacity(0.05), lineWidth: 1)
         )
     }
     
@@ -251,7 +251,7 @@ struct GuidesSettingsView: View {
         VStack(alignment: .leading, spacing: 16) {
             HStack {
                 Image(systemName: "doc.text")
-                    .foregroundStyle(.blue)
+                    .foregroundStyle(themeManager.accentColor)
                 Text("Per Guide Settings")
                     .font(.headline)
             }
@@ -267,10 +267,10 @@ struct GuidesSettingsView: View {
                 VStack(spacing: 12) {
                     Image(systemName: "exclamationmark.triangle.fill")
                         .font(.title)
-                        .foregroundStyle(.orange)
+                        .foregroundStyle(themeManager.accentColor)
                     Text(error)
                         .font(.caption)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(themeManager.secondaryTextColor)
                         .multilineTextAlignment(.center)
                     Button("Retry") {
                         Task {
@@ -285,9 +285,9 @@ struct GuidesSettingsView: View {
                 VStack(spacing: 8) {
                     Image(systemName: "doc.text.magnifyingglass")
                         .font(.title)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(themeManager.secondaryTextColor)
                     Text("No Guides Available")
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(themeManager.secondaryTextColor)
                 }
                 .frame(maxWidth: .infinity)
                 .padding()
@@ -304,7 +304,7 @@ struct GuidesSettingsView: View {
         .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
         .overlay(
             RoundedRectangle(cornerRadius: 24, style: .continuous)
-                .stroke(Color.primary.opacity(0.05), lineWidth: 1)
+                .stroke(themeManager.primaryTextColor.opacity(0.05), lineWidth: 1)
         )
     }
     
@@ -390,7 +390,7 @@ struct StatusPill: View {
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 8)
-        .background(isAvailable ? Color.green.opacity(0.15) : Color.secondary.opacity(0.15))
+        .background(isAvailable ? themeManager.accentColor.opacity(0.15) : themeManager.secondaryTextColor.opacity(0.15))
         .foregroundStyle(isAvailable ? .green : .secondary)
         .cornerRadius(20)
     }
@@ -415,21 +415,21 @@ struct GuideAISettingsRow: View {
             } label: {
                 HStack {
                     Image(systemName: "doc.text.fill")
-                        .foregroundStyle(.blue)
+                        .foregroundStyle(themeManager.accentColor)
                     Text(guide.displayName)
                         .font(.subheadline)
                         .fontWeight(.medium)
-                        .foregroundStyle(.primary)
+                        .foregroundStyle(themeManager.primaryTextColor)
                         .lineLimit(1)
                     Spacer()
                     if preference.aiEnabled {
                         Image(systemName: "sparkles")
-                            .foregroundStyle(.purple)
+                            .foregroundStyle(themeManager.accentColor)
                             .font(.caption)
                     }
                     Image(systemName: "chevron.right")
                         .font(.caption)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(themeManager.secondaryTextColor)
                         .rotationEffect(.degrees(isExpanded ? 90 : 0))
                 }
                 .padding()
@@ -447,7 +447,7 @@ struct GuideAISettingsRow: View {
                         Label("Enable AI", systemImage: "sparkles")
                             .font(.subheadline)
                     }
-                    .tint(.purple)
+                    .tint(themeManager.accentColor)
                     
                     if preference.aiEnabled {
                         HStack {
@@ -480,5 +480,6 @@ struct GuidesSettingsView_Previews: PreviewProvider {
         NavigationStack {
             GuidesSettingsView()
         }
+        .environmentObject(AppWideThemeManager())
     }
 }

@@ -68,7 +68,7 @@ struct BatchSigningView: View {
                     ToolbarItem(placement: .topBarTrailing) {
                         Button { dismiss() } label: {
                             Image(systemName: "xmark.circle.fill")
-                                .foregroundStyle(.secondary)
+                                .foregroundStyle(themeManager.secondaryTextColor)
                                 .symbolRenderingMode(.hierarchical)
                                 .font(.title3)
                         }
@@ -112,27 +112,27 @@ struct BatchSigningView: View {
         VStack(alignment: .leading, spacing: 10) {
             Label("Certificate", systemImage: "seal.fill")
                 .font(.subheadline.bold())
-                .foregroundStyle(.secondary)
+                .foregroundStyle(themeManager.secondaryTextColor)
 
             if certificates.isEmpty {
                 HStack(spacing: 10) {
                     Image(systemName: "exclamationmark.triangle.fill")
-                        .foregroundStyle(.orange)
+                        .foregroundStyle(themeManager.accentColor)
                         .font(.title3)
                     Text("No Certificates Available")
                         .font(.subheadline)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(themeManager.secondaryTextColor)
                 }
                 .padding(14)
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .background(Color(UIColor.secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+                .background(themeManager.cardBackgroundColor, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
             } else {
                 HStack(spacing: 12) {
                     Image(systemName: "key.horizontal.fill")
                         .font(.title3)
-                        .foregroundStyle(Color.accentColor)
+                        .foregroundStyle(themeManager.accentColor)
                         .frame(width: 36, height: 36)
-                        .background(Color.accentColor.opacity(0.12), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+                        .background(themeManager.accentColor.opacity(0.12), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
 
                     Picker("Certificate", selection: $selectedCertificateIndex) {
                         ForEach(Array(certificates.enumerated()), id: \.element.uuid) { index, cert in
@@ -140,11 +140,11 @@ struct BatchSigningView: View {
                         }
                     }
                     .pickerStyle(.menu)
-                    .tint(.primary)
+                    .tint(themeManager.primaryTextColor)
                 }
                 .padding(14)
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .background(Color(UIColor.secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+                .background(themeManager.cardBackgroundColor, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
             }
         }
     }
@@ -155,22 +155,22 @@ struct BatchSigningView: View {
         VStack(alignment: .leading, spacing: 10) {
             Label("Options", systemImage: "slider.horizontal.3")
                 .font(.subheadline.bold())
-                .foregroundStyle(.secondary)
+                .foregroundStyle(themeManager.secondaryTextColor)
 
             Toggle(isOn: $autoInstall) {
                 HStack(spacing: 10) {
                     Image(systemName: "arrow.down.app.fill")
                         .font(.title3)
-                        .foregroundStyle(.green)
+                        .foregroundStyle(themeManager.accentColor)
                         .frame(width: 36, height: 36)
-                        .background(Color.green.opacity(0.12), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+                        .background(themeManager.accentColor.opacity(0.12), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
                     Text("Auto Install After Signing")
                         .font(.subheadline.weight(.medium))
                 }
             }
-            .tint(.accentColor)
+            .tint(themeManager.accentColor)
             .padding(14)
-            .background(Color(UIColor.secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+            .background(themeManager.cardBackgroundColor, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
         }
     }
 
@@ -181,7 +181,7 @@ struct BatchSigningView: View {
             HStack {
                 Label("Apps (\(selectedApps.count)/\(apps.count))", systemImage: "square.stack.fill")
                     .font(.subheadline.bold())
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(themeManager.secondaryTextColor)
                 Spacer()
                 Button(selectedApps.count == apps.count ? "Deselect All" : "Select All") {
                     withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
@@ -193,16 +193,16 @@ struct BatchSigningView: View {
                     }
                 }
                 .font(.subheadline.bold())
-                .foregroundStyle(Color.accentColor)
+                .foregroundStyle(themeManager.accentColor)
             }
 
             if apps.isEmpty {
                 Text("No Apps Available")
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(themeManager.secondaryTextColor)
                     .font(.subheadline)
                     .frame(maxWidth: .infinity, alignment: .center)
                     .padding(.vertical, 24)
-                    .background(Color(UIColor.secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+                    .background(themeManager.cardBackgroundColor, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
             } else {
                 VStack(spacing: 0) {
                     ForEach(Array(apps.enumerated()), id: \.element.uuid) { index, app in
@@ -215,7 +215,7 @@ struct BatchSigningView: View {
                     }
                 }
                 .padding(.vertical, 4)
-                .background(Color(UIColor.secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+                .background(themeManager.cardBackgroundColor, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
             }
         }
     }
@@ -229,7 +229,7 @@ struct BatchSigningView: View {
                 HStack(spacing: 12) {
                     Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
                         .font(.system(size: 22))
-                        .foregroundStyle(isSelected ? Color.accentColor : Color.secondary.opacity(0.35))
+                        .foregroundStyle(isSelected ? themeManager.accentColor : themeManager.secondaryTextColor.opacity(0.35))
                         .animation(.spring(response: 0.25, dampingFraction: 0.7), value: isSelected)
 
                     FRAppIconView(app: app, size: 40)
@@ -242,7 +242,7 @@ struct BatchSigningView: View {
                             .lineLimit(1)
                         Text(app.identifier ?? "")
                             .font(.caption2.monospaced())
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(themeManager.secondaryTextColor)
                             .lineLimit(1)
                     }
                 }
@@ -261,8 +261,8 @@ struct BatchSigningView: View {
                     .frame(width: 32, height: 32)
                     .background(
                         appOptions[app.uuid ?? ""] != nil
-                            ? AnyShapeStyle(Color.orange)
-                            : AnyShapeStyle(Color(UIColor.tertiarySystemFill)),
+                            ? AnyShapeStyle(themeManager.accentColor)
+                            : AnyShapeStyle(themeManager.groupedBackgroundColor),
                         in: RoundedRectangle(cornerRadius: 8, style: .continuous)
                     )
             }
@@ -281,7 +281,7 @@ struct BatchSigningView: View {
         VStack(alignment: .leading, spacing: 10) {
             Label("Results", systemImage: "checkmark.seal.fill")
                 .font(.subheadline.bold())
-                .foregroundStyle(.secondary)
+                .foregroundStyle(themeManager.secondaryTextColor)
 
             VStack(spacing: 8) {
                 ForEach(batchResults) { result in
@@ -312,11 +312,11 @@ struct BatchSigningView: View {
             } else {
                 ZStack {
                     RoundedRectangle(cornerRadius: 9, style: .continuous)
-                        .fill(Color(UIColor.tertiarySystemFill))
+                        .fill(themeManager.groupedBackgroundColor)
                         .frame(width: 40, height: 40)
                     Image(systemName: "app.fill")
                         .font(.system(size: 18))
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(themeManager.secondaryTextColor)
                 }
             }
 
@@ -330,7 +330,7 @@ struct BatchSigningView: View {
                         .foregroundStyle(result.success ? .green : .red)
                     Text(result.message)
                         .font(.caption)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(themeManager.secondaryTextColor)
                         .lineLimit(1)
                 }
             }
@@ -344,7 +344,7 @@ struct BatchSigningView: View {
                     Image(systemName: "arrow.down.to.line.circle.fill")
                         .font(.system(size: 24))
                         .symbolRenderingMode(.hierarchical)
-                        .foregroundStyle(.blue)
+                        .foregroundStyle(themeManager.accentColor)
                 }
                 .buttonStyle(.plain)
             }
@@ -352,7 +352,7 @@ struct BatchSigningView: View {
         .padding(12)
         .background(
             RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .fill(Color(UIColor.secondarySystemGroupedBackground))
+                .fill(themeManager.cardBackgroundColor)
         )
         .transition(.asymmetric(insertion: .push(from: .bottom).combined(with: .opacity), removal: .opacity))
     }
@@ -373,12 +373,12 @@ struct BatchSigningView: View {
                 .padding(.vertical, 15)
                 .background(
                     canSign
-                        ? AnyShapeStyle(LinearGradient(colors: [Color.accentColor, Color.accentColor.opacity(0.85)], startPoint: .topLeading, endPoint: .bottomTrailing))
-                        : AnyShapeStyle(Color.secondary.opacity(0.2))
+                        ? AnyShapeStyle(LinearGradient(colors: [themeManager.accentColor, themeManager.accentColor.opacity(0.85)], startPoint: .topLeading, endPoint: .bottomTrailing))
+                        : AnyShapeStyle(themeManager.secondaryTextColor.opacity(0.2))
                 )
-                .foregroundStyle(canSign ? .white : Color.secondary)
+                .foregroundStyle(canSign ? .white : themeManager.secondaryTextColor)
                 .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
-                .shadow(color: canSign ? Color.accentColor.opacity(0.3) : .clear, radius: 10, y: 5)
+                .shadow(color: canSign ? themeManager.accentColor.opacity(0.3) : .clear, radius: 10, y: 5)
             }
             .disabled(!canSign)
             .animation(.easeInOut(duration: 0.2), value: canSign)
@@ -396,13 +396,13 @@ struct BatchSigningView: View {
 
     private var progressOverlay: some View {
         ZStack {
-            Color.black.opacity(0.4)
+            themeManager.primaryTextColor.opacity(0.4)
                 .ignoresSafeArea()
 
             VStack(spacing: 24) {
                 ZStack {
                     Circle()
-                        .stroke(Color.accentColor.opacity(0.12), lineWidth: 7)
+                        .stroke(themeManager.accentColor.opacity(0.12), lineWidth: 7)
                         .frame(width: 96, height: 96)
                     Circle()
                         .trim(from: 0, to: batchProgress)
@@ -420,7 +420,7 @@ struct BatchSigningView: View {
                         Text(currentPhase == .signing ? "Signing" : "Installing")
                             .font(.system(size: 9, weight: .bold))
                             .textCase(.uppercase)
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(themeManager.secondaryTextColor)
                             .tracking(0.5)
                     }
                 }
@@ -432,7 +432,7 @@ struct BatchSigningView: View {
                         .lineLimit(2)
                     Text(currentPhase == .signing ? "Signing in progress..." : "Installing...")
                         .font(.caption)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(themeManager.secondaryTextColor)
                 }
             }
             .padding(32)
@@ -664,19 +664,19 @@ struct BatchAppEditSheet: View {
                                 .font(.system(size: 17, weight: .bold, design: .rounded))
                             Text(app.identifier ?? "Unknown")
                                 .font(.system(size: 12, weight: .medium, design: .monospaced))
-                                .foregroundStyle(.secondary)
+                                .foregroundStyle(themeManager.secondaryTextColor)
                                 .lineLimit(1)
                         }
 
                         Spacer()
                     }
                     .padding(16)
-                    .background(Color(UIColor.secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+                    .background(themeManager.cardBackgroundColor, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
 
                     VStack(alignment: .leading, spacing: 10) {
                         Text("Identifier & Build")
                             .font(.subheadline.bold())
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(themeManager.secondaryTextColor)
 
                         VStack(spacing: 0) {
                             editField(title: "App Name", text: $editedName)
@@ -685,13 +685,13 @@ struct BatchAppEditSheet: View {
                             Divider().padding(.leading, 16)
                             editField(title: "Version", text: $editedVersion)
                         }
-                        .background(Color(UIColor.secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+                        .background(themeManager.cardBackgroundColor, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
                     }
 
                     VStack(alignment: .leading, spacing: 10) {
                         Text("Tweaks & Files")
                             .font(.subheadline.bold())
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(themeManager.secondaryTextColor)
 
                         NavigationLink {
                             SigningTweaksView(options: $options)
@@ -699,33 +699,33 @@ struct BatchAppEditSheet: View {
                             HStack(spacing: 12) {
                                 Image(systemName: "wrench.and.screwdriver.fill")
                                     .font(.title3)
-                                    .foregroundStyle(.purple)
+                                    .foregroundStyle(themeManager.accentColor)
                                     .frame(width: 36, height: 36)
-                                    .background(Color.purple.opacity(0.12), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+                                    .background(themeManager.accentColor.opacity(0.12), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
 
                                 Text("Injection Options")
                                     .font(.subheadline.weight(.medium))
-                                    .foregroundStyle(.primary)
+                                    .foregroundStyle(themeManager.primaryTextColor)
 
                                 Spacer()
 
                                 if options.injectionFiles.count > 0 {
                                     Text("\(options.injectionFiles.count)")
                                         .font(.caption.bold())
-                                        .foregroundStyle(.white)
+                                        .foregroundStyle(themeManager.buttonTextColor)
                                         .padding(.horizontal, 8)
                                         .padding(.vertical, 3)
-                                        .background(Color.purple, in: Capsule())
+                                        .background(themeManager.accentColor, in: Capsule())
                                 }
 
                                 Image(systemName: "chevron.right")
                                     .font(.caption.bold())
-                                    .foregroundStyle(.tertiary)
+                                    .foregroundStyle(themeManager.secondaryTextColor.opacity(0.7))
                             }
                             .padding(14)
                         }
                         .buttonStyle(.plain)
-                        .background(Color(UIColor.secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+                        .background(themeManager.cardBackgroundColor, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
                     }
 
                     VStack(spacing: 10) {
@@ -734,8 +734,8 @@ struct BatchAppEditSheet: View {
                                 .font(.headline)
                                 .frame(maxWidth: .infinity)
                                 .padding(.vertical, 14)
-                                .background(Color.accentColor, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
-                                .foregroundStyle(.white)
+                                .background(themeManager.accentColor, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+                                .foregroundStyle(themeManager.buttonTextColor)
                         }
 
                         Button(role: .destructive) { dismiss() } label: {
@@ -751,14 +751,14 @@ struct BatchAppEditSheet: View {
                 .padding(.top, 8)
                 .padding(.bottom, 20)
             }
-            .background(Color(UIColor.systemGroupedBackground))
+            .background(themeManager.appBackgroundColor)
             .navigationTitle("Customize App")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button { dismiss() } label: {
                         Image(systemName: "xmark.circle.fill")
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(themeManager.secondaryTextColor)
                             .symbolRenderingMode(.hierarchical)
                             .font(.title3)
                     }
@@ -776,7 +776,7 @@ struct BatchAppEditSheet: View {
         HStack {
             Text(title)
                 .font(.subheadline)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(themeManager.secondaryTextColor)
                 .frame(width: 85, alignment: .leading)
             TextField(title, text: text)
                 .font(.subheadline)

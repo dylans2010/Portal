@@ -126,12 +126,12 @@ struct InfoPlistEntriesView: View {
                             VStack(spacing: 8) {
                                 Image(systemName: "doc.text")
                                     .font(.largeTitle)
-                                    .foregroundStyle(.secondary)
+                                    .foregroundStyle(themeManager.secondaryTextColor)
                                 Text(.localized("No Entries Yet"))
                                     .font(.headline)
                                 Text(.localized("Add custom Info.plist entries\nto modify app behavior"))
                                     .font(.subheadline)
-                                    .foregroundStyle(.secondary)
+                                    .foregroundStyle(themeManager.secondaryTextColor)
                                     .multilineTextAlignment(.center)
                                 Button {
                                     showAddEntryDialog = true
@@ -266,7 +266,7 @@ struct InfoPlistEntriesView: View {
             } label: {
                 Image(systemName: "xmark.circle.fill")
                     .font(.title2)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(themeManager.secondaryTextColor)
             }
         }
         
@@ -276,7 +276,7 @@ struct InfoPlistEntriesView: View {
             } label: {
                 Image(systemName: "plus.circle.fill")
                     .font(.title2)
-                    .foregroundStyle(.indigo)
+                    .foregroundStyle(themeManager.accentColor)
             }
         }
     }
@@ -292,7 +292,7 @@ struct InfoPlistEntriesView: View {
                         VStack(alignment: .leading, spacing: 12) {
                             Text(.localized("Key"))
                                 .font(.system(size: 11, weight: .semibold))
-                                .foregroundStyle(.secondary)
+                                .foregroundStyle(themeManager.secondaryTextColor)
                                 .padding(.leading, 4)
                             
                             TextField(.localized("Enter Key Name"), text: $newKey)
@@ -309,7 +309,7 @@ struct InfoPlistEntriesView: View {
                         VStack(alignment: .leading, spacing: 12) {
                             Text(.localized("Type"))
                                 .font(.system(size: 11, weight: .semibold))
-                                .foregroundStyle(.secondary)
+                                .foregroundStyle(themeManager.secondaryTextColor)
                                 .padding(.leading, 4)
                             
                             ScrollView(.horizontal, showsIndicators: false) {
@@ -342,7 +342,7 @@ struct InfoPlistEntriesView: View {
                         VStack(alignment: .leading, spacing: 12) {
                             Text(.localized("Value"))
                                 .font(.system(size: 11, weight: .semibold))
-                                .foregroundStyle(.secondary)
+                                .foregroundStyle(themeManager.secondaryTextColor)
                                 .padding(.leading, 4)
                             
                             valueInputView
@@ -393,11 +393,11 @@ struct InfoPlistEntriesView: View {
             HStack {
                 Text(.localized("Value"))
                     .font(.system(size: 16))
-                    .foregroundStyle(.primary)
+                    .foregroundStyle(themeManager.primaryTextColor)
                 Spacer()
                 Toggle("", isOn: $newBoolValue)
                     .labelsHidden()
-                    .tint(.indigo)
+                    .tint(themeManager.accentColor)
             }
             .padding(14)
             .background(
@@ -426,7 +426,7 @@ struct InfoPlistEntriesView: View {
                             newArrayItems.remove(at: index)
                         } label: {
                             Image(systemName: "minus.circle.fill")
-                                .foregroundStyle(.red)
+                                .foregroundStyle(themeManager.destructiveColor)
                         }
                     }
                     .padding(12)
@@ -444,7 +444,7 @@ struct InfoPlistEntriesView: View {
                         Text(.localized("Add Item"))
                     }
                     .font(.system(size: 14, weight: .medium))
-                    .foregroundStyle(.indigo)
+                    .foregroundStyle(themeManager.accentColor)
                     .padding(.vertical, 8)
                 }
             }
@@ -458,7 +458,7 @@ struct InfoPlistEntriesView: View {
             VStack(spacing: 8) {
                 Text(.localized("Dictionary entries will be created empty."))
                     .font(.caption)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(themeManager.secondaryTextColor)
             }
             .padding(14)
             .background(
@@ -479,12 +479,12 @@ struct InfoPlistEntriesView: View {
                         VStack(alignment: .leading, spacing: 12) {
                             Text(.localized("Key"))
                                 .font(.system(size: 11, weight: .semibold))
-                                .foregroundStyle(.secondary)
+                                .foregroundStyle(themeManager.secondaryTextColor)
                                 .padding(.leading, 4)
                             
                             Text(editKey)
                                 .font(.system(size: 16, weight: .medium, design: .monospaced))
-                                .foregroundStyle(.primary)
+                                .foregroundStyle(themeManager.primaryTextColor)
                                 .padding(14)
                                 .frame(maxWidth: .infinity, alignment: .leading)
                                 .background(
@@ -496,7 +496,7 @@ struct InfoPlistEntriesView: View {
                         VStack(alignment: .leading, spacing: 12) {
                             Text(.localized("Value"))
                                 .font(.system(size: 11, weight: .semibold))
-                                .foregroundStyle(.secondary)
+                                .foregroundStyle(themeManager.secondaryTextColor)
                                 .padding(.leading, 4)
                             
                             editValueInputView
@@ -545,11 +545,11 @@ struct InfoPlistEntriesView: View {
             HStack {
                 Text(.localized("Value"))
                     .font(.system(size: 16))
-                    .foregroundStyle(.primary)
+                    .foregroundStyle(themeManager.primaryTextColor)
                 Spacer()
                 Toggle("", isOn: $editBoolValue)
                     .labelsHidden()
-                    .tint(.indigo)
+                    .tint(themeManager.accentColor)
             }
             .padding(14)
             .background(
@@ -570,7 +570,7 @@ struct InfoPlistEntriesView: View {
         default:
             Text(.localized("Complex types cannot be edited directly"))
                 .font(.caption)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(themeManager.secondaryTextColor)
                 .padding(14)
                 .background(
                     RoundedRectangle(cornerRadius: 12, style: .continuous)
@@ -1052,7 +1052,7 @@ struct InfoPlistEntriesView: View {
                         VStack(alignment: .leading, spacing: 12) {
                             Text(.localized("Search Value"))
                                 .font(.system(size: 11, weight: .semibold))
-                                .foregroundStyle(.secondary)
+                                .foregroundStyle(themeManager.secondaryTextColor)
                                 .padding(.leading, 4)
 
                             TextField(.localized("Value to Find"), text: $searchReplaceTarget)
@@ -1069,7 +1069,7 @@ struct InfoPlistEntriesView: View {
                         VStack(alignment: .leading, spacing: 12) {
                             Text(.localized("Replace With"))
                                 .font(.system(size: 11, weight: .semibold))
-                                .foregroundStyle(.secondary)
+                                .foregroundStyle(themeManager.secondaryTextColor)
                                 .padding(.leading, 4)
 
                             TextField(.localized("Replacement Value"), text: $searchReplaceNewValue)
@@ -1132,23 +1132,23 @@ struct InfoPlistEntriesView: View {
                 HStack(spacing: 12) {
                     Image(systemName: icon)
                         .font(.title3)
-                        .foregroundStyle(.indigo)
+                        .foregroundStyle(themeManager.accentColor)
                         .frame(width: 32)
                     
                     VStack(alignment: .leading, spacing: 2) {
                         Text(title)
                             .font(.headline)
-                            .foregroundStyle(.primary)
+                            .foregroundStyle(themeManager.primaryTextColor)
                         Text(subtitle)
                             .font(.caption)
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(themeManager.secondaryTextColor)
                     }
                     
                     Spacer()
                     
                     Image(systemName: "plus.circle")
                         .font(.body)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(themeManager.secondaryTextColor)
                 }
             }
         }
@@ -1352,16 +1352,16 @@ struct ModernEntryRow: View {
                 VStack(alignment: .leading, spacing: 4) {
                     Text(key)
                         .font(.system(size: 15, weight: .semibold, design: .monospaced))
-                        .foregroundStyle(.primary)
+                        .foregroundStyle(themeManager.primaryTextColor)
                     
                     if let onToggle = onToggle, let boolVal = value.value as? Bool {
                         Toggle("", isOn: Binding(get: { boolVal }, set: onToggle))
                             .labelsHidden()
-                            .tint(.indigo)
+                            .tint(themeManager.accentColor)
                     } else {
                         Text(String(describing: value.value))
                             .font(.system(size: 13))
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(themeManager.secondaryTextColor)
                             .lineLimit(2)
                     }
                 }
@@ -1379,7 +1379,7 @@ struct ModernEntryRow: View {
                     } label: {
                         Image(systemName: "ellipsis.circle")
                             .font(.system(size: 20))
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(themeManager.secondaryTextColor)
                     }
                 }
             }

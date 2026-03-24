@@ -89,7 +89,7 @@ struct LiveActivitySettingsView: View {
                 HStack(spacing: 12) {
                     Image(systemName: "app.badge.fill")
                         .font(.system(size: 17, weight: .medium))
-                        .foregroundStyle(liveActivityEnabled ? .green : .gray)
+                        .foregroundStyle(liveActivityEnabled ? themeManager.accentColor : themeManager.secondaryTextColor)
                         .frame(width: 28, height: 28)
                     
                     VStack(alignment: .leading, spacing: 2) {
@@ -98,7 +98,7 @@ struct LiveActivitySettingsView: View {
                         
                         Text("Show installation progress in Dynamic Island and Lock Screen")
                             .font(.caption)
-                            .foregroundColor(.secondary)
+                            .foregroundStyle(themeManager.secondaryTextColor)
                     }
                 }
             }
@@ -109,15 +109,15 @@ struct LiveActivitySettingsView: View {
             if #available(iOS 16.2, *) {
                 Text("Show Live Activities to track down your app download process, signing, and installation.")
                     .font(.caption)
-                    .foregroundColor(.secondary)
+                    .foregroundStyle(themeManager.secondaryTextColor)
             } else {
                 HStack(spacing: 6) {
                     Image(systemName: "exclamationmark.triangle.fill")
-                        .foregroundColor(.orange)
+                        .foregroundStyle(themeManager.accentColor)
                     Text("Live Activities are not available on this iOS version. Requires iOS 16.2+ so please update your device then come back here.")
                 }
                 .font(.caption)
-                .foregroundColor(.secondary)
+                .foregroundStyle(themeManager.secondaryTextColor)
             }
         }
     }
@@ -128,7 +128,7 @@ struct LiveActivitySettingsView: View {
             if settings.backgroundTexture == .gradient {
                 HStack {
                     Label("Gradient Colors", systemImage: "paintpalette.fill")
-                        .foregroundStyle(.primary)
+                        .foregroundStyle(themeManager.primaryTextColor)
                     Spacer()
                     HStack(spacing: -8) {
                         ForEach(0..<min(settings.gradientSettings.colorCount, 5), id: \.self) { index in
@@ -136,7 +136,7 @@ struct LiveActivitySettingsView: View {
                                 Circle()
                                     .fill(colors[index].color)
                                     .frame(width: 20, height: 20)
-                                    .overlay(Circle().stroke(Color.white, lineWidth: 1))
+                                    .overlay(Circle().stroke(themeManager.buttonTextColor, lineWidth: 1))
                             }
                         }
                     }
@@ -152,10 +152,10 @@ struct LiveActivitySettingsView: View {
                         Circle()
                             .fill(settings.accentColor.color)
                             .frame(width: 20, height: 20)
-                            .overlay(Circle().stroke(Color.secondary, lineWidth: 1))
+                            .overlay(Circle().stroke(themeManager.secondaryTextColor, lineWidth: 1))
                     }
                 }
-                .foregroundStyle(.primary)
+                .foregroundStyle(themeManager.primaryTextColor)
             }
 
             // Background Texture
@@ -202,12 +202,12 @@ struct LiveActivitySettingsView: View {
                     Label("Text Color", systemImage: "pencil.tip.crop.circle.fill")
                     Spacer()
                     Circle()
-                        .fill(settings.textColor?.color ?? .primary)
+                        .fill(settings.textColor?.color ?? themeManager.primaryTextColor)
                         .frame(width: 20, height: 20)
-                        .overlay(Circle().stroke(Color.secondary, lineWidth: 1))
+                        .overlay(Circle().stroke(themeManager.secondaryTextColor, lineWidth: 1))
                 }
             }
-            .foregroundStyle(.primary)
+            .foregroundStyle(themeManager.primaryTextColor)
 
         } header: {
             Text("Appearance")
@@ -215,7 +215,7 @@ struct LiveActivitySettingsView: View {
         } footer: {
             Text("Customize how the style of Live Activities render in your Lock Screen and Dynamic Island.")
                 .font(.caption)
-                .foregroundColor(.secondary)
+                .foregroundStyle(themeManager.secondaryTextColor)
         }
         .sheet(isPresented: $showColorPicker) {
             ColorPickerView(selectedColor: $settings.accentColor, title: "Accent Color", onDismiss: saveSettings)
@@ -231,7 +231,7 @@ struct LiveActivitySettingsView: View {
                     Spacer()
                     Text("\(Int(settings.cornerRadius))")
                         .font(.caption.monospacedDigit())
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(themeManager.secondaryTextColor)
                 }
                 Slider(value: $settings.cornerRadius, in: 0...40, step: 1) { _ in saveSettings() }
             }
@@ -243,7 +243,7 @@ struct LiveActivitySettingsView: View {
                     Spacer()
                     Text("\(Int(settings.backgroundOpacity * 100))%")
                         .font(.caption.monospacedDigit())
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(themeManager.secondaryTextColor)
                 }
                 Slider(value: $settings.backgroundOpacity, in: 0...1, step: 0.05) { _ in saveSettings() }
             }
@@ -255,7 +255,7 @@ struct LiveActivitySettingsView: View {
                     Spacer()
                     Text("\(String(format: "%.1f", settings.borderWidth))")
                         .font(.caption.monospacedDigit())
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(themeManager.secondaryTextColor)
                 }
                 Slider(value: $settings.borderWidth, in: 0...5, step: 0.5) { _ in saveSettings() }
             }
@@ -270,10 +270,10 @@ struct LiveActivitySettingsView: View {
                         Circle()
                             .fill(settings.borderColor?.color ?? settings.accentColor.color)
                             .frame(width: 20, height: 20)
-                            .overlay(Circle().stroke(Color.secondary, lineWidth: 1))
+                            .overlay(Circle().stroke(themeManager.secondaryTextColor, lineWidth: 1))
                     }
                 }
-                .foregroundStyle(.primary)
+                .foregroundStyle(themeManager.primaryTextColor)
                 .padding(.leading, 12)
             }
 
@@ -284,7 +284,7 @@ struct LiveActivitySettingsView: View {
                     Spacer()
                     Text("\(Int(settings.shadowRadius))")
                         .font(.caption.monospacedDigit())
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(themeManager.secondaryTextColor)
                 }
                 Slider(value: $settings.shadowRadius, in: 0...30, step: 1) { _ in saveSettings() }
             }
@@ -297,12 +297,12 @@ struct LiveActivitySettingsView: View {
                         Label("Shadow Color", systemImage: "paintpalette")
                         Spacer()
                         Circle()
-                            .fill(settings.shadowColor?.color ?? Color.black.opacity(0.2))
+                            .fill(settings.shadowColor?.color ?? themeManager.primaryTextColor.opacity(0.2))
                             .frame(width: 20, height: 20)
-                            .overlay(Circle().stroke(Color.secondary, lineWidth: 1))
+                            .overlay(Circle().stroke(themeManager.secondaryTextColor, lineWidth: 1))
                     }
                 }
-                .foregroundStyle(.primary)
+                .foregroundStyle(themeManager.primaryTextColor)
                 .padding(.leading, 12)
             }
 
@@ -323,7 +323,7 @@ struct LiveActivitySettingsView: View {
         VStack(alignment: .leading, spacing: 8) {
             Label("Intensity (\(Int(settings.glassSettings.intensity * 100))%)", systemImage: "slider.horizontal.3")
                 .font(.caption)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(themeManager.secondaryTextColor)
             Slider(value: $settings.glassSettings.intensity, in: 0...1) { _ in
                 saveSettings()
             }
@@ -333,7 +333,7 @@ struct LiveActivitySettingsView: View {
         VStack(alignment: .leading, spacing: 8) {
             Label("Glass Effect Amount (\(Int(settings.glassSettings.glassEffectAmount * 100))%)", systemImage: "sparkles")
                 .font(.caption)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(themeManager.secondaryTextColor)
             Slider(value: $settings.glassSettings.glassEffectAmount, in: 0...1) { _ in
                 saveSettings()
             }
@@ -370,11 +370,11 @@ struct LiveActivitySettingsView: View {
                         Circle()
                             .fill(colors[index].color)
                             .frame(width: 20, height: 20)
-                            .overlay(Circle().stroke(Color.secondary, lineWidth: 1))
+                            .overlay(Circle().stroke(themeManager.secondaryTextColor, lineWidth: 1))
                     }
                 }
             }
-            .foregroundStyle(.primary)
+            .foregroundStyle(themeManager.primaryTextColor)
             .padding(.leading, 24)
         }
 
@@ -458,7 +458,7 @@ struct LiveActivitySettingsView: View {
         } footer: {
             Text("Configure how progress is displayed and updated throught the process.")
                 .font(.caption)
-                .foregroundColor(.secondary)
+                .foregroundStyle(themeManager.secondaryTextColor)
         }
     }
     
@@ -479,7 +479,7 @@ struct LiveActivitySettingsView: View {
         } footer: {
             Text("Control how much information is shown. Less details may improve performance on older devices.")
                 .font(.caption)
-                .foregroundColor(.secondary)
+                .foregroundStyle(themeManager.secondaryTextColor)
         }
     }
     
@@ -554,7 +554,7 @@ struct ColorPickerView: View {
 
                                 if color == presetColor {
                                     Circle()
-                                        .stroke(Color.primary, lineWidth: 2)
+                                        .stroke(themeManager.primaryTextColor, lineWidth: 2)
                                         .frame(width: 44, height: 44)
                                 }
                             }
@@ -573,7 +573,7 @@ struct ColorPickerView: View {
 
                         VStack(alignment: .leading) {
                             Text("Preview")
-                                .foregroundColor(color)
+                                .foregroundStyle(color)
                                 .font(.headline)
 
                             RoundedRectangle(cornerRadius: 4)
@@ -620,17 +620,17 @@ private struct LiveActivityInfoRow: View {
         HStack(alignment: .top, spacing: 12) {
             Image(systemName: icon)
                 .font(.system(size: 17, weight: .medium))
-                .foregroundStyle(.blue)
+                .foregroundStyle(themeManager.accentColor)
                 .frame(width: 28, height: 28)
             
             VStack(alignment: .leading, spacing: 2) {
                 Text(title)
                     .font(.body)
-                    .foregroundColor(.primary)
+                    .foregroundStyle(themeManager.primaryTextColor)
                 
                 Text(description)
                     .font(.caption)
-                    .foregroundColor(.secondary)
+                    .foregroundStyle(themeManager.secondaryTextColor)
             }
         }
         .padding(.vertical, 4)
@@ -640,4 +640,5 @@ private struct LiveActivityInfoRow: View {
 // MARK: - Preview
 #Preview {
     LiveActivitySettingsView()
+        .environmentObject(AppWideThemeManager())
 }

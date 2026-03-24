@@ -17,10 +17,10 @@ struct AdvancedSigningOptionsSection: View {
             HStack(spacing: 8) {
                 Image(systemName: "hammer.fill")
                     .font(.system(size: 12, weight: .semibold))
-                    .foregroundStyle(.red)
+                    .foregroundStyle(themeManager.destructiveColor)
                 Text("Advanced (Debug)")
                     .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(themeManager.secondaryTextColor)
                 Spacer()
             }
             .padding(.horizontal, 4)
@@ -81,8 +81,8 @@ struct AdvancedSigningOptionsSection: View {
                     .stroke(
                         LinearGradient(
                             colors: [
-                                Color.red.opacity(colorScheme == .dark ? 0.2 : 0.4),
-                                Color.red.opacity(colorScheme == .dark ? 0.05 : 0.1)
+                                themeManager.destructiveColor.opacity(colorScheme == .dark ? 0.2 : 0.4),
+                                themeManager.destructiveColor.opacity(colorScheme == .dark ? 0.05 : 0.1)
                             ],
                             startPoint: .topLeading,
                             endPoint: .bottomTrailing
@@ -108,22 +108,22 @@ struct AdvancedSigningOptionsSection: View {
 
             Text(title)
                 .font(.subheadline)
-                .foregroundStyle(.primary)
+                .foregroundStyle(themeManager.primaryTextColor)
 
             if let badge = badge {
                 Text(badge)
                     .font(.system(size: 8, weight: .bold))
-                    .foregroundStyle(.white)
+                    .foregroundStyle(themeManager.buttonTextColor)
                     .padding(.horizontal, 5)
                     .padding(.vertical, 2)
-                    .background(Capsule().fill(Color.orange))
+                    .background(Capsule().fill(themeManager.accentColor))
             }
 
             Spacer()
 
             Image(systemName: "chevron.right")
                 .font(.caption.weight(.semibold))
-                .foregroundStyle(.tertiary)
+                .foregroundStyle(themeManager.secondaryTextColor.opacity(0.7))
         }
         .padding(.horizontal, 14)
         .padding(.vertical, 10)
@@ -228,16 +228,16 @@ struct AdvancedDebugToolsView: View {
                     VStack(alignment: .leading, spacing: 8) {
                         Label("Advanced Debug Tools", systemImage: "hammer.fill")
                             .font(.headline)
-                            .foregroundStyle(.red)
+                            .foregroundStyle(themeManager.destructiveColor)
                         Text("Modify \(app.name ?? "App") before signing. Changes are applied to the Options.")
                             .font(.caption)
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(themeManager.secondaryTextColor)
                     }
                     .padding(.vertical, 4)
 
                     HStack {
                         Text("Bundle ID")
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(themeManager.secondaryTextColor)
                         Spacer()
                         Text(bundleIdentifier)
                             .font(.system(.body, design: .monospaced))
@@ -245,7 +245,7 @@ struct AdvancedDebugToolsView: View {
 
                     HStack {
                         Text("Version")
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(themeManager.secondaryTextColor)
                         Spacer()
                         Text(currentVersion)
                             .font(.system(.body, design: .monospaced))
@@ -253,7 +253,7 @@ struct AdvancedDebugToolsView: View {
 
                     HStack {
                         Text("Min iOS")
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(themeManager.secondaryTextColor)
                         Spacer()
                         Text(minimumOSVersion.isEmpty ? "Not specified" : minimumOSVersion)
                             .font(.system(.body, design: .monospaced))
@@ -261,7 +261,7 @@ struct AdvancedDebugToolsView: View {
 
                     HStack {
                         Text("Executable")
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(themeManager.secondaryTextColor)
                         Spacer()
                         Text(executableName.isEmpty ? "Unknown" : executableName)
                             .font(.system(.body, design: .monospaced))
@@ -269,7 +269,7 @@ struct AdvancedDebugToolsView: View {
 
                     HStack {
                         Text("App Size")
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(themeManager.secondaryTextColor)
                         Spacer()
                         Text(appSize)
                             .font(.system(.body, design: .monospaced))
@@ -346,7 +346,7 @@ struct AdvancedDebugToolsView: View {
                         Spacer()
                         Text(options.ppqString)
                             .font(.system(.caption, design: .monospaced))
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(themeManager.secondaryTextColor)
                         Button {
                             options.ppqString = Options.randomString()
                         } label: {
@@ -377,7 +377,7 @@ struct AdvancedDebugToolsView: View {
                     ForEach(options.injectionFiles, id: \.self) { url in
                         HStack {
                             Image(systemName: "syringe.fill")
-                                .foregroundStyle(.green)
+                                .foregroundStyle(themeManager.accentColor)
                             Text(url.lastPathComponent)
                                 .font(.caption)
                             Spacer()
@@ -385,7 +385,7 @@ struct AdvancedDebugToolsView: View {
                                 options.injectionFiles.removeAll { $0 == url }
                             } label: {
                                 Image(systemName: "xmark.circle.fill")
-                                    .foregroundStyle(.red)
+                                    .foregroundStyle(themeManager.destructiveColor)
                             }
                         }
                     }
@@ -409,7 +409,7 @@ struct AdvancedDebugToolsView: View {
                     ForEach(options.removeFiles, id: \.self) { file in
                         HStack {
                             Image(systemName: "trash.fill")
-                                .foregroundStyle(.red)
+                                .foregroundStyle(themeManager.destructiveColor)
                             Text(file)
                                 .font(.caption)
                             Spacer()
@@ -417,7 +417,7 @@ struct AdvancedDebugToolsView: View {
                                 options.removeFiles.removeAll { $0 == file }
                             } label: {
                                 Image(systemName: "xmark.circle.fill")
-                                    .foregroundStyle(.secondary)
+                                    .foregroundStyle(themeManager.secondaryTextColor)
                             }
                         }
                     }
@@ -433,12 +433,12 @@ struct AdvancedDebugToolsView: View {
                             } label: {
                                 HStack {
                                     Image(systemName: "folder.fill")
-                                        .foregroundStyle(.orange)
+                                        .foregroundStyle(themeManager.accentColor)
                                     Text(file)
                                         .font(.caption)
                                     Spacer()
                                     Image(systemName: "plus.circle")
-                                        .foregroundStyle(.green)
+                                        .foregroundStyle(themeManager.accentColor)
                                 }
                             }
                         }
@@ -446,7 +446,7 @@ struct AdvancedDebugToolsView: View {
                 } else if !isLoading {
                     Text("No Removable Files Found")
                         .font(.caption)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(themeManager.secondaryTextColor)
                 }
             } header: {
                 debugSectionHeader("Files To Remove", icon: "trash.fill", color: .red)
@@ -460,7 +460,7 @@ struct AdvancedDebugToolsView: View {
                     ForEach(options.disInjectionFiles, id: \.self) { path in
                         HStack {
                             Image(systemName: "link.badge.plus")
-                                .foregroundStyle(.orange)
+                                .foregroundStyle(themeManager.accentColor)
                             Text(path)
                                 .font(.system(.caption, design: .monospaced))
                             Spacer()
@@ -468,7 +468,7 @@ struct AdvancedDebugToolsView: View {
                                 options.disInjectionFiles.removeAll { $0 == path }
                             } label: {
                                 Image(systemName: "xmark.circle.fill")
-                                    .foregroundStyle(.red)
+                                    .foregroundStyle(themeManager.destructiveColor)
                             }
                         }
                     }
@@ -635,7 +635,7 @@ struct AdvancedDebugToolsView: View {
                             Label("Chunk Size", systemImage: "square.grid.3x3")
                             Spacer()
                             Text("\(chunkSize)")
-                                .foregroundStyle(.secondary)
+                                .foregroundStyle(themeManager.secondaryTextColor)
                         }
                     }
                 }
@@ -713,7 +713,7 @@ struct AdvancedDebugToolsView: View {
                         Spacer()
                     }
                 }
-                .tint(.green)
+                .tint(themeManager.accentColor)
             }
         }
             .scrollContentBackground(.hidden)
@@ -962,7 +962,7 @@ struct BinaryInspectorView: View {
                         }
                         if loadCommands.count > 20 {
                             Text("... And \(loadCommands.count - 20) More")
-                                .foregroundStyle(.secondary)
+                                .foregroundStyle(themeManager.secondaryTextColor)
                         }
                     } header: {
                         Text("Load Commands")
@@ -1071,7 +1071,7 @@ struct MachOAnalyzerView: View {
                     Text("Symbols").tag(1)
                 }
                 .pickerStyle(.segmented)
-                .listRowBackground(Color.clear)
+                .listRowBackground(themeManager.cardBackgroundColor)
 
                 if selectedTab == 0 {
                     Section {
@@ -1085,7 +1085,7 @@ struct MachOAnalyzerView: View {
                                     Text("VM: \(segment.vmAddr)")
                                 }
                                 .font(.caption)
-                                .foregroundStyle(.secondary)
+                                .foregroundStyle(themeManager.secondaryTextColor)
                             }
                             .padding(.vertical, 4)
                         }
@@ -1101,7 +1101,7 @@ struct MachOAnalyzerView: View {
                         }
                         if symbols.count > 100 {
                             Text("... And \(symbols.count - 100) More Symbols")
-                                .foregroundStyle(.secondary)
+                                .foregroundStyle(themeManager.secondaryTextColor)
                         }
                     } header: {
                         Text("Symbols (\(symbols.count))")
@@ -1214,14 +1214,14 @@ struct DylibDependenciesView: View {
                                         .font(.caption2)
                                         .padding(.horizontal, 6)
                                         .padding(.vertical, 2)
-                                        .background(Color.orange.opacity(0.2))
-                                        .foregroundStyle(.orange)
+                                        .background(themeManager.accentColor.opacity(0.2))
+                                        .foregroundStyle(themeManager.accentColor)
                                         .clipShape(Capsule())
                                 }
                             }
                             Text(dep.path)
                                 .font(.caption)
-                                .foregroundStyle(.secondary)
+                                .foregroundStyle(themeManager.secondaryTextColor)
                         }
                         .padding(.vertical, 4)
                     }
@@ -1314,7 +1314,7 @@ struct SecurityScanView: View {
                         ProgressView()
                             .scaleEffect(1.2)
                         Text("Scanning Security Issues...")
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(themeManager.secondaryTextColor)
                     }
                     .frame(maxWidth: .infinity)
                     .padding()
@@ -1328,7 +1328,7 @@ struct SecurityScanView: View {
                                     .font(.headline)
                                 Text(result.detail)
                                     .font(.caption)
-                                    .foregroundStyle(.secondary)
+                                    .foregroundStyle(themeManager.secondaryTextColor)
                             }
                             Spacer()
                             Text(result.status)
@@ -1446,9 +1446,9 @@ struct EntitlementAnalyzerView: View {
                     VStack(spacing: 12) {
                         Image(systemName: "checkmark.shield")
                             .font(.largeTitle)
-                            .foregroundStyle(.green)
+                            .foregroundStyle(themeManager.accentColor)
                         Text("No Entitlements Found")
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(themeManager.secondaryTextColor)
                     }
                     .frame(maxWidth: .infinity)
                     .padding()
@@ -1465,7 +1465,7 @@ struct EntitlementAnalyzerView: View {
                             }
                             Text(ent.value)
                                 .font(.caption)
-                                .foregroundStyle(.secondary)
+                                .foregroundStyle(themeManager.secondaryTextColor)
                         }
                         .padding(.vertical, 4)
                     }
@@ -1570,7 +1570,7 @@ struct CodeSignatureView: View {
                         VStack(alignment: .leading, spacing: 4) {
                             Text(key)
                                 .font(.caption)
-                                .foregroundStyle(.secondary)
+                                .foregroundStyle(themeManager.secondaryTextColor)
                             Text(value)
                                 .font(.system(.body, design: .monospaced))
                         }
@@ -1878,7 +1878,7 @@ struct InfoPlistEditorDebugView: View {
                     .font(.caption)
                     .padding(.horizontal, 10)
                     .padding(.vertical, 6)
-                    .background(Capsule().fill(Color.accentColor.opacity(0.15)))
+                    .background(Capsule().fill(themeManager.accentColor.opacity(0.15)))
                 }
 
                 // Sort Order
@@ -1903,18 +1903,18 @@ struct InfoPlistEditorDebugView: View {
                     .font(.caption)
                     .padding(.horizontal, 10)
                     .padding(.vertical, 6)
-                    .background(Capsule().fill(Color.secondary.opacity(0.15)))
+                    .background(Capsule().fill(themeManager.secondaryTextColor.opacity(0.15)))
                 }
 
                 // Entry Count
                 Text("\(filteredEntries.count) Entries")
                     .font(.caption)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(themeManager.secondaryTextColor)
 
                 if hasUnsavedChanges {
                     Text("• Modified")
                         .font(.caption)
-                        .foregroundStyle(.orange)
+                        .foregroundStyle(themeManager.accentColor)
                 }
 
                 Spacer()
@@ -1934,7 +1934,7 @@ struct InfoPlistEditorDebugView: View {
                     HStack {
                         Text("\(selectedEntries.count) Selected")
                             .font(.subheadline)
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(themeManager.secondaryTextColor)
                         Spacer()
                         Button(role: .destructive) {
                             deleteSelectedEntries()
@@ -1942,7 +1942,7 @@ struct InfoPlistEditorDebugView: View {
                             Label("Delete", systemImage: "trash")
                         }
                         .buttonStyle(.bordered)
-                        .tint(.red)
+                        .tint(themeManager.destructiveColor)
                     }
                 }
             }
@@ -2032,7 +2032,7 @@ struct InfoPlistEditorDebugView: View {
                     }
                 }
                 .disabled(!hasUnsavedChanges)
-                .tint(.green)
+                .tint(themeManager.accentColor)
             }
         }
             .scrollContentBackground(.hidden)
@@ -2064,7 +2064,7 @@ struct InfoPlistEditorDebugView: View {
 
                 Text("\(rawPlistContent.count) Characters")
                     .font(.caption)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(themeManager.secondaryTextColor)
             }
             .padding(.horizontal)
             .padding(.vertical, 8)
@@ -2162,7 +2162,7 @@ struct InfoPlistEditorDebugView: View {
                                 Spacer()
                                 Text(type)
                                     .font(.caption2)
-                                    .foregroundStyle(.secondary)
+                                    .foregroundStyle(themeManager.secondaryTextColor)
                             }
                         }
                     }
@@ -2566,14 +2566,14 @@ struct PlistEntryRow: View {
             HStack(spacing: 12) {
                 if isMultiSelectMode {
                     Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
-                        .foregroundStyle(isSelected ? Color.accentColor : Color.secondary)
+                        .foregroundStyle(isSelected ? themeManager.accentColor : themeManager.secondaryTextColor)
                 }
 
                 VStack(alignment: .leading, spacing: 4) {
                     HStack {
                         Text(entry.key)
                             .font(.subheadline.weight(.medium))
-                            .foregroundStyle(.primary)
+                            .foregroundStyle(themeManager.primaryTextColor)
 
                         if entry.isModified {
                             Circle()
@@ -2585,7 +2585,7 @@ struct PlistEntryRow: View {
 
                         Text(entry.type)
                             .font(.caption2)
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(themeManager.secondaryTextColor)
                             .padding(.horizontal, 6)
                             .padding(.vertical, 2)
                             .background(Capsule().fill(typeColor(entry.type).opacity(0.2)))
@@ -2593,7 +2593,7 @@ struct PlistEntryRow: View {
 
                     Text(entry.value)
                         .font(.caption)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(themeManager.secondaryTextColor)
                         .lineLimit(2)
                 }
             }
@@ -2666,7 +2666,7 @@ struct EntitlementsDebugView: View {
                                 .font(.subheadline.weight(.medium))
                             Text(entitlements[index].value)
                                 .font(.caption)
-                                .foregroundStyle(.secondary)
+                                .foregroundStyle(themeManager.secondaryTextColor)
                         }
                         Spacer()
                         Toggle("", isOn: $entitlements[index].enabled)
@@ -2697,7 +2697,7 @@ struct EntitlementsDebugView: View {
                     clearAllEntitlements()
                 } label: {
                     Label("Clear All", systemImage: "trash.fill")
-                        .foregroundStyle(.red)
+                        .foregroundStyle(themeManager.destructiveColor)
                 }
             } header: {
                 Text("Quick Actions")
@@ -2989,7 +2989,7 @@ struct ResourceModifierView: View {
                                 .padding(.vertical, 6)
                                 .background(
                                     Capsule()
-                                        .fill(selectedFilter == filter ? Color.accentColor : Color.secondary.opacity(0.15))
+                                        .fill(selectedFilter == filter ? themeManager.accentColor : themeManager.secondaryTextColor.opacity(0.15))
                                 )
                                 .foregroundStyle(selectedFilter == filter ? .white : .primary)
                         }
@@ -3003,7 +3003,7 @@ struct ResourceModifierView: View {
             HStack {
                 Text("Sort:")
                     .font(.caption)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(themeManager.secondaryTextColor)
 
                 Menu {
                     ForEach(ResourceSortOrder.allCases, id: \.self) { order in
@@ -3024,14 +3024,14 @@ struct ResourceModifierView: View {
                         Image(systemName: "chevron.down")
                     }
                     .font(.caption)
-                    .foregroundStyle(Color.accentColor)
+                    .foregroundStyle(themeManager.accentColor)
                 }
 
                 Spacer()
 
                 Text("\(filteredResources.count) Items")
                     .font(.caption)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(themeManager.secondaryTextColor)
             }
             .padding(.horizontal)
             .padding(.bottom, 4)
@@ -3046,7 +3046,7 @@ struct ResourceModifierView: View {
                 .scaleEffect(1.2)
             Text("Scanning Resources...")
                 .font(.subheadline)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(themeManager.secondaryTextColor)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
@@ -3060,7 +3060,7 @@ struct ResourceModifierView: View {
                     HStack {
                         Text("\(selectedResources.count) Selected")
                             .font(.subheadline)
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(themeManager.secondaryTextColor)
                         Spacer()
 
                         Button {
@@ -3076,7 +3076,7 @@ struct ResourceModifierView: View {
                             Label("Delete", systemImage: "trash")
                         }
                         .buttonStyle(.bordered)
-                        .tint(.red)
+                        .tint(themeManager.destructiveColor)
                     }
                 }
             }
@@ -3319,7 +3319,7 @@ struct ResourceStatBadge: View {
                 .foregroundStyle(color)
             Text(title)
                 .font(.caption2)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(themeManager.secondaryTextColor)
         }
         .padding(.horizontal, 8)
         .padding(.vertical, 4)
@@ -3343,7 +3343,7 @@ struct ResourceRow: View {
             HStack(spacing: 12) {
                 if isMultiSelectMode {
                     Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
-                        .foregroundStyle(isSelected ? Color.accentColor : Color.secondary)
+                        .foregroundStyle(isSelected ? themeManager.accentColor : themeManager.secondaryTextColor)
                 }
 
                 // Icon
@@ -3362,7 +3362,7 @@ struct ResourceRow: View {
                     HStack {
                         Text(resource.name)
                             .font(.subheadline.weight(.medium))
-                            .foregroundStyle(.primary)
+                            .foregroundStyle(themeManager.primaryTextColor)
 
                         if resource.isModified {
                             Circle()
@@ -3374,20 +3374,20 @@ struct ResourceRow: View {
                     HStack(spacing: 8) {
                         Text(resource.type.uppercased())
                             .font(.caption2.weight(.medium))
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(themeManager.secondaryTextColor)
                             .padding(.horizontal, 6)
                             .padding(.vertical, 2)
-                            .background(Capsule().fill(Color.secondary.opacity(0.15)))
+                            .background(Capsule().fill(themeManager.secondaryTextColor.opacity(0.15)))
 
                         if let dimensions = resource.dimensions {
                             Text(dimensions)
                                 .font(.caption2)
-                                .foregroundStyle(.secondary)
+                                .foregroundStyle(themeManager.secondaryTextColor)
                         }
 
                         Text(resource.path)
                             .font(.caption2)
-                            .foregroundStyle(.tertiary)
+                            .foregroundStyle(themeManager.secondaryTextColor.opacity(0.7))
                             .lineLimit(1)
                     }
                 }
@@ -3398,18 +3398,18 @@ struct ResourceRow: View {
                 VStack(alignment: .trailing, spacing: 2) {
                     Text(resource.size)
                         .font(.caption.weight(.medium))
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(themeManager.secondaryTextColor)
 
                     if let ratio = resource.compressionRatio {
                         Text("\(Int(ratio * 100))% Compressed")
                             .font(.caption2)
-                            .foregroundStyle(.green)
+                            .foregroundStyle(themeManager.accentColor)
                     }
                 }
 
                 Image(systemName: "chevron.right")
                     .font(.caption)
-                    .foregroundStyle(.tertiary)
+                    .foregroundStyle(themeManager.secondaryTextColor.opacity(0.7))
             }
         }
         .buttonStyle(.plain)
@@ -3511,12 +3511,12 @@ struct ResourceDetailView: View {
                         HStack {
                             Spacer()
                             RoundedRectangle(cornerRadius: 12, style: .continuous)
-                                .fill(Color.secondary.opacity(0.1))
+                                .fill(themeManager.secondaryTextColor.opacity(0.1))
                                 .frame(width: 150, height: 150)
                                 .overlay(
                                     Image(systemName: "photo")
                                         .font(.system(size: 40))
-                                        .foregroundStyle(.secondary)
+                                        .foregroundStyle(themeManager.secondaryTextColor)
                                 )
                             Spacer()
                         }
@@ -3644,11 +3644,11 @@ struct ResourceDetailRow: View {
     var body: some View {
         HStack {
             Text(title)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(themeManager.secondaryTextColor)
             Spacer()
             Text(value)
                 .font(.system(.body, design: .monospaced))
-                .foregroundStyle(.primary)
+                .foregroundStyle(themeManager.primaryTextColor)
                 .lineLimit(1)
         }
     }
@@ -3710,7 +3710,7 @@ struct ResourceStatisticsView: View {
                                 .font(.caption.weight(.medium))
                                 .padding(.horizontal, 8)
                                 .padding(.vertical, 4)
-                                .background(Capsule().fill(Color.secondary.opacity(0.15)))
+                                .background(Capsule().fill(themeManager.secondaryTextColor.opacity(0.15)))
 
                             Spacer()
 
@@ -3719,7 +3719,7 @@ struct ResourceStatisticsView: View {
                                     .font(.subheadline)
                                 Text(formatBytes(size))
                                     .font(.caption)
-                                    .foregroundStyle(.secondary)
+                                    .foregroundStyle(themeManager.secondaryTextColor)
                             }
                         }
                     }
@@ -3734,7 +3734,7 @@ struct ResourceStatisticsView: View {
                             Text(resource.name)
                             Spacer()
                             Text(resource.size)
-                                .foregroundStyle(.secondary)
+                                .foregroundStyle(themeManager.secondaryTextColor)
                         }
                     }
                 } header: {
@@ -3806,12 +3806,12 @@ struct SigningLogsDebugView: View {
                             VStack(spacing: 12) {
                                 Image(systemName: "doc.text.magnifyingglass")
                                     .font(.largeTitle)
-                                    .foregroundStyle(.secondary)
+                                    .foregroundStyle(themeManager.secondaryTextColor)
                                 Text("No Signing Logs Yet")
-                                    .foregroundStyle(.secondary)
+                                    .foregroundStyle(themeManager.secondaryTextColor)
                                 Text("Logs will appear here after signing an app.")
                                     .font(.caption)
-                                    .foregroundStyle(.tertiary)
+                                    .foregroundStyle(themeManager.secondaryTextColor.opacity(0.7))
                                     .multilineTextAlignment(.center)
                             }
                             .frame(maxWidth: .infinity)
@@ -3829,7 +3829,7 @@ struct SigningLogsDebugView: View {
                                     HStack {
                                         Text(log.formattedTimestamp)
                                             .font(.caption2)
-                                            .foregroundStyle(.secondary)
+                                            .foregroundStyle(themeManager.secondaryTextColor)
                                         Text(log.level.rawValue)
                                             .font(.caption2.weight(.semibold))
                                             .foregroundStyle(colorForLevel(log.level))
@@ -3885,7 +3885,7 @@ private struct SigningInfoRow: View {
     var body: some View {
         HStack {
             Text(title)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(themeManager.secondaryTextColor)
             Spacer()
             Text(value)
                 .font(.system(.body, design: .monospaced))
