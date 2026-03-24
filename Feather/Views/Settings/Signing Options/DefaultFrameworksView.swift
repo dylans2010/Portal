@@ -3,7 +3,7 @@ import NimbleViews
 
 // MARK: - View
 struct DefaultFrameworksView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     @StateObject private var manager = DefaultFrameworksManager.shared
     @State private var isAddingPresenting = false
     
@@ -116,7 +116,7 @@ struct DefaultFrameworksView: View {
 
 // MARK: - Framework Row View
 private struct FrameworkRowView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     let framework: URL
     let onDelete: () -> Void
     

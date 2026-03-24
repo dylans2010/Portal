@@ -2,7 +2,7 @@ import SwiftUI
 import NimbleViews
 
 struct NotificationsView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     @StateObject private var notificationManager = NotificationManager.shared
     @AppStorage("Feather.notificationsEnabled") private var notificationsEnabled = false
     @AppStorage("Feather.showHeaderViews") private var showHeaderViews = true
@@ -132,7 +132,7 @@ struct NotificationsView: View {
 }
 
 struct NotificationToggleRow: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     let type: NotificationType
     @State private var isEnabled: Bool
 

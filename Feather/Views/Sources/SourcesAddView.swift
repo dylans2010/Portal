@@ -16,7 +16,7 @@ struct ImportedSource: Identifiable {
 
 // MARK: - View
 struct SourcesAddView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
         typealias RepositoryDataHandler = Result<ASRepository, Error>
         @Environment(\.dismiss) var dismiss
 
@@ -923,7 +923,7 @@ struct PortalExportData: Codable {
 
 // MARK: - Portal Export View
 struct PortalExportView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
         @Environment(\.dismiss) private var dismiss
         @Environment(\.colorScheme) private var colorScheme
         @Binding var exportData: String
@@ -1177,7 +1177,7 @@ struct ModernGroupBoxStyle: GroupBoxStyle {
 
 // MARK: - Subviews
 private struct ExportSourceRow: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     let source: AltSource
     let isSelected: Bool
     let toggleSelect: () -> Void

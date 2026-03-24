@@ -18,7 +18,7 @@ struct BackupOptions {
 
 // MARK: - View
 struct BackupRestoreView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     @Environment(\.dismiss) var dismiss
 
     // UI State
@@ -936,7 +936,7 @@ struct BackupDocument: FileDocument {
 
 // MARK: - BackupOptionsView
 struct BackupOptionsView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     @Environment(\.dismiss) var dismiss
     @Binding var options: BackupOptions
     var isPreparing: Bool = false

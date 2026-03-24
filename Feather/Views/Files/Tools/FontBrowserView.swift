@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct FontBrowserView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     let fileURL: URL
     @State private var fontName: String?
     @State private var errorMessage: String?

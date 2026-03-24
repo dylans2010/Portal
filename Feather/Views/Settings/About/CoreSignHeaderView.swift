@@ -3,7 +3,7 @@ import CoreImage
 import CoreImage.CIFilterBuiltins
 
 struct CoreSignHeaderView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     // MARK: - State
     @State private var currentSubtitleIndex: Int = 0
     @State private var recentSubtitleIndices: [Int] = []

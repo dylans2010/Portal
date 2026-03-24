@@ -2,7 +2,7 @@ import SwiftUI
 
 // MARK: - View
 struct CertificatesInfoEntitlementCellView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
 	let key: String
 	let value: Any
 	@State private var _isExpanded = false

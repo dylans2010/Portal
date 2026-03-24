@@ -2,7 +2,7 @@ import SwiftUI
 import NimbleViews
 
 struct MultipeerDemoView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
 
     @Environment(\.dismiss) private var dismiss
 
@@ -253,7 +253,7 @@ private struct DemoPage {
 // MARK: - Illustration Views
 
 private struct OverviewIllustration: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     let accentColor: Color
     @State private var pulse: CGFloat = 1.0
     @State private var orbit: Double = 0
@@ -305,7 +305,7 @@ private struct OverviewIllustration: View {
 }
 
 private struct SenderIllustration: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     let accentColor: Color
     @State private var rings: [CGFloat] = [1, 1, 1]
     @State private var ringOpacities: [Double] = [0.6, 0.6, 0.6]
@@ -341,7 +341,7 @@ private struct SenderIllustration: View {
 }
 
 private struct ReceiverIllustration: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     let accentColor: Color
     @State private var peerOffset: CGFloat = 30
     @State private var peerOpacity: Double = 0
@@ -396,7 +396,7 @@ private struct ReceiverIllustration: View {
 }
 
 private struct TransferIllustration: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     let accentColor: Color
     @State private var progress: Double = 0
 
@@ -458,7 +458,7 @@ private struct TransferIllustration: View {
 }
 
 private struct HistoryIllustration: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     let accentColor: Color
     @State private var rowsVisible = false
 

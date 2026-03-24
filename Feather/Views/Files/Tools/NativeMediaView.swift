@@ -4,7 +4,7 @@ import PDFKit
 import AVKit
 
 struct NativeFileViewer: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     let fileURL: URL
     @State private var qlItem: URL?
 
@@ -39,7 +39,7 @@ struct PDFKitView: UIViewRepresentable {
 }
 
 struct VideoPlayerView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     let url: URL
 
     var body: some View {
@@ -49,7 +49,7 @@ struct VideoPlayerView: View {
 }
 
 struct AudioPlayerView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     let url: URL
     @State private var player: AVPlayer?
     @State private var isPlaying = false

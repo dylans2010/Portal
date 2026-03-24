@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct GoToPathView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     @State private var path: String = ""
     @Environment(\.dismiss) var dismiss
     let onGo: (URL) -> Void

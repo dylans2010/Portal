@@ -2,7 +2,7 @@ import SwiftUI
 
 // MARK: - Right Panel: Appearance & Content
 struct AppearanceContentPanel: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     @ObservedObject var viewModel: StatusBarViewModel
     @State private var showColorPicker = false
     @State private var showBackgroundColorPicker = false
@@ -681,7 +681,7 @@ struct AppearanceContentPanel: View {
 
 // MARK: - Gradient Color Picker Sheet
 struct GradientColorPickerSheet: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     @Environment(\.dismiss) var dismiss
     @Binding var colorHex: String
     let title: String

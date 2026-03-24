@@ -3,7 +3,7 @@ import NimbleViews
 
 // MARK: - View
 struct ConfigurationDictView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
 	@State private var _isAddingPresenting = false
 	
 	var title: String

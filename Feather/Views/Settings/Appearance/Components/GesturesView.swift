@@ -2,7 +2,7 @@ import SwiftUI
 import NimbleViews
 
 struct GesturesView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     @StateObject private var gestureManager = GestureManager.shared
 
     // Tab visibility states (mirrored from TabBarCustomizationView)

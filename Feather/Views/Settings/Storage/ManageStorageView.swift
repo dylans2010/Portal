@@ -19,7 +19,7 @@ struct StorageCategory: Identifiable {
 
 // MARK: - ManageStorageView
 struct ManageStorageView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     @State private var cleanupPeriod: CleanupPeriod = .thirtyDays
     @State private var isCalculating = false
     @State private var showStorageAnalyzer = false
@@ -1222,7 +1222,7 @@ enum CleanupPeriod: CaseIterable {
 
 // MARK: - Storage Stat Row Compact
 struct StorageStatRowCompact: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     let label: String
     let value: String
     let color: Color
@@ -1247,7 +1247,7 @@ struct StorageStatRowCompact: View {
 
 // MARK: - Storage Quick Action Button
 struct StorageQuickActionButton: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     let icon: String
     let title: LocalizedStringKey
     let color: Color
@@ -1273,7 +1273,7 @@ struct StorageQuickActionButton: View {
 
 // MARK: - Storage Category Row
 struct StorageCategoryRow: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     let category: StorageCategory
     let onClear: () -> Void
 
@@ -1312,7 +1312,7 @@ struct StorageCategoryRow: View {
 
 // MARK: - Advanced Tool Button
 struct AdvancedToolButton: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     let icon: String
     let title: LocalizedStringKey
     let color: Color
@@ -1341,7 +1341,7 @@ struct AdvancedToolButton: View {
 
 // MARK: - Danger Zone Button Compact
 struct DangerZoneButtonCompact: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     let title: LocalizedStringKey
     var size: String? = nil
     let action: () -> Void
@@ -1371,7 +1371,7 @@ struct DangerZoneButtonCompact: View {
 
 // MARK: - Storage Analyzer View
 struct StorageDeepAnalyzerView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     @Environment(\.dismiss) private var dismiss
     @State private var isAnalyzing = true
     @State private var analysisResults: [StorageAnalysisItem] = []
@@ -1480,7 +1480,7 @@ struct StorageDeepAnalyzerView: View {
 
 // MARK: - Duplicate Finder View
 struct StorageDuplicateFinderView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     @Environment(\.dismiss) private var dismiss
     @State private var isScanning = true
     @State private var duplicates: [[URL]] = []
@@ -1570,7 +1570,7 @@ struct StorageDuplicateFinderView: View {
 
 // MARK: - Large Files Finder View
 struct StorageLargeFilesFinderView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     @Environment(\.dismiss) private var dismiss
     @State private var isScanning = true
     @State private var largeFiles: [(url: URL, size: Int64)] = []

@@ -10,7 +10,7 @@ import LocalAuthentication
 
 // MARK: - Developer Mode Entry Point
 struct DeveloperView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     @StateObject private var authManager = DeveloperAuthManager.shared
     @State private var showAuthSheet = true
     @State private var showScreenshotWarning = false
@@ -79,7 +79,7 @@ struct DeveloperView: View {
 
 // MARK: - Developer Authentication View
 struct DeveloperAuthView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     @StateObject private var authManager = DeveloperAuthManager.shared
     @State private var passcode = ""
     @State private var developerToken = ""
@@ -624,7 +624,7 @@ struct DeveloperAuthView: View {
 
 // MARK: - Modern Passcode Setup View
 struct ModernPasscodeSetupView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     @StateObject private var authManager = DeveloperAuthManager.shared
     @State private var newPasscode = ""
     @State private var confirmPasscode = ""
@@ -869,7 +869,7 @@ struct ModernPasscodeSetupView: View {
 
 // MARK: - Developer Control Panel (Main View)
 struct DeveloperControlPanelView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     @StateObject private var authManager = DeveloperAuthManager.shared
     @State private var showResetConfirmation = false
     @State private var showNearbyShareIntro = false
@@ -1289,7 +1289,7 @@ struct DevMenuItem {
 
 // MARK: - Developer Menu Row (Legacy Support)
 struct DeveloperMenuRow: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     let icon: String
     let title: String
     let color: Color
@@ -1312,7 +1312,7 @@ struct DeveloperMenuRow: View {
 
 // MARK: - Home UI Testing View
 struct HomeUITestingView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     @AppStorage("Feather.devShowSimulatedUpdateBanner") private var showSimulatedUpdateBanner = false
     @AppStorage("Feather.showAppUpdateBanner") private var showAppUpdateBanner = true
     @StateObject private var updateTrackingManager = AppUpdateTrackingManager.shared
@@ -1443,7 +1443,7 @@ struct HomeUITestingView: View {
 
 // MARK: - Developer Security View
 struct DeveloperSecurityView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     @StateObject private var authManager = DeveloperAuthManager.shared
     @State private var showChangePasscode = false
     @State private var showRemovePasscode = false
@@ -1549,7 +1549,7 @@ struct DeveloperSecurityView: View {
 // MARK: - Subviews
 
 struct NetworkInspectorView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     var body: some View {
         List {
             Text("No Active Requests")
@@ -1561,7 +1561,7 @@ struct NetworkInspectorView: View {
 }
 
 struct FileSystemBrowserView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     var body: some View {
         List {
             if let documentsPath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first {
@@ -1579,7 +1579,7 @@ struct FileSystemBrowserView: View {
 }
 
 struct UserDefaultsEditorView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     var body: some View {
         List {
             ForEach(Array(UserDefaults.standard.dictionaryRepresentation().keys.sorted()), id: \.self) { key in
@@ -2155,7 +2155,7 @@ struct CodeSignatureAnalyzer {
 }
 
 struct IPAInspectorView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     @State private var isImporting = false
     @State private var selectedFile: URL?
     @State private var ipaInfo: IPAInfo?
@@ -2756,7 +2756,7 @@ struct IPAInspectorView: View {
 // MARK: - Supporting Views
 
 struct DeveloperInfoRow: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     let label: String
     let value: String
     
@@ -2775,7 +2775,7 @@ struct DeveloperInfoRow: View {
 }
 
 struct ListDetailView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     let items: [String]
     let title: String
     @State private var searchText = ""
@@ -2802,7 +2802,7 @@ struct ListDetailView: View {
 }
 
 struct PlistViewer: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     let dictionary: [String: Any]
     let title: String
     @State private var searchText = ""
@@ -2838,7 +2838,7 @@ struct PlistViewer: View {
 }
 
 struct IPAIntegrityCheckerView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     @State private var isImporting = false
     @State private var selectedFile: URL?
     @State private var integrityResults: IntegrityResults?
@@ -3260,7 +3260,7 @@ struct IPAIntegrityCheckerView: View {
 
 // MARK: - Check Row
 struct CheckRow: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     let label: String
     let passed: Bool
     
@@ -3276,7 +3276,7 @@ struct CheckRow: View {
 }
 
 struct SourceDataView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     var body: some View {
         List {
             ForEach(Storage.shared.getSources(), id: \.self) { source in
@@ -3291,7 +3291,7 @@ struct SourceDataView: View {
 }
 
 struct JSONViewer: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     let json: String
     var body: some View {
         ScrollView {
@@ -3304,7 +3304,7 @@ struct JSONViewer: View {
 }
 
 struct AppStateView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     var body: some View {
         List {
             Section(header: Text("Storage")) {
@@ -3327,7 +3327,7 @@ struct AppStateView: View {
 }
 
 struct FeatureFlagsView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     @AppStorage("feature_enhancedAnimations") var enhancedAnimations = false
     @AppStorage("feature_advancedSigning") var advancedSigning = false
     @AppStorage("feature_usePortalCert") var usePortalCert = false
@@ -3397,7 +3397,7 @@ struct FeatureFlagsView: View {
 }
 
 struct PerformanceMonitorView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     @StateObject private var monitor = PerformanceMonitor()
     
     var body: some View {
@@ -3568,7 +3568,7 @@ class PerformanceMonitor: ObservableObject {
 }
 
 struct CoreDataInspectorView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     var body: some View {
         List {
             Section(header: Text("Entities")) {
@@ -3613,7 +3613,7 @@ struct CoreDataInspectorView: View {
 }
 
 struct EntityDetailView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     let entityName: String
     
     var body: some View {
@@ -3630,7 +3630,7 @@ struct EntityDetailView: View {
 
 // MARK: - Test Notifications View
 struct TestNotificationsView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     @State private var isTestingNotification = false
     @State private var countdown: Int = 3
     @State private var showResultDialog = false
@@ -3844,7 +3844,7 @@ extension UNNotificationSetting {
 
 // MARK: - Updates & Releases View
 struct UpdatesReleasesView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     @State private var isCheckingUpdates = false
     @State private var latestRelease: GitHubRelease?
     @State private var allReleases: [GitHubRelease] = []
@@ -4173,7 +4173,7 @@ extension Notification.Name {
 
 // MARK: - Release Detail View
 struct ReleaseDetailView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     let release: GitHubRelease
     
     var body: some View {
@@ -4229,7 +4229,7 @@ struct ReleaseDetailView: View {
 
 // MARK: - Sources & Library Dev View
 struct SourcesLibraryDevView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     @StateObject private var viewModel = SourcesViewModel.shared
     @State private var isReloading = false
     @State private var selectedSource: AltSource?
@@ -4395,7 +4395,7 @@ struct SourcesLibraryDevView: View {
 
 // MARK: - Source Inspector View
 struct SourceInspectorView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     let source: AltSource
     @ObservedObject var viewModel: SourcesViewModel
     @State private var rawJSON: String = ""
@@ -4483,7 +4483,7 @@ struct SourceInspectorView: View {
 
 // MARK: - Install & IPA Dev View
 struct InstallIPADevView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     @StateObject private var downloadManager = DownloadManager.shared
     @State private var showInstallModifyDialog = false
     @State private var lastInstallLogs: [String] = []
@@ -4596,7 +4596,7 @@ struct InstallIPADevView: View {
 
 // MARK: - UI & Layout Dev View
 struct UILayoutDevView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     @AppStorage("dev.showLayoutBoundaries") private var showLayoutBoundaries = false
     @AppStorage("dev.slowAnimations") private var slowAnimations = false
     @AppStorage("dev.animationSpeed") private var animationSpeed: Double = 1.0
@@ -4753,7 +4753,7 @@ struct UILayoutDevView: View {
 
 // MARK: - Network & System Dev View
 struct NetworkSystemDevView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     @AppStorage("dev.simulateOffline") private var simulateOffline = false
     @AppStorage("dev.latencyInjection") private var latencyInjection: Double = 0
     @AppStorage("dev.verboseLogging") private var verboseLogging = false
@@ -4888,7 +4888,7 @@ struct NetworkSystemDevView: View {
 
 // MARK: - Failure Inspector View
 struct FailureInspectorView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     @StateObject private var logManager = AppLogManager.shared
     
     var failureLogs: [LogEntry] {
@@ -4925,7 +4925,7 @@ struct FailureInspectorView: View {
 
 // MARK: - State & Persistence Dev View
 struct StatePersistenceDevView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     @State private var userDefaultsKeys: [String] = []
     @State private var appStorageKeys: [String] = []
     @State private var cacheSize: String = "Calculating..."
@@ -5116,7 +5116,7 @@ extension FileManager {
 
 // MARK: - Device Information View
 struct DeviceInfoView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     @State private var deviceInfo: [String: String] = [:]
     @State private var hardwareInfo: [String: String] = [:]
     @State private var storageInfo: [String: String] = [:]
@@ -5292,7 +5292,7 @@ struct DeviceInfoView: View {
 }
 
 struct DeveloperDeviceInfoRow: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     let label: String
     let value: String
     
@@ -5312,7 +5312,7 @@ struct DeveloperDeviceInfoRow: View {
 
 // MARK: - Environment Inspector View
 struct EnvironmentInspectorView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     @State private var environment: [String: String] = [:]
     @State private var searchText = ""
     
@@ -5394,7 +5394,7 @@ struct EnvironmentInspectorView: View {
 
 // MARK: - Crash Log Viewer
 struct CrashLogViewer: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     @StateObject private var logManager = AppLogManager.shared
     @State private var crashLogs: [LogEntry] = []
     
@@ -5500,7 +5500,7 @@ struct CrashLogViewer: View {
 
 // MARK: - Quick Actions Dev View
 struct QuickActionsDevView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     @State private var showConfirmation = false
     @State private var selectedAction: QuickAction?
     
@@ -5675,7 +5675,7 @@ struct QuickActionsDevView: View {
 
 // MARK: - IPA Signing Dashboard View
 struct IPASigningDashboardView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     var body: some View {
         List {
             // Certificate & Profile Manager Section
@@ -5762,7 +5762,7 @@ struct IPASigningDashboardView: View {
 
 // MARK: - Certificate & Profile Manager View
 struct CertificateProfileManagerView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     @FetchRequest(
         entity: CertificatePair.entity(),
         sortDescriptors: [NSSortDescriptor(keyPath: \CertificatePair.date, ascending: false)],
@@ -5932,7 +5932,7 @@ struct CertificateProfileManagerView: View {
 
 // MARK: - Certificate Manager Row
 struct CertificateManagerRow: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     let certificate: CertificatePair
     let onSelect: () -> Void
     
@@ -5993,7 +5993,7 @@ struct CertificateManagerRow: View {
 
 // MARK: - Stat Card
 struct StatCard: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     let title: String
     let value: String
     let icon: String
@@ -6022,7 +6022,7 @@ struct StatCard: View {
 
 // MARK: - Signing Logs View
 struct SigningLogsView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     @StateObject private var logManager = AppLogManager.shared
     @State private var searchText = ""
     @State private var selectedLevel: LogEntry.LogLevel?
@@ -6151,7 +6151,7 @@ struct SigningLogsView: View {
 
 // MARK: - Signing Log Row
 struct SigningLogRow: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     let entry: LogEntry
     @State private var isExpanded = false
     
@@ -6203,7 +6203,7 @@ struct SigningLogRow: View {
 
 // MARK: - Developer Batch Signing View
 struct DeveloperBatchSigningView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     @FetchRequest(
         entity: Imported.entity(),
         sortDescriptors: [NSSortDescriptor(keyPath: \Imported.dateAdded, ascending: false)]
@@ -6419,7 +6419,7 @@ struct DeveloperBatchSigningView: View {
 
 // MARK: - Developer Batch App Row
 struct DeveloperBatchAppRow: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     let app: Imported
     let isSelected: Bool
     let onToggle: () -> Void
@@ -6452,7 +6452,7 @@ struct DeveloperBatchAppRow: View {
 
 // MARK: - Entitlements & Info.plist Editor View
 struct EntitlementsPlistEditorView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     @State private var selectedTab = 0
     
     var body: some View {
@@ -6480,7 +6480,7 @@ struct EntitlementsPlistEditorView: View {
 
 // MARK: - Entitlements Editor Tab
 struct EntitlementsEditorTab: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     @State private var entitlements: [DevEntitlementItem] = [
         DevEntitlementItem(key: "application-identifier", value: "$(AppIdentifierPrefix)$(CFBundleIdentifier)", type: .string),
         DevEntitlementItem(key: "get-task-allow", value: "true", type: .boolean),
@@ -6637,7 +6637,7 @@ struct DevEntitlementItem: Identifiable {
 
 // MARK: - Entitlement Row
 struct EntitlementRow: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     @Binding var item: DevEntitlementItem
     
     var body: some View {
@@ -6667,7 +6667,7 @@ struct EntitlementRow: View {
 
 // MARK: - Info.plist Editor Tab
 struct InfoPlistEditorTab: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     @State private var plistItems: [PlistItem] = [
         PlistItem(key: "CFBundleDisplayName", value: "App Name", type: .string),
         PlistItem(key: "CFBundleIdentifier", value: "com.example.app", type: .string),
@@ -6783,7 +6783,7 @@ struct PlistItem: Identifiable {
 
 // MARK: - Plist Item Row
 struct PlistItemRow: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     @Binding var item: PlistItem
     
     var body: some View {
@@ -6801,7 +6801,7 @@ struct PlistItemRow: View {
 
 // MARK: - Signing Security View
 struct SigningSecurityView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     @AppStorage("signing.validateCertificates") private var validateCertificates = true
     @AppStorage("signing.checkRevocation") private var checkRevocation = true
     @AppStorage("signing.requireTrustedCerts") private var requireTrustedCerts = false
@@ -6913,7 +6913,7 @@ struct SigningSecurityView: View {
 
 // MARK: - Security Status Row
 struct SecurityStatusRow: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     let certificate: CertificatePair
     
     var body: some View {
@@ -6974,7 +6974,7 @@ struct SecurityStatusRow: View {
 
 // MARK: - Signing Performance Metrics View
 struct SigningPerformanceMetricsView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     @State private var metrics = SigningMetrics()
     @State private var isRefreshing = false
     
@@ -7150,7 +7150,7 @@ struct SigningPerformanceMetricsView: View {
 
 // MARK: - Metric Card
 struct MetricCard: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     let title: String
     let value: String
     let icon: String
@@ -7181,7 +7181,7 @@ struct MetricCard: View {
 
 // MARK: - API & Webhook Integration View
 struct APIWebhookIntegrationView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     @AppStorage("api.enabled") private var apiEnabled = false
     @AppStorage("api.endpoint") private var apiEndpoint = ""
     @AppStorage("api.apiKey") private var apiKey = ""
@@ -7361,7 +7361,7 @@ struct APIWebhookIntegrationView: View {
 
 // MARK: - API Logs View
 struct APILogsView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     @StateObject private var logManager = AppLogManager.shared
     
     var apiLogs: [LogEntry] {
@@ -7422,7 +7422,7 @@ struct APILogsView: View {
 // MARK: - Nearby Transfer Simulation View
 // This simulation uses the actual views from Nearby Transfer for complete UI testing
 struct NearbyTransferSimulationView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     @State private var selectedView: NearbyTransferUIView = .main
     @State private var simulationRole: SimulationRole = .sender
     @AppStorage("Feather.simulateNearbyTransfer") private var simulateNearbyTransfer = false
@@ -7692,7 +7692,7 @@ extension EnvironmentValues {
 
 // MARK: - Nearby Share UI Testing View
 struct NearbyShareUITestingView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     @Environment(\.dismiss) var dismiss
     @State private var selectedView: NearbyShareViewType = .loading
     @State private var showDismissButton: Bool = true
@@ -7827,7 +7827,7 @@ struct NearbyShareUITestingView: View {
 
 // MARK: - UI View Testing View
 struct UIViewTestingView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     @Environment(\.dismiss) var dismiss
     @State private var selectedView: UIViewType = .offlineView
     @State private var showDismissButton: Bool = true
@@ -7904,7 +7904,7 @@ struct UIViewTestingView: View {
 // MARK: - Dismissible Wrapper Views
 
 struct OfflineViewWithDismiss: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     @Binding var showDismissButton: Bool
     let onDismiss: () -> Void
     

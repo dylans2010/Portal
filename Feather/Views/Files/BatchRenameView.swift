@@ -3,7 +3,7 @@ import NimbleViews
 
 // MARK: - BatchRenameView
 struct BatchRenameView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     let files: [FileItem]
     @Environment(\.dismiss) var dismiss
     

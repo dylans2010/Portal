@@ -75,7 +75,7 @@ final class PairHistoryStore {
 /// Shows every device that has been paired in the last 7 days.
 /// Records are grouped by calendar day and auto-deleted after 7 days.
 struct PairHistoryView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
 
     @State private var records: [PairRecord] = []
     @State private var showClearConfirm = false

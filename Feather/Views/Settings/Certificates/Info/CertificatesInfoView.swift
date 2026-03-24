@@ -57,7 +57,7 @@ struct EntitlementMapping {
 
 // MARK: - Clean Certificate Info View
 struct CertificatesInfoView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     @Environment(\.dismiss) var dismiss
     @AppStorage("feature_usePortalCert") private var usePortalCert = false
     @State private var data: Certificate?

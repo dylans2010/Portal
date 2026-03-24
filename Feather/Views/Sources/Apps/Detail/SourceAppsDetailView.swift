@@ -6,7 +6,7 @@ import NukeUI
 
 // MARK: - SourceAppsDetailView
 struct SourceAppsDetailView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     @ObservedObject var downloadManager = DownloadManager.shared
     @Environment(\.colorScheme) private var colorScheme
     @Environment(\.dismiss) private var dismiss
@@ -772,7 +772,7 @@ struct SourceAppsDetailView: View {
 
 // MARK: - Modern Info Card
 struct ModernInfoCard: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     let icon: String
     let label: String
     let value: String

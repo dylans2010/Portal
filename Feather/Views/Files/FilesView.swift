@@ -5,7 +5,7 @@ import QuickLook
 
 // MARK: - FilesView
 struct FilesView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     @StateObject private var fileManager = FileManagerService.shared
     @StateObject private var hideManager = FilesHideManager.shared
     @State private var showCreateMenu = false
@@ -1521,7 +1521,7 @@ struct FilesView: View {
 
 // MARK: - FileRowView
 struct FileRowView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     let file: FileItem
     var isSelected: Bool = false
     @AppStorage("files_showFileSize") private var showFileSize = true
@@ -1612,7 +1612,7 @@ struct FileRowView: View {
 
 // MARK: - FileGridItemView
 struct FileGridItemView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     let file: FileItem
     var isSelected: Bool = false
     @AppStorage("files_showFileSize") private var showFileSize = true

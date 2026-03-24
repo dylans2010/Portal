@@ -3,7 +3,7 @@ import NimbleViews
 
 // MARK: - View
 struct CertificatesCellView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
 	@State var data: Certificate?
 	@ObservedObject var cert: CertificatePair
 	

@@ -3,7 +3,7 @@ import AudioToolbox
 import NimbleViews
 
 struct MPCSuccessfulPairView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
 
     let receivedURL: URL?
     let deviceName: String?

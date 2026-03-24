@@ -2,7 +2,7 @@ import SwiftUI
 
 // MARK: - Left Panel: Structure & Visibility
 struct StructureVisibilityPanel: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     @ObservedObject var viewModel: StatusBarViewModel
     @State private var showConfigureLayouts = false
     @State private var showSavedStyles = false

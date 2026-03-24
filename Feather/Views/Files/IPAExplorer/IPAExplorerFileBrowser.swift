@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct IPAExplorerFileBrowser: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     let rootURL: URL
     let currentURL: URL
     @ObservedObject var viewModel: IPAExplorerViewModel
@@ -71,7 +71,7 @@ struct IPAExplorerFileBrowser: View {
 }
 
 struct FileRow: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     let url: URL
 
     var body: some View {
@@ -104,7 +104,7 @@ struct FileRow: View {
 }
 
 struct SimpleFileViewer: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     let url: URL
     @State private var content: String = ""
 

@@ -2,7 +2,7 @@ import SwiftUI
 import NimbleViews
 
 struct PlistEditorView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     @Environment(\.dismiss) var dismiss
     let fileURL: URL
     
@@ -396,7 +396,7 @@ struct PlistEditorView: View {
 }
 
 struct PlistTreeView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     let plist: Any
 
     var body: some View {
@@ -409,7 +409,7 @@ struct PlistTreeView: View {
 }
 
 struct PlistNodeView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     let key: String
     let value: Any
     @State private var isExpanded = false

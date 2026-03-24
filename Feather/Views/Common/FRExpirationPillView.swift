@@ -2,7 +2,7 @@ import SwiftUI
 
 // MARK: - View
 struct FRExpirationPillView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
 	let title: String
 	let revoked: Bool
 	let expiration: Date.ExpirationInfo?

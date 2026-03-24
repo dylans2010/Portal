@@ -5,7 +5,7 @@ import ImageIO
 
 // MARK: - Modern Full Screen Signing View
 struct ModernSigningView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     @Environment(\.dismiss) var dismiss
     @Environment(\.colorScheme) var colorScheme
     @AppStorage("Feather.serverMethod") private var _serverMethod: Int = 0
@@ -1059,7 +1059,7 @@ struct ModernSigningView: View {
 
 // MARK: - Modern Signing Options View
 struct ModernSigningOptionsView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     @Binding var options: Options
     @State private var showPPQInfo = false
     @State private var floatingAnimation = false
@@ -1442,7 +1442,7 @@ struct ModernSigningOptionsView: View {
 
 // MARK: - Swipe To Sign Component
 struct SwipeToSign: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     var onComplete: () -> Void
 
     @State private var offset: CGFloat = 0
@@ -1580,7 +1580,7 @@ struct SignButtonStyle: ButtonStyle {
 
 // MARK: - Hold To Sign
 struct HoldToSign: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     var onComplete: () -> Void
     @State private var progress: CGFloat = 0
     @State private var isHolding = false
@@ -1658,7 +1658,7 @@ struct HoldToSign: View {
 
 // MARK: - Slide To Confirm
 struct SlideToConfirm: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     var onComplete: () -> Void
     @State private var offset: CGFloat = 0
     @State private var isCompleted = false
@@ -1740,7 +1740,7 @@ struct SlideToConfirm: View {
 
 // MARK: - Double Tap To Sign
 struct DoubleTapToSign: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     var onComplete: () -> Void
     @State private var isAnimate = false
     @State private var isCompleted = false
@@ -1807,7 +1807,7 @@ struct DoubleTapToSign: View {
 
 // MARK: - Advanced Debug Tools View
 struct ModernEditSheet: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     let title: String
     let icon: String
     let iconColor: Color

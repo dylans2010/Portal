@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct MatrixRainView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     let characters = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"
     @State private var columns: [MatrixColumn] = []
 
@@ -33,7 +33,7 @@ struct MatrixColumn: Identifiable {
 }
 
 struct MatrixColumnView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     @State var column: MatrixColumn
     @State private var timer = Timer.publish(every: 0.1, on: .main, in: .common).autoconnect()
 

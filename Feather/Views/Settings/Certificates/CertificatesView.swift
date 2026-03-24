@@ -3,7 +3,7 @@ import NimbleViews
 
 // MARK: - View
 struct CertificatesView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
 	@AppStorage("feather.selectedCert") private var _storedSelectedCert: Int = 0
 	@AppStorage("Feather.certificateExperience") private var certificateExperience: String = CertificateExperience.developer.rawValue
 	@AppStorage("forceShowGuides") private var forceShowGuides = false

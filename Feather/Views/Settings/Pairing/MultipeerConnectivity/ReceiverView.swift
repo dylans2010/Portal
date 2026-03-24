@@ -3,7 +3,7 @@ import MultipeerConnectivity
 import NimbleViews
 
 struct ReceiverView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
 
     // MARK: - Dependencies
 

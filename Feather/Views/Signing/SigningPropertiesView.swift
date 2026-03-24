@@ -3,7 +3,7 @@ import NimbleViews
 
 // MARK: - View
 struct SigningPropertiesView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
 	@Environment(\.dismiss) var dismiss
 	
 	@State private var text: String = ""

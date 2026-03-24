@@ -20,7 +20,7 @@ struct WSFLink: Identifiable {
 }
 
 struct CreditsView: View {
-        @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
         @AppStorage("Feather.showHeaderViews") private var showHeaderViews = true
         private let credits: [CreditItem] = [
                 CreditItem(
@@ -143,7 +143,7 @@ struct CreditsView: View {
 }
 
 struct WSFLinkButton: View {
-        @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
         let link: WSFLink
 
         var body: some View {
@@ -180,7 +180,7 @@ struct WSFLinkButton: View {
 }
 
 struct GitHubCreditCard: View {
-        @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
         let credit: CreditItem
         @State private var _tapCount = 0
 

@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct ExperimentalLibraryView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     @State private var selectedFilter: LibraryFilter = .all
     
     enum LibraryFilter: String, CaseIterable {
@@ -59,7 +59,7 @@ struct ExperimentalLibraryView: View {
 
 // MARK: - Filter Chip
 struct ExperimentalFilterChip: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     let title: String
     let isSelected: Bool
     let action: () -> Void
@@ -89,7 +89,7 @@ struct ExperimentalFilterChip: View {
 
 // MARK: - Library Apps Grid
 struct ExperimentalLibraryAppsGrid: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     var body: some View {
         VStack(spacing: ExperimentalUITheme.Spacing.md) {
             ForEach(0..<4) { index in
@@ -102,7 +102,7 @@ struct ExperimentalLibraryAppsGrid: View {
 
 // MARK: - Library App Row
 struct ExperimentalLibraryAppRow: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     let index: Int
     
     var body: some View {

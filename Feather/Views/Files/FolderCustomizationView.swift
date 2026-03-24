@@ -2,7 +2,7 @@ import SwiftUI
 import NimbleViews
 
 struct FolderCustomizationView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     @Environment(\.dismiss) var dismiss
     let folderURL: URL
     

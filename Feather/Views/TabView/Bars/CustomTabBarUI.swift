@@ -2,7 +2,7 @@ import SwiftUI
 
 // MARK: - Custom Tab Bar View (Liquid Glass Design)
 struct CustomTabBarUI: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     @AppStorage("Feather.tabBar.dashboard") private var showDashboard = false
     @AppStorage("Feather.tabBar.sources") private var showSources = true
     @AppStorage("Feather.tabBar.library") private var showLibrary = true

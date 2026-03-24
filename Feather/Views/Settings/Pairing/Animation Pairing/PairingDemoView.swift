@@ -13,7 +13,7 @@ import NimbleViews
 ///  4. Transfer in progress — animated progress with simulated data
 ///  5. Success        — the SuccessfulPairView recreation with sample data
 struct PairingDemoView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
 
     @Environment(\.dismiss) private var dismiss
     @State private var currentPage: Int = 0
@@ -151,7 +151,7 @@ struct PairingDemoView: View {
 // MARK: - Page 1: Introduction
 
 private struct IntroPage: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     @State private var appeared = false
 
     var body: some View {
@@ -254,7 +254,7 @@ private struct IntroPage: View {
 // MARK: - Page 2: Sender Side
 
 private struct SenderPage: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     @State private var morphProgress: Double = 0.0
     @State private var appeared = false
     @State private var glowPulse = false
@@ -366,7 +366,7 @@ private struct SenderPage: View {
 // MARK: - Page 3: Receiver Side
 
 private struct ReceiverPage: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     @State private var appeared = false
     @State private var scanLineOffset: CGFloat = -100
     @State private var bracketPulse = false
@@ -556,7 +556,7 @@ private struct ReceiverPage: View {
 // MARK: - Page 4: Transfer In Progress
 
 private struct TransferPage: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     @State private var progress: Double = 0.0
     @State private var appeared = false
     @State private var rotationAngle: Double = 0
@@ -695,7 +695,7 @@ private struct TransferPage: View {
 // MARK: - Page 5: Success
 
 private struct SuccessPage: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     @State private var appeared = false
     @State private var checkmarkScale: CGFloat = 0.0
     @State private var ringScales: [CGFloat] = Array(repeating: 1.0, count: 4)

@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct IPAExplorerSummaryHeader: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     let summary: IPAExplorerViewModel.IPASummary
     let isModified: Bool
     let isValid: Bool
@@ -66,7 +66,7 @@ struct IPAExplorerSummaryHeader: View {
 }
 
 struct StatusBadge: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     let title: String
     let icon: String
     let color: Color

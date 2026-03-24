@@ -2,7 +2,7 @@ import SwiftUI
 import NimbleViews
 
 struct IPAExplorerView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     @StateObject var viewModel: IPAExplorerViewModel
     @Environment(\.dismiss) var dismiss
 

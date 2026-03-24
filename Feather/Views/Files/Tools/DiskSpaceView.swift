@@ -2,7 +2,7 @@ import SwiftUI
 import Foundation
 
 struct DiskSpaceView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     @State private var totalSpace: Int64 = 0
     @State private var freeSpace: Int64 = 0
     @State private var usedSpace: Int64 = 0
@@ -50,7 +50,7 @@ struct DiskSpaceView: View {
 }
 
 struct StorageRow: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     let label: String
     let value: Int64
     let color: Color

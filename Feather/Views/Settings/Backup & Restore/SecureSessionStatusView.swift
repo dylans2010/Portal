@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct SecureSessionStatusView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     @ObservedObject private var manager = SecureTransferSessionManager.shared
     @Environment(\.dismiss) var dismiss
 

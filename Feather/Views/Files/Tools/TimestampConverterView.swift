@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct TimestampConverterView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     @State private var timestamp: String = "\(Int(Date().timeIntervalSince1970))"
     @State private var date: Date = Date()
 

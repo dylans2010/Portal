@@ -4,7 +4,7 @@ import NimbleViews
 
 // MARK: - LibraryCellView - Modern Minimal Design
 struct LibraryCellView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     @Environment(\.editMode) private var editMode
 

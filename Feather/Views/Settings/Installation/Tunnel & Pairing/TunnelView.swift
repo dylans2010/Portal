@@ -4,7 +4,7 @@ import IDeviceSwift
 
 // MARK: - View
 struct TunnelView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
 	@AppStorage("Feather.showHeaderViews") private var showHeaderViews = true
 	@State private var _isImportingPairingPresenting = false
 	

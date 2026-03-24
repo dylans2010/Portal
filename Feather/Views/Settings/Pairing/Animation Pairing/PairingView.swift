@@ -2,7 +2,7 @@ import SwiftUI
 import NimbleViews
 
 struct PairingView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     var isEmbedded: Bool = false
 
     // MARK: - State

@@ -2,7 +2,7 @@ import SwiftUI
 
 // MARK: - Enhanced SF Symbols Picker
 struct SFSymbolsPickerView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     @ObservedObject var viewModel: StatusBarViewModel
     @Environment(\.dismiss) var dismiss
     @State private var customSymbolName = ""

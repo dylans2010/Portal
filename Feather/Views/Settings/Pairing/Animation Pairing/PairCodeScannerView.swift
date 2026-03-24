@@ -3,7 +3,7 @@ import AVFoundation
 import MultipeerConnectivity
 
 struct PairCodeScannerView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
 
     // MARK: - Input
 

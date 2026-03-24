@@ -3,7 +3,7 @@ import NimbleViews
 
 // MARK: - MoveFileView
 struct MoveFileView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     let files: [FileItem]
     let currentDirectory: URL
     @Environment(\.dismiss) var dismiss

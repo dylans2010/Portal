@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct AutoBackupsView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     @AppStorage("Feather.autoBackupEnabled") private var isEnabled = false
     @AppStorage("Feather.autoBackupFrequency") private var frequency = 0 // 0: Daily, 1: Weekly, 2: Monthly
     @AppStorage("Feather.autoBackupMaxCount") private var maxCount = 5

@@ -5,7 +5,7 @@ import NimbleViews
 
 // MARK: - View
 struct LostView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     @Environment(\.dismiss) var dismiss
     var onGoBack: (() -> Void)? = nil
 

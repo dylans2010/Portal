@@ -13,7 +13,7 @@ extension AboutView {
 
 // MARK: - View
 struct AboutView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
 	typealias CreditsDataHandler = Result<[CreditsModel], Error>
 	private let _dataService = NBFetchService()
 	@AppStorage("Feather.showHeaderViews") private var showHeaderViews = true

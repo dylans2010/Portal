@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct JSONFormatterView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     @State private var jsonInput: String = ""
     @State private var jsonOutput: String = ""
     @State private var errorMessage: String?

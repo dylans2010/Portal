@@ -3,7 +3,7 @@ import NimbleViews
 import UniformTypeIdentifiers
 
 struct CertificatePasswordChangeView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     @Environment(\.dismiss) private var dismiss
 
     @State private var _p12URL: URL? = nil

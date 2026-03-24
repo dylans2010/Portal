@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct TunnelHeaderView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
 	@State var lastHeartbeatTime = Date()
 	
 	var body: some View {
@@ -45,7 +45,7 @@ struct TunnelHeaderView: View {
 }
 
 struct TunnelPulseRing: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
 	@State private var _animationProgress = 0.0
 	
 	private let _animationDuration = 10.0

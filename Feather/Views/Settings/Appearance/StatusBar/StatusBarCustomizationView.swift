@@ -2,7 +2,7 @@ import SwiftUI
 
 // MARK: - View
 struct StatusBarCustomizationView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     @StateObject private var viewModel = StatusBarViewModel()
     @State private var selectedPanel: Panel = .structure
     
@@ -93,7 +93,7 @@ struct StatusBarCustomizationView: View {
 
 // MARK: - Color Picker Sheet
 struct ColorPickerSheet: View {
-@EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
 @Environment(\.dismiss) var dismiss
 @Binding var selectedColor: Color
 @Binding var colorHex: String

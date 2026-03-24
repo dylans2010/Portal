@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct AppHideElementsHeaderView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     // MARK: - Body
     var body: some View {
         headerCard

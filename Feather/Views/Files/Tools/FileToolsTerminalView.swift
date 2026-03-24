@@ -4,7 +4,7 @@ import NimbleViews
 
 // MARK: - Advanced File Tools Terminal View
 struct FileToolsTerminalView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     @Environment(\.dismiss) private var dismiss
     @Environment(\.colorScheme) private var colorScheme
     @AppStorage("terminal_theme") private var terminalTheme: TerminalTheme = .classic

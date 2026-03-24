@@ -2,7 +2,7 @@ import SwiftUI
 import NimbleViews
 
 struct FilePermissionsView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     let fileURL: URL
     @Environment(\.dismiss) var dismiss
     

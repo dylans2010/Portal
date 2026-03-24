@@ -2,8 +2,9 @@ import SwiftUI
 import NimbleViews
 
 struct QuickActionsSheetView: View {
+    @EnvironmentObject var themeManager: AppWideThemeManager
+
     @Environment(\.dismiss) var dismiss
-    @EnvironmentObject var themeManager: ThemeManager
 
     var body: some View {
         NBNavigationView(.localized("Quick Actions")) {
@@ -114,7 +115,7 @@ struct QuickActionsSheetView: View {
 }
 
 private struct SectionHeader: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     let title: String
 
     var body: some View {
@@ -129,7 +130,7 @@ private struct SectionHeader: View {
 }
 
 private struct QuickActionRow: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     let icon: String
     let title: String
     let subtitle: String

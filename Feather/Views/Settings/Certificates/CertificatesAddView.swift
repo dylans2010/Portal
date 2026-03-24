@@ -6,7 +6,7 @@ import OSLog
 
 // MARK: - Modern Compact Certificate Add View
 struct CertificatesAddView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     @Environment(\.dismiss) private var dismiss
     @Namespace private var _namespace
     @AppStorage("feature_usePortalCert") private var usePortalCert = false

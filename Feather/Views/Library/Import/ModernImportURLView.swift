@@ -3,7 +3,7 @@ import NimbleViews
 
 // MARK: - ModernImportURLView
 struct ModernImportURLView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     @Environment(\.dismiss) var dismiss
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
 	@AppStorage("Feather.useGradients") private var _useGradients: Bool = true

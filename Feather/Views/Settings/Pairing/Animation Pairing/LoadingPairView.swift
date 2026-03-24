@@ -12,7 +12,7 @@ import NimbleViews
 /// - Elapsed time and a running estimated time remaining
 /// - The remote device name being paired with
 struct LoadingPairView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
 
     // MARK: - Input
 

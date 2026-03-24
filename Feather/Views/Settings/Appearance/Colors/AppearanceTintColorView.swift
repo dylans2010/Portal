@@ -2,7 +2,7 @@ import SwiftUI
 
 // MARK: - View
 struct AppearanceTintColorView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
 	@AppStorage("Feather.userTintColor") private var selectedColorHex: String = "#0077BE"
 	@AppStorage("Feather.userTintColorType") private var colorType: String = "solid"
 	@AppStorage("Feather.userTintGradientStart") private var gradientStartHex: String = "#0077BE"
@@ -159,7 +159,7 @@ struct AppearanceTintColorView: View {
 }
 
 struct ThemeColorPickerSheet: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
 	@Environment(\.dismiss) var dismiss
 	@Binding var selectedColorHex: String
 	@Binding var colorType: String
@@ -258,7 +258,7 @@ struct ThemeColorPickerSheet: View {
 
 // MARK: - Custom Color Picker View
 struct CustomColorPickerView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
 	@Environment(\.dismiss) var dismiss
 	@Binding var colorType: String
 	@Binding var selectedColorHex: String

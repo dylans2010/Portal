@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct KeyboardDirectionPicker: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     @Binding var direction: Double
     var color: Color = .blue
 

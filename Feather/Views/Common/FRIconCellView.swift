@@ -4,7 +4,7 @@ import NimbleViews
 
 // MARK: - View
 struct FRIconCellView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
 
 	var title: String
 	var subtitle: String

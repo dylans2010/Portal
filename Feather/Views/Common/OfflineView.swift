@@ -3,7 +3,7 @@ import SwiftUI
 // MARK: - Offline View
 /// Displays when there is absolutely no WiFi or cellular data connection
 struct OfflineView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     @StateObject private var networkMonitor = NetworkMonitor.shared
     @State private var animateIcon = false
     
@@ -129,7 +129,7 @@ struct OfflineView: View {
 
 // MARK: - Troubleshooting Tip Row
 struct TroubleshootingTip: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     let icon: String
     let text: String
     

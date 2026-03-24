@@ -5,7 +5,7 @@ import UniformTypeIdentifiers
 
 // MARK: - Create JSON File View
 struct CreateJSONFileView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     @Environment(\.dismiss) private var dismiss
     @State private var fileName = ""
     @State private var jsonContent = "{\n    \n}"
@@ -61,7 +61,7 @@ struct CreateJSONFileView: View {
 
 // MARK: - Create XML File View
 struct CreateXMLFileView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     @Environment(\.dismiss) private var dismiss
     @State private var fileName = ""
     @State private var xmlContent = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<root>\n    \n</root>"
@@ -117,7 +117,7 @@ struct CreateXMLFileView: View {
 
 // MARK: - URL Import View
 struct URLImportView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     @Environment(\.dismiss) private var dismiss
     @State private var urlString = ""
     @State private var customFileName = ""
@@ -226,7 +226,7 @@ struct URLImportView: View {
 
 // MARK: - Clipboard Import View
 struct ClipboardImportView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     @Environment(\.dismiss) private var dismiss
     @State private var fileName = ""
     @State private var clipboardContent = ""
@@ -305,7 +305,7 @@ struct ClipboardImportView: View {
 
 // MARK: - Advanced File Search View
 struct AdvancedFileSearchView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     @Environment(\.dismiss) private var dismiss
     @Environment(\.colorScheme) private var colorScheme
     @State private var searchQuery = ""
@@ -724,7 +724,7 @@ struct AdvancedFileSearchView: View {
 
 // MARK: - Disk Usage View
 struct DiskUsageView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     @Environment(\.dismiss) private var dismiss
     @Environment(\.colorScheme) private var colorScheme
     @State private var isCalculating = true
@@ -1028,7 +1028,7 @@ struct DiskUsageView: View {
 
 // MARK: - File Hasher View
 struct FileHasherView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     @Environment(\.dismiss) private var dismiss
     @State private var isImporting = false
     @State private var selectedFile: URL?
@@ -1126,7 +1126,7 @@ struct FileHasherView: View {
 }
 
 struct FileHashRow: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     let algorithm: String
     let hash: String
     
@@ -1153,7 +1153,7 @@ struct FileHashRow: View {
 
 // MARK: - Base64 Tool View
 struct Base64ToolView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     @Environment(\.dismiss) private var dismiss
     @Environment(\.colorScheme) private var colorScheme
     @State private var inputText = ""
@@ -1502,7 +1502,7 @@ struct Base64ToolView: View {
 
 // MARK: - Symlink Creator View
 struct SymlinkCreatorView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     @Environment(\.dismiss) private var dismiss
     @State private var linkName = ""
     @State private var targetPath = ""

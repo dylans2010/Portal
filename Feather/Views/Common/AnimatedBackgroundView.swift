@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct AnimatedBackgroundView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     @ObservedObject private var motion = MotionManager.shared
 
     var body: some View {

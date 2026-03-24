@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct GrepToolView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     let baseDirectory: URL
     @State private var pattern: String = ""
     @State private var results: [GrepResult] = []

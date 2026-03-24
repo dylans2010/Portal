@@ -106,7 +106,7 @@ struct ExperimentalUITheme {
 
 // MARK: - Experimental UI Card Modifier
 struct ExperimentalCardModifier: ViewModifier {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     var padding: CGFloat = ExperimentalUITheme.Spacing.md
     var cornerRadius: CGFloat = ExperimentalUITheme.CornerRadius.lg
     
@@ -133,7 +133,7 @@ extension View {
 
 // MARK: - Experimental UI Gradient Background Modifier
 struct ExperimentalGradientBackground: ViewModifier {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     func body(content: Content) -> some View {
         ZStack {
             Color(hex: themeManager.resolvedColors.appBackground)

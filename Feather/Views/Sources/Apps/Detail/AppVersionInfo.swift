@@ -2,7 +2,7 @@
 import SwiftUI
 
 struct AppVersionInfo: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     let version: String
     let date: Date?
     let description: String

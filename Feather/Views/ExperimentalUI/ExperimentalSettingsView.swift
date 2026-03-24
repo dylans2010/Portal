@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct ExperimentalSettingsView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     @State private var developerTapCount = 0
     @State private var lastTapTime: Date?
     @State private var showDeveloperConfirmation = false
@@ -113,7 +113,7 @@ struct ExperimentalSettingsView: View {
 
 // MARK: - Profile Card
 struct ExperimentalProfileCard: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     var body: some View {
         HStack(spacing: ExperimentalUITheme.Spacing.md) {
             // Avatar
@@ -168,7 +168,7 @@ struct ExperimentalProfileCard: View {
 
 // MARK: - Settings Section
 struct ExperimentalSettingsSection: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     let title: String
     let items: [SettingItem]
     
@@ -211,7 +211,7 @@ struct SettingItem {
 
 // MARK: - Setting Row
 struct ExperimentalSettingRow: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     let item: SettingItem
     
     var body: some View {

@@ -2,7 +2,7 @@ import SwiftUI
 import NimbleViews
 
 struct GeneralView: View {
-    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var themeManager: AppWideThemeManager
     @StateObject private var hideManager = SettingsHideManager.shared
     @AppStorage("Feather.certificateExperience") private var certificateExperience: String = CertificateExperience.developer.rawValue
     @AppStorage("Feather.showHeaderViews") private var showHeaderViews = true
