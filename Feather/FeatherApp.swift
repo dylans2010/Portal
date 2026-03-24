@@ -10,7 +10,7 @@ struct FeatherApp: App {
 
         let heartbeat = HeartbeatManager.shared
 
-        @StateObject var themeManager = ThemeManager.shared
+        @StateObject var themeManager = AppWideThemeManager()
         @StateObject private var styleManager = SectionStyleManager.shared
         @StateObject var downloadManager = DownloadManager.shared
         @StateObject var networkMonitor = NetworkMonitor.shared

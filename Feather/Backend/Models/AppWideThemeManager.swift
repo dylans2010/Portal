@@ -396,6 +396,14 @@ final class ThemeManager: ObservableObject {
     var warningColor: Color { .orange }
     var typography: AppWideTypography { .default }
 
+    // Strict theme aliases used across themed views
+    var accent: Color { accentColor }
+    var primaryText: Color { primaryTextColor }
+    var secondaryText: Color { secondaryTextColor }
+    var background: Color { appBackgroundColor }
+    var surface: Color { cardBackgroundColor }
+    var currentThemeID: String { "\(currentTheme.rawValue)-\(resolvedColors.appBackground)-\(resolvedColors.cardBackground)-\(resolvedColors.accent)" }
+
     // MARK: - UIKit Color Helpers
     var accentUIColor: UIColor { UIColor(hex: resolvedColors.accent) }
     var separatorUIColor: UIColor { UIColor(hex: resolvedColors.separator) }
@@ -412,7 +420,7 @@ final class ThemeManager: ObservableObject {
     var borderUIColor: UIColor { UIColor(borderColor) }
     var secondaryTextUIColor: UIColor { UIColor(secondaryTextColor) }
 
-    private init() {
+    init() {
         let themeRaw = UserDefaults.standard.string(forKey: "app.selectedTheme") ?? AppTheme.darkNavy.rawValue
         self.currentTheme = AppTheme(rawValue: themeRaw) ?? .darkNavy
 

@@ -12,7 +12,7 @@ struct ThemedCardModifier: ViewModifier {
 
     func body(content: Content) -> some View {
         content
-            .background(themeManager.cardBackgroundColor)
+            .background(themeManager.surface)
             .cornerRadius(12)
             .clipped()
     }
@@ -23,8 +23,8 @@ struct ThemedAccentModifier: ViewModifier {
 
     func body(content: Content) -> some View {
         content
-            .tint(themeManager.accentColor)
-            .accentColor(themeManager.accentColor)
+            .tint(themeManager.accent)
+            .accentColor(themeManager.accent)
     }
 }
 
@@ -51,23 +51,27 @@ struct GlobalThemeModifier: ViewModifier {
     @EnvironmentObject var themeManager: ThemeManager
 
     func body(content: Content) -> some View {
-        content
-            .background(themeManager.appBackgroundColor.ignoresSafeArea())
-            .scrollContentBackground(.hidden)
-            .toolbarBackground(themeManager.navigationBarColor, for: .navigationBar)
-            .toolbarBackground(.visible, for: .navigationBar)
-            .onReceive(NotificationCenter.default.publisher(for: Notification.Name("AppWideThemeDidChange"))) { _ in
-                // SwiftUI will re-render automatically via @EnvironmentObject publish
-                // This onReceive ensures UIKit-backed views also refresh
-            }
-            .toolbarBackground(themeManager.tabBarColor, for: .tabBar)
-            .tint(themeManager.accentColor)
-            .accentColor(themeManager.accentColor)
-            .foregroundStyle(themeManager.primaryTextColor)
-            .onReceive(NotificationCenter.default.publisher(for: Notification.Name("AppWideThemeDidChange"))) { _ in
-                // SwiftUI will re-render automatically via @EnvironmentObject publish
-                // This onReceive ensures UIKit-backed views also refresh
-            }
+        ZStack {
+            themeManager.background
+                .ignoresSafeArea()
+
+            content
+                .scrollContentBackground(.hidden)
+        }
+        .background(themeManager.background)
+        .toolbarBackground(themeManager.navigationBarColor, for: .navigationBar)
+        .toolbarBackground(.visible, for: .navigationBar)
+        .toolbarBackground(themeManager.tabBarColor, for: .tabBar)
+        .tint(themeManager.accent)
+        .accentColor(themeManager.accent)
+        .foregroundStyle(themeManager.primaryText)
+        .buttonStyle(.plain)
+        .preferredColorScheme(nil)
+        .id(themeManager.currentThemeID)
+        .onReceive(NotificationCenter.default.publisher(for: Notification.Name("AppWideThemeDidChange"))) { _ in
+            // SwiftUI will re-render automatically via @EnvironmentObject publish
+            // This onReceive ensures UIKit-backed views also refresh
+        }
     }
 }
 
@@ -76,7 +80,7 @@ struct ThemedBackgroundModifier: ViewModifier {
 
     func body(content: Content) -> some View {
         content
-            .background(themeManager.appBackgroundColor.ignoresSafeArea())
+            .background(themeManager.background.ignoresSafeArea())
             .scrollContentBackground(.hidden)
             .toolbarBackground(themeManager.navigationBarColor, for: .navigationBar)
             .toolbarBackground(.visible, for: .navigationBar)
@@ -92,8 +96,8 @@ struct ThemedListRowModifier: ViewModifier {
 
     func body(content: Content) -> some View {
         content
-            .background(themeManager.cardBackgroundColor)
-            .foregroundStyle(themeManager.primaryTextColor)
+            .background(themeManager.surface)
+            .foregroundStyle(themeManager.primaryText)
             .onReceive(NotificationCenter.default.publisher(for: Notification.Name("AppWideThemeDidChange"))) { _ in
                 // SwiftUI will re-render automatically via @EnvironmentObject publish
                 // This onReceive ensures UIKit-backed views also refresh

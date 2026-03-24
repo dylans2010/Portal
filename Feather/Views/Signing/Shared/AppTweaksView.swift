@@ -7,7 +7,6 @@ import Zip
 struct AppTweaksView: View {
     @EnvironmentObject var themeManager: AppWideThemeManager
     @Environment(\.dismiss) var dismiss
-    @Environment(\.colorScheme) var colorScheme
 
     var app: AppInfoPresentable
     @Binding var options: Options

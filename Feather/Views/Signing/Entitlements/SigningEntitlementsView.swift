@@ -4,8 +4,7 @@ import NimbleViews
 // MARK: - View
 struct SigningEntitlementsView: View {
     @EnvironmentObject var themeManager: AppWideThemeManager
-    @Environment(\.colorScheme) var colorScheme
-    @State private var _isAddingPresenting = false
+        @State private var _isAddingPresenting = false
     @State private var _isCreatingPresenting = false
     @State private var _appearAnimation = false
     @State private var _floatingAnimation = false
@@ -151,7 +150,7 @@ struct SigningEntitlementsView: View {
                 }
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 16)
-                .background(RoundedRectangle(cornerRadius: 16).fill(.ultraThinMaterial))
+                .background(RoundedRectangle(cornerRadius: 16).fill(themeManager.surface))
                 .overlay(RoundedRectangle(cornerRadius: 16).stroke(themeManager.primaryTextColor.opacity(0.1), lineWidth: 1))
             }
 
@@ -166,7 +165,7 @@ struct SigningEntitlementsView: View {
                 }
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 16)
-                .background(RoundedRectangle(cornerRadius: 16).fill(.ultraThinMaterial))
+                .background(RoundedRectangle(cornerRadius: 16).fill(themeManager.surface))
                 .overlay(RoundedRectangle(cornerRadius: 16).stroke(themeManager.primaryTextColor.opacity(0.1), lineWidth: 1))
             }
         }
@@ -206,7 +205,7 @@ struct SigningEntitlementsView: View {
             }
         }
         .padding(16)
-        .background(RoundedRectangle(cornerRadius: 20).fill(.ultraThinMaterial))
+        .background(RoundedRectangle(cornerRadius: 20).fill(themeManager.surface))
         .overlay(RoundedRectangle(cornerRadius: 20).stroke(themeManager.primaryTextColor.opacity(0.1), lineWidth: 1))
     }
 
@@ -357,7 +356,7 @@ struct SigningEntitlementsView: View {
         }
         .background(
             RoundedRectangle(cornerRadius: 20, style: .continuous)
-                .fill(.ultraThinMaterial)
+                .fill(themeManager.surface)
                 .shadow(color: .black.opacity(0.08), radius: 15, x: 0, y: 8)
         )
     }

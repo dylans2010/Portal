@@ -7,8 +7,7 @@ import ImageIO
 struct ModernSigningView: View {
     @EnvironmentObject var themeManager: AppWideThemeManager
     @Environment(\.dismiss) var dismiss
-    @Environment(\.colorScheme) var colorScheme
-    @AppStorage("Feather.serverMethod") private var _serverMethod: Int = 0
+        @AppStorage("Feather.serverMethod") private var _serverMethod: Int = 0
     @AppStorage("Feather.signingButtonType") private var _signingButtonType: Int = 0
     @AppStorage(UserDefaults.Keys.installTrigger) private var installTrigger: Int = 0
     @AppStorage("feature_advancedSigning") private var _advancedSigningEnabled = false
@@ -341,7 +340,7 @@ struct ModernSigningView: View {
     private var modernBackground: some View {
         ZStack {
             // Dark base for better glass contrast
-            Color(UIColor.systemBackground)
+            themeManager.background
                 .ignoresSafeArea()
 
             if #available(iOS 17.0, *) {
@@ -524,7 +523,7 @@ struct ModernSigningView: View {
                     }
                 }
                 .padding(4)
-                .background(.ultraThinMaterial)
+                .background(themeManager.surface)
                 .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
                 .overlay(
                     RoundedRectangle(cornerRadius: 24, style: .continuous)
@@ -624,7 +623,7 @@ struct ModernSigningView: View {
                     }
                 }
                 .padding(4)
-                .background(.ultraThinMaterial)
+                .background(themeManager.surface)
                 .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
                 .overlay(
                     RoundedRectangle(cornerRadius: 24, style: .continuous)
@@ -685,7 +684,7 @@ struct ModernSigningView: View {
                     }
                 }
                 .padding(4)
-                .background(.ultraThinMaterial)
+                .background(themeManager.surface)
                 .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
                 .overlay(
                     RoundedRectangle(cornerRadius: 24, style: .continuous)
@@ -835,7 +834,7 @@ struct ModernSigningView: View {
                         .foregroundStyle(.quaternary)
                 }
                 .padding(14)
-                .background(.ultraThinMaterial)
+                .background(themeManager.surface)
                 .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
                 .overlay(
                     RoundedRectangle(cornerRadius: 24, style: .continuous)
@@ -868,7 +867,7 @@ struct ModernSigningView: View {
                         .foregroundStyle(themeManager.accentColor)
                 }
                 .padding(14)
-                .background(.ultraThinMaterial)
+                .background(themeManager.surface)
                 .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
                 .overlay(
                     RoundedRectangle(cornerRadius: 24, style: .continuous)
@@ -1274,7 +1273,7 @@ struct ModernSigningOptionsView: View {
     @ViewBuilder
     private var modernOptionsBackground: some View {
         ZStack {
-            Color(UIColor.systemBackground)
+            themeManager.background
                 .ignoresSafeArea()
             
             GeometryReader { geo in
@@ -1352,7 +1351,7 @@ struct ModernSigningOptionsView: View {
                 content()
             }
             .padding(4)
-            .background(.ultraThinMaterial)
+            .background(themeManager.surface)
             .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
             .overlay(
                 RoundedRectangle(cornerRadius: 24, style: .continuous)
@@ -1460,7 +1459,7 @@ struct SwipeToSign: View {
             ZStack(alignment: .leading) {
                 // Track with waiting animation
                 Capsule()
-                    .fill(.ultraThinMaterial)
+                    .fill(themeManager.surface)
                     .frame(height: 60)
                     .overlay(
                         Capsule()
@@ -1590,7 +1589,7 @@ struct HoldToSign: View {
     var body: some View {
         ZStack {
             Capsule()
-                .fill(.ultraThinMaterial)
+                .fill(themeManager.surface)
                 .frame(height: 60)
                 .overlay(
                     Capsule()
@@ -1668,7 +1667,7 @@ struct SlideToConfirm: View {
             let width = geo.size.width
             ZStack(alignment: .leading) {
                 Capsule()
-                    .fill(.ultraThinMaterial)
+                    .fill(themeManager.surface)
                     .frame(height: 60)
                     .overlay(
                         Capsule()
@@ -1774,7 +1773,7 @@ struct DoubleTapToSign: View {
             .padding(.horizontal, 16)
             .frame(maxWidth: .infinity)
             .frame(height: 64)
-            .background(.ultraThinMaterial)
+            .background(themeManager.surface)
             .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
             .overlay(
                 RoundedRectangle(cornerRadius: 24, style: .continuous)
@@ -1907,7 +1906,7 @@ struct ModernEditSheet: View {
                             .background(
                                 ZStack {
                                     RoundedRectangle(cornerRadius: 24, style: .continuous)
-                                        .fill(.ultraThinMaterial)
+                                        .fill(themeManager.surface)
                                     
                                     RoundedRectangle(cornerRadius: 24, style: .continuous)
                                         .fill(
@@ -1946,7 +1945,7 @@ struct ModernEditSheet: View {
                                 .padding(.vertical, 12)
                                 .background(
                                     RoundedRectangle(cornerRadius: 24, style: .continuous)
-                                        .fill(.ultraThinMaterial)
+                                        .fill(themeManager.surface)
                                 )
                                 .overlay(
                                     RoundedRectangle(cornerRadius: 24, style: .continuous)

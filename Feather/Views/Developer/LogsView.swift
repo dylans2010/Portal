@@ -16,7 +16,6 @@ struct AppLogsView: View {
     @State private var autoScroll = true
     @State private var showInfo = false
     private let developerModeKey = "isDeveloperModeKey:True"
-    @Environment(\.colorScheme) var colorScheme
 
     var filteredLogs: [LogEntry] {
         logManager.filteredLogs(searchText: searchText, level: selectedLevel, category: selectedCategory).reversed()
@@ -54,7 +53,7 @@ struct AppLogsView: View {
                     .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
                     .overlay(
                         RoundedRectangle(cornerRadius: 12, style: .continuous)
-                            .stroke(.white.opacity(colorScheme == .dark ? 0.05 : 0.1), lineWidth: 1)
+                            .stroke(themeManager.separatorColor.opacity(0.2), lineWidth: 1)
                     )
 
                     // Filter Pills
@@ -100,7 +99,7 @@ struct AppLogsView: View {
                         Spacer()
                         ZStack {
                             Circle()
-                                .fill(.ultraThinMaterial)
+                                .fill(themeManager.surface)
                                 .frame(width: 100, height: 100)
 
                             Image(systemName: "doc.text.magnifyingglass")
@@ -279,7 +278,6 @@ struct FilterPill: View {
     let isSelected: Bool
     let count: Int
     let action: () -> Void
-    @Environment(\.colorScheme) var colorScheme
 
     var body: some View {
         Button(action: action) {
@@ -318,7 +316,7 @@ struct FilterPill: View {
             .shadow(color: isSelected ? themeManager.accentColor.opacity(0.4) : .black.opacity(0.05), radius: 8, x: 0, y: 4)
             .overlay(
                 Capsule()
-                    .stroke(.white.opacity(colorScheme == .dark ? 0.1 : 0.3), lineWidth: 1)
+                    .stroke(themeManager.separatorColor.opacity(0.35), lineWidth: 1)
             )
             .contentShape(Capsule())
         }
@@ -334,7 +332,6 @@ struct LogEntryRow: View {
     let entry: LogEntry
     @State private var isExpanded = false
     @State private var showErrorCodeDetail = false
-    @Environment(\.colorScheme) var colorScheme
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
