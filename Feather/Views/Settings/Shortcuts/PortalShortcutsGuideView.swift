@@ -449,5 +449,5 @@ private struct AutomationIdeaRow: View {
     NavigationStack {
         PortalShortcutsGuideView()
     }
-    .environmentObject(AppWideThemeManager())
+    .environmentObject(AppWideThemeManager.shared)
 }

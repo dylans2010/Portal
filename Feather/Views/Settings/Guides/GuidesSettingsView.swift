@@ -480,6 +480,6 @@ struct GuidesSettingsView_Previews: PreviewProvider {
         NavigationStack {
             GuidesSettingsView()
         }
-        .environmentObject(AppWideThemeManager())
+        .environmentObject(AppWideThemeManager.shared)
     }
 }
