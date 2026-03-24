@@ -319,7 +319,7 @@ final class ThemeManager: ObservableObject {
         UISwitch.appearance().onTintColor = switchTintColor
 
         // Avoid recursively touching ThemeManager.shared while this singleton is initializing.
-        SectionStyleManager.shared.applyGlobalUIKitStyle(themeManager: self)
+        SectionStyleManager.shared.applyGlobalUIKitStyle()
         NotificationCenter.default.post(name: Notification.Name("AppWideThemeDidChange"), object: nil)
     }
 }
