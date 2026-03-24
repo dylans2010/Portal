@@ -23,6 +23,7 @@ struct SettingsView: View {
     @State private var showDeveloperConfirmation = false
     @State private var navigateToCheckForUpdates = false
     @AppStorage("isDeveloperModeEnabled") private var isDeveloperModeEnabled = false
+    @AppStorage("Feather.devModeUnlocked") private var isDeveloperModeUnlocked = false
     @AppStorage("Feather.certificateExperience") private var certificateExperience: String = CertificateExperience.developer.rawValue
     @AppStorage("forceShowGuides") private var forceShowGuides = false
     @AppStorage("Feather.saveDataToDevice") private var saveDataToDevice = false
@@ -33,6 +34,7 @@ struct SettingsView: View {
     @State private var _searchText = ""
     
     private var isEnterprise: Bool { certificateExperience == CertificateExperience.enterprise.rawValue }
+    private var shouldShowDeveloperTools: Bool { isDeveloperModeEnabled || isDeveloperModeUnlocked }
     
     var body: some View {
         NBNavigationView(.localized("Settings")) {
@@ -49,7 +51,7 @@ struct SettingsView: View {
                 dataSection
                 saveDataSection
                 resourcesSection
-                if isDeveloperModeEnabled { developerSection }
+                if shouldShowDeveloperTools { developerSection }
             }
             .globalTheme()
             .listStyle(.insetGrouped)
@@ -372,11 +374,10 @@ struct SettingsView: View {
             items.append(SettingsItem(title: .localized("App Icons"), icon: "app.badge.fill", color: .accentColor, destination: AnyView(AppIconView())))
         }
 
-        if isDeveloperModeEnabled {
+        if shouldShowDeveloperTools {
             items.append(SettingsItem(title: .localized("Debug"), icon: "person.2.badge.gearshape.fill", color: .red, destination: AnyView(DeveloperView())))
         }
 
         return items
     }
 }
-

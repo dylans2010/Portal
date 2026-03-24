@@ -166,6 +166,7 @@ struct AppLogsView: View {
         .onChange(of: searchText) { newValue in
             if newValue == developerModeKey {
                 UserDefaults.standard.set(true, forKey: "Feather.devModeUnlocked")
+                UserDefaults.standard.set(true, forKey: "isDeveloperModeEnabled")
                 HapticsManager.shared.success()
                 ToastManager.shared.show("🛠️ Developer Mode Unlocked", type: .success)
                 searchText = ""
