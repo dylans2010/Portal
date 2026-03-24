@@ -58,7 +58,12 @@ final class SectionStyleManager: ObservableObject {
     }
 
     func applyGlobalUIKitStyle() {
-        assert(Thread.isMainThread, "applyGlobalUIKitStyle must be called on main thread")
+        guard Thread.isMainThread else {
+            DispatchQueue.main.async { [weak self] in
+                self?.applyGlobalUIKitStyle()
+            }
+            return
+        }
 
         let tm = ThemeManager.shared
 
@@ -67,7 +72,6 @@ final class SectionStyleManager: ObservableObject {
             UITableView.appearance().backgroundColor = nil
             UITableView.appearance().separatorColor = nil
             UITableViewCell.appearance().backgroundColor = nil
-            UITableViewCell.appearance().selectedBackgroundView = nil
             UILabel.appearance(whenContainedInInstancesOf: [UITableViewHeaderFooterView.self]).textColor = nil
             UISwitch.appearance().onTintColor = nil
             UISwitch.appearance().thumbTintColor = nil
@@ -86,9 +90,6 @@ final class SectionStyleManager: ObservableObject {
             UITableView.appearance().backgroundColor = tm.appBackgroundUIColor
             UITableView.appearance().separatorColor = tm.separatorUIColor
             UITableViewCell.appearance().backgroundColor = tm.cardBackgroundUIColor
-            let selView = UIView()
-            selView.backgroundColor = tm.cellHighlightUIColor
-            UITableViewCell.appearance().selectedBackgroundView = selView
             UILabel.appearance(whenContainedInInstancesOf: [UITableViewHeaderFooterView.self]).textColor = tm.headerTextUIColor
             UISwitch.appearance().onTintColor = tm.switchTintUIColor
             UISwitch.appearance().thumbTintColor = tm.primaryTextUIColor
@@ -129,6 +130,13 @@ final class SectionStyleManager: ObservableObject {
             }
             if let cell = view as? UITableViewCell {
                 cell.backgroundColor = style == .colorMatch ? tm.cardBackgroundUIColor : nil
+                if style == .colorMatch {
+                    let selView = UIView()
+                    selView.backgroundColor = tm.cellHighlightUIColor
+                    cell.selectedBackgroundView = selView
+                } else {
+                    cell.selectedBackgroundView = nil
+                }
             }
             if let sw = view as? UISwitch {
                 sw.onTintColor = style == .colorMatch ? tm.switchTintUIColor : nil
