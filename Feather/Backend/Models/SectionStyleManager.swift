@@ -33,79 +33,183 @@ enum SectionStyle: String, CaseIterable, Identifiable, Codable {
 
 @MainActor
 final class SectionStyleManager: ObservableObject {
-    static let shared = SectionStyleManager()
 
+    static let shared = SectionStyleManager()
     private let defaultsKey = "app.sectionStyle"
 
     @Published private(set) var currentStyle: SectionStyle {
         didSet {
-            UserDefaults.standard.set(currentStyle.rawValue, forKey: defaultsKey)
+            UserDefaults.standard.set(
+                currentStyle.rawValue, forKey: defaultsKey)
             applyGlobalUIKitStyle()
-            NotificationCenter.default.post(name: .sectionStyleDidChange, object: nil)
+            DispatchQueue.main.async {
+                NotificationCenter.default.post(
+                    name: .sectionStyleDidChange, object: nil)
+            }
         }
     }
 
     private init() {
-        let saved = UserDefaults.standard.string(forKey: "app.sectionStyle")
+        let saved = UserDefaults.standard.string(forKey: defaultsKey)
         currentStyle = SectionStyle(rawValue: saved ?? "") ?? .native
+        // Apply immediately on launch so UIKit matches persisted state
+        DispatchQueue.main.async { [self] in
+            self.applyGlobalUIKitStyle()
+        }
     }
 
     func setStyle(_ style: SectionStyle) {
+        guard style != currentStyle else { return }
         currentStyle = style
     }
 
-    func applyGlobalUIKitStyle(themeManager: ThemeManager? = nil) {
-        let tm = themeManager ?? ThemeManager.shared
+    func applyGlobalUIKitStyle() {
+        // Must run on main thread
+        let tm = ThemeManager.shared
         switch currentStyle {
+
         case .native:
             UITableView.appearance().backgroundColor = nil
             UITableView.appearance().separatorColor = nil
             UITableViewCell.appearance().backgroundColor = nil
+            UITableViewCell.appearance().selectedBackgroundView = nil
             UITableView.appearance().separatorStyle = .singleLine
-            UILabel.appearance(whenContainedInInstancesOf: [UITableViewHeaderFooterView.self]).textColor = nil
+            UILabel.appearance(whenContainedInInstancesOf:
+                [UITableViewHeaderFooterView.self]).textColor = nil
             UISwitch.appearance().onTintColor = nil
-            UISegmentedControl.appearance().selectedSegmentTintColor = nil
+            UISwitch.appearance().thumbTintColor = nil
+            UISegmentedControl.appearance()
+                .selectedSegmentTintColor = nil
             UISegmentedControl.appearance().backgroundColor = nil
+            UISegmentedControl.appearance()
+                .setTitleTextAttributes(nil, for: .selected)
+            UISegmentedControl.appearance()
+                .setTitleTextAttributes(nil, for: .normal)
+            UISlider.appearance().minimumTrackTintColor = nil
+            UISlider.appearance().maximumTrackTintColor = nil
+            UISlider.appearance().thumbTintColor = nil
+            UIProgressView.appearance().progressTintColor = nil
+            UIProgressView.appearance().trackTintColor = nil
+            UITextField.appearance().textColor = nil
+            UITextField.appearance().tintColor = nil
+            UITextView.appearance().backgroundColor = nil
+            UITextView.appearance().textColor = nil
+            UITextView.appearance().tintColor = nil
 
         case .colorMatch:
-            UITableView.appearance().backgroundColor = tm.appBackgroundUIColor
-            UITableView.appearance().separatorColor = tm.separatorUIColor
-            UITableView.appearance().separatorStyle = .singleLine
-            UITableViewCell.appearance().backgroundColor = tm.cardBackgroundUIColor
+            // Table + cells
+            UITableView.appearance().backgroundColor =
+                tm.appBackgroundUIColor
+            UITableView.appearance().separatorColor =
+                tm.separatorUIColor
+            UITableViewCell.appearance().backgroundColor =
+                tm.cardBackgroundUIColor
+            let sel = UIView()
+            sel.backgroundColor = tm.cellHighlightUIColor
+            UITableViewCell.appearance().selectedBackgroundView = sel
 
-            UILabel.appearance(whenContainedInInstancesOf: [UITableViewHeaderFooterView.self]).textColor = tm.headerTextUIColor
+            // Header/footer
+            UILabel.appearance(whenContainedInInstancesOf:
+                [UITableViewHeaderFooterView.self]
+            ).textColor = tm.headerTextUIColor
 
-            let selView = UIView()
-            selView.backgroundColor = tm.cellHighlightUIColor
-            UITableViewCell.appearance().selectedBackgroundView = selView
-
+            // Switch
             UISwitch.appearance().onTintColor = tm.switchTintUIColor
             UISwitch.appearance().thumbTintColor = tm.primaryTextUIColor
 
-            UISegmentedControl.appearance().selectedSegmentTintColor = tm.segmentedSelectedUIColor
-            UISegmentedControl.appearance().backgroundColor = tm.segmentedBackgroundUIColor
-            UISegmentedControl.appearance().setTitleTextAttributes([.foregroundColor: tm.primaryTextUIColor], for: .selected)
-            UISegmentedControl.appearance().setTitleTextAttributes([.foregroundColor: tm.secondaryTextUIColor], for: .normal)
+            // Segmented
+            UISegmentedControl.appearance()
+                .selectedSegmentTintColor = tm.segmentedSelectedUIColor
+            UISegmentedControl.appearance()
+                .backgroundColor = tm.segmentedBackgroundUIColor
+            UISegmentedControl.appearance()
+                .setTitleTextAttributes(
+                    [.foregroundColor: tm.primaryTextUIColor],
+                    for: .selected)
+            UISegmentedControl.appearance()
+                .setTitleTextAttributes(
+                    [.foregroundColor: tm.secondaryTextUIColor],
+                    for: .normal)
 
-            UISlider.appearance().minimumTrackTintColor = tm.sliderTintUIColor
-            UISlider.appearance().maximumTrackTintColor = tm.separatorUIColor
-            UISlider.appearance().thumbTintColor = tm.primaryTextUIColor
+            // Slider
+            UISlider.appearance().minimumTrackTintColor =
+                tm.sliderTintUIColor
+            UISlider.appearance().maximumTrackTintColor =
+                tm.separatorUIColor
+            UISlider.appearance().thumbTintColor =
+                tm.primaryTextUIColor
 
-            UIProgressView.appearance().progressTintColor = tm.progressTintUIColor
-            UIProgressView.appearance().trackTintColor = tm.separatorUIColor
+            // Progress
+            UIProgressView.appearance().progressTintColor =
+                tm.progressTintUIColor
+            UIProgressView.appearance().trackTintColor =
+                tm.separatorUIColor
 
+            // Text fields and views
             UITextField.appearance().textColor = tm.primaryTextUIColor
             UITextField.appearance().tintColor = tm.accentUIColor
-
-            UITextView.appearance().backgroundColor = tm.cardBackgroundUIColor
+            UITextView.appearance().backgroundColor =
+                tm.cardBackgroundUIColor
             UITextView.appearance().textColor = tm.primaryTextUIColor
             UITextView.appearance().tintColor = tm.accentUIColor
+        }
+
+        // Force all existing windows to redraw immediately
+        UIApplication.shared.connectedScenes
+            .compactMap { $0 as? UIWindowScene }
+            .flatMap { $0.windows }
+            .forEach { window in
+                window.subviews.forEach { view in
+                    view.removeFromSuperview()
+                    window.addSubview(view)
+                }
+            }
+
+        // Force existing visible views to pick up new appearance
+        DispatchQueue.main.async {
+            UIApplication.shared.connectedScenes
+                .compactMap { $0 as? UIWindowScene }
+                .flatMap { $0.windows }
+                .forEach { window in
+                    func refreshSubviews(_ view: UIView) {
+                        if let tableView = view as? UITableView {
+                            tableView.backgroundColor =
+                                SectionStyleManager.shared.currentStyle == .colorMatch
+                                ? ThemeManager.shared.appBackgroundUIColor : nil
+                            tableView.separatorColor =
+                                SectionStyleManager.shared.currentStyle == .colorMatch
+                                ? ThemeManager.shared.separatorUIColor : nil
+                            tableView.reloadData()
+                        }
+                        if let cell = view as? UITableViewCell {
+                            cell.backgroundColor =
+                                SectionStyleManager.shared.currentStyle == .colorMatch
+                                ? ThemeManager.shared.cardBackgroundUIColor : nil
+                        }
+                        if let sw = view as? UISwitch {
+                            sw.onTintColor =
+                                SectionStyleManager.shared.currentStyle == .colorMatch
+                                ? ThemeManager.shared.switchTintUIColor : nil
+                        }
+                        if let seg = view as? UISegmentedControl {
+                            seg.selectedSegmentTintColor =
+                                SectionStyleManager.shared.currentStyle == .colorMatch
+                                ? ThemeManager.shared.segmentedSelectedUIColor : nil
+                            seg.backgroundColor =
+                                SectionStyleManager.shared.currentStyle == .colorMatch
+                                ? ThemeManager.shared.segmentedBackgroundUIColor : nil
+                        }
+                        view.subviews.forEach { refreshSubviews($0) }
+                    }
+                    refreshSubviews(window)
+                }
         }
     }
 }
 
 extension Notification.Name {
-    static let sectionStyleDidChange = Notification.Name("SectionStyleDidChange")
+    static let sectionStyleDidChange =
+        Notification.Name("SectionStyleDidChange")
 }
 
 struct ThemedSection<Content: View>: View {

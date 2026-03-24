@@ -57,6 +57,8 @@ struct SettingsView: View {
         }
         .fullScreenCover(isPresented: $_showAddSource) {
             SourcesAddView()
+                .environmentObject(themeManager)
+                .environmentObject(styleManager)
         }
         .alert(String.localized("Enable Developer Mode"), isPresented: $showDeveloperConfirmation) {
             Button(String.localized("Cancel"), role: .cancel) { developerTapCount = 0 }
@@ -88,6 +90,7 @@ struct SettingsView: View {
                 .environmentObject(styleManager)
         }
         .onReceive(NotificationCenter.default.publisher(for: .sectionStyleDidChange)) { _ in }
+        .onReceive(NotificationCenter.default.publisher(for: Notification.Name("AppWideThemeDidChange"))) { _ in }
     }
     
     // MARK: - Sections
@@ -379,4 +382,3 @@ struct SettingsView: View {
         return items
     }
 }
-

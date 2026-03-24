@@ -191,6 +191,10 @@ struct FeatherApp: App {
                                 themeManager.applyUIKitAppearance()
                                 styleManager.applyGlobalUIKitStyle()
                         }
+                        .onReceive(NotificationCenter.default.publisher(
+                            for: .sectionStyleDidChange)) { _ in
+                                // Triggers SwiftUI re-render via @EnvironmentObject
+                        }
                         .onReceive(NotificationCenter.default.publisher(for: UIApplication.didBecomeActiveNotification)) { _ in
                                 _handlePendingWidgetAction()
                                 NotificationManager.shared.clearBadge()
@@ -727,6 +731,7 @@ class SceneDelegate: NSObject, UIWindowSceneDelegate {
                 // Apply tint color
                 windowScene.windows.first?.tintColor = ThemeManager.shared.accentUIColor
                 ThemeManager.shared.applyUIKitAppearance()
+                SectionStyleManager.shared.applyGlobalUIKitStyle()
         }
         
         func sceneDidDisconnect(_ scene: UIScene) {

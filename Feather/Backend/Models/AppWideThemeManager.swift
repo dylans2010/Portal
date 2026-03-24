@@ -229,20 +229,27 @@ final class ThemeManager: ObservableObject {
     var progressTintColor: Color { accentColor }
 
     // MARK: - UIKit Color Helpers
-    var accentUIColor: UIColor { UIColor(hex: resolvedColors.accent) }
-    var separatorUIColor: UIColor { UIColor(hex: resolvedColors.separator) }
-    var primaryTextUIColor: UIColor { UIColor(hex: resolvedColors.primaryText) }
-    var cardBackgroundUIColor: UIColor { UIColor(hex: resolvedColors.cardBackground) }
-    var appBackgroundUIColor: UIColor { UIColor(hex: resolvedColors.appBackground) }
-    var headerTextUIColor: UIColor { UIColor(headerTextColor) }
-    var segmentedSelectedUIColor: UIColor { UIColor(selectionColor) }
-    var segmentedBackgroundUIColor: UIColor { UIColor(cardBackgroundColor) }
-    var sliderTintUIColor: UIColor { UIColor(accentColor) }
-    var progressTintUIColor: UIColor { UIColor(accentColor) }
-    var switchTintUIColor: UIColor { UIColor(switchTintColor) }
-    var cellHighlightUIColor: UIColor { UIColor(cellHighlightColor) }
-    var borderUIColor: UIColor { UIColor(borderColor) }
+    var appBackgroundUIColor: UIColor { UIColor(appBackgroundColor) }
+    var cardBackgroundUIColor: UIColor { UIColor(cardBackgroundColor) }
+    var cardBackgroundAltUIColor: UIColor { UIColor(groupedBackgroundColor) }
+    var primaryTextUIColor: UIColor { UIColor(primaryTextColor) }
     var secondaryTextUIColor: UIColor { UIColor(secondaryTextColor) }
+    var tertiaryTextUIColor: UIColor { UIColor(secondaryTextColor.opacity(0.8)) }
+    var headerTextUIColor: UIColor { UIColor(headerTextColor) }
+    var separatorUIColor: UIColor { UIColor(separatorColor) }
+    var borderUIColor: UIColor { UIColor(borderColor) }
+    var accentUIColor: UIColor { UIColor(accentColor) }
+    var cellHighlightUIColor: UIColor { UIColor(cellHighlightColor) }
+    var switchTintUIColor: UIColor { UIColor(switchTintColor) }
+    var sliderTintUIColor: UIColor { UIColor(sliderTintColor) }
+    var progressTintUIColor: UIColor { UIColor(progressTintColor) }
+    var segmentedSelectedUIColor: UIColor { UIColor(segmentedSelectedColor) }
+    var segmentedBackgroundUIColor: UIColor { UIColor(segmentedBackgroundColor) }
+    var buttonBackgroundUIColor: UIColor { UIColor(buttonBackgroundColor) }
+    var buttonTextUIColor: UIColor { UIColor(buttonTextColor) }
+    var iconTintUIColor: UIColor { UIColor(iconTintColor) }
+    var destructiveUIColor: UIColor { UIColor(destructiveColor) }
+    var warningUIColor: UIColor { UIColor(hex: "#FF9500") }
 
     private init() {
         let themeRaw = UserDefaults.standard.string(forKey: "app.selectedTheme") ?? AppTheme.darkNavy.rawValue
@@ -318,8 +325,7 @@ final class ThemeManager: ObservableObject {
 
         UISwitch.appearance().onTintColor = switchTintColor
 
-        // Avoid recursively touching ThemeManager.shared while this singleton is initializing.
-        SectionStyleManager.shared.applyGlobalUIKitStyle(themeManager: self)
+        SectionStyleManager.shared.applyGlobalUIKitStyle()
         NotificationCenter.default.post(name: Notification.Name("AppWideThemeDidChange"), object: nil)
     }
 }
