@@ -385,7 +385,7 @@ struct BatchSigningView: View {
             .padding(.horizontal, 16)
             .padding(.vertical, 12)
         }
-        .background(.ultraThinMaterial)
+        .background(themeManager.surface)
     }
 
     private var canSign: Bool {
@@ -437,7 +437,7 @@ struct BatchSigningView: View {
             }
             .padding(32)
             .frame(width: 270)
-            .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 28, style: .continuous))
+            .background(themeManager.surface, in: RoundedRectangle(cornerRadius: 28, style: .continuous))
             .shadow(color: .black.opacity(0.2), radius: 30, x: 0, y: 10)
         }
         .transition(.opacity.combined(with: .scale(scale: 0.95)))

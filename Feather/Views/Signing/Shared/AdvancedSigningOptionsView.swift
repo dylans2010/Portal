@@ -7,8 +7,7 @@ import UniformTypeIdentifiers
 // MARK: - Advanced Signing Options Section
 struct AdvancedSigningOptionsSection: View {
     @EnvironmentObject var themeManager: AppWideThemeManager
-    @Environment(\.colorScheme) var colorScheme
-    let app: AppInfoPresentable
+        let app: AppInfoPresentable
     @Binding var options: Options
     @Binding var appIcon: UIImage?
 
@@ -74,15 +73,15 @@ struct AdvancedSigningOptionsSection: View {
             }
             .background(
                 RoundedRectangle(cornerRadius: 16, style: .continuous)
-                    .fill(.ultraThinMaterial)
+                    .fill(themeManager.surface)
             )
             .overlay(
                 RoundedRectangle(cornerRadius: 16, style: .continuous)
                     .stroke(
                         LinearGradient(
                             colors: [
-                                themeManager.destructiveColor.opacity(colorScheme == .dark ? 0.2 : 0.4),
-                                themeManager.destructiveColor.opacity(colorScheme == .dark ? 0.05 : 0.1)
+                                themeManager.destructiveColor.opacity(0.3),
+                                themeManager.destructiveColor.opacity(0.12)
                             ],
                             startPoint: .topLeading,
                             endPoint: .bottomTrailing
@@ -90,7 +89,7 @@ struct AdvancedSigningOptionsSection: View {
                         lineWidth: 1
                     )
             )
-            .shadow(color: .black.opacity(colorScheme == .dark ? 0.2 : 0.1), radius: 10, x: 0, y: 5)
+            .shadow(color: themeManager.separatorColor.opacity(0.25), radius: 10, x: 0, y: 5)
         }
     }
 

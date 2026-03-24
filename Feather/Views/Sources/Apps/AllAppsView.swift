@@ -570,7 +570,7 @@ struct AllAppsView: View {
                     Group {
                         if _useGlassEffects {
                             RoundedRectangle(cornerRadius: _searchBarStyle == 1 ? 20 : 14, style: .continuous)
-                                .fill(.ultraThinMaterial)
+                                .fill(themeManager.surface)
                         } else {
                             RoundedRectangle(cornerRadius: _searchBarStyle == 1 ? 20 : 14, style: .continuous)
                                 .fill(Color.clear)
@@ -757,7 +757,7 @@ struct AllAppsView: View {
 	private var loadingScreen: some View {
 		ZStack {
             Rectangle()
-                .fill(.ultraThinMaterial)
+                .fill(themeManager.surface)
                 .ignoresSafeArea()
 
 			LinearGradient(colors: [themeManager.accentColor.opacity(0.1), themeManager.accentColor.opacity(0.05), themeManager.accentColor.opacity(0.1)], startPoint: .topLeading, endPoint: .bottomTrailing)
@@ -1135,7 +1135,7 @@ struct AllAppsRowView: View {
                                     .aspectRatio(contentMode: .fit)
                                     .frame(width: config.iconSize * 0.35, height: config.iconSize * 0.35)
                                     .clipShape(Circle())
-                                    .background(Circle().fill(Color(UIColor.systemBackground)))
+                                    .background(Circle().fill(themeManager.background))
                                     .overlay(Circle().stroke(themeManager.primaryTextColor.opacity(0.1), lineWidth: 1))
                                     .offset(x: config.iconSize * 0.7, y: 0)
                             }
@@ -1268,7 +1268,7 @@ struct AllAppsRowView: View {
         .background(
             Group {
                 if config.useGlassEffects {
-                    Rectangle().fill(.ultraThinMaterial)
+                    Rectangle().fill(themeManager.surface)
                 } else {
                     Color.clear
                 }
@@ -1308,7 +1308,7 @@ struct AllAppsRowView: View {
 			if isDownloading {
 				ZStack {
 					Rectangle()
-						.fill(.ultraThinMaterial)
+						.fill(themeManager.surface)
 
 					VStack(spacing: 4) {
 						ZStack {

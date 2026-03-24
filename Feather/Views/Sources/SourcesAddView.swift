@@ -925,8 +925,7 @@ struct PortalExportData: Codable {
 struct PortalExportView: View {
     @EnvironmentObject var themeManager: AppWideThemeManager
         @Environment(\.dismiss) private var dismiss
-        @Environment(\.colorScheme) private var colorScheme
-        @Binding var exportData: String
+                @Binding var exportData: String
         @State private var showCopiedFeedback = false
         @State private var importText = ""
         @State private var isImportMode = false
