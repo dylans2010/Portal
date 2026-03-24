@@ -15,6 +15,7 @@ struct AppLogsView: View {
     @State private var exportType: UTType = .plainText
     @State private var autoScroll = true
     @State private var showInfo = false
+    private let developerModeKey = "isDeveloperModeKey:True"
     @Environment(\.colorScheme) var colorScheme
 
     var filteredLogs: [LogEntry] {
@@ -164,21 +165,17 @@ struct AppLogsView: View {
         .navigationTitle("App Logs")
         .navigationBarTitleDisplayMode(.inline)
         .onChange(of: searchText) { newValue in
-            if newValue == "dev=True" {
-                Task {
-                    await GestureManager.shared.performAction(for: .tripleTap, in: .settings)
-                }
+            if newValue == developerModeKey {
+                UserDefaults.standard.set(true, forKey: "Feather.devModeUnlocked")
+                HapticsManager.shared.success()
+                ToastManager.shared.show("🛠️ Developer Mode Unlocked", type: .success)
+                searchText = ""
             }
         }
         .sheet(isPresented: $showInfo) {
             ScreenshotPreventingView {
                 LogInfoView()
             }
-        }
-        .onReceive(NotificationCenter.default.publisher(for: .gestureAuthenticateDeveloper)) { _ in
-            UserDefaults.standard.set(true, forKey: "Feather.devModeUnlocked")
-            HapticsManager.shared.success()
-            ToastManager.shared.show("🛠️ Developer Mode Phase 1 Complete!", type: .success)
         }
         .toolbar {
             ToolbarItemGroup(placement: .topBarTrailing) {

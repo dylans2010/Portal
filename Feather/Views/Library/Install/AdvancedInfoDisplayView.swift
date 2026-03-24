@@ -17,6 +17,7 @@ struct AdvancedInfoDisplayView<Footer: View>: View {
     @State private var _osVersion: String = UIDevice.current.systemVersion
     @State private var _architecture: String = "arm64" // Default for modern iOS
     @State private var _freeDiskSpace: String = "Calculating..."
+    @State private var _deviceCompatibility: String = "Unknown"
 
     @State private var _certPair: CertificatePair?
     @State private var _decodedCert: Certificate?
@@ -137,7 +138,7 @@ struct AdvancedInfoDisplayView<Footer: View>: View {
 
     @ViewBuilder
     private func _progressSection() -> some View {
-        Section("Installation Progress") {
+        Section {
             VStack(spacing: 12) {
                 HStack {
                     Text(viewModel.statusLabel)
@@ -160,26 +161,36 @@ struct AdvancedInfoDisplayView<Footer: View>: View {
                 }
             }
             .padding(.vertical, 8)
+        } header: {
+            Label("Installation Progress", systemImage: "arrow.down.circle")
+                .foregroundStyle(themeManager.headerTextColor)
         }
     }
 
     @ViewBuilder
     private func _deviceDiagnosticsSection() -> some View {
-        Section("Device Diagnostics") {
+        Section {
             LabeledContent("Model", value: _deviceModel)
             LabeledContent("OS Version", value: _osVersion)
             LabeledContent("Architecture", value: _architecture)
             LabeledContent("Free Space", value: _freeDiskSpace)
+            LabeledContent("Device Compatibility", value: _deviceCompatibility)
+        } header: {
+            Label("Device Diagnostics", systemImage: "iphone")
+                .foregroundStyle(themeManager.headerTextColor)
         }
     }
 
     @ViewBuilder
     private func _ipaMetadataSection() -> some View {
-        Section("IPA Metadata") {
+        Section {
             LabeledContent("Size", value: _appSizeString)
             LabeledContent("Min iOS", value: _minIOS)
             LabeledContent("Bundle ID", value: app.identifier ?? "N/A")
             LabeledContent("Version", value: app.version ?? "N/A")
+            LabeledContent("Build Number", value: _buildNumber)
+            LabeledContent("Installation Date", value: app.date?.formatted(date: .abbreviated, time: .shortened) ?? "N/A")
+            LabeledContent("Signing Status", value: app.isSigned ? "Signed" : "Unsigned")
 
             if let archiveURL = app.archiveURL {
                 VStack(alignment: .leading, spacing: 4) {
@@ -191,12 +202,15 @@ struct AdvancedInfoDisplayView<Footer: View>: View {
                         .foregroundStyle(themeManager.primaryTextColor)
                 }
             }
+        } header: {
+            Label("App Metadata", systemImage: "doc.text.magnifyingglass")
+                .foregroundStyle(themeManager.headerTextColor)
         }
     }
 
     @ViewBuilder
     private func _signingDetailsSection() -> some View {
-        Section("Signing Diagnostics") {
+        Section {
             if let cert = _certPair {
                 LabeledContent("Certificate", value: cert.nickname ?? "N/A")
                 if let decoded = _decodedCert {
@@ -210,6 +224,9 @@ struct AdvancedInfoDisplayView<Footer: View>: View {
                 Text("No signing information available")
                     .foregroundStyle(themeManager.secondaryTextColor)
             }
+        } header: {
+            Label("Signing Diagnostics", systemImage: "checkmark.seal")
+                .foregroundStyle(themeManager.headerTextColor)
         }
     }
 
@@ -407,6 +424,7 @@ struct AdvancedInfoDisplayView<Footer: View>: View {
            let infoDict = NSDictionary(contentsOf: bundleURL.appendingPathComponent("Info.plist")) {
             _minIOS = infoDict["MinimumOSVersion"] as? String ?? "N/A"
             _buildNumber = infoDict["CFBundleVersion"] as? String ?? "N/A"
+            _deviceCompatibility = _isCurrentDeviceCompatible(minimumVersion: _minIOS) ? "Compatible" : "Requires iOS \(_minIOS)+"
         }
     }
 
@@ -429,5 +447,10 @@ struct AdvancedInfoDisplayView<Footer: View>: View {
         if let cert = _certPair {
             _decodedCert = Storage.shared.getProvisionFileDecoded(for: cert)
         }
+    }
+
+    private func _isCurrentDeviceCompatible(minimumVersion: String) -> Bool {
+        guard minimumVersion != "N/A" else { return true }
+        return UIDevice.current.systemVersion.compare(minimumVersion, options: .numeric) != .orderedAscending
     }
 }

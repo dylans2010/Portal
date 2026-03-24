@@ -2,6 +2,12 @@ import SwiftUI
 import UIKit
 
 enum AppTheme: String, CaseIterable, Identifiable {
+    case light = "light"
+    case dark = "dark"
+    case amoled = "amoled"
+    case highContrast = "highContrast"
+    case pastel = "pastel"
+    case neon = "neon"
     case darkNavy = "darkNavy"
     case midnight = "midnight"
     case graphite = "graphite"
@@ -12,6 +18,12 @@ enum AppTheme: String, CaseIterable, Identifiable {
 
     var displayName: String {
         switch self {
+        case .light: return "Light"
+        case .dark: return "Dark"
+        case .amoled: return "AMOLED"
+        case .highContrast: return "High Contrast"
+        case .pastel: return "Pastel"
+        case .neon: return "Neon"
         case .darkNavy: return "Dark Navy"
         case .midnight: return "Midnight"
         case .graphite: return "Graphite"
@@ -22,6 +34,12 @@ enum AppTheme: String, CaseIterable, Identifiable {
 
     var previewHex: String {
         switch self {
+        case .light: return "#F5F7FB"
+        case .dark: return "#111318"
+        case .amoled: return "#000000"
+        case .highContrast: return "#000000"
+        case .pastel: return "#FFF4FA"
+        case .neon: return "#0A0014"
         case .darkNavy: return "#0D0F1A"
         case .midnight: return "#000000"
         case .graphite: return "#1C1C1E"
@@ -62,6 +80,138 @@ struct AppWideColors: Codable, Equatable {
 
     static func `default`(for theme: AppTheme) -> AppWideColors {
         switch theme {
+        case .light:
+            return AppWideColors(
+                appBackground: "#F5F7FB",
+                navigationBar: "#FFFFFF",
+                tabBar: "#FFFFFF",
+                primaryText: "#111827",
+                secondaryText: "#6B7280",
+                cardBackground: "#FFFFFF",
+                accent: "#2563EB",
+                separator: "#E5E7EB",
+                cellHighlight: "#EEF2FF",
+                destructive: "#DC2626",
+                buttonBackground: "#2563EB",
+                buttonText: "#FFFFFF",
+                iconTint: "#2563EB",
+                groupedBackground: "#F3F4F6",
+                headerText: "#4B5563",
+                badgeBackground: "#DBEAFE",
+                badgeText: "#1E40AF",
+                switchTint: "#2563EB",
+                selectionIndicator: "#2563EB"
+            )
+        case .dark:
+            return AppWideColors(
+                appBackground: "#111318",
+                navigationBar: "#171A21",
+                tabBar: "#171A21",
+                primaryText: "#F9FAFB",
+                secondaryText: "#9CA3AF",
+                cardBackground: "#1F2430",
+                accent: "#60A5FA",
+                separator: "#303744",
+                cellHighlight: "#253047",
+                destructive: "#F87171",
+                buttonBackground: "#60A5FA",
+                buttonText: "#08111F",
+                iconTint: "#60A5FA",
+                groupedBackground: "#111318",
+                headerText: "#9CA3AF",
+                badgeBackground: "#1E3A8A",
+                badgeText: "#DBEAFE",
+                switchTint: "#60A5FA",
+                selectionIndicator: "#60A5FA"
+            )
+        case .amoled:
+            return AppWideColors(
+                appBackground: "#000000",
+                navigationBar: "#000000",
+                tabBar: "#000000",
+                primaryText: "#FFFFFF",
+                secondaryText: "#A3A3A3",
+                cardBackground: "#0B0B0B",
+                accent: "#30D158",
+                separator: "#1C1C1E",
+                cellHighlight: "#151515",
+                destructive: "#FF453A",
+                buttonBackground: "#30D158",
+                buttonText: "#001B09",
+                iconTint: "#30D158",
+                groupedBackground: "#000000",
+                headerText: "#A3A3A3",
+                badgeBackground: "#13351E",
+                badgeText: "#9FFFC0",
+                switchTint: "#30D158",
+                selectionIndicator: "#30D158"
+            )
+        case .highContrast:
+            return AppWideColors(
+                appBackground: "#000000",
+                navigationBar: "#000000",
+                tabBar: "#000000",
+                primaryText: "#FFFFFF",
+                secondaryText: "#FFD60A",
+                cardBackground: "#111111",
+                accent: "#0A84FF",
+                separator: "#FFFFFF",
+                cellHighlight: "#1F1F1F",
+                destructive: "#FF453A",
+                buttonBackground: "#FFD60A",
+                buttonText: "#000000",
+                iconTint: "#FFD60A",
+                groupedBackground: "#000000",
+                headerText: "#FFD60A",
+                badgeBackground: "#FFFFFF",
+                badgeText: "#000000",
+                switchTint: "#FFD60A",
+                selectionIndicator: "#FFD60A"
+            )
+        case .pastel:
+            return AppWideColors(
+                appBackground: "#FFF4FA",
+                navigationBar: "#FFF9F3",
+                tabBar: "#FFF9F3",
+                primaryText: "#4A3A4F",
+                secondaryText: "#8A6D90",
+                cardBackground: "#FFFFFF",
+                accent: "#B28DFF",
+                separator: "#F0DFF8",
+                cellHighlight: "#F9EDFF",
+                destructive: "#FF6B9E",
+                buttonBackground: "#B28DFF",
+                buttonText: "#FFFFFF",
+                iconTint: "#B28DFF",
+                groupedBackground: "#FFF4FA",
+                headerText: "#8A6D90",
+                badgeBackground: "#F3E8FF",
+                badgeText: "#6B21A8",
+                switchTint: "#B28DFF",
+                selectionIndicator: "#B28DFF"
+            )
+        case .neon:
+            return AppWideColors(
+                appBackground: "#0A0014",
+                navigationBar: "#120022",
+                tabBar: "#120022",
+                primaryText: "#E8FFFD",
+                secondaryText: "#9BE7FF",
+                cardBackground: "#1B0033",
+                accent: "#00F5FF",
+                separator: "#2E1A40",
+                cellHighlight: "#250A3D",
+                destructive: "#FF2D95",
+                buttonBackground: "#00F5FF",
+                buttonText: "#001217",
+                iconTint: "#39FF14",
+                groupedBackground: "#0A0014",
+                headerText: "#00F5FF",
+                badgeBackground: "#31124A",
+                badgeText: "#A8FFE2",
+                switchTint: "#39FF14",
+                selectionIndicator: "#00F5FF"
+            )
         case .darkNavy:
             return AppWideColors(
                 appBackground: "#0D0F1A",

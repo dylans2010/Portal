@@ -54,16 +54,14 @@ struct PortalTopView: View {
     }
 
     var body: some View {
-        if portalTopViewEnabled && !hasDynamicIsland {
+        if portalTopViewEnabled && (!hasDynamicIsland || isScreenshotting) {
             GeometryReader { geometry in
                 let safeAreaTop = geometry.safeAreaInsets.top
                 let dynamicIslandThreshold: CGFloat = 51
                 let isPhone = UIDevice.current.userInterfaceIdiom == .phone
                 let currentlyDynamicIsland = isPhone && safeAreaTop >= dynamicIslandThreshold
 
-                // Exact Dynamic Island Hardware Positioning Logic
-                // To "hide behind" or match the Island, we position it exactly where the hardware is.
-                let topClearance = isScreenshotting ? 0 : 0
+                let topClearance: CGFloat = 0
 
                 VStack(spacing: 0) {
                     HStack {
@@ -149,7 +147,7 @@ struct PortalTopView: View {
                 }
                 .frame(maxWidth: .infinity)
                 .padding(.top, CGFloat(topClearance))
-                .animation(.spring(response: 0.5, dampingFraction: 0.8), value: isScreenshotting)
+                .animation(.easeInOut(duration: 0.2), value: isScreenshotting)
                 .onAppear {
                     hasDynamicIsland = currentlyDynamicIsland
                 }
