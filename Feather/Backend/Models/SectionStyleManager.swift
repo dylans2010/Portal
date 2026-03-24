@@ -159,7 +159,11 @@ final class SectionStyleManager: ObservableObject {
             .compactMap { $0 as? UIWindowScene }
             .flatMap { $0.windows }
             .forEach { window in
-                window.subviews.forEach { view in
+                // Copy first to avoid mutating `window.subviews` while iterating it.
+                // Iterating and removing directly can crash with:
+                // "Collection <__NSArrayM> was mutated while being enumerated."
+                let existingSubviews = window.subviews
+                for view in existingSubviews {
                     view.removeFromSuperview()
                     window.addSubview(view)
                 }
