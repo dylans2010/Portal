@@ -171,6 +171,7 @@ final class SectionStyleManager: ObservableObject {
                 .compactMap { $0 as? UIWindowScene }
                 .flatMap { $0.windows }
                 .forEach { window in
+                    @MainActor
                     func refreshSubviews(_ view: UIView) {
                         if let tableView = view as? UITableView {
                             tableView.backgroundColor =
