@@ -32,7 +32,7 @@ enum CacheDataDuration: String, CaseIterable {
     }
 }
 
-final class CacheData {
+final class CacheData: @unchecked Sendable {
     static let shared = CacheData()
 
     private let queue = DispatchQueue(label: "Feather.CacheData", qos: .utility)
@@ -109,7 +109,7 @@ final class CacheData {
 
             let cacheDate = Date()
             let cachedApps = apps.map { entry -> CachedSourceApp in
-                let iconRemote = entry.app.currentIconURL
+                let iconRemote = entry.app.iconURL
                 let iconFileName = self.persistIconIfNeeded(from: iconRemote, appID: entry.app.currentUniqueId)
 
                 return CachedSourceApp(
