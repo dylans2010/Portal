@@ -31,9 +31,24 @@ extension Color {
 	/// Convert a Color to a hex string
 	func toHex() -> String? {
 		guard let components = UIColor(self).cgColor.components else { return nil }
-		let r = Float(components[0])
-		let g = Float(components[1])
-		let b = Float(components[2])
+		let r: Float
+		let g: Float
+		let b: Float
+
+		switch components.count {
+		case 4:
+			r = Float(components[0])
+			g = Float(components[1])
+			b = Float(components[2])
+		case 2:
+			// Grayscale colors expose only white + alpha.
+			r = Float(components[0])
+			g = Float(components[0])
+			b = Float(components[0])
+		default:
+			return nil
+		}
+
 		return String(format: "#%02lX%02lX%02lX", lroundf(r * 255), lroundf(g * 255), lroundf(b * 255))
 	}
 
@@ -59,6 +74,12 @@ extension Color {
 
 	var hexString: String {
 		guard let components = UIColor(self).cgColor.components, components.count >= 3 else {
+			// Gracefully handle grayscale and unknown color spaces to avoid index crashes.
+			if let components = UIColor(self).cgColor.components, components.count == 2 {
+				let white = Float(components[0])
+				let value = lroundf(white * 255)
+				return String(format: "#%02lX%02lX%02lX", value, value, value)
+			}
 			return "#000000"
 		}
 		let r = Float(components[0])
