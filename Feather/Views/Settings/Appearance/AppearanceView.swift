@@ -5,6 +5,7 @@ import UIKit
 // MARK: - Appearance View
 struct AppearanceView: View {
     @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var styleManager: SectionStyleManager
     @Environment(\.dismiss) private var dismiss
     @AppStorage("Feather.userInterfaceStyle") private var userInterfaceStyle: Int = UIUserInterfaceStyle.unspecified.rawValue
     @AppStorage(UserDefaults.Keys.installTrigger) private var installTrigger: Int = 0 // 0: Manual, 1: Automatic
@@ -166,6 +167,8 @@ struct AppearanceView: View {
                 EmptyView()
             }
         }
+        .id(styleManager.currentStyle.rawValue +
+            themeManager.resolvedColors.accent)
         .globalTheme()
         .navigationTitle("Appearance")
         .navigationBarTitleDisplayMode(.inline)
@@ -179,6 +182,12 @@ struct AppearanceView: View {
         }
         .onChange(of: ignoreSolariumLinkedOnCheck) { _ in
             UIApplication.shared.suspendAndReopen()
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .sectionStyleDidChange)) { _ in
+            // re-render triggered by @Published on styleManager
+        }
+        .onReceive(NotificationCenter.default.publisher(for: Notification.Name("AppWideThemeDidChange"))) { _ in
+            // re-render triggered by @Published on themeManager
         }
     }
     

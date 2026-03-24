@@ -224,6 +224,8 @@ struct ColorCustomizationView: View {
 
             actionsSection
         }
+        .id(styleManager.currentStyle.rawValue +
+            themeManager.resolvedColors.accent)
         .navigationTitle("Visual Design")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
@@ -239,6 +241,8 @@ struct ColorCustomizationView: View {
         .onAppear(perform: loadColors)
         .sheet(isPresented: $showImagePicker) {
             ImagePicker(image: $selectedImage)
+                .environmentObject(themeManager)
+                .environmentObject(styleManager)
         }
         .onChange(of: selectedImage) { image in
             if let image = image {
@@ -254,6 +258,8 @@ struct ColorCustomizationView: View {
                 applyTheme(theme)
                 showAllThemes = false
             }
+            .environmentObject(themeManager)
+            .environmentObject(styleManager)
             .presentationDetents([.medium, .large])
         }
         .alert(String.localized("Save Theme"), isPresented: $showSaveAlert) {
@@ -288,6 +294,7 @@ struct ColorCustomizationView: View {
         .onChange(of: warningColor) { warningColorHex = $0.toHex() ?? "#FF9500" }
         .onChange(of: errorColor) { errorColorHex = $0.toHex() ?? "#FF3B30" }
         .onReceive(NotificationCenter.default.publisher(for: .sectionStyleDidChange)) { _ in }
+        .onReceive(NotificationCenter.default.publisher(for: Notification.Name("AppWideThemeDidChange"))) { _ in }
     }
 
     private var overviewSection: some View {
