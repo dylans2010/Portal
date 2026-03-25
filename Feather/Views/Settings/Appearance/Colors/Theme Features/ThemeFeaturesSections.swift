@@ -1,6 +1,43 @@
 import SwiftUI
 
+private struct ThemeFeatureSection<Content: View>: View {
+    @EnvironmentObject private var themeManager: AppWideThemeManager
+    let title: String
+    let icon: String?
+    let footer: String?
+    @ViewBuilder let content: () -> Content
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(spacing: 8) {
+                if let icon {
+                    Image(systemName: icon)
+                        .foregroundStyle(themeManager.sectionHeaderTheme.iconColor)
+                }
+                Text(title)
+                    .font(.caption)
+                    .fontWeight(.semibold)
+                    .textCase(.uppercase)
+                    .foregroundStyle(themeManager.sectionHeaderTheme.textColor)
+            }
+
+            VStack(spacing: 0) {
+                content()
+            }
+            .background(themeManager.sectionHeaderTheme.background)
+            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+
+            if let footer {
+                Text(footer)
+                    .font(.footnote)
+                    .foregroundStyle(themeManager.secondaryTextColor)
+            }
+        }
+    }
+}
+
 struct IntelligentThemeFeaturesView: View {
+    @EnvironmentObject private var themeManager: AppWideThemeManager
     @Binding var contextTheming: Bool
     @Binding var lowPowerThemeId: String
     @Binding var focusThemeId: String
@@ -12,13 +49,19 @@ struct IntelligentThemeFeaturesView: View {
     let allThemes: [ColorTheme]
 
     var body: some View {
-        Group {
-            Section {
+        VStack(spacing: 16) {
+            ThemeFeatureSection(
+                title: String.localized("System Integration"),
+                icon: "bolt.badge.automatic.fill",
+                footer: String.localized("Automatically switch themes based on Low Power Mode or Focus filters.")
+            ) {
                 Toggle(isOn: $contextTheming) {
                     Label(String.localized("Context-Aware Theming"), systemImage: "bolt.badge.automatic.fill")
                 }
+                .tint(themeManager.accentColor)
 
                 if contextTheming {
+                    Divider().background(themeManager.sectionHeaderTheme.dividerColor)
                     Picker(String.localized("Low Power Theme"), selection: $lowPowerThemeId) {
                         Text(String.localized("None")).tag("")
                         ForEach(allThemes) { theme in
@@ -26,6 +69,7 @@ struct IntelligentThemeFeaturesView: View {
                         }
                     }
 
+                    Divider().background(themeManager.sectionHeaderTheme.dividerColor)
                     Picker(String.localized("Focus Theme"), selection: $focusThemeId) {
                         Text(String.localized("None")).tag("")
                         ForEach(allThemes) { theme in
@@ -33,64 +77,61 @@ struct IntelligentThemeFeaturesView: View {
                         }
                     }
                 }
-            } header: {
-                Text(String.localized("System Integration"))
-            } footer: {
-                Text(String.localized("Automatically switch themes based on Low Power Mode or Focus filters."))
             }
 
-            Section {
+            ThemeFeatureSection(title: String.localized("Time-Based Theming"), icon: "clock.fill", footer: nil) {
                 Toggle(isOn: $timeBasedTheming) {
                     Label(String.localized("Schedule Themes"), systemImage: "clock.fill")
                 }
+                .tint(themeManager.accentColor)
 
                 if timeBasedTheming {
+                    Divider().background(themeManager.sectionHeaderTheme.dividerColor)
                     Picker(String.localized("Morning Theme"), selection: $morningThemeId) {
                         ForEach(allThemes) { theme in
                             Text(theme.name).tag(theme.id.uuidString)
                         }
                     }
+                    Divider().background(themeManager.sectionHeaderTheme.dividerColor)
                     Picker(String.localized("Sunset Theme"), selection: $sunsetThemeId) {
                         ForEach(allThemes) { theme in
                             Text(theme.name).tag(theme.id.uuidString)
                         }
                     }
+                    Divider().background(themeManager.sectionHeaderTheme.dividerColor)
                     Picker(String.localized("Night Theme"), selection: $nightThemeId) {
                         ForEach(allThemes) { theme in
                             Text(theme.name).tag(theme.id.uuidString)
                         }
                     }
                 }
-            } header: {
-                Text(String.localized("Time-Based Theming"))
             }
 
-            Section {
+            ThemeFeatureSection(
+                title: String.localized("Dynamic Wallpaper Integration"),
+                icon: "photo.on.rectangle.angled",
+                footer: String.localized("Auto-generate a theme palette from your favorite wallpaper or image.")
+            ) {
                 Button {
                     showImagePicker = true
                 } label: {
                     Label(String.localized("Generate From Image"), systemImage: "photo.on.rectangle.angled")
                 }
-            } header: {
-                Text(String.localized("Dynamic Wallpaper Integration"))
-            } footer: {
-                Text(String.localized("Auto-generate a theme palette from your favorite wallpaper or image."))
             }
 
-            Section {
+            ThemeFeatureSection(title: String.localized("View Overrides"), icon: "rectangle.3.group", footer: nil) {
                 NavigationLink {
                     PerScreenThemeView(allThemes: allThemes)
                 } label: {
                     Label(String.localized("Per-Screen Overrides"), systemImage: "rectangle.3.group")
                 }
-            } header: {
-                Text(String.localized("View Overrides"))
             }
         }
     }
 }
 
 struct AdvancedThemeFeaturesView: View {
+    @EnvironmentObject private var themeManager: AppWideThemeManager
     @Binding var highContrast: Bool
     @Binding var autoContrastCorrection: Bool
     @Binding var colorBlindnessFilter: Int
@@ -105,54 +146,55 @@ struct AdvancedThemeFeaturesView: View {
     let onImportTheme: () -> Void
 
     var body: some View {
-        Group {
-            Section {
+        VStack(spacing: 16) {
+            ThemeFeatureSection(title: String.localized("Accessibility"), icon: "figure.wave", footer: nil) {
                 Toggle(String.localized("High Contrast Mode"), isOn: $highContrast)
+                    .tint(themeManager.accentColor)
+                Divider().background(themeManager.sectionHeaderTheme.dividerColor)
                 Toggle(String.localized("Auto Contrast Correction"), isOn: $autoContrastCorrection)
-
+                    .tint(themeManager.accentColor)
+                Divider().background(themeManager.sectionHeaderTheme.dividerColor)
                 Picker(String.localized("Color Blindness Filter"), selection: $colorBlindnessFilter) {
                     Text(String.localized("None")).tag(0)
                     Text(String.localized("Protanopia")).tag(1)
                     Text(String.localized("Deuteranopia")).tag(2)
                     Text(String.localized("Tritanopia")).tag(3)
                 }
-            } header: {
-                Text(String.localized("Accessibility"))
             }
 
-            Section {
+            ThemeFeatureSection(title: String.localized("Haptic & Visual Feedback"), icon: "waveform", footer: nil) {
                 advancedSliderRow(String.localized("Haptic Intensity"), $hapticIntensity, 0...1, 0.1, "", true, "waveform")
+                Divider().background(themeManager.sectionHeaderTheme.dividerColor)
                 advancedSliderRow(String.localized("Visual Feedback"), $visualFeedbackStrength, 0...1, 0.1, "", true, "sparkles")
-            } header: {
-                Text(String.localized("Haptic & Visual Feedback"))
             }
 
-            Section {
+            ThemeFeatureSection(
+                title: String.localized("Experimental Effects"),
+                icon: "wand.and.rays",
+                footer: String.localized("Performance mode reduces heavy blurs and shadows to save battery and increase responsiveness.")
+            ) {
                 Picker(String.localized("Layer Blending"), selection: $layerBlendMode) {
                     Text(String.localized("Normal")).tag(0)
                     Text(String.localized("Overlay")).tag(1)
                     Text(String.localized("Multiply")).tag(2)
                     Text(String.localized("Screen")).tag(3)
                 }
-                Toggle(String.localized("Parallax Depth Effect"), isOn: $parallaxEnabled)
-                Toggle(String.localized("Motion Gradients"), isOn: $motionGradients)
-                Toggle(String.localized("Performance Mode"), isOn: $performanceMode)
-            } header: {
-                Text(String.localized("Experimental Effects"))
-            } footer: {
-                Text(String.localized("Performance mode reduces heavy blurs and shadows to save battery and increase responsiveness."))
+                Divider().background(themeManager.sectionHeaderTheme.dividerColor)
+                Toggle(String.localized("Parallax Depth Effect"), isOn: $parallaxEnabled).tint(themeManager.accentColor)
+                Divider().background(themeManager.sectionHeaderTheme.dividerColor)
+                Toggle(String.localized("Motion Gradients"), isOn: $motionGradients).tint(themeManager.accentColor)
+                Divider().background(themeManager.sectionHeaderTheme.dividerColor)
+                Toggle(String.localized("Performance Mode"), isOn: $performanceMode).tint(themeManager.accentColor)
             }
 
-            Section {
+            ThemeFeatureSection(title: String.localized("Theme Sharing"), icon: "square.and.arrow.up", footer: nil) {
                 Button(action: onExportTheme) {
                     Label(String.localized("Export Current Theme Code"), systemImage: "square.and.arrow.up")
                 }
-
+                Divider().background(themeManager.sectionHeaderTheme.dividerColor)
                 Button(action: onImportTheme) {
                     Label(String.localized("Import Theme From Clipboard"), systemImage: "square.and.arrow.down")
                 }
-            } header: {
-                Text(String.localized("Theme Sharing"))
             }
         }
     }
