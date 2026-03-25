@@ -48,22 +48,11 @@ struct ColorTheme: Identifiable, Codable, Equatable {
 }
 
 struct ColorCustomizationView: View {
-    private enum EditorSection: String, CaseIterable, Identifiable {
-        case overview = "Overview"
-        case intelligent = "Intelligent"
-        case advanced = "Advanced"
-        case sections = "Sections"
-
-        var id: String { rawValue }
-
-        var icon: String {
-            switch self {
-            case .overview: return "sparkles"
-            case .intelligent: return "cpu"
-            case .advanced: return "wand.and.rays"
-            case .sections: return "square.grid.2x2.fill"
-            }
-        }
+    enum DisplayMode {
+        case overview
+        case intelligent
+        case advanced
+        case sections
     }
 
     @EnvironmentObject private var backgroundManager: ColorBackgroundManager
@@ -133,7 +122,6 @@ struct ColorCustomizationView: View {
     @State private var successColor: Color = Color(hex: "#34C759")
     @State private var warningColor: Color = Color(hex: "#FF9500")
     @State private var errorColor: Color = Color(hex: "#FF3B30")
-    @State private var selectedSection: EditorSection = .overview
     @State private var themeName: String = ""
     @State private var showSaveAlert = false
     @State private var showResetAlert = false
@@ -142,6 +130,11 @@ struct ColorCustomizationView: View {
     @State private var showingAppWideColorPicker: Bool = false
     @ObservedObject private var appState = AppStateManager.shared
     @Environment(\.colorScheme) var colorScheme
+    private let displayMode: DisplayMode
+
+    init(displayMode: DisplayMode = .overview) {
+        self.displayMode = displayMode
+    }
 
     private let presetThemes: [ColorTheme] = [
         ColorTheme(name: "Classic", bg: "#F2F2F7", ui: "#007AFF", text: "#000000", tint: "#007AFF", secondaryText: "#8E8E93", cardRadius: 16, fontDesign: "default"),
@@ -183,17 +176,7 @@ struct ColorCustomizationView: View {
                         ColorHeaderView()
                     }
 
-                    Picker("Section", selection: $selectedSection) {
-                        ForEach(EditorSection.allCases) { section in
-                            Label(section.rawValue, systemImage: section.icon).tag(section)
-                        }
-                    }
-                    .pickerStyle(.segmented)
-                    .padding(12)
-                    .background(themeManager.sectionHeaderTheme.background)
-                    .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-
-                    switch selectedSection {
+                    switch displayMode {
                     case .overview:
                         overviewSection
                     case .intelligent:
@@ -213,7 +196,9 @@ struct ColorCustomizationView: View {
         .navigationTitle("Visual Design")
         .appWideHeaderTitle(displayMode: .inline)
         .id(themeManager.currentThemeID)
-        .onAppear(perform: loadColors)
+        .onAppear {
+            loadColors()
+        }
         .sheet(isPresented: $showImagePicker) {
             ImagePicker(image: $selectedImage)
         }
@@ -1516,60 +1501,6 @@ private struct AppWideColorPickerSheet: View {
                     ColorPickerRow(label: "Selection / Check",  color: $draft.selectionIndicator)
                 }
 
-                Section("APP WIDE COLORS") {
-                    VStack(alignment: .leading, spacing: 16) {
-                        sectionHeaderColorControl(
-                            title: "Headers",
-                            description: "Controls section titles and header text",
-                            selection: Binding(
-                                get: { themeManager.sectionHeaderTheme.textColor },
-                                set: { color in
-                                    var updated = themeManager.sectionHeaderTheme
-                                    updated.textColor = color
-                                    themeManager.sectionHeaderTheme = updated
-                                }
-                            )
-                        )
-                        sectionHeaderColorControl(
-                            title: "Sections",
-                            description: "Controls section backgrounds and grouped areas",
-                            selection: Binding(
-                                get: { themeManager.sectionHeaderTheme.background },
-                                set: { color in
-                                    var updated = themeManager.sectionHeaderTheme
-                                    updated.background = color
-                                    themeManager.sectionHeaderTheme = updated
-                                }
-                            )
-                        )
-                        sectionHeaderColorControl(
-                            title: "Header Icons",
-                            description: "Controls icons inside section headers",
-                            selection: Binding(
-                                get: { themeManager.sectionHeaderTheme.iconColor },
-                                set: { color in
-                                    var updated = themeManager.sectionHeaderTheme
-                                    updated.iconColor = color
-                                    themeManager.sectionHeaderTheme = updated
-                                }
-                            )
-                        )
-                        sectionHeaderColorControl(
-                            title: "Dividers",
-                            description: "Controls lines between sections",
-                            selection: Binding(
-                                get: { themeManager.sectionHeaderTheme.dividerColor },
-                                set: { color in
-                                    var updated = themeManager.sectionHeaderTheme
-                                    updated.dividerColor = color
-                                    themeManager.sectionHeaderTheme = updated
-                                }
-                            )
-                        )
-                    }
-                    .padding(.vertical, 4)
-                }
-
                 Section("SURFACE STATES") {
                     ColorPickerRow(label: "Cell Highlight",     color: $draft.cellHighlight)
                 }
@@ -1667,13 +1598,15 @@ private struct AppWideColorPickerSheet: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") {
+                    Button {
                         themeManager.sectionHeaderTheme = initialSectionHeaderTheme
                         dismiss()
+                    } label: {
+                        Image(systemName: "xmark")
                     }
                 }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Apply") {
+                    Button {
                         themeManager.updateColor(keyPath: \.appBackground, hex: draft.appBackground)
                         themeManager.updateColor(keyPath: \.navigationBar, hex: draft.navigationBar)
                         themeManager.updateColor(keyPath: \.tabBar, hex: draft.tabBar)
@@ -1693,23 +1626,11 @@ private struct AppWideColorPickerSheet: View {
                         themeManager.updateColor(keyPath: \.selectionIndicator, hex: draft.selectionIndicator)
 
                         dismiss()
+                    } label: {
+                        Image(systemName: "checkmark")
                     }
                 }
             }
-        }
-    }
-
-    @ViewBuilder
-    private func sectionHeaderColorControl(
-        title: String,
-        description: String,
-        selection: Binding<Color>
-    ) -> some View {
-        VStack(alignment: .leading, spacing: 4) {
-            ColorPicker(title, selection: selection, supportsOpacity: false)
-            Text(description)
-                .font(.caption)
-                .foregroundStyle(themeManager.secondaryText)
         }
     }
 }
