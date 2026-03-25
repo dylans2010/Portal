@@ -3335,6 +3335,7 @@ struct FeatureFlagsView: View {
     @AppStorage("feature_advancedBackupTools") var advancedBackupTools = false
     @AppStorage("feature_newBackupOptions") var newBackupOptions = false
     @AppStorage("feature_passwordChanger") var passwordChanger = false
+    @AppStorage("feature_forceHideTopView") var forceHideTopView = false
     /// When `true`, the legacy sphere-animation pairing flow is used.
     /// The default (`false`) uses direct MultipeerConnectivity discovery (MPC Direct).
     @AppStorage("feature_useAnimationPairing") var useAnimationPairing = false
@@ -3389,6 +3390,14 @@ struct FeatureFlagsView: View {
                 Text("Pairing")
             } footer: {
                 Text("When enabled, uses the legacy sphere-animation pairing flow that requires scanning a visual code. By default, Pair Devices uses direct MultipeerConnectivity discovery — no code scanning needed.")
+            }
+
+            Section {
+                Toggle("Force Hide Top View", isOn: $forceHideTopView)
+            } header: {
+                Text("Portal Top View")
+            } footer: {
+                Text("When enabled, Top View can be manually toggled in Top View Appearance. When disabled, Top View uses the default screenshot-only behavior.")
             }
         }
             .scrollContentBackground(.hidden)
@@ -7924,4 +7933,3 @@ struct OfflineViewWithDismiss: View {
         }
     }
 }
-

@@ -16,10 +16,9 @@ struct PortalTopView: View {
     @AppStorage("Feather.portalTopViewGradientDirection") private var gradientDirection: Int = 0
     @AppStorage("Feather.portalTopViewGlassEffect") private var glassEffect: Bool = false
     @AppStorage("Feather.portalTopViewGlassIntensity") private var glassIntensity: Int = 0
+    @AppStorage("feature_forceHideTopView") private var forceHideTopView: Bool = false
 
     @State private var isScreenshotting = false
-    @State private var hasDynamicIsland = false
-
     private var material: Material {
         switch portalTopViewStyle {
         case 1: return .thinMaterial
@@ -54,121 +53,130 @@ struct PortalTopView: View {
     }
 
     var body: some View {
-        if portalTopViewEnabled && (!hasDynamicIsland || isScreenshotting) {
-            GeometryReader { geometry in
-                let safeAreaTop = geometry.safeAreaInsets.top
-                let dynamicIslandThreshold: CGFloat = 51
-                let isPhone = UIDevice.current.userInterfaceIdiom == .phone
-                let currentlyDynamicIsland = isPhone && safeAreaTop >= dynamicIslandThreshold
-
-                let topClearance: CGFloat = 0
-
-                VStack(spacing: 0) {
-                    HStack {
-                        Spacer()
-
-                        // Premium Floating Pill
-                        HStack(spacing: 10) {
-                            if portalTopViewShowIcon,
-                               let iconName = Bundle.main.iconFileName,
-                               let icon = UIImage(named: iconName) {
-                                Image(uiImage: icon)
-                                    .resizable()
-                                    .aspectRatio(contentMode: .fit)
-                                    .frame(width: 18, height: 18)
-                                    .clipShape(RoundedRectangle(cornerRadius: 5, style: .continuous))
-                                    .shadow(color: themeManager.primaryTextColor.opacity(0.1), radius: 2, x: 0, y: 1)
-                            }
-
-                            VStack(alignment: .leading, spacing: -1) {
-                                Text(portalTopViewTitle.isEmpty ? "Portal" : portalTopViewTitle)
-                                    .font(.system(size: 12, weight: .bold, design: .rounded))
-                                    .foregroundStyle(Color(hex: portalTopViewTextColor))
-
-                                if portalTopViewShowVersion {
-                                    Text(Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "3.0")
-                                        .font(.system(size: 8, weight: .bold, design: .monospaced))
-                                        .foregroundStyle(.secondary)
-                                        .opacity(0.8)
-                                }
-                            }
-                        }
-                        .frame(width: hasDynamicIsland ? 126 : nil, height: hasDynamicIsland ? 37.33 : nil)
-                        .padding(.horizontal, hasDynamicIsland ? 0 : 14)
-                        .padding(.vertical, 8)
-                        .background {
-                            ZStack {
-                                Capsule()
-                                    .fill(material)
-
-                                // Gradient or solid color depth layer
-                                if useGradient {
-                                    Capsule()
-                                        .fill(
-                                            LinearGradient(
-                                                colors: [Color(hex: portalTopViewColor), Color(hex: gradientEndColor)],
-                                                startPoint: gradientStartPoint,
-                                                endPoint: gradientEndPoint
-                                            )
-                                        )
-                                        .opacity(0.45)
-                                } else {
-                                    Capsule()
-                                        .fill(LinearGradient(colors: [Color(hex: portalTopViewColor).opacity(0.1), themeManager.accentColor.opacity(0.05)], startPoint: .topLeading, endPoint: .bottomTrailing))
-                                }
-
-                                // Glass effect overlay
-                                if glassEffect {
-                                    Capsule()
-                                        .fill(glassMaterial)
-                                        .opacity(glassIntensity == 0 ? 0.3 : (glassIntensity == 1 ? 0.5 : 0.7))
-                                }
-                            }
-                            .overlay {
-                                Capsule()
-                                    .stroke(
-                                        LinearGradient(
-                                            colors: useGradient
-                                                ? [Color(hex: portalTopViewColor).opacity(0.6), Color(hex: gradientEndColor).opacity(0.4), Color(hex: portalTopViewColor).opacity(0.1)]
-                                                : [Color(hex: portalTopViewColor).opacity(0.5), themeManager.accentColor.opacity(0.3), Color(hex: portalTopViewColor).opacity(0.1)],
-                                            startPoint: gradientStartPoint,
-                                            endPoint: gradientEndPoint
-                                        ),
-                                        lineWidth: 0.5
-                                    )
-                            }
-                        }
-
-                        Spacer()
-                    }
-                    .shadow(color: themeManager.primaryTextColor.opacity(0.12), radius: 12, x: 0, y: 6)
-
-                    Spacer(minLength: 0)
-                }
-                .frame(maxWidth: .infinity)
-                .padding(.top, CGFloat(topClearance))
-                .animation(.easeInOut(duration: 0.2), value: isScreenshotting)
-                .onAppear {
-                    hasDynamicIsland = currentlyDynamicIsland
-                }
-                .onChange(of: safeAreaTop) { topInset in
-                    hasDynamicIsland = isPhone && topInset >= dynamicIslandThreshold
-                }
+        GeometryReader { geometry in
+            if shouldRenderTopView(safeAreaTop: geometry.safeAreaInsets.top) {
+                overlayContent(hasDynamicIsland: hasDynamicIsland(safeAreaTop: geometry.safeAreaInsets.top))
+                    .allowsHitTesting(false)
+                    .zIndex(999_999)
+                    .ignoresSafeArea(.all, edges: .top)
             }
-            .allowsHitTesting(false)
-            .zIndex(isScreenshotting ? 999999 : 1000)
-            .ignoresSafeArea(.all, edges: .top)
-            .onReceive(NotificationCenter.default.publisher(for: UIApplication.userDidTakeScreenshotNotification)) { _ in
-                withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) {
-                    isScreenshotting = true
-                }
-                // Return to normal state after capture
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                    withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) {
-                        isScreenshotting = false
-                    }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: UIApplication.userDidTakeScreenshotNotification)) { _ in
+            guard portalTopViewEnabled, !forceHideTopView else { return }
+            withAnimation(.spring(response: 0.35, dampingFraction: 0.85)) {
+                isScreenshotting = true
+            }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.9) {
+                withAnimation(.easeOut(duration: 0.25)) {
+                    isScreenshotting = false
                 }
             }
         }
+    }
+
+    @ViewBuilder
+    private func overlayContent(hasDynamicIsland: Bool) -> some View {
+        VStack(spacing: 0) {
+            HStack {
+                Spacer()
+                topPill(hasDynamicIsland: hasDynamicIsland)
+                Spacer()
+            }
+            .shadow(color: themeManager.primaryTextColor.opacity(0.12), radius: 12, x: 0, y: 6)
+            Spacer(minLength: 0)
+        }
+        .frame(maxWidth: .infinity)
+    }
+
+    private func topPill(hasDynamicIsland: Bool) -> some View {
+        HStack(spacing: 10) {
+            if portalTopViewShowIcon,
+               let iconName = Bundle.main.iconFileName,
+               let icon = UIImage(named: iconName) {
+                Image(uiImage: icon)
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(width: 18, height: 18)
+                    .clipShape(RoundedRectangle(cornerRadius: 5, style: .continuous))
+                    .shadow(color: themeManager.primaryTextColor.opacity(0.1), radius: 2, x: 0, y: 1)
+            }
+
+            VStack(alignment: .leading, spacing: -1) {
+                Text(portalTopViewTitle.isEmpty ? "Portal" : portalTopViewTitle)
+                    .font(.system(size: 12, weight: .bold, design: .rounded))
+                    .foregroundStyle(Color(hex: portalTopViewTextColor))
+
+                if portalTopViewShowVersion {
+                    Text(Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "3.0")
+                        .font(.system(size: 8, weight: .bold, design: .monospaced))
+                        .foregroundStyle(.secondary)
+                        .opacity(0.8)
+                }
+            }
+        }
+        .frame(width: hasDynamicIsland ? 126 : nil, height: hasDynamicIsland ? 37.33 : nil)
+        .padding(.horizontal, hasDynamicIsland ? 0 : 14)
+        .padding(.vertical, 8)
+        .background(pillBackground)
+    }
+
+    private var pillBackground: some View {
+        ZStack {
+            Capsule()
+                .fill(material)
+
+            if useGradient {
+                Capsule()
+                    .fill(
+                        LinearGradient(
+                            colors: [Color(hex: portalTopViewColor), Color(hex: gradientEndColor)],
+                            startPoint: gradientStartPoint,
+                            endPoint: gradientEndPoint
+                        )
+                    )
+                    .opacity(0.45)
+            } else {
+                Capsule()
+                    .fill(
+                        LinearGradient(
+                            colors: [Color(hex: portalTopViewColor).opacity(0.1), themeManager.accentColor.opacity(0.05)],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+            }
+
+            if glassEffect {
+                Capsule()
+                    .fill(glassMaterial)
+                    .opacity(glassIntensity == 0 ? 0.3 : (glassIntensity == 1 ? 0.5 : 0.7))
+            }
+        }
+        .overlay {
+            Capsule()
+                .stroke(
+                    LinearGradient(
+                        colors: useGradient
+                            ? [Color(hex: portalTopViewColor).opacity(0.6), Color(hex: gradientEndColor).opacity(0.4), Color(hex: portalTopViewColor).opacity(0.1)]
+                            : [Color(hex: portalTopViewColor).opacity(0.5), themeManager.accentColor.opacity(0.3), Color(hex: portalTopViewColor).opacity(0.1)],
+                        startPoint: gradientStartPoint,
+                        endPoint: gradientEndPoint
+                    ),
+                    lineWidth: 0.5
+                )
+        }
+    }
+
+    private func shouldRenderTopView(safeAreaTop: CGFloat) -> Bool {
+        portalTopViewEnabled
+            && !forceHideTopView
+            && isScreenshotting
+            && !hasDynamicIsland(safeAreaTop: safeAreaTop)
+    }
+
+    private func hasDynamicIsland(safeAreaTop: CGFloat) -> Bool {
+        let dynamicIslandThreshold: CGFloat = 51
+        let isPhone = UIDevice.current.userInterfaceIdiom == .phone
+        return isPhone && safeAreaTop >= dynamicIslandThreshold
     }
 }
