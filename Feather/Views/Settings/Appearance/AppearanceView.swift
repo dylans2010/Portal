@@ -5,7 +5,6 @@ import UIKit
 // MARK: - Appearance View
 struct AppearanceView: View {
     @EnvironmentObject var themeManager: AppWideThemeManager
-    @Environment(\.dismiss) private var dismiss
     @AppStorage("Feather.userInterfaceStyle") private var userInterfaceStyle: Int = UIUserInterfaceStyle.unspecified.rawValue
     @AppStorage(UserDefaults.Keys.installTrigger) private var installTrigger: Int = 0 // 0: Manual, 1: Automatic
     @AppStorage("Feather.shouldTintIcons") private var _shouldTintIcons: Bool = false
@@ -16,10 +15,7 @@ struct AppearanceView: View {
     @AppStorage("Feather.showHeaderViews") private var showHeaderViews: Bool = true
     @AppStorage("Feather.useNewAllAppsView") private var useNewAllAppsView: Bool = true
     @AppStorage("Feather.greetingsName") private var greetingsName: String = ""
-    @AppStorage("Feather.certificateExperience") private var certificateExperience: String = CertificateExperience.developer.rawValue
     @StateObject private var hapticsManager = HapticsManager.shared
-    
-    private var isEnterprise: Bool { certificateExperience == CertificateExperience.enterprise.rawValue }
 
     var body: some View {
         List {
@@ -135,14 +131,50 @@ struct AppearanceView: View {
 
             // MARK: - Customization
             Section {
-                if !isEnterprise {
-                    NavigationLink(destination: AppIconView()) {
-                        Label("App Icons", systemImage: "app.badge.fill")
+                NavigationLink(destination: ColorCustomizationView(displayMode: .intelligent)) {
+                    Label("Intelligent Colors", systemImage: "cpu")
+                        .foregroundStyle(themeManager.accentColor)
+                }
+
+                NavigationLink(destination: ColorCustomizationView(displayMode: .advanced)) {
+                    Label("Advanced Colors", systemImage: "wand.and.rays")
+                        .foregroundStyle(themeManager.accentColor)
+                }
+
+                NavigationLink(destination: ColorCustomizationView(displayMode: .sections)) {
+                    Label("Sections", systemImage: "square.grid.2x2.fill")
+                        .foregroundStyle(themeManager.accentColor)
+                }
+
+                NavigationLink(destination: AllAppsCustomizationView()) {
+                    Label("All Apps", systemImage: "square.grid.2x2.fill")
+                        .foregroundStyle(themeManager.accentColor)
+                }
+
+                NavigationLink(destination: AppHideElementsView()) {
+                    Label("Hide UI Elements", systemImage: "eye.slash.fill")
+                        .foregroundStyle(themeManager.accentColor)
+                }
+
+                NavigationLink(destination: StatusBarCustomizationView()) {
+                    Label("Status Bar", systemImage: "rectangle.topthird.inset.filled")
+                        .foregroundStyle(themeManager.accentColor)
+                }
+
+                NavigationLink(destination: TabBarCustomizationView()) {
+                    Label("Tab Bar", systemImage: "dock.rectangle")
+                        .foregroundStyle(themeManager.accentColor)
+                }
+
+                if ProcessInfo.processInfo.operatingSystemVersion.majorVersion >= 16 {
+                    NavigationLink(destination: KeyboardCustomizationView()) {
+                        Label("Keyboard Backdrop", systemImage: "keyboard")
                             .foregroundStyle(themeManager.accentColor)
                     }
                 }
-                NavigationLink(destination: LostView(onGoBack: { dismiss() })) {
-                    Label("Gestures", systemImage: "hand.tap.fill")
+
+                NavigationLink(destination: TopViewAppearance()) {
+                    Label("Top View", systemImage: "uiwindow.split.2x1")
                         .foregroundStyle(themeManager.accentColor)
                 }
             } header: {
