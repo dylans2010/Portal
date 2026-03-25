@@ -435,16 +435,20 @@ final class ThemeManager: ObservableObject {
 
     init() {
         let themeRaw = UserDefaults.standard.string(forKey: "app.selectedTheme") ?? AppTheme.darkNavy.rawValue
-        self.currentTheme = AppTheme(rawValue: themeRaw) ?? .darkNavy
+        let theme = AppTheme(rawValue: themeRaw) ?? .darkNavy
+        self.currentTheme = theme
 
+        var loadedAppWideColors: AppWideColors?
         if let data = UserDefaults.standard.data(forKey: "app.appWideColors") {
-            self.appWideColors = try? JSONDecoder().decode(AppWideColors.self, from: data)
+            loadedAppWideColors = try? JSONDecoder().decode(AppWideColors.self, from: data)
         }
+        self.appWideColors = loadedAppWideColors
+
         if let data = UserDefaults.standard.data(forKey: sectionHeaderThemeKey),
            let persisted = try? JSONDecoder().decode(PersistedSectionHeaderTheme.self, from: data) {
             self.sectionHeaderTheme = SectionHeaderTheme(persisted: persisted)
         } else {
-            self.sectionHeaderTheme = SectionHeaderTheme.default(for: appWideColors ?? AppWideColors.default(for: currentTheme))
+            self.sectionHeaderTheme = SectionHeaderTheme.default(for: loadedAppWideColors ?? AppWideColors.default(for: theme))
         }
 
         applyUIKitAppearance()
