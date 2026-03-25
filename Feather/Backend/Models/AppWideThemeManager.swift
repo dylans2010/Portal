@@ -345,6 +345,7 @@ struct AppWideTypography {
 @MainActor
 final class ThemeManager: ObservableObject {
     static let shared = ThemeManager()
+    private let sectionHeaderThemeKey = "app.sectionHeaderTheme"
 
     @Published var currentTheme: AppTheme {
         didSet {
@@ -363,6 +364,16 @@ final class ThemeManager: ObservableObject {
             }
         }
     }
+
+    @Published var sectionHeaderTheme: SectionHeaderTheme {
+        didSet {
+            if let encoded = try? JSONEncoder().encode(sectionHeaderTheme.persistedValue) {
+                UserDefaults.standard.set(encoded, forKey: sectionHeaderThemeKey)
+            }
+        }
+    }
+
+    var isCustomTheme: Bool { appWideColors != nil }
 
     var resolvedColors: AppWideColors {
         appWideColors ?? AppWideColors.default(for: currentTheme)
@@ -402,7 +413,9 @@ final class ThemeManager: ObservableObject {
     var secondaryText: Color { secondaryTextColor }
     var background: Color { appBackgroundColor }
     var surface: Color { cardBackgroundColor }
-    var currentThemeID: String { "\(currentTheme.rawValue)-\(resolvedColors.appBackground)-\(resolvedColors.cardBackground)-\(resolvedColors.accent)" }
+    var currentThemeID: String {
+        "\(currentTheme.rawValue)-\(resolvedColors.appBackground)-\(resolvedColors.cardBackground)-\(resolvedColors.accent)-\(sectionHeaderTheme.background.toHex() ?? "")-\(sectionHeaderTheme.textColor.toHex() ?? "")-\(sectionHeaderTheme.iconColor.toHex() ?? "")-\(sectionHeaderTheme.dividerColor.toHex() ?? "")"
+    }
 
     // MARK: - UIKit Color Helpers
     var accentUIColor: UIColor { UIColor(hex: resolvedColors.accent) }
@@ -427,6 +440,12 @@ final class ThemeManager: ObservableObject {
         if let data = UserDefaults.standard.data(forKey: "app.appWideColors") {
             self.appWideColors = try? JSONDecoder().decode(AppWideColors.self, from: data)
         }
+        if let data = UserDefaults.standard.data(forKey: sectionHeaderThemeKey),
+           let persisted = try? JSONDecoder().decode(PersistedSectionHeaderTheme.self, from: data) {
+            self.sectionHeaderTheme = SectionHeaderTheme(persisted: persisted)
+        } else {
+            self.sectionHeaderTheme = SectionHeaderTheme.default(for: appWideColors ?? AppWideColors.default(for: currentTheme))
+        }
 
         applyUIKitAppearance()
     }
@@ -434,7 +453,12 @@ final class ThemeManager: ObservableObject {
     func setTheme(_ theme: AppTheme) {
         currentTheme = theme
         appWideColors = nil
+        sectionHeaderTheme = SectionHeaderTheme.default(for: AppWideColors.default(for: theme))
         applyUIKitAppearance()
+    }
+
+    func applyTheme(_ theme: AppTheme) {
+        setTheme(theme)
     }
 
     func updateColor(keyPath: WritableKeyPath<AppWideColors, String>, hex: String) {
@@ -446,6 +470,7 @@ final class ThemeManager: ObservableObject {
 
     func resetToThemeDefaults() {
         appWideColors = nil
+        sectionHeaderTheme = SectionHeaderTheme.default(for: AppWideColors.default(for: currentTheme))
         applyUIKitAppearance()
     }
 

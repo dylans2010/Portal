@@ -22,6 +22,10 @@ struct ColorTheme: Identifiable, Codable, Equatable {
     var glowIntensity: Double?
     var borderWidth: Double?
     var cardOpacity: Double?
+    var sectionHeaderBackground: String?
+    var sectionHeaderTextColor: String?
+    var sectionHeaderIconColor: String?
+    var sectionHeaderDividerColor: String?
 
     // Context-Aware & Time-Based
     var appearanceMode: Int? = 0 // 0: Auto, 1: Light, 2: Dark
@@ -170,40 +174,45 @@ struct ColorCustomizationView: View {
     private var allThemes: [ColorTheme] { presetThemes + userThemes }
 
     var body: some View {
-        List {
-            if showHeaderViews {
-                Section {
-                    ColorHeaderView()
-                        .listRowInsets(EdgeInsets())
-                        .listRowBackground(Color.clear)
-                }
-            }
+        ZStack {
+            themeManager.background.ignoresSafeArea()
 
-            Section {
-                Picker("Section", selection: $selectedSection) {
-                    ForEach(EditorSection.allCases) { section in
-                        Label(section.rawValue, systemImage: section.icon).tag(section)
+            ScrollView {
+                VStack(spacing: 16) {
+                    if showHeaderViews {
+                        ColorHeaderView()
                     }
+
+                    Picker("Section", selection: $selectedSection) {
+                        ForEach(EditorSection.allCases) { section in
+                            Label(section.rawValue, systemImage: section.icon).tag(section)
+                        }
+                    }
+                    .pickerStyle(.segmented)
+                    .padding(12)
+                    .background(themeManager.sectionHeaderTheme.background)
+                    .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+
+                    switch selectedSection {
+                    case .overview:
+                        overviewSection
+                    case .intelligent:
+                        intelligentThemeFeaturesSection
+                    case .advanced:
+                        advancedThemeFeaturesSection
+                    case .sections:
+                        customizationLinksSection
+                    }
+
+                    actionsSection
                 }
-                .pickerStyle(.segmented)
+                .padding(.horizontal, 16)
+                .padding(.vertical, 12)
             }
-            .listRowBackground(Color.clear)
-
-            switch selectedSection {
-            case .overview:
-                overviewSection
-            case .intelligent:
-                intelligentThemeFeaturesSection
-            case .advanced:
-                advancedThemeFeaturesSection
-            case .sections:
-                customizationLinksSection
-            }
-
-            actionsSection
         }
         .navigationTitle("Visual Design")
         .appWideHeaderTitle(displayMode: .inline)
+        .id(themeManager.currentThemeID)
         .onAppear(perform: loadColors)
         .sheet(isPresented: $showImagePicker) {
             ImagePicker(image: $selectedImage)
@@ -253,11 +262,8 @@ struct ColorCustomizationView: View {
     }
 
     private var overviewSection: some View {
-        Group {
-            Section {
-                appWideButton
-            }
-
+        VStack(spacing: 16) {
+            appWideButton
             appWideThemesSection
         }
     }
@@ -306,11 +312,17 @@ struct ColorCustomizationView: View {
     }
 
     private var appWideThemesSection: some View {
-        Section {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(String.localized("Built In Themes"))
+                .font(.caption)
+                .fontWeight(.semibold)
+                .textCase(.uppercase)
+                .foregroundStyle(themeManager.sectionHeaderTheme.textColor)
+
             ForEach(AppTheme.allCases) { theme in
                 let colors = AppWideColors.default(for: theme)
                 Button {
-                    themeManager.setTheme(theme)
+                    themeManager.applyTheme(theme)
                 } label: {
                     RoundedRectangle(cornerRadius: 16)
                         .fill(Color(hex: colors.appBackground))
@@ -392,12 +404,7 @@ struct ColorCustomizationView: View {
                         )
                 }
                 .buttonStyle(.plain)
-                .listRowBackground(Color.clear)
-                .listRowInsets(EdgeInsets(top: 4, leading: 16, bottom: 4, trailing: 16))
             }
-        } header: {
-            Text(String.localized("Built In Themes"))
-                .foregroundStyle(themeManager.headerTextColor)
         }
     }
 
@@ -502,7 +509,7 @@ struct ColorCustomizationView: View {
             }
             .padding(.horizontal, 16)
             .padding(.vertical, 13)
-            .background(themeManager.cardBackgroundColor)
+            .background(themeManager.sectionHeaderTheme.background)
             .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
         }
         .buttonStyle(.plain)
@@ -696,36 +703,49 @@ struct ColorCustomizationView: View {
     }
 
     private var customizationLinksSection: some View {
-        Section {
+        VStack(alignment: .leading, spacing: 8) {
+            Label("Customization", systemImage: "slider.horizontal.3")
+                .font(.caption)
+                .fontWeight(.semibold)
+                .textCase(.uppercase)
+                .foregroundStyle(themeManager.sectionHeaderTheme.textColor)
+
+            VStack(spacing: 0) {
             NavigationLink(destination: AllAppsCustomizationView()) {
                 Label("All Apps", systemImage: "square.grid.2x2.fill")
-                    .foregroundStyle(themeManager.iconTintColor)
+                    .foregroundStyle(themeManager.sectionHeaderTheme.iconColor)
             }
+            Divider().background(themeManager.sectionHeaderTheme.dividerColor)
             NavigationLink(destination: AppHideElementsView()) {
                 Label("Hide UI Elements", systemImage: "eye.slash.fill")
-                    .foregroundStyle(themeManager.iconTintColor)
+                    .foregroundStyle(themeManager.sectionHeaderTheme.iconColor)
             }
+            Divider().background(themeManager.sectionHeaderTheme.dividerColor)
             NavigationLink(destination: StatusBarCustomizationView()) {
                 Label("Status Bar", systemImage: "rectangle.topthird.inset.filled")
-                    .foregroundStyle(themeManager.iconTintColor)
+                    .foregroundStyle(themeManager.sectionHeaderTheme.iconColor)
             }
+            Divider().background(themeManager.sectionHeaderTheme.dividerColor)
             NavigationLink(destination: TabBarCustomizationView()) {
                 Label("Tab Bar", systemImage: "dock.rectangle")
-                    .foregroundStyle(themeManager.iconTintColor)
+                    .foregroundStyle(themeManager.sectionHeaderTheme.iconColor)
             }
             if ProcessInfo.processInfo.operatingSystemVersion.majorVersion >= 16 {
+                Divider().background(themeManager.sectionHeaderTheme.dividerColor)
                 NavigationLink(destination: KeyboardCustomizationView()) {
                     Label("Keyboard Backdrop", systemImage: "keyboard")
-                        .foregroundStyle(themeManager.iconTintColor)
+                        .foregroundStyle(themeManager.sectionHeaderTheme.iconColor)
                 }
             }
+            Divider().background(themeManager.sectionHeaderTheme.dividerColor)
             NavigationLink(destination: TopViewAppearance()) {
                 Label("Top View", systemImage: "uiwindow.split.2x1")
-                    .foregroundStyle(themeManager.iconTintColor)
+                    .foregroundStyle(themeManager.sectionHeaderTheme.iconColor)
             }
-        } header: {
-            Label("Customization", systemImage: "slider.horizontal.3")
-                .foregroundStyle(themeManager.headerTextColor)
+            }
+            .padding(12)
+            .background(themeManager.sectionHeaderTheme.background)
+            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
         }
     }
 
@@ -873,21 +893,37 @@ struct ColorCustomizationView: View {
     }
 
     private var actionsSection: some View {
-        Section {
-            Button {
-                showSaveAlert = true
-            } label: {
-                Label("Save Current Style", systemImage: "plus.circle.fill")
-                    .foregroundStyle(themeManager.accentColor)
-            }
-            .disabled(appState.isSigning)
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Actions")
+                .font(.caption)
+                .fontWeight(.semibold)
+                .textCase(.uppercase)
+                .foregroundStyle(themeManager.sectionHeaderTheme.textColor)
 
-            Button(role: .destructive) {
-                showResetAlert = true
-            } label: {
-                Label("Reset To Defaults", systemImage: "arrow.counterclockwise")
+            VStack(spacing: 0) {
+                if themeManager.isCustomTheme {
+                    Button {
+                        showSaveAlert = true
+                    } label: {
+                        Label("Save Current Style", systemImage: "plus.circle.fill")
+                            .foregroundStyle(themeManager.accentColor)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                    }
+                    .disabled(appState.isSigning)
+                    Divider().background(themeManager.sectionHeaderTheme.dividerColor)
+                }
+
+                Button(role: .destructive) {
+                    showResetAlert = true
+                } label: {
+                    Label("Reset To Defaults", systemImage: "arrow.counterclockwise")
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
+                .disabled(appState.isSigning)
             }
-            .disabled(appState.isSigning)
+            .padding(12)
+            .background(themeManager.sectionHeaderTheme.background)
+            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
         }
     }
 
@@ -1180,6 +1216,17 @@ struct ColorCustomizationView: View {
         if let gi = theme.glowIntensity { glowIntensity = gi }
         if let bw = theme.borderWidth { borderWidth = bw }
         if let co = theme.cardOpacity { cardOpacity = co }
+        if let sectionBackground = theme.sectionHeaderBackground,
+           let sectionTextColor = theme.sectionHeaderTextColor,
+           let sectionIconColor = theme.sectionHeaderIconColor,
+           let sectionDividerColor = theme.sectionHeaderDividerColor {
+            themeManager.sectionHeaderTheme = SectionHeaderTheme(
+                background: Color(hex: sectionBackground),
+                textColor: Color(hex: sectionTextColor),
+                iconColor: Color(hex: sectionIconColor),
+                dividerColor: Color(hex: sectionDividerColor)
+            )
+        }
         loadColors()
         syncThemeManagerColors()
         HapticsManager.shared.success()
@@ -1204,7 +1251,11 @@ struct ColorCustomizationView: View {
             errorColor: errorColor.toHex(),
             glowIntensity: glowIntensity,
             borderWidth: borderWidth,
-            cardOpacity: cardOpacity
+            cardOpacity: cardOpacity,
+            sectionHeaderBackground: themeManager.sectionHeaderTheme.background.toHex(),
+            sectionHeaderTextColor: themeManager.sectionHeaderTheme.textColor.toHex(),
+            sectionHeaderIconColor: themeManager.sectionHeaderTheme.iconColor.toHex(),
+            sectionHeaderDividerColor: themeManager.sectionHeaderTheme.dividerColor.toHex()
         )
         var updatedThemes = userThemes
         updatedThemes.append(newTheme)
@@ -1232,6 +1283,10 @@ struct ColorCustomizationView: View {
             glowIntensity: glowIntensity,
             borderWidth: borderWidth,
             cardOpacity: cardOpacity,
+            sectionHeaderBackground: themeManager.sectionHeaderTheme.background.toHex(),
+            sectionHeaderTextColor: themeManager.sectionHeaderTheme.textColor.toHex(),
+            sectionHeaderIconColor: themeManager.sectionHeaderTheme.iconColor.toHex(),
+            sectionHeaderDividerColor: themeManager.sectionHeaderTheme.dividerColor.toHex(),
             appearanceMode: 0,
             scheduleMode: 0,
             highContrast: highContrast,
@@ -1309,6 +1364,7 @@ struct ColorCustomizationView: View {
         colors.switchTint = tintColor.toHex() ?? tintColorHex
         colors.selectionIndicator = tintColor.toHex() ?? tintColorHex
         themeManager.appWideColors = colors
+        themeManager.sectionHeaderTheme = SectionHeaderTheme.default(for: colors)
         themeManager.applyUIKitAppearance()
     }
 }
@@ -1594,6 +1650,7 @@ private struct AppWideColorPickerSheet: View {
                         themeManager.updateColor(keyPath: \.badgeText, hex: draft.badgeText)
                         themeManager.updateColor(keyPath: \.switchTint, hex: draft.switchTint)
                         themeManager.updateColor(keyPath: \.selectionIndicator, hex: draft.selectionIndicator)
+                        themeManager.sectionHeaderTheme = SectionHeaderTheme.default(for: draft)
 
                         dismiss()
                     }
