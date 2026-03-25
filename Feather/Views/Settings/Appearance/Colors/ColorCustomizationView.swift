@@ -1477,9 +1477,11 @@ private struct AppWideColorPickerSheet: View {
     @EnvironmentObject var themeManager: AppWideThemeManager
     @Environment(\.dismiss) var dismiss
     @State private var draft: AppWideColors
+    @State private var initialSectionHeaderTheme: SectionHeaderTheme
 
     init() {
         _draft = State(initialValue: ThemeManager.shared.resolvedColors)
+        _initialSectionHeaderTheme = State(initialValue: ThemeManager.shared.sectionHeaderTheme)
     }
 
     var body: some View {
@@ -1514,15 +1516,62 @@ private struct AppWideColorPickerSheet: View {
                     ColorPickerRow(label: "Selection / Check",  color: $draft.selectionIndicator)
                 }
 
-                Section("STRUCTURE") {
-                    ColorPickerRow(label: "Grouped Background", color: $draft.groupedBackground)
-                    ColorPickerRow(label: "Section Headers",    color: $draft.headerText)
-                    ColorPickerRow(label: "Cell Highlight",     color: $draft.cellHighlight)
+                Section("APP WIDE COLORS") {
+                    VStack(alignment: .leading, spacing: 16) {
+                        sectionHeaderColorControl(
+                            title: "Headers",
+                            description: "Controls section titles and header text",
+                            selection: Binding(
+                                get: { themeManager.sectionHeaderTheme.textColor },
+                                set: { color in
+                                    var updated = themeManager.sectionHeaderTheme
+                                    updated.textColor = color
+                                    themeManager.sectionHeaderTheme = updated
+                                }
+                            )
+                        )
+                        sectionHeaderColorControl(
+                            title: "Sections",
+                            description: "Controls section backgrounds and grouped areas",
+                            selection: Binding(
+                                get: { themeManager.sectionHeaderTheme.background },
+                                set: { color in
+                                    var updated = themeManager.sectionHeaderTheme
+                                    updated.background = color
+                                    themeManager.sectionHeaderTheme = updated
+                                }
+                            )
+                        )
+                        sectionHeaderColorControl(
+                            title: "Header Icons",
+                            description: "Controls icons inside section headers",
+                            selection: Binding(
+                                get: { themeManager.sectionHeaderTheme.iconColor },
+                                set: { color in
+                                    var updated = themeManager.sectionHeaderTheme
+                                    updated.iconColor = color
+                                    themeManager.sectionHeaderTheme = updated
+                                }
+                            )
+                        )
+                        sectionHeaderColorControl(
+                            title: "Dividers",
+                            description: "Controls lines between sections",
+                            selection: Binding(
+                                get: { themeManager.sectionHeaderTheme.dividerColor },
+                                set: { color in
+                                    var updated = themeManager.sectionHeaderTheme
+                                    updated.dividerColor = color
+                                    themeManager.sectionHeaderTheme = updated
+                                }
+                            )
+                        )
+                    }
+                    .padding(.vertical, 4)
                 }
 
-                Section("BADGES") {
-                    ColorPickerRow(label: "Badge Background",   color: $draft.badgeBackground)
-                    ColorPickerRow(label: "Badge Text",         color: $draft.badgeText)
+                Section("SURFACE STATES") {
+                    ColorPickerRow(label: "Cell Highlight",     color: $draft.cellHighlight)
                 }
 
                 Section("PREVIEW") {
@@ -1563,24 +1612,17 @@ private struct AppWideColorPickerSheet: View {
                                     )
                                     .padding(.horizontal)
 
-                                // Row with badge and indicator
+                                // Row with status and indicator
                                 RoundedRectangle(cornerRadius: 12)
                                     .fill(Color(hex: draft.cellHighlight))
                                     .frame(height: 50)
                                     .overlay(
                                         HStack {
-                                            Text("Badge Item")
+                                            Text("Status Item")
                                                 .font(.subheadline)
                                                 .foregroundStyle(Color(hex: draft.primaryText))
 
                                             Spacer()
-
-                                            Text("NEW")
-                                                .font(.system(size: 10, weight: .bold))
-                                                .foregroundStyle(Color(hex: draft.badgeText))
-                                                .padding(.horizontal, 8)
-                                                .padding(.vertical, 4)
-                                                .background(Color(hex: draft.badgeBackground), in: Capsule())
 
                                             Image(systemName: "checkmark")
                                                 .font(.caption.bold())
@@ -1625,7 +1667,10 @@ private struct AppWideColorPickerSheet: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") { dismiss() }
+                    Button("Cancel") {
+                        themeManager.sectionHeaderTheme = initialSectionHeaderTheme
+                        dismiss()
+                    }
                 }
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Apply") {
@@ -1644,18 +1689,27 @@ private struct AppWideColorPickerSheet: View {
                         themeManager.updateColor(keyPath: \.buttonBackground, hex: draft.buttonBackground)
                         themeManager.updateColor(keyPath: \.buttonText, hex: draft.buttonText)
                         themeManager.updateColor(keyPath: \.iconTint, hex: draft.iconTint)
-                        themeManager.updateColor(keyPath: \.groupedBackground, hex: draft.groupedBackground)
-                        themeManager.updateColor(keyPath: \.headerText, hex: draft.headerText)
-                        themeManager.updateColor(keyPath: \.badgeBackground, hex: draft.badgeBackground)
-                        themeManager.updateColor(keyPath: \.badgeText, hex: draft.badgeText)
                         themeManager.updateColor(keyPath: \.switchTint, hex: draft.switchTint)
                         themeManager.updateColor(keyPath: \.selectionIndicator, hex: draft.selectionIndicator)
-                        themeManager.sectionHeaderTheme = SectionHeaderTheme.default(for: draft)
 
                         dismiss()
                     }
                 }
             }
+        }
+    }
+
+    @ViewBuilder
+    private func sectionHeaderColorControl(
+        title: String,
+        description: String,
+        selection: Binding<Color>
+    ) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            ColorPicker(title, selection: selection, supportsOpacity: false)
+            Text(description)
+                .font(.caption)
+                .foregroundStyle(themeManager.secondaryText)
         }
     }
 }
