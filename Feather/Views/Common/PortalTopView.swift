@@ -18,7 +18,8 @@ struct PortalTopView: View {
     @AppStorage("Feather.portalTopViewGlassIntensity") private var glassIntensity: Int = 0
     @AppStorage("feature_forceHideTopView") private var forceHideTopView: Bool = false
 
-    @State private var isScreenshotting = false
+    var isPreview: Bool = false
+
     private var material: Material {
         switch portalTopViewStyle {
         case 1: return .thinMaterial
@@ -54,22 +55,13 @@ struct PortalTopView: View {
 
     var body: some View {
         GeometryReader { geometry in
-            if shouldRenderTopView(safeAreaTop: geometry.safeAreaInsets.top) {
+            if isPreview {
+                overlayContent(hasDynamicIsland: false)
+            } else if portalTopViewEnabled && !forceHideTopView {
                 overlayContent(hasDynamicIsland: hasDynamicIsland(safeAreaTop: geometry.safeAreaInsets.top))
                     .allowsHitTesting(false)
                     .zIndex(999_999)
                     .ignoresSafeArea(.all, edges: .top)
-            }
-        }
-        .onReceive(NotificationCenter.default.publisher(for: UIApplication.userDidTakeScreenshotNotification)) { _ in
-            guard portalTopViewEnabled, !forceHideTopView else { return }
-            withAnimation(.spring(response: 0.35, dampingFraction: 0.85)) {
-                isScreenshotting = true
-            }
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.9) {
-                withAnimation(.easeOut(duration: 0.25)) {
-                    isScreenshotting = false
-                }
             }
         }
     }
@@ -80,9 +72,21 @@ struct PortalTopView: View {
             HStack {
                 Spacer()
                 topPill(hasDynamicIsland: hasDynamicIsland)
+                    .shadow(color: themeManager.primaryTextColor.opacity(0.12), radius: 12, x: 0, y: 6)
+                    .overlay {
+                        if !isPreview {
+                            // The "Reverse Secure Field" Mask
+                            // This mask is visible to the user (hiding the pill and its shadow)
+                            // But is automatically excluded from screenshots by the OS
+                            ScreenshotPreventingView {
+                                themeManager.navigationBarColor
+                                    .padding(-20) // Ensure the shadow is also covered
+                            }
+                            .allowsHitTesting(false)
+                        }
+                    }
                 Spacer()
             }
-            .shadow(color: themeManager.primaryTextColor.opacity(0.12), radius: 12, x: 0, y: 6)
             Spacer(minLength: 0)
         }
         .frame(maxWidth: .infinity)
@@ -109,7 +113,7 @@ struct PortalTopView: View {
                 if portalTopViewShowVersion {
                     Text(Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "3.0")
                         .font(.system(size: 8, weight: .bold, design: .monospaced))
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(themeManager.secondaryTextColor)
                         .opacity(0.8)
                 }
             }
@@ -165,13 +169,6 @@ struct PortalTopView: View {
                     lineWidth: 0.5
                 )
         }
-    }
-
-    private func shouldRenderTopView(safeAreaTop: CGFloat) -> Bool {
-        portalTopViewEnabled
-            && !forceHideTopView
-            && isScreenshotting
-            && !hasDynamicIsland(safeAreaTop: safeAreaTop)
     }
 
     private func hasDynamicIsland(safeAreaTop: CGFloat) -> Bool {
