@@ -268,32 +268,35 @@ struct ColorCustomizationView: View {
     }
 
     private var advancedThemeFeaturesSection: some View {
-        AdvancedThemeFeaturesView(
-            highContrast: $highContrast,
-            autoContrastCorrection: $autoContrastCorrection,
-            colorBlindnessFilter: $colorBlindnessFilter,
-            hapticIntensity: $hapticIntensity,
-            visualFeedbackStrength: $visualFeedbackStrength,
-            layerBlendMode: $layerBlendMode,
-            parallaxEnabled: $parallaxEnabled,
-            motionGradients: $motionGradients,
-            performanceMode: $performanceMode,
-            advancedSliderRow: { title, value, range, step, unit, isPercent, icon in
-                AnyView(
-                    advancedSliderRow(
-                        title: title,
-                        value: value,
-                        range: range,
-                        step: step,
-                        unit: unit,
-                        isPercent: isPercent,
-                        icon: icon
+        VStack(spacing: 16) {
+            intelligentThemeFeaturesSection
+            AdvancedThemeFeaturesView(
+                highContrast: $highContrast,
+                autoContrastCorrection: $autoContrastCorrection,
+                colorBlindnessFilter: $colorBlindnessFilter,
+                hapticIntensity: $hapticIntensity,
+                visualFeedbackStrength: $visualFeedbackStrength,
+                layerBlendMode: $layerBlendMode,
+                parallaxEnabled: $parallaxEnabled,
+                motionGradients: $motionGradients,
+                performanceMode: $performanceMode,
+                advancedSliderRow: { title, value, range, step, unit, isPercent, icon in
+                    AnyView(
+                        advancedSliderRow(
+                            title: title,
+                            value: value,
+                            range: range,
+                            step: step,
+                            unit: unit,
+                            isPercent: isPercent,
+                            icon: icon
+                        )
                     )
-                )
-            },
-            onExportTheme: exportTheme,
-            onImportTheme: importTheme
-        )
+                },
+                onExportTheme: exportTheme,
+                onImportTheme: importTheme
+            )
+        }
     }
 
     private var appWideThemesSection: some View {
@@ -688,14 +691,7 @@ struct ColorCustomizationView: View {
     }
 
     private var customizationLinksSection: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Label("Customization", systemImage: "slider.horizontal.3")
-                .font(.caption)
-                .fontWeight(.semibold)
-                .textCase(.uppercase)
-                .foregroundStyle(themeManager.sectionHeaderTheme.textColor)
-
-            VStack(spacing: 0) {
+        VStack(spacing: 0) {
             NavigationLink(destination: AllAppsCustomizationView()) {
                 Label("All Apps", systemImage: "square.grid.2x2.fill")
                     .foregroundStyle(themeManager.sectionHeaderTheme.iconColor)
@@ -727,11 +723,10 @@ struct ColorCustomizationView: View {
                 Label("Top View", systemImage: "uiwindow.split.2x1")
                     .foregroundStyle(themeManager.sectionHeaderTheme.iconColor)
             }
-            }
-            .padding(12)
-            .background(themeManager.sectionHeaderTheme.background)
-            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
         }
+        .padding(12)
+        .background(themeManager.sectionHeaderTheme.background)
+        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
     }
 
     private var contextAwareSection: some View {

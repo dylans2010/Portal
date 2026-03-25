@@ -9,6 +9,8 @@ import NimbleViews
 /// display, and visual effects like gradients and glass overlays.
 struct TopViewAppearance: View {
     @EnvironmentObject var themeManager: AppWideThemeManager
+    @AppStorage("Feather.portalTopViewEnabled") private var portalTopViewEnabled: Bool = true
+    @AppStorage("feature_forceHideTopView") private var forceHideTopView: Bool = false
     @AppStorage("Feather.portalTopViewColor") private var portalTopViewColor: String = "#0077BE"
     @AppStorage("Feather.portalTopViewStyle") private var portalTopViewStyle: Int = 0
     @AppStorage("Feather.portalTopViewTextColor") private var portalTopViewTextColor: String = "#FFFFFF"
@@ -34,7 +36,7 @@ struct TopViewAppearance: View {
                             .fill(Color.secondary.opacity(0.05))
                             .frame(height: 100)
 
-                        PortalTopView()
+                        TopViewPreviewPill()
                             .scaleEffect(1.2)
                             .frame(height: 40)
                     }
@@ -42,18 +44,25 @@ struct TopViewAppearance: View {
                 .padding(.vertical, 8)
             }
 
-            // MARK: - Enable Toggle (always enabled, cannot be disabled)
+            // MARK: - Enable Toggle
             Section {
-                HStack {
-                    Label("Enable Top View", systemImage: "uiwindow.split.2x1")
-                        .font(.system(.body, design: .rounded, weight: .medium))
-                    Spacer()
-                    Text("Default")
-                        .font(.system(.subheadline, design: .rounded))
-                        .themedText(.secondary)
+                if forceHideTopView {
+                    Toggle(isOn: $portalTopViewEnabled) {
+                        Label("Enable Top View", systemImage: "uiwindow.split.2x1")
+                            .font(.system(.body, design: .rounded, weight: .medium))
+                    }
+                } else {
+                    HStack {
+                        Label("Enable Top View", systemImage: "uiwindow.split.2x1")
+                            .font(.system(.body, design: .rounded, weight: .medium))
+                        Spacer()
+                        Text("Default")
+                            .font(.system(.subheadline, design: .rounded))
+                            .themedText(.secondary)
+                    }
                 }
             } footer: {
-                Text("The Top View is always enabled to provide a consistent experience and show off Portal.")
+                Text("Top View only appears during screenshot capture. Enable the Developer flag “Force Hide Top View” to manually control this switch.")
             }
 
             // MARK: - Colors
@@ -166,6 +175,43 @@ struct TopViewAppearance: View {
         .globalTheme()
         .navigationTitle("Top View")
         .navigationBarTitleDisplayMode(.inline)
+    }
+}
+
+private struct TopViewPreviewPill: View {
+    @AppStorage("Feather.portalTopViewColor") private var portalTopViewColor: String = "#0077BE"
+    @AppStorage("Feather.portalTopViewTextColor") private var portalTopViewTextColor: String = "#FFFFFF"
+    @AppStorage("Feather.portalTopViewShowVersion") private var portalTopViewShowVersion: Bool = true
+    @AppStorage("Feather.portalTopViewTitle") private var portalTopViewTitle: String = "Portal"
+
+    var body: some View {
+        HStack(spacing: 8) {
+            Image(systemName: "camera.viewfinder")
+                .font(.system(size: 11, weight: .bold))
+                .foregroundStyle(Color(hex: portalTopViewTextColor))
+            VStack(alignment: .leading, spacing: -1) {
+                Text(portalTopViewTitle.isEmpty ? "Portal" : portalTopViewTitle)
+                    .font(.system(size: 12, weight: .bold, design: .rounded))
+                    .foregroundStyle(Color(hex: portalTopViewTextColor))
+                if portalTopViewShowVersion {
+                    Text(Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "3.0")
+                        .font(.system(size: 8, weight: .bold, design: .monospaced))
+                        .foregroundStyle(Color(hex: portalTopViewTextColor).opacity(0.7))
+                }
+            }
+        }
+        .padding(.horizontal, 14)
+        .padding(.vertical, 8)
+        .background(
+            Capsule()
+                .fill(
+                    LinearGradient(
+                        colors: [Color(hex: portalTopViewColor).opacity(0.22), Color(hex: portalTopViewColor).opacity(0.1)],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                )
+        )
     }
 }
 

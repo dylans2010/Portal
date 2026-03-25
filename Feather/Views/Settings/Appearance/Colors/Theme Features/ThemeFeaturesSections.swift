@@ -3,23 +3,14 @@ import SwiftUI
 private struct ThemeFeatureSection<Content: View>: View {
     @EnvironmentObject private var themeManager: AppWideThemeManager
     let title: String
-    let icon: String?
     let footer: String?
     @ViewBuilder let content: () -> Content
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            HStack(spacing: 8) {
-                if let icon {
-                    Image(systemName: icon)
-                        .foregroundStyle(themeManager.sectionHeaderTheme.iconColor)
-                }
-                Text(title)
-                    .font(.caption)
-                    .fontWeight(.semibold)
-                    .textCase(.uppercase)
-                    .foregroundStyle(themeManager.sectionHeaderTheme.textColor)
-            }
+            Text(title)
+                .font(.headline)
+                .foregroundStyle(themeManager.primaryTextColor)
 
             VStack(spacing: 0) {
                 content()
@@ -52,7 +43,6 @@ struct IntelligentThemeFeaturesView: View {
         VStack(spacing: 16) {
             ThemeFeatureSection(
                 title: String.localized("System Integration"),
-                icon: "bolt.badge.automatic.fill",
                 footer: String.localized("Automatically switch themes based on Low Power Mode or Focus filters.")
             ) {
                 Toggle(isOn: $contextTheming) {
@@ -79,7 +69,7 @@ struct IntelligentThemeFeaturesView: View {
                 }
             }
 
-            ThemeFeatureSection(title: String.localized("Time-Based Theming"), icon: "clock.fill", footer: nil) {
+            ThemeFeatureSection(title: String.localized("Time-Based Theming"), footer: nil) {
                 Toggle(isOn: $timeBasedTheming) {
                     Label(String.localized("Schedule Themes"), systemImage: "clock.fill")
                 }
@@ -109,7 +99,6 @@ struct IntelligentThemeFeaturesView: View {
 
             ThemeFeatureSection(
                 title: String.localized("Dynamic Wallpaper Integration"),
-                icon: "photo.on.rectangle.angled",
                 footer: String.localized("Auto-generate a theme palette from your favorite wallpaper or image.")
             ) {
                 Button {
@@ -119,7 +108,7 @@ struct IntelligentThemeFeaturesView: View {
                 }
             }
 
-            ThemeFeatureSection(title: String.localized("View Overrides"), icon: "rectangle.3.group", footer: nil) {
+            ThemeFeatureSection(title: String.localized("View Overrides"), footer: nil) {
                 NavigationLink {
                     PerScreenThemeView(allThemes: allThemes)
                 } label: {
@@ -147,7 +136,7 @@ struct AdvancedThemeFeaturesView: View {
 
     var body: some View {
         VStack(spacing: 16) {
-            ThemeFeatureSection(title: String.localized("Accessibility"), icon: "figure.wave", footer: nil) {
+            ThemeFeatureSection(title: String.localized("Accessibility"), footer: nil) {
                 Toggle(String.localized("High Contrast Mode"), isOn: $highContrast)
                     .tint(themeManager.accentColor)
                 Divider().background(themeManager.sectionHeaderTheme.dividerColor)
@@ -162,7 +151,7 @@ struct AdvancedThemeFeaturesView: View {
                 }
             }
 
-            ThemeFeatureSection(title: String.localized("Haptic & Visual Feedback"), icon: "waveform", footer: nil) {
+            ThemeFeatureSection(title: String.localized("Haptic & Visual Feedback"), footer: nil) {
                 advancedSliderRow(String.localized("Haptic Intensity"), $hapticIntensity, 0...1, 0.1, "", true, "waveform")
                 Divider().background(themeManager.sectionHeaderTheme.dividerColor)
                 advancedSliderRow(String.localized("Visual Feedback"), $visualFeedbackStrength, 0...1, 0.1, "", true, "sparkles")
@@ -170,7 +159,6 @@ struct AdvancedThemeFeaturesView: View {
 
             ThemeFeatureSection(
                 title: String.localized("Experimental Effects"),
-                icon: "wand.and.rays",
                 footer: String.localized("Performance mode reduces heavy blurs and shadows to save battery and increase responsiveness.")
             ) {
                 Picker(String.localized("Layer Blending"), selection: $layerBlendMode) {
@@ -187,7 +175,7 @@ struct AdvancedThemeFeaturesView: View {
                 Toggle(String.localized("Performance Mode"), isOn: $performanceMode).tint(themeManager.accentColor)
             }
 
-            ThemeFeatureSection(title: String.localized("Theme Sharing"), icon: "square.and.arrow.up", footer: nil) {
+            ThemeFeatureSection(title: String.localized("Theme Sharing"), footer: nil) {
                 Button(action: onExportTheme) {
                     Label(String.localized("Export Current Theme Code"), systemImage: "square.and.arrow.up")
                 }
