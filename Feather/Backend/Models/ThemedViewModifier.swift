@@ -105,7 +105,7 @@ struct ThemedListRowModifier: ViewModifier {
     }
 }
 
-struct ThemedSectionHeader: ViewModifier {
+struct ThemedSectionHeaderModifier: ViewModifier {
     @EnvironmentObject var themeManager: ThemeManager
 
     func body(content: Content) -> some View {
@@ -144,6 +144,6 @@ extension View {
     }
 
     func themedSectionHeader() -> some View {
-        self.modifier(ThemedSectionHeader())
+        self.modifier(ThemedSectionHeaderModifier())
     }
 }

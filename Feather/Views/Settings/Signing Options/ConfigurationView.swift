@@ -23,7 +23,7 @@ struct ConfigurationView: View {
                 }
             }
 
-            Section("Quick Actions") {
+            Section {
                 Button {
                     showInstallationOptions = true
                 } label: {
@@ -37,13 +37,18 @@ struct ConfigurationView: View {
                     Label("Default Frameworks", systemImage: "puzzlepiece.extension.fill")
                         .foregroundStyle(themeManager.accentColor)
                 }
+            } header: {
+                ThemedSectionHeader(title: "Quick Actions", icon: "bolt.fill")
             }
 
-            Section("Signing Options") {
+            Section {
                 ModernSigningOptionsCard(options: $optionsManager.options)
+                    .listRowBackground(themeManager.sectionHeaderTheme.background)
+            } header: {
+                ThemedSectionHeader(title: "Signing Options", icon: "checkmark.seal.fill")
             }
 
-            Section("Archive & Compression") {
+            Section {
                 Picker(selection: $_compressionLevel) {
                     ForEach(ZipCompression.allCases, id: \.rawValue) { level in
                         Text(level.label).tag(level.rawValue)
@@ -64,9 +69,13 @@ struct ConfigurationView: View {
                             .foregroundStyle(themeManager.accentColor)
                     }
                 }
+            } header: {
+                ThemedSectionHeader(title: "Archive & Compression", icon: "archivebox.fill")
             }
         }
-            .scrollContentBackground(.hidden)
+        .scrollContentBackground(.hidden)
+        .background(themeManager.background)
+        .id(themeManager.currentThemeID)
         .navigationTitle("Signing Options")
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {

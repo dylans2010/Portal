@@ -46,8 +46,11 @@ struct URLSchemeView: View {
                 schemes: URLSchemeHandlerManager.externalIntegration
             )
         }
+        .scrollContentBackground(.hidden)
+        .background(themeManager.background)
         .listStyle(.insetGrouped)
         .navigationTitle(.localized("URL Schemes"))
+        .id(themeManager.currentThemeID)
         .navigationBarTitleDisplayMode(.inline)
     }
 
@@ -68,13 +71,14 @@ struct URLSchemeView: View {
 
                     Text(info.example)
                         .font(.system(.caption, design: .monospaced))
-                        .foregroundStyle(themeManager.secondaryTextColor.opacity(0.7))
+                        .foregroundStyle(themeManager.secondaryText)
                         .lineLimit(1)
                 }
-                .padding(.vertical, 4)
+                 .padding(.vertical, 10)
+                .listRowBackground(themeManager.sectionHeaderTheme.background)
             }
         } header: {
-            SettingsSectionHeader(title: title, icon: icon)
+            ThemedSectionHeader(title: title, icon: icon)
         }
     }
 }

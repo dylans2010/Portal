@@ -28,7 +28,9 @@ struct JITSettingsView: View {
             helpSection
         }
         .scrollContentBackground(.hidden)
+        .background(themeManager.background)
         .listStyle(.insetGrouped)
+        .id(themeManager.currentThemeID)
         .navigationTitle(String.localized("JIT Enabling"))
         .navigationBarTitleDisplayMode(.inline)
         .sheet(isPresented: $isPairingPresented) {
@@ -97,9 +99,10 @@ struct JITSettingsView: View {
                     ProgressView()
                 }
             }
-            .padding(.vertical, 4)
+            .padding(.vertical, 10)
+            .listRowBackground(themeManager.sectionHeaderTheme.background)
         } header: {
-            SettingsSectionHeader(title: String.localized("Status"), icon: "info.circle.fill")
+            ThemedSectionHeader(title: String.localized("Status"), icon: "info.circle.fill")
         }
     }
 
@@ -134,7 +137,7 @@ struct JITSettingsView: View {
                 .padding(.vertical, 2)
             }
         } header: {
-            SettingsSectionHeader(title: String.localized("Pairing"), icon: "person.badge.key.fill")
+            ThemedSectionHeader(title: String.localized("Pairing"), icon: "person.badge.key.fill")
         } footer: {
             if hasPairing {
                 Text(String.localized("Pairing file loaded and validated."))
@@ -208,7 +211,7 @@ struct JITSettingsView: View {
                 }
             }
         } header: {
-            SettingsSectionHeader(title: String.localized("VPN"), icon: "network")
+            ThemedSectionHeader(title: String.localized("VPN"), icon: "network")
         } footer: {
             Text(String.localized("A loopback VPN is required for debugserver communication over localhost."))
         }
@@ -277,7 +280,7 @@ struct JITSettingsView: View {
                 }
             }
         } header: {
-            SettingsSectionHeader(title: String.localized("Fallback Method"), icon: "arrow.uturn.backward.circle.fill")
+            ThemedSectionHeader(title: String.localized("Fallback Method"), icon: "arrow.uturn.backward.circle.fill")
         } footer: {
             if manager.isIOS264OrLater {
                 Text(String.localized("Looks like you are on iOS 26.4 or later. You need a specific fallback method, don't worry tho, Portal has it set already for you!"))
@@ -331,7 +334,7 @@ struct JITSettingsView: View {
                 }
             }
         } header: {
-            SettingsSectionHeader(title: String.localized("Actions"), icon: "bolt.circle.fill")
+            ThemedSectionHeader(title: String.localized("Actions"), icon: "bolt.circle.fill")
         }
     }
 
@@ -366,7 +369,7 @@ struct JITSettingsView: View {
                 .padding(.vertical, 2)
             }
         } header: {
-            SettingsSectionHeader(title: String.localized("Help"), icon: "books.vertical.fill")
+            ThemedSectionHeader(title: String.localized("Help"), icon: "books.vertical.fill")
         }
     }
 
@@ -385,7 +388,7 @@ struct JITSettingsView: View {
                             .font(.subheadline)
                             .foregroundStyle(themeManager.destructiveColor)
                     } header: {
-                        SettingsSectionHeader(title: String.localized("Error Detail"), icon: "exclamationmark.triangle.fill")
+                        ThemedSectionHeader(title: String.localized("Error Detail"), icon: "exclamationmark.triangle.fill")
                     }
                 }
             }
