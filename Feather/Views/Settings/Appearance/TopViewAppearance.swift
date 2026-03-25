@@ -33,10 +33,10 @@ struct TopViewAppearance: View {
 
                     ZStack {
                         RoundedRectangle(cornerRadius: 20, style: .continuous)
-                            .fill(Color.secondary.opacity(0.05))
+                            .fill(themeManager.cellHighlightColor)
                             .frame(height: 100)
 
-                        TopViewPreviewPill()
+                        PortalTopView(isPreview: true)
                             .scaleEffect(1.2)
                             .frame(height: 40)
                     }
@@ -178,42 +178,6 @@ struct TopViewAppearance: View {
     }
 }
 
-private struct TopViewPreviewPill: View {
-    @AppStorage("Feather.portalTopViewColor") private var portalTopViewColor: String = "#0077BE"
-    @AppStorage("Feather.portalTopViewTextColor") private var portalTopViewTextColor: String = "#FFFFFF"
-    @AppStorage("Feather.portalTopViewShowVersion") private var portalTopViewShowVersion: Bool = true
-    @AppStorage("Feather.portalTopViewTitle") private var portalTopViewTitle: String = "Portal"
-
-    var body: some View {
-        HStack(spacing: 8) {
-            Image(systemName: "camera.viewfinder")
-                .font(.system(size: 11, weight: .bold))
-                .foregroundStyle(Color(hex: portalTopViewTextColor))
-            VStack(alignment: .leading, spacing: -1) {
-                Text(portalTopViewTitle.isEmpty ? "Portal" : portalTopViewTitle)
-                    .font(.system(size: 12, weight: .bold, design: .rounded))
-                    .foregroundStyle(Color(hex: portalTopViewTextColor))
-                if portalTopViewShowVersion {
-                    Text(Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "3.0")
-                        .font(.system(size: 8, weight: .bold, design: .monospaced))
-                        .foregroundStyle(Color(hex: portalTopViewTextColor).opacity(0.7))
-                }
-            }
-        }
-        .padding(.horizontal, 14)
-        .padding(.vertical, 8)
-        .background(
-            Capsule()
-                .fill(
-                    LinearGradient(
-                        colors: [Color(hex: portalTopViewColor).opacity(0.22), Color(hex: portalTopViewColor).opacity(0.1)],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    )
-                )
-        )
-    }
-}
 
 // MARK: - Preview
 
