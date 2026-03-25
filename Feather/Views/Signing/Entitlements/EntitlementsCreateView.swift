@@ -81,25 +81,34 @@ struct EntitlementsCreateView: View {
                     .foregroundStyle(themeManager.secondaryTextColor)
             }
 
-            Section("Common Entitlements") {
+            Section {
                 ForEach($_entitlements) { $item in
                     _entitlementRow(item: $item)
+                        .listRowBackground(themeManager.sectionHeaderTheme.background)
                 }
+            } header: {
+                ThemedSectionHeader(title: "Common Entitlements", icon: "checkmark.shield")
             }
 
-            Section("Shortcuts & Automation") {
+            Section {
                 ForEach($_shortcutsEntitlements) { $item in
                     _entitlementRow(item: $item)
+                        .listRowBackground(themeManager.sectionHeaderTheme.background)
                 }
+            } header: {
+                ThemedSectionHeader(title: "Shortcuts & Automation", icon: "bolt.horizontal.fill")
             }
 
-            Section("iOS 18+ Features") {
+            Section {
                 ForEach($_ios18Entitlements) { $item in
                     _entitlementRow(item: $item)
+                        .listRowBackground(themeManager.sectionHeaderTheme.background)
                 }
+            } header: {
+                ThemedSectionHeader(title: "iOS 18+ Features", icon: "sparkles")
             }
 
-            Section("Custom Entitlement") {
+            Section {
                 VStack(alignment: .leading, spacing: 12) {
                     TextField("Key (e.g. com.apple.security.device.camera)", text: $_customKey)
                         .font(.system(.subheadline, design: .monospaced))
@@ -115,9 +124,15 @@ struct EntitlementsCreateView: View {
                     }
                     .disabled(_customKey.isEmpty || _customValue.isEmpty)
                 }
-                .padding(.vertical, 4)
+                .padding(.vertical, 10)
+                .listRowBackground(themeManager.sectionHeaderTheme.background)
+            } header: {
+                ThemedSectionHeader(title: "Custom Entitlement", icon: "slider.horizontal.3")
             }
         }
+        .scrollContentBackground(.hidden)
+        .background(themeManager.background)
+        .id(themeManager.currentThemeID)
         .navigationTitle("Create Entitlements")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
