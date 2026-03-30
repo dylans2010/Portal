@@ -93,15 +93,16 @@ struct SourcesView: View {
                         customNavigationBar
                         
                         // Main content
-                        VStack(spacing: 20) {
+                        VStack(spacing: 0) {
                             if !_filteredSources.isEmpty {
                                 // Source Cards
                                 sourcesCardsSection
                             } else {
                                 emptyStateView
+                                    .padding(.horizontal, 20)
                             }
                         }
-                        .padding(.horizontal, 20)
+                        .padding(.horizontal, _filteredSources.isEmpty ? 0 : 16)
                         .padding(.bottom, 100)
                     }
                 }
@@ -109,6 +110,7 @@ struct SourcesView: View {
                     await viewModel.fetchSources(Array(_sources), refresh: true)
                 }
             }
+            .searchable(text: $_searchText, prompt: String.localized("Search Sources"))
             .globalTheme()
             .navigationBarHidden(true)
             .fullScreenCover(isPresented: $_isAddingPresenting) {
@@ -152,7 +154,7 @@ struct SourcesView: View {
     private var customNavigationBar: some View {
         HStack(spacing: 16) {
             VStack(alignment: .leading, spacing: 2) {
-                Text(String.localized("Sources"))
+                Text(String.localized("Sources") + " (\(_sources.count))")
                     .font(.system(size: 24, weight: .bold, design: .rounded))
                     .themedText(.primary)
                     .lineLimit(1)
@@ -222,15 +224,22 @@ struct SourcesView: View {
     
     // MARK: - Sources Cards Section
     private var sourcesCardsSection: some View {
-        VStack(spacing: 16) {
+        VStack(spacing: 0) {
             ForEach(_filteredSources) { source in
                 NavigationLink {
                     SourceDetailsView(source: source, viewModel: viewModel)
                 } label: {
-                    ModernSourceCardWithIcon(
-                        source: source,
-                        viewModel: viewModel
-                    )
+                    VStack(spacing: 0) {
+                        ModernSourceCardWithIcon(
+                            source: source,
+                            viewModel: viewModel
+                        )
+
+                        if source != _filteredSources.last {
+                            Divider()
+                                .padding(.leading, 70)
+                        }
+                    }
                 }
                 .buttonStyle(.plain)
                 .onTapGesture(count: 2) {
@@ -594,7 +603,6 @@ struct ModernSourceCardWithIcon: View {
         .padding(.vertical, 12)
         .padding(.horizontal, 4)
         .contentShape(Rectangle())
-        .themedCard()
         .contextMenu {
             Button {
                 viewModel.togglePin(for: source)

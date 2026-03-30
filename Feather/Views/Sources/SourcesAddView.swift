@@ -257,47 +257,54 @@ struct SourcesAddView: View {
         @ViewBuilder
         private var _sourceURLSection: some View {
                 Section {
-                        VStack(spacing: 16) {
-                                HStack(spacing: 12) {
-                                        Image(systemName: "link")
-                                                .font(.system(size: 18, weight: .bold))
-                                                .foregroundStyle(themeManager.accentColor)
-                                                .frame(width: 44, height: 44)
-                                                .background(themeManager.accentColor.opacity(0.12))
-                                                .clipShape(Circle())
-                                        
-                                        TextField(.localized("Repository URL"), text: $_sourceURL)
-                                                .keyboardType(.URL)
-                                                .textInputAutocapitalization(.never)
-                                                .font(.system(.body, design: .rounded, weight: .medium))
-                        .onSubmit {
-                            FR.handleSource(_sourceURL) {
-                                dismiss()
-                            }
-                        }
-                                        
-                                        if !_sourceURL.isEmpty {
+                        HStack(spacing: 12) {
+                                TextField(.localized("Repository URL"), text: $_sourceURL)
+                                        .keyboardType(.URL)
+                                        .textInputAutocapitalization(.never)
+                                        .font(.system(.body, design: .rounded, weight: .medium))
+                                        .onSubmit {
+                                                _addSourceAction()
+                                        }
+
+                                if !_sourceURL.isEmpty {
+                                        HStack(spacing: 8) {
                                                 Button {
                                                         _sourceURL = ""
                                                 } label: {
                                                         Image(systemName: "xmark.circle.fill")
                                                                 .foregroundStyle(.secondary.opacity(0.6))
-                                                                .font(.system(size: 20))
+                                                                .font(.system(size: 18))
+                                                }
+                                                .buttonStyle(.plain)
+
+                                                Button {
+                                                        _addSourceAction()
+                                                } label: {
+                                                        Image(systemName: "plus.circle.fill")
+                                                                .font(.system(size: 22, weight: .bold))
+                                                                .foregroundStyle(themeManager.accentColor)
                                                 }
                                                 .buttonStyle(.plain)
                                         }
                                 }
-                                .padding(4)
                         }
+                        .padding(.vertical, 4)
                         
                         VStack(alignment: .leading, spacing: 6) {
                                 Label(.localized("Only AltStore repositories are supported."), systemImage: "info.circle.fill")
                                 Label(.localized("Supports AltStore and ESign imports."), systemImage: "arrow.triangle.2.circlepath")
                         }
-                        .font(.system(size: 12, weight: .semibold, design: .rounded))
-                        .foregroundStyle(.secondary.opacity(0.8))
+                        .font(.system(size: 11, weight: .semibold, design: .rounded))
+                        .foregroundStyle(.secondary.opacity(0.6))
                 } header: {
                         Text(.localized("Add Source"))
+                }
+        }
+
+        private func _addSourceAction() {
+                guard !_sourceURL.isEmpty else { return }
+                FR.handleSource(_sourceURL) {
+                        dismiss()
                 }
         }
 

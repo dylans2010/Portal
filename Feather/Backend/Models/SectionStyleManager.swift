@@ -125,7 +125,7 @@ struct ThemedSection<Content: View>: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: 10) {
             HStack(spacing: 6) {
                 if let sym = symbol {
                     Image(systemName: sym)
@@ -226,7 +226,7 @@ struct ThemedRow: View {
                 }
             }
             .padding(.horizontal, 16)
-            .padding(.vertical, 13)
+            .padding(.vertical, 14)
             .background(
                 styleManager.currentStyle == .colorMatch
                     ? themeManager.cardBackgroundColor
