@@ -231,6 +231,20 @@ struct ExportingIPAView: View {
         // Signed apps already have their IPA packaged – share directly.
         if let archiveURL = app.archiveURL {
             onDismiss()
+
+            // Handle custom export location
+            if let bookmarkData = UserDefaults.standard.data(forKey: "Feather.exportLocationBookmark") {
+                var isStale = false
+                if let folderURL = try? URL(resolvingBookmarkData: bookmarkData, options: .withoutUI, relativeTo: nil, bookmarkDataIsStale: &isStale),
+                   folderURL.startAccessingSecurityScopedResource() {
+                    defer { folderURL.stopAccessingSecurityScopedResource() }
+
+                    let finalDest = folderURL.appendingPathComponent(archiveURL.lastPathComponent)
+                    try? FileManager.default.copyItem(at: archiveURL, to: finalDest)
+                    AppLogManager.shared.success("Saved IPA to custom location: \(archiveURL.lastPathComponent)", category: "Export")
+                }
+            }
+
             UIActivityViewController.show(activityItems: [archiveURL])
             HapticsManager.shared.success()
             return
@@ -253,6 +267,20 @@ struct ExportingIPAView: View {
 
                 await MainActor.run {
                     onDismiss()
+
+                    // Handle custom export location
+                    if let bookmarkData = UserDefaults.standard.data(forKey: "Feather.exportLocationBookmark") {
+                        var isStale = false
+                        if let folderURL = try? URL(resolvingBookmarkData: bookmarkData, options: .withoutUI, relativeTo: nil, bookmarkDataIsStale: &isStale),
+                           folderURL.startAccessingSecurityScopedResource() {
+                            defer { folderURL.stopAccessingSecurityScopedResource() }
+
+                            let finalDest = folderURL.appendingPathComponent(ipaFileName)
+                            try? FileManager.default.copyItem(at: dest, to: finalDest)
+                            AppLogManager.shared.success("Saved IPA to custom location: \(ipaFileName)", category: "Export")
+                        }
+                    }
+
                     UIActivityViewController.show(activityItems: [dest])
                     HapticsManager.shared.success()
                 }
