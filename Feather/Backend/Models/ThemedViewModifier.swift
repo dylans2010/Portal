@@ -13,7 +13,11 @@ struct ThemedCardModifier: ViewModifier {
     func body(content: Content) -> some View {
         content
             .background(themeManager.surface)
-            .cornerRadius(12)
+            .cornerRadius(10)
+            .overlay(
+                RoundedRectangle(cornerRadius: 10)
+                    .stroke(themeManager.separatorColor.opacity(0.5), lineWidth: 0.5)
+            )
             .clipped()
     }
 }
@@ -58,6 +62,7 @@ struct GlobalThemeModifier: ViewModifier {
             content
                 .scrollContentBackground(.hidden)
         }
+        .animation(.easeInOut, value: themeManager.currentThemeID)
         .background(themeManager.background)
         .toolbarBackground(themeManager.navigationBarColor, for: .navigationBar)
         .toolbarBackground(.visible, for: .navigationBar)

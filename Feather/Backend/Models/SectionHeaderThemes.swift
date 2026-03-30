@@ -33,7 +33,7 @@ extension SectionHeaderTheme {
 
     static func `default`(for colors: AppWideColors) -> SectionHeaderTheme {
         SectionHeaderTheme(
-            background: Color(hex: colors.cardBackground),
+            background: Color.clear,
             textColor: Color(hex: colors.headerText),
             iconColor: Color(hex: colors.iconTint),
             dividerColor: Color(hex: colors.separator)

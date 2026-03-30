@@ -131,21 +131,6 @@ struct AppearanceView: View {
 
             // MARK: - Customization
             Section {
-                NavigationLink(destination: ColorCustomizationView(displayMode: .intelligent)) {
-                    Label("Intelligent Colors", systemImage: "cpu")
-                        .foregroundStyle(themeManager.accentColor)
-                }
-
-                NavigationLink(destination: ColorCustomizationView(displayMode: .advanced)) {
-                    Label("Advanced Colors", systemImage: "wand.and.rays")
-                        .foregroundStyle(themeManager.accentColor)
-                }
-
-                NavigationLink(destination: ColorCustomizationView(displayMode: .sections)) {
-                    Label("Sections", systemImage: "square.grid.2x2.fill")
-                        .foregroundStyle(themeManager.accentColor)
-                }
-
                 NavigationLink(destination: AllAppsCustomizationView()) {
                     Label("All Apps", systemImage: "square.grid.2x2.fill")
                         .foregroundStyle(themeManager.accentColor)

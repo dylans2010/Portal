@@ -507,11 +507,14 @@ final class ThemeManager: ObservableObject {
             .foregroundColor: primaryTextColor,
             .font: typography.largeTitleFont
         ]
+        nav.shadowColor = .clear
 
         UINavigationBar.appearance().standardAppearance = nav
         UINavigationBar.appearance().scrollEdgeAppearance = nav
         UINavigationBar.appearance().compactAppearance = nav
         UINavigationBar.appearance().tintColor = accentUIColor
+
+        UISearchBar.appearance().tintColor = accentUIColor
 
         let tab = UITabBarAppearance()
         tab.configureWithOpaqueBackground()
