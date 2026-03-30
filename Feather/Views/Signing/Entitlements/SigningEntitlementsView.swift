@@ -398,19 +398,8 @@ struct SigningEntitlementsView: View {
         }
 
         do {
-            let provisioningData = try Data(contentsOf: provisioningPath)
-            if let xmlStart = provisioningData.range(of: Data("<?xml".utf8)),
-               let plistEnd = provisioningData.range(of: Data("</plist>".utf8)) {
-                let xmlEndIndex = plistEnd.upperBound
-                let xmlData = provisioningData.subdata(in: xmlStart.lowerBound..<xmlEndIndex)
-
-                if let plist = try PropertyListSerialization.propertyList(from: xmlData, format: nil) as? [String: Any],
-                   let entitlements = plist["Entitlements"] as? [String: Any] {
-
-                    let data = try PropertyListSerialization.data(fromPropertyList: entitlements, format: .xml, options: 0)
-                    let tempURL = FileManager.default.temporaryDirectory.appendingPathComponent("\(app.name ?? "App").entitlements")
-                    try data.write(to: tempURL)
-
+            if let entitlements = try EntitlementsParser.extractFromProvisioning(at: provisioningPath) {
+                if let tempURL = EntitlementsGenerator.writeToTempFile(entitlements: entitlements, fileName: "\(app.name ?? "App").entitlements") {
                     FileManager.default.moveAndStore(tempURL, with: "FeatherEntitlement") { url in
                         bindingValue = url
                         _parseEntitlements(at: url)
@@ -424,11 +413,9 @@ struct SigningEntitlementsView: View {
     }
 
     private func _parseEntitlements(at url: URL) {
-        guard let data = try? Data(contentsOf: url),
-              let plist = try? PropertyListSerialization.propertyList(from: data, options: [], format: nil) as? [String: Any] else {
-            return
+        if let entitlements = EntitlementsParser.parsePlist(at: url) {
+            _parsedEntitlements = entitlements
         }
-        _parsedEntitlements = plist
     }
 
     @ViewBuilder

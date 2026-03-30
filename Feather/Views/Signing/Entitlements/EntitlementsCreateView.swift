@@ -1,15 +1,6 @@
 import SwiftUI
 import UniformTypeIdentifiers
 
-struct EntitlementItem: Identifiable {
-    let id = UUID()
-    var name: String
-    var key: String
-    var value: Any
-    var isEnabled: Bool
-    var symbol: String
-}
-
 struct EntitlementsCreateView: View {
     @EnvironmentObject var themeManager: AppWideThemeManager
     @Environment(\.dismiss) var dismiss
@@ -226,18 +217,12 @@ struct EntitlementsCreateView: View {
     }
 
     private func _export() {
-        let enabledItems = (_entitlements + _shortcutsEntitlements + _ios18Entitlements).filter { $0.isEnabled }
-        var dict: [String: Any] = [:]
-        for item in enabledItems {
-            dict[item.key] = item.value
-        }
+        let allItems = _entitlements + _shortcutsEntitlements + _ios18Entitlements
+        let dict = EntitlementsGenerator.generate(from: allItems)
 
-        guard let data = try? PropertyListSerialization.data(fromPropertyList: dict, format: .xml, options: 0) else {
+        guard let tempURL = EntitlementsGenerator.writeToTempFile(entitlements: dict) else {
             return
         }
-
-        let tempURL = FileManager.default.temporaryDirectory.appendingPathComponent("custom.entitlements")
-        try? data.write(to: tempURL)
 
         _exportURL = tempURL
         _showExportSheet = true
