@@ -179,6 +179,11 @@ struct FeatherApp: App {
                                         }
                                         .overlay(StatusBarOverlay())
                                         .overlay(PortalTopView())
+                                        .overlay(alignment: .bottom) {
+                                            if UserDefaults.standard.bool(forKey: "Feather.continueDownloadInApp") {
+                                                DownloadOnAppBackgroundView()
+                                            }
+                                        }
                                 }
                         }
                         .globalTheme()

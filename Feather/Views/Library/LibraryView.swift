@@ -134,7 +134,7 @@ struct LibraryView: View {
             }
             .sheet(isPresented: $_showImportSelection) {
                 AppAddView()
-                    .presentationDetents([.height(260)])
+                    .presentationDetents([.height(220)])
                     .presentationDragIndicator(.visible)
                     .compatPresentationRadius(24)
             }

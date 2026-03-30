@@ -27,6 +27,8 @@ struct GeneralView: View {
 
             backgroundRefreshSection
 
+            exportSection
+
             systemSection
 
             resourcesSection
@@ -109,6 +111,78 @@ struct GeneralView: View {
             }
         } header: {
             SettingsSectionHeader(title: String.localized("Data & Maintenance"), icon: "externaldrive.fill")
+        }
+    }
+
+    @State private var _isExportPickerPresenting = false
+    @AppStorage("Feather.exportLocationBookmark") private var _exportLocationBookmark: Data?
+    @State private var _exportLocationPath: String = ""
+
+    private var exportSection: some View {
+        Section {
+            Toggle(isOn: AppStorage(wrappedValue: false, "Feather.continueDownloadInApp").projectedValue) {
+                SettingsRowContent(icon: "arrow.down.circle", title: String.localized("Continue App Download In App"), color: themeManager.accentColor)
+            }
+            .themedAccent()
+            .padding(.trailing, 16)
+
+            VStack(alignment: .leading, spacing: 10) {
+                HStack {
+                    SettingsRowContent(icon: "square.and.arrow.up", title: String.localized("Save Exported Apps"), color: themeManager.accentColor)
+                    Spacer()
+                    Button(action: { _isExportPickerPresenting = true }) {
+                        Text(_exportLocationPath.isEmpty ? .localized("Set Location") : .localized("Change"))
+                            .font(.subheadline.bold())
+                    }
+                }
+
+                if !_exportLocationPath.isEmpty {
+                    Text(_exportLocationPath)
+                        .font(.caption)
+                        .foregroundStyle(themeManager.secondaryTextColor)
+                        .lineLimit(1)
+                }
+            }
+            .padding(.trailing, 16)
+        } header: {
+            SettingsSectionHeader(title: String.localized("Export & Downloads"), icon: "square.and.arrow.up")
+        } footer: {
+            Text(.localized("Set a default location for exported .ipa files and enable background downloads within the app."))
+        }
+        .sheet(isPresented: $_isExportPickerPresenting) {
+            FolderPickerView(onFolderPicked: { url in
+                _saveBookmark(for: url)
+            })
+        }
+        .onAppear {
+            _loadBookmarkPath()
+        }
+    }
+
+    private func _saveBookmark(for url: URL) {
+        do {
+            guard url.startAccessingSecurityScopedResource() else { return }
+            defer { url.stopAccessingSecurityScopedResource() }
+
+            let bookmarkData = try url.bookmarkData(options: .minimalBookmark, includingResourceValuesForKeys: nil, relativeTo: nil)
+            _exportLocationBookmark = bookmarkData
+            _exportLocationPath = url.path
+        } catch {
+            AppLogManager.shared.error("Failed to save bookmark: \(error.localizedDescription)", category: "Settings")
+        }
+    }
+
+    private func _loadBookmarkPath() {
+        guard let data = _exportLocationBookmark else { return }
+        var isStale = false
+        do {
+            let url = try URL(resolvingBookmarkData: data, options: .withoutUI, relativeTo: nil, bookmarkDataIsStale: &isStale)
+            if isStale {
+                _saveBookmark(for: url)
+            }
+            _exportLocationPath = url.path
+        } catch {
+            _exportLocationPath = ""
         }
     }
 

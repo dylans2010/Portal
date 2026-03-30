@@ -11,35 +11,8 @@ struct AppAddView: View {
     @State private var _isImportingPresenting = false
     @State private var _isDownloadingPresenting = false
 
-    // State for tracking the import process (matching LibraryView's needs)
-    @State private var _importedAppName: String = ""
-    @State private var _currentDownloadId: String = ""
-    @State private var _downloadProgress: Double = 0.0
-    @State private var _importStatus: ImportStatus = .loading
-    @State private var _importErrorMessage: String = ""
-
-    enum ImportStatus {
-        case loading
-        case downloading
-        case processing
-        case success
-        case failed
-    }
-
     var body: some View {
-        VStack(spacing: 20) {
-            VStack(spacing: 4) {
-                Text(String.localized("Sign App"))
-                    .font(.system(size: 28, weight: .black, design: .rounded))
-                    .themedText(.primary)
-
-                Text(String.localized("Choose between importing from files or downloading from a URL."))
-                    .font(.subheadline)
-                    .themedText(.secondary)
-                    .multilineTextAlignment(.center)
-            }
-            .padding(.top, 24)
-
+        VStack(spacing: 24) {
             HStack(spacing: 20) {
                 ImportOptionButton(
                     title: String.localized("From Files"),
@@ -60,7 +33,9 @@ struct AppAddView: View {
                 )
             }
         }
-        .padding(30)
+        .padding(.horizontal, 24)
+        .padding(.top, 10)
+        .padding(.bottom, 24)
         .globalTheme()
         .sheet(isPresented:  $_isImportingPresenting) {
             FileImporterRepresentableView(
@@ -72,16 +47,10 @@ struct AppAddView: View {
                     for url in urls {
                         let id = "FeatherManualDownload_\(UUID().uuidString)"
                         let dl = downloadManager.startArchive(from: url, id: id)
-
-                        _importedAppName = url.deletingPathExtension().lastPathComponent
-                        _currentDownloadId = id
-                        _importStatus = .processing
-                        _importErrorMessage = ""
-
                         do {
                             try downloadManager.handlePachageFile(url: url, dl: dl)
                         } catch {
-                            _importErrorMessage = error.localizedDescription
+                            AppLogManager.shared.error(error.localizedDescription, category: "Import")
                         }
                     }
                     dismiss()
@@ -92,12 +61,6 @@ struct AppAddView: View {
         .sheet(isPresented: $_isDownloadingPresenting) {
             ModernImportURLView { url in
                 let downloadId = "FeatherManualDownload_\(UUID().uuidString)"
-                _currentDownloadId = downloadId
-                _importedAppName = url.deletingPathExtension().lastPathComponent
-                _downloadProgress = 0.0
-                _importStatus = .downloading
-                _importErrorMessage = ""
-
                 _ = downloadManager.startDownload(from: url, id: downloadId)
                 dismiss()
             }
@@ -116,14 +79,14 @@ struct ImportOptionButton: View {
 
     var body: some View {
         Button(action: action) {
-            VStack(spacing: 8) {
+            VStack(spacing: 10) {
                 ZStack {
                     Circle()
                         .fill(color.opacity(0.12))
-                        .frame(width: 48, height: 48)
+                        .frame(width: 54, height: 54)
 
                     Image(systemName: icon)
-                        .font(.system(size: 20, weight: .bold))
+                        .font(.system(size: 24, weight: .bold))
                         .foregroundStyle(color)
                 }
 
@@ -132,13 +95,8 @@ struct ImportOptionButton: View {
                     .themedText(.primary)
             }
             .frame(maxWidth: .infinity)
-            .padding(.vertical, 14)
+            .padding(.vertical, 16)
             .themedCard()
-            .overlay(
-                RoundedRectangle(cornerRadius: 12, style: .continuous)
-                    .stroke(color.opacity(0.1), lineWidth: 1)
-            )
-            .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
     }

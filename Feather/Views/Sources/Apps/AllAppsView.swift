@@ -314,7 +314,7 @@ struct AllAppsView: View {
         }
         .sheet(isPresented: $_showAppAdd) {
             AppAddView()
-                .presentationDetents([.height(260)])
+                .presentationDetents([.height(220)])
                 .presentationDragIndicator(.visible)
                 .compatPresentationRadius(24)
         }

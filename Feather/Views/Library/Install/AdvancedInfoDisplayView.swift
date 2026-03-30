@@ -10,14 +10,18 @@ struct AdvancedInfoDisplayView<Footer: View>: View {
     @State private var _appSizeString: String = ""
     @State private var _autoScroll = true
 
-    // Additional data
+    // Extended data
     @State private var _minIOS: String = "N/A"
     @State private var _buildNumber: String = "N/A"
     @State private var _deviceModel: String = UIDevice.current.model
     @State private var _osVersion: String = UIDevice.current.systemVersion
-    @State private var _architecture: String = "arm64" // Default for modern iOS
+    @State private var _architecture: String = "arm64"
     @State private var _freeDiskSpace: String = "Calculating..."
     @State private var _deviceCompatibility: String = "Unknown"
+    @State private var _batteryLevel: String = "N/A"
+    @State private var _thermalState: String = "Normal"
+    @State private var _entitlementCount: Int = 0
+    @State private var _isJailbroken: String = "No"
 
     @State private var _certPair: CertificatePair?
     @State private var _decodedCert: Certificate?
@@ -68,7 +72,7 @@ struct AdvancedInfoDisplayView<Footer: View>: View {
                 _liveLogsSection()
                 _actionSection()
             }
-            .navigationTitle("Installation Diagnostics")
+            .navigationTitle("Diagnostics")
             .appWideHeaderTitle(displayMode: .inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
@@ -174,7 +178,9 @@ struct AdvancedInfoDisplayView<Footer: View>: View {
             LabeledContent("OS Version", value: _osVersion)
             LabeledContent("Architecture", value: _architecture)
             LabeledContent("Free Space", value: _freeDiskSpace)
-            LabeledContent("Device Compatibility", value: _deviceCompatibility)
+            LabeledContent("Battery", value: _batteryLevel)
+            LabeledContent("Thermal State", value: _thermalState)
+            LabeledContent("Jailbroken", value: _isJailbroken)
         } header: {
             Label("Device Diagnostics", systemImage: "iphone")
                 .foregroundStyle(themeManager.headerTextColor)
@@ -188,13 +194,12 @@ struct AdvancedInfoDisplayView<Footer: View>: View {
             LabeledContent("Min iOS", value: _minIOS)
             LabeledContent("Bundle ID", value: app.identifier ?? "N/A")
             LabeledContent("Version", value: app.version ?? "N/A")
-            LabeledContent("Build Number", value: _buildNumber)
-            LabeledContent("Installation Date", value: app.date?.formatted(date: .abbreviated, time: .shortened) ?? "N/A")
+            LabeledContent("Entitlements", value: "\(_entitlementCount)")
             LabeledContent("Signing Status", value: app.isSigned ? "Signed" : "Unsigned")
 
             if let archiveURL = app.archiveURL {
                 VStack(alignment: .leading, spacing: 4) {
-                    Text("Source Path")
+                    Text("Archive Path")
                         .font(.caption)
                         .foregroundStyle(themeManager.secondaryTextColor)
                     Text(archiveURL.path)
@@ -214,9 +219,7 @@ struct AdvancedInfoDisplayView<Footer: View>: View {
             if let cert = _certPair {
                 LabeledContent("Certificate", value: cert.nickname ?? "N/A")
                 if let decoded = _decodedCert {
-                    LabeledContent("Team Name", value: decoded.TeamName)
                     LabeledContent("Team ID", value: decoded.TeamIdentifier.first ?? "N/A")
-                    LabeledContent("Profile Name", value: decoded.Name)
                     LabeledContent("Expiration", value: decoded.ExpirationDate.formatted(date: .abbreviated, time: .omitted))
                     LabeledContent("Profile UUID", value: decoded.UUID)
                 }
@@ -243,15 +246,6 @@ struct AdvancedInfoDisplayView<Footer: View>: View {
                         .font(.caption)
                         .foregroundStyle(themeManager.secondaryTextColor)
                     Text(installer.plistEndpoint.absoluteString)
-                        .font(.system(size: 10, design: .monospaced))
-                        .foregroundStyle(themeManager.primaryTextColor)
-                }
-
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("IPA URL")
-                        .font(.caption)
-                        .foregroundStyle(themeManager.secondaryTextColor)
-                    Text(installer.payloadEndpoint.absoluteString)
                         .font(.system(size: 10, design: .monospaced))
                         .foregroundStyle(themeManager.primaryTextColor)
                 }
@@ -352,7 +346,7 @@ struct AdvancedInfoDisplayView<Footer: View>: View {
                 }
                 .buttonStyle(.borderedProminent)
             } else {
-                Label("Install App button is pinned at the bottom.", systemImage: "arrow.down.circle.fill")
+                Label("Installing...", systemImage: "arrow.down.circle.fill")
                     .font(.subheadline)
                     .foregroundStyle(themeManager.secondaryTextColor)
             }
@@ -425,21 +419,38 @@ struct AdvancedInfoDisplayView<Footer: View>: View {
             _minIOS = infoDict["MinimumOSVersion"] as? String ?? "N/A"
             _buildNumber = infoDict["CFBundleVersion"] as? String ?? "N/A"
             _deviceCompatibility = _isCurrentDeviceCompatible(minimumVersion: _minIOS) ? "Compatible" : "Requires iOS \(_minIOS)+"
+
+            // Entitlements count
+            if let entitlements = infoDict["Entitlements"] as? [String: Any] {
+                _entitlementCount = entitlements.count
+            } else {
+                // Try looking in embedded.mobileprovision if signed
+                _entitlementCount = 0
+            }
         }
     }
 
     private func _loadDeviceDiagnostics() {
-        let fileManager = FileManager.default
-        if let attributes = try? fileManager.attributesOfFileSystem(forPath: NSHomeDirectory()),
+        let device = UIDevice.current
+        device.isBatteryMonitoringEnabled = true
+        _batteryLevel = "\(Int(device.batteryLevel * 100))%"
+
+        switch ProcessInfo.processInfo.thermalState {
+        case .nominal: _thermalState = "Nominal"
+        case .fair: _thermalState = "Fair"
+        case .serious: _thermalState = "Serious"
+        case .critical: _thermalState = "Critical"
+        @unknown default: _thermalState = "Unknown"
+        }
+
+        // Simple jailbreak check
+        let jbPaths = ["/Applications/Cydia.app", "/Library/MobileSubstrate/MobileSubstrate.dylib", "/bin/bash", "/usr/sbin/sshd", "/etc/apt"]
+        _isJailbroken = jbPaths.contains { FileManager.default.fileExists(atPath: $0) } ? "Yes" : "No"
+
+        if let attributes = try? FileManager.default.attributesOfFileSystem(forPath: NSHomeDirectory()),
            let freeSize = attributes[.systemFreeSize] as? Int64 {
             _freeDiskSpace = _formatBytes(UInt64(freeSize))
         }
-
-        #if targetEnvironment(simulator)
-        _architecture = "x86_64 / arm64 (Sim)"
-        #else
-        _architecture = "arm64"
-        #endif
     }
 
     private func _loadSigningInfo() {
