@@ -328,9 +328,14 @@ struct CertificatesAddView: View {
                         .tint(.white)
                         .scaleEffect(1.1)
                 } else {
-                    Image(systemName: "checkmark.circle.fill")
-                        .font(.system(size: 20, weight: .bold))
-                        .symbolEffect(.bounce, value: _isSaving)
+                    if #available(iOS 17.0, *) {
+                        Image(systemName: "checkmark.circle.fill")
+                            .font(.system(size: 20, weight: .bold))
+                            .symbolEffect(.bounce, value: _isSaving)
+                    } else {
+                        Image(systemName: "checkmark.circle.fill")
+                            .font(.system(size: 20, weight: .bold))
+                    }
                 }
                 Text(_isSaving ? "Validating Certificate..." : "Add Certificate")
                     .font(.system(size: 17, weight: .semibold, design: .rounded))

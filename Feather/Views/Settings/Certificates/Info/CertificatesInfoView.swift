@@ -283,7 +283,8 @@ struct CertificatesInfoView: View {
                 infoRow(icon: "iphone", title: "Platforms", value: data.Platform.joined(separator: ", "), color: .cyan)
             }
 
-            if let timeToLive = data.TimeToLive {
+            if data.TimeToLive != 0 {
+                let timeToLive = data.TimeToLive
                 Divider().padding(.leading, 52)
                 infoRow(icon: "clock.badge.checkmark", title: "Time To Live", value: "\(timeToLive) days", color: .green)
             }
