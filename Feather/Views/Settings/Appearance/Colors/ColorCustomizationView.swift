@@ -609,8 +609,6 @@ struct ColorCustomizationView: View {
         sheetBGHex = "#F2F2F7"
         HapticsManager.shared.success()
     }
-}
-
 // MARK: - App-Wide Color Picker Sheet
 
 private struct AppWideColorPickerSheet: View {
