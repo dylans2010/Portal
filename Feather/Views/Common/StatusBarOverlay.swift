@@ -75,6 +75,42 @@ struct StatusBarOverlay: View {
     @AppStorage("statusBar.customDateFormat") private var customDateFormat: String = "MMM d"
     @AppStorage("statusBar.showWeekday") private var showWeekday: Bool = false
     
+    // Dynamic Island
+    @AppStorage("statusBar.di.enableGlow") private var diEnableGlow: Bool = false
+    @AppStorage("statusBar.di.glowColor") private var diGlowColorHex: String = "#007AFF"
+    @AppStorage("statusBar.di.glowRadius") private var diGlowRadius: Double = 10
+    @AppStorage("statusBar.di.glowIntensity") private var diGlowIntensity: Double = 0.6
+    @AppStorage("statusBar.di.enableBorder") private var diEnableBorder: Bool = false
+    @AppStorage("statusBar.di.borderColor") private var diBorderColorHex: String = "#007AFF"
+    @AppStorage("statusBar.di.borderWidth") private var diBorderWidth: Double = 2.0
+    @AppStorage("statusBar.di.showCustomContent") private var diShowCustomContent: Bool = false
+    @AppStorage("statusBar.di.customContent") private var diCustomContent: String = ""
+    @AppStorage("statusBar.di.contentColor") private var diContentColorHex: String = "#FFFFFF"
+
+    // Positioning
+    @AppStorage("statusBar.textXOffset") private var textXOffset: Double = 0
+    @AppStorage("statusBar.textYOffset") private var textYOffset: Double = 0
+    @AppStorage("statusBar.textScale") private var textScale: Double = 1.0
+    @AppStorage("statusBar.textRotation") private var textRotation: Double = 0
+    @AppStorage("statusBar.sfSymbolXOffset") private var sfSymbolXOffset: Double = 0
+    @AppStorage("statusBar.sfSymbolYOffset") private var sfSymbolYOffset: Double = 0
+    @AppStorage("statusBar.sfSymbolScale") private var sfSymbolScale: Double = 1.0
+    @AppStorage("statusBar.sfSymbolRotation") private var sfSymbolRotation: Double = 0
+    @AppStorage("statusBar.timeXOffset") private var timeXOffset: Double = 0
+    @AppStorage("statusBar.timeYOffset") private var timeYOffset: Double = 0
+    @AppStorage("statusBar.timeScale") private var timeScale: Double = 1.0
+    @AppStorage("statusBar.timeRotation") private var timeRotation: Double = 0
+    @AppStorage("statusBar.batteryXOffset") private var batteryXOffset: Double = 0
+    @AppStorage("statusBar.batteryYOffset") private var batteryYOffset: Double = 0
+    @AppStorage("statusBar.batteryScale") private var batteryScale: Double = 1.0
+    @AppStorage("statusBar.batteryRotation") private var batteryRotation: Double = 0
+
+    // System Info
+    @AppStorage("statusBar.showCPU") private var showCPU: Bool = false
+    @AppStorage("statusBar.showStorage") private var showStorage: Bool = false
+    @AppStorage("statusBar.showAppVersion") private var showAppVersion: Bool = false
+    @AppStorage("statusBar.showDeviceName") private var showDeviceName: Bool = false
+
     // MARK: - State Properties
     @State private var isVisible = false
     @State private var isConnected = true
@@ -82,7 +118,10 @@ struct StatusBarOverlay: View {
     @State private var currentTime = Date()
     @State private var batteryLevel: Float = 0.0
     @State private var batteryState: UIDevice.BatteryState = .unknown
-    
+    @State private var cpuUsage: Double = 0
+    @State private var freeStorage: Double = 0
+    @State private var totalStorage: Double = 0
+
     private let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
     
     // MARK: - Computed Properties
@@ -142,7 +181,7 @@ struct StatusBarOverlay: View {
     }
     
     private var hasContent: Bool {
-        showCustomText || showSFSymbol || showTime || showBattery || showNetworkStatus || showMemoryUsage || showDate || widgetType != .none
+        showCustomText || showSFSymbol || showTime || showBattery || showNetworkStatus || showMemoryUsage || showDate || widgetType != .none || showCPU || showStorage || showAppVersion || showDeviceName || (UIDevice.current.hasDynamicIsland && (diEnableGlow || diEnableBorder || diShowCustomContent))
     }
 
     private var dateString: String {
@@ -204,8 +243,15 @@ struct StatusBarOverlay: View {
     // MARK: - Body
     var body: some View {
         if hasContent {
-            GeometryReader { geometry in
-                statusBarContent(geometry: geometry)
+            ZStack(alignment: .top) {
+                // Background Personalization for Dynamic Island
+                if UIDevice.current.hasDynamicIsland {
+                    dynamicIslandPersonalization
+                }
+
+                GeometryReader { geometry in
+                    statusBarContent(geometry: geometry)
+                }
             }
             .frame(height: max(50, safeAreaTopInset + 10))
             .zIndex(10000)
@@ -240,7 +286,7 @@ struct StatusBarOverlay: View {
                 trailingContent
             }
             .padding(.horizontal, 16)
-            .padding(.top, max(8, safeAreaTopInset - 35))
+            .padding(.top, max(4, safeAreaTopInset - 42)) // Fixed positioning to be higher at the top
             .opacity(isVisible ? 1 : 0)
             .scaleEffect(isVisible ? 1 : (animationType == "scale" ? 0.8 : 1))
             .offset(y: isVisible ? 0 : (animationType == "slide" ? -20 : 0))
@@ -255,15 +301,27 @@ struct StatusBarOverlay: View {
         HStack(spacing: 8) {
             if showTime && getAlignment(for: timeAlignment) == .leading {
                 timeView
+                    .offset(x: timeXOffset, y: timeYOffset)
+                    .scaleEffect(timeScale)
+                    .rotationEffect(.degrees(timeRotation))
             }
             if showCustomText && !customText.isEmpty && getAlignment(for: textAlignment) == .leading {
                 styledText(customText)
+                    .offset(x: textXOffset, y: textYOffset)
+                    .scaleEffect(textScale)
+                    .rotationEffect(.degrees(textRotation))
             }
             if showSFSymbol && !sfSymbol.isEmpty && getAlignment(for: sfSymbolAlignment) == .leading {
                 styledSymbol(sfSymbol)
+                    .offset(x: sfSymbolXOffset, y: sfSymbolYOffset)
+                    .scaleEffect(sfSymbolScale)
+                    .rotationEffect(.degrees(sfSymbolRotation))
             }
             if showBattery && getAlignment(for: batteryAlignment) == .leading {
                 batteryView
+                    .offset(x: batteryXOffset, y: batteryYOffset)
+                    .scaleEffect(batteryScale)
+                    .rotationEffect(.degrees(batteryRotation))
             }
         }
     }
@@ -273,15 +331,27 @@ struct StatusBarOverlay: View {
         HStack(spacing: 8) {
             if showTime && getAlignment(for: timeAlignment) == .center {
                 timeView
+                    .offset(x: timeXOffset, y: timeYOffset)
+                    .scaleEffect(timeScale)
+                    .rotationEffect(.degrees(timeRotation))
             }
             if showCustomText && !customText.isEmpty && getAlignment(for: textAlignment) == .center {
                 styledText(customText)
+                    .offset(x: textXOffset, y: textYOffset)
+                    .scaleEffect(textScale)
+                    .rotationEffect(.degrees(textRotation))
             }
             if showSFSymbol && !sfSymbol.isEmpty && getAlignment(for: sfSymbolAlignment) == .center {
                 styledSymbol(sfSymbol)
+                    .offset(x: sfSymbolXOffset, y: sfSymbolYOffset)
+                    .scaleEffect(sfSymbolScale)
+                    .rotationEffect(.degrees(sfSymbolRotation))
             }
             if showBattery && getAlignment(for: batteryAlignment) == .center {
                 batteryView
+                    .offset(x: batteryXOffset, y: batteryYOffset)
+                    .scaleEffect(batteryScale)
+                    .rotationEffect(.degrees(batteryRotation))
             }
             if widgetType != .none {
                 buildWidget()
@@ -294,15 +364,27 @@ struct StatusBarOverlay: View {
         HStack(spacing: 8) {
             if showTime && getAlignment(for: timeAlignment) == .trailing {
                 timeView
+                    .offset(x: timeXOffset, y: timeYOffset)
+                    .scaleEffect(timeScale)
+                    .rotationEffect(.degrees(timeRotation))
             }
             if showCustomText && !customText.isEmpty && getAlignment(for: textAlignment) == .trailing {
                 styledText(customText)
+                    .offset(x: textXOffset, y: textYOffset)
+                    .scaleEffect(textScale)
+                    .rotationEffect(.degrees(textRotation))
             }
             if showSFSymbol && !sfSymbol.isEmpty && getAlignment(for: sfSymbolAlignment) == .trailing {
                 styledSymbol(sfSymbol)
+                    .offset(x: sfSymbolXOffset, y: sfSymbolYOffset)
+                    .scaleEffect(sfSymbolScale)
+                    .rotationEffect(.degrees(sfSymbolRotation))
             }
             if showBattery && getAlignment(for: batteryAlignment) == .trailing {
                 batteryView
+                    .offset(x: batteryXOffset, y: batteryYOffset)
+                    .scaleEffect(batteryScale)
+                    .rotationEffect(.degrees(batteryRotation))
             }
             if showDate {
                 dateView
@@ -312,6 +394,18 @@ struct StatusBarOverlay: View {
             }
             if showMemoryUsage {
                 memoryUsageView
+            }
+            if showCPU {
+                cpuView
+            }
+            if showStorage {
+                storageView
+            }
+            if showAppVersion {
+                versionView
+            }
+            if showDeviceName {
+                deviceNameView
             }
         }
     }
@@ -408,6 +502,60 @@ struct StatusBarOverlay: View {
         }
     }
     
+    // MARK: - Dynamic Island Personalization
+    @ViewBuilder
+    private var dynamicIslandPersonalization: some View {
+        ZStack {
+            // Glow effect
+            if diEnableGlow {
+                Capsule()
+                    .fill(Color(hex: diGlowColorHex))
+                    .frame(width: 125, height: 38)
+                    .blur(radius: CGFloat(diGlowRadius))
+                    .opacity(diGlowIntensity)
+                    .padding(.top, safeAreaTopInset - 37)
+            }
+
+            // Border effect
+            if diEnableBorder {
+                Capsule()
+                    .stroke(Color(hex: diBorderColorHex), lineWidth: CGFloat(diBorderWidth))
+                    .frame(width: 125, height: 38)
+                    .padding(.top, safeAreaTopInset - 37)
+            }
+
+            // Custom Content
+            if diShowCustomContent && !diCustomContent.isEmpty {
+                Text(diCustomContent)
+                    .font(.system(size: 10, weight: .bold, design: .rounded))
+                    .foregroundStyle(Color(hex: diContentColorHex))
+                    .padding(.top, safeAreaTopInset - 37)
+            }
+        }
+        .allowsHitTesting(false)
+    }
+
+    // MARK: - New Widget Views
+    @ViewBuilder
+    private var cpuView: some View {
+        styledText("\(Int(cpuUsage))% CPU")
+    }
+
+    @ViewBuilder
+    private var storageView: some View {
+        styledText("\(String(format: "%.1f", freeStorage))GB Free")
+    }
+
+    @ViewBuilder
+    private var versionView: some View {
+        styledText("v\(Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0")")
+    }
+
+    @ViewBuilder
+    private var deviceNameView: some View {
+        styledText(UIDevice.current.humanReadableModelName)
+    }
+
     // MARK: - Lifecycle Methods
     private func setupOnAppear() {
         currentTime = Date()
@@ -419,6 +567,7 @@ struct StatusBarOverlay: View {
         if showMemoryUsage {
             updateMemoryUsage()
         }
+        updateSystemInfo()
         if enableAnimation {
             withAnimation(contentAnimation) {
                 isVisible = true
@@ -443,8 +592,50 @@ struct StatusBarOverlay: View {
         if showMemoryUsage {
             updateMemoryUsage()
         }
+        updateSystemInfo()
+    }
+
+    // MARK: - System Info Helpers
+    private func updateSystemInfo() {
+        if showCPU {
+            cpuUsage = getCPUUsage()
+        }
+        if showStorage {
+            let (free, total) = getStorageInfo()
+            freeStorage = free
+            totalStorage = total
+        }
+    }
+
+    private func getCPUUsage() -> Double {
+        var hostInfo = host_cpu_load_info()
+        var count = mach_msg_type_number_t(MemoryLayout<host_cpu_load_info>.size) / 4
+        let result = withUnsafeMutablePointer(to: &hostInfo) {
+            $0.withMemoryRebound(to: integer_t.self, capacity: Int(count)) {
+                host_statistics(mach_host_self(), HOST_CPU_LOAD_INFO, $0, &count)
+            }
+        }
+
+        if result == KERN_SUCCESS {
+            let totalTicks = Double(hostInfo.cpu_ticks.0 + hostInfo.cpu_ticks.1 + hostInfo.cpu_ticks.2 + hostInfo.cpu_ticks.3)
+            let idleTicks = Double(hostInfo.cpu_ticks.3)
+            return (1.0 - idleTicks / totalTicks) * 100.0
+        }
+        return 0
     }
     
+    private func getStorageInfo() -> (free: Double, total: Double) {
+        let fileURL = URL(fileURLWithPath: NSHomeDirectory() as String)
+        do {
+            let values = try fileURL.resourceValues(forKeys: [.volumeAvailableCapacityKey, .volumeTotalCapacityKey])
+            let free = Double(values.volumeAvailableCapacity ?? 0) / 1024 / 1024 / 1024
+            let total = Double(values.volumeTotalCapacity ?? 0) / 1024 / 1024 / 1024
+            return (free, total)
+        } catch {
+            return (0, 0)
+        }
+    }
+
     // MARK: - Memory Helpers
     private func updateMemoryUsage() {
         var info = mach_task_basic_info()
@@ -497,6 +688,17 @@ struct StatusBarOverlay: View {
             SystemBatteryView()
                 .foregroundStyle(widgetColor)
                 .frame(width: 60)
+                .offset(x: batteryXOffset, y: batteryYOffset)
+                .scaleEffect(batteryScale)
+                .rotationEffect(.degrees(batteryRotation))
+        case .cpu:
+            cpuView
+        case .storage:
+            storageView
+        case .appVersion:
+            versionView
+        case .deviceName:
+            deviceNameView
         }
     }
     

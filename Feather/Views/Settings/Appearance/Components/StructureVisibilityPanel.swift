@@ -19,6 +19,10 @@ struct StructureVisibilityPanel: View {
         if viewModel.showDate { count += 1 }
         if viewModel.showNetworkStatus { count += 1 }
         if viewModel.showMemoryUsage { count += 1 }
+        if viewModel.showCPU { count += 1 }
+        if viewModel.showStorage { count += 1 }
+        if viewModel.showAppVersion { count += 1 }
+        if viewModel.showDeviceName { count += 1 }
         return count
     }
     
@@ -28,7 +32,7 @@ struct StructureVisibilityPanel: View {
                 Toggle(isOn: Binding(
                     get: { viewModel.showCustomText },
                     set: { newValue in
-                        if newValue && enabledWidgetCount >= 2 {
+                        if newValue && enabledWidgetCount >= 5 {
                             attemptedWidget = "Custom Text"
                             showLimitReachedAlert = true
                             HapticsManager.shared.error()
@@ -45,7 +49,7 @@ struct StructureVisibilityPanel: View {
                 Toggle(isOn: Binding(
                     get: { viewModel.showSFSymbol },
                     set: { newValue in
-                        if newValue && enabledWidgetCount >= 2 {
+                        if newValue && enabledWidgetCount >= 5 {
                             attemptedWidget = "SF Symbol"
                             showLimitReachedAlert = true
                             HapticsManager.shared.error()
@@ -62,7 +66,7 @@ struct StructureVisibilityPanel: View {
                 Toggle(isOn: Binding(
                     get: { viewModel.showTime },
                     set: { newValue in
-                        if newValue && enabledWidgetCount >= 2 {
+                        if newValue && enabledWidgetCount >= 5 {
                             attemptedWidget = "Time"
                             showLimitReachedAlert = true
                             HapticsManager.shared.error()
@@ -79,7 +83,7 @@ struct StructureVisibilityPanel: View {
                 Toggle(isOn: Binding(
                     get: { viewModel.showDate },
                     set: { newValue in
-                        if newValue && enabledWidgetCount >= 2 {
+                        if newValue && enabledWidgetCount >= 5 {
                             attemptedWidget = "Date"
                             showLimitReachedAlert = true
                             HapticsManager.shared.error()
@@ -96,7 +100,7 @@ struct StructureVisibilityPanel: View {
                 Toggle(isOn: Binding(
                     get: { viewModel.showBattery },
                     set: { newValue in
-                        if newValue && enabledWidgetCount >= 2 {
+                        if newValue && enabledWidgetCount >= 5 {
                             attemptedWidget = "Battery"
                             showLimitReachedAlert = true
                             HapticsManager.shared.error()
@@ -112,15 +116,15 @@ struct StructureVisibilityPanel: View {
             } header: {
                 Label("Widgets", systemImage: "square.grid.2x2")
             } footer: {
-                Text("Enable up to 2 widgets. Currently \(enabledWidgetCount) of 2.")
-                    .foregroundStyle(enabledWidgetCount >= 2 ? .orange : .secondary)
+                Text("Enable up to 5 widgets. Currently \(enabledWidgetCount) of 5.")
+                    .foregroundStyle(enabledWidgetCount >= 5 ? .orange : .secondary)
             }
             
             Section {
                 Toggle(isOn: Binding(
                     get: { viewModel.showNetworkStatus },
                     set: { newValue in
-                        if newValue && enabledWidgetCount >= 2 {
+                        if newValue && enabledWidgetCount >= 5 {
                             attemptedWidget = "Network Status"
                             showLimitReachedAlert = true
                             HapticsManager.shared.error()
@@ -137,7 +141,7 @@ struct StructureVisibilityPanel: View {
                 Toggle(isOn: Binding(
                     get: { viewModel.showMemoryUsage },
                     set: { newValue in
-                        if newValue && enabledWidgetCount >= 2 {
+                        if newValue && enabledWidgetCount >= 5 {
                             attemptedWidget = "Memory Usage"
                             showLimitReachedAlert = true
                             HapticsManager.shared.error()
@@ -148,6 +152,74 @@ struct StructureVisibilityPanel: View {
                     }
                 )) {
                     Label("Memory Usage", systemImage: "memorychip")
+                }
+                .themedAccent()
+
+                Toggle(isOn: Binding(
+                    get: { viewModel.showCPU },
+                    set: { newValue in
+                        if newValue && enabledWidgetCount >= 5 {
+                            attemptedWidget = "CPU Usage"
+                            showLimitReachedAlert = true
+                            HapticsManager.shared.error()
+                        } else {
+                            viewModel.showCPU = newValue
+                            HapticsManager.shared.softImpact()
+                        }
+                    }
+                )) {
+                    Label("CPU Usage", systemImage: "cpu")
+                }
+                .themedAccent()
+
+                Toggle(isOn: Binding(
+                    get: { viewModel.showStorage },
+                    set: { newValue in
+                        if newValue && enabledWidgetCount >= 5 {
+                            attemptedWidget = "Storage"
+                            showLimitReachedAlert = true
+                            HapticsManager.shared.error()
+                        } else {
+                            viewModel.showStorage = newValue
+                            HapticsManager.shared.softImpact()
+                        }
+                    }
+                )) {
+                    Label("Storage", systemImage: "internaldrive")
+                }
+                .themedAccent()
+
+                Toggle(isOn: Binding(
+                    get: { viewModel.showAppVersion },
+                    set: { newValue in
+                        if newValue && enabledWidgetCount >= 5 {
+                            attemptedWidget = "App Version"
+                            showLimitReachedAlert = true
+                            HapticsManager.shared.error()
+                        } else {
+                            viewModel.showAppVersion = newValue
+                            HapticsManager.shared.softImpact()
+                        }
+                    }
+                )) {
+                    Label("App Version", systemImage: "number")
+                }
+                .themedAccent()
+
+                Toggle(isOn: Binding(
+                    get: { viewModel.showDeviceName },
+                    set: { newValue in
+                        if newValue && enabledWidgetCount >= 5 {
+                            attemptedWidget = "Device Name"
+                            showLimitReachedAlert = true
+                            HapticsManager.shared.error()
+                        } else {
+                            viewModel.showDeviceName = newValue
+                            HapticsManager.shared.softImpact()
+                        }
+                    }
+                )) {
+                    Label("Device Name", systemImage: "iphone")
                 }
                 .themedAccent()
             } header: {
@@ -207,7 +279,7 @@ struct StructureVisibilityPanel: View {
         .alert("Widget Limit Reached", isPresented: $showLimitReachedAlert) {
             Button("OK", role: .cancel) {}
         } message: {
-            Text("You can only enable 2 status bar options at a time. Please disable one of the currently enabled options before enabling \(attemptedWidget).")
+            Text("You can only enable 5 status bar options at a time. Please disable one of the currently enabled options before enabling \(attemptedWidget).")
         }
     }
 }

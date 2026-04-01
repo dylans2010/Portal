@@ -88,6 +88,30 @@ struct AppearanceContentPanel: View {
             Section {
                 TextField("Enter Custom Text", text: $viewModel.customText)
                     .textFieldStyle(.roundedBorder)
+
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("X Offset: \(Int(viewModel.textXOffset))")
+                        .font(.caption)
+                    Slider(value: $viewModel.textXOffset, in: -100...100, step: 1)
+                }
+
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Y Offset: \(Int(viewModel.textYOffset))")
+                        .font(.caption)
+                    Slider(value: $viewModel.textYOffset, in: -50...50, step: 1)
+                }
+
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Scale: \(String(format: "%.2f", viewModel.textScale))")
+                        .font(.caption)
+                    Slider(value: $viewModel.textScale, in: 0.5...2.0, step: 0.1)
+                }
+
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Rotation: \(Int(viewModel.textRotation))°")
+                        .font(.caption)
+                    Slider(value: $viewModel.textRotation, in: 0...360, step: 15)
+                }
             } header: {
                 Label("Custom Text", systemImage: "textformat")
             }
@@ -133,6 +157,30 @@ struct AppearanceContentPanel: View {
                     Text("Bold").tag("bold")
                     Text("Heavy").tag("heavy")
                     Text("Black").tag("black")
+                }
+
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("X Offset: \(Int(viewModel.sfSymbolXOffset))")
+                        .font(.caption)
+                    Slider(value: $viewModel.sfSymbolXOffset, in: -100...100, step: 1)
+                }
+
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Y Offset: \(Int(viewModel.sfSymbolYOffset))")
+                        .font(.caption)
+                    Slider(value: $viewModel.sfSymbolYOffset, in: -50...50, step: 1)
+                }
+
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Scale: \(String(format: "%.2f", viewModel.sfSymbolScale))")
+                        .font(.caption)
+                    Slider(value: $viewModel.sfSymbolScale, in: 0.5...2.0, step: 0.1)
+                }
+
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Rotation: \(Int(viewModel.sfSymbolRotation))°")
+                        .font(.caption)
+                    Slider(value: $viewModel.sfSymbolRotation, in: 0...360, step: 15)
                 }
             } header: {
                 Label("SF Symbol", systemImage: "star.fill")
@@ -317,6 +365,30 @@ struct AppearanceContentPanel: View {
                         }
                     }
                 }
+
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("X Offset: \(Int(viewModel.timeXOffset))")
+                        .font(.caption)
+                    Slider(value: $viewModel.timeXOffset, in: -100...100, step: 1)
+                }
+
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Y Offset: \(Int(viewModel.timeYOffset))")
+                        .font(.caption)
+                    Slider(value: $viewModel.timeYOffset, in: -50...50, step: 1)
+                }
+
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Scale: \(String(format: "%.2f", viewModel.timeScale))")
+                        .font(.caption)
+                    Slider(value: $viewModel.timeScale, in: 0.5...2.0, step: 0.1)
+                }
+
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Rotation: \(Int(viewModel.timeRotation))°")
+                        .font(.caption)
+                    Slider(value: $viewModel.timeRotation, in: 0...360, step: 15)
+                }
             } header: {
                 Label("Time Display", systemImage: "clock.fill")
             }
@@ -392,6 +464,30 @@ struct AppearanceContentPanel: View {
                     Text("Battery color changes based on level: Red (≤20%), Yellow (≤50%), Green (≤80%), White (>80%)")
                         .font(.caption)
                         .foregroundStyle(.secondary)
+                }
+
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("X Offset: \(Int(viewModel.batteryXOffset))")
+                        .font(.caption)
+                    Slider(value: $viewModel.batteryXOffset, in: -100...100, step: 1)
+                }
+
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Y Offset: \(Int(viewModel.batteryYOffset))")
+                        .font(.caption)
+                    Slider(value: $viewModel.batteryYOffset, in: -50...50, step: 1)
+                }
+
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Scale: \(String(format: "%.2f", viewModel.batteryScale))")
+                        .font(.caption)
+                    Slider(value: $viewModel.batteryScale, in: 0.5...2.0, step: 0.1)
+                }
+
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Rotation: \(Int(viewModel.batteryRotation))°")
+                        .font(.caption)
+                    Slider(value: $viewModel.batteryRotation, in: 0...360, step: 15)
                 }
             } header: {
                 Label("Battery Display", systemImage: "battery.100.bolt")

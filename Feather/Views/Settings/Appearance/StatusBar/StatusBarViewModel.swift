@@ -19,6 +19,10 @@ enum StatusBarWidgetType: String, CaseIterable {
     case text = "text"
     case sfSymbol = "symbol"
     case battery = "battery"
+    case cpu = "cpu"
+    case storage = "storage"
+    case appVersion = "version"
+    case deviceName = "device"
     
     var displayName: String {
         switch self {
@@ -26,6 +30,10 @@ enum StatusBarWidgetType: String, CaseIterable {
         case .text: return "Text"
         case .sfSymbol: return "SF Symbol"
         case .battery: return "Battery"
+        case .cpu: return "CPU Usage"
+        case .storage: return "Storage"
+        case .appVersion: return "App Version"
+        case .deviceName: return "Device Name"
         }
     }
 }
@@ -212,6 +220,47 @@ class StatusBarViewModel: ObservableObject {
     @AppStorage("statusBar.itemSpacing") var itemSpacing: Double = 8
     @AppStorage("statusBar.verticalOffset") var verticalOffset: Double = 0
     
+    // Fine-grained Positioning
+    @AppStorage("statusBar.textXOffset") var textXOffset: Double = 0
+    @AppStorage("statusBar.textYOffset") var textYOffset: Double = 0
+    @AppStorage("statusBar.textScale") var textScale: Double = 1.0
+    @AppStorage("statusBar.textRotation") var textRotation: Double = 0
+
+    @AppStorage("statusBar.sfSymbolXOffset") var sfSymbolXOffset: Double = 0
+    @AppStorage("statusBar.sfSymbolYOffset") var sfSymbolYOffset: Double = 0
+    @AppStorage("statusBar.sfSymbolScale") var sfSymbolScale: Double = 1.0
+    @AppStorage("statusBar.sfSymbolRotation") var sfSymbolRotation: Double = 0
+
+    @AppStorage("statusBar.timeXOffset") var timeXOffset: Double = 0
+    @AppStorage("statusBar.timeYOffset") var timeYOffset: Double = 0
+    @AppStorage("statusBar.timeScale") var timeScale: Double = 1.0
+    @AppStorage("statusBar.timeRotation") var timeRotation: Double = 0
+
+    @AppStorage("statusBar.batteryXOffset") var batteryXOffset: Double = 0
+    @AppStorage("statusBar.batteryYOffset") var batteryYOffset: Double = 0
+    @AppStorage("statusBar.batteryScale") var batteryScale: Double = 1.0
+    @AppStorage("statusBar.batteryRotation") var batteryRotation: Double = 0
+
+    // Dynamic Island Personalization
+    @AppStorage("statusBar.di.enableGlow") var diEnableGlow: Bool = false
+    @AppStorage("statusBar.di.glowColor") var diGlowColorHex: String = "#007AFF"
+    @AppStorage("statusBar.di.glowRadius") var diGlowRadius: Double = 10
+    @AppStorage("statusBar.di.glowIntensity") var diGlowIntensity: Double = 0.6
+
+    @AppStorage("statusBar.di.enableBorder") var diEnableBorder: Bool = false
+    @AppStorage("statusBar.di.borderColor") var diBorderColorHex: String = "#007AFF"
+    @AppStorage("statusBar.di.borderWidth") var diBorderWidth: Double = 2.0
+
+    @AppStorage("statusBar.di.showCustomContent") var diShowCustomContent: Bool = false
+    @AppStorage("statusBar.di.customContent") var diCustomContent: String = ""
+    @AppStorage("statusBar.di.contentColor") var diContentColorHex: String = "#FFFFFF"
+
+    // New System Info Widgets
+    @AppStorage("statusBar.showCPU") var showCPU: Bool = false
+    @AppStorage("statusBar.showStorage") var showStorage: Bool = false
+    @AppStorage("statusBar.showAppVersion") var showAppVersion: Bool = false
+    @AppStorage("statusBar.showDeviceName") var showDeviceName: Bool = false
+
     // Icon Customization
     @AppStorage("statusBar.iconSize") var iconSize: Double = 16
     @AppStorage("statusBar.iconWeight") var iconWeight: String = "regular"
@@ -270,6 +319,10 @@ class StatusBarViewModel: ObservableObject {
     @Published var selectedTimeColor: Color = .white
     @Published var selectedBatteryColor: Color = .white
     
+    @Published var selectedDIGlowColor: Color = .blue
+    @Published var selectedDIBorderColor: Color = .blue
+    @Published var selectedDIContentColor: Color = .white
+
     init() {
         selectedColor = Color(hex: colorHex)
         selectedBackgroundColor = Color(hex: backgroundColorHex)
@@ -278,6 +331,10 @@ class StatusBarViewModel: ObservableObject {
         selectedTimeColor = Color(hex: timeColorHex)
         selectedBatteryColor = Color(hex: batteryColorHex)
         
+        selectedDIGlowColor = Color(hex: diGlowColorHex)
+        selectedDIBorderColor = Color(hex: diBorderColorHex)
+        selectedDIContentColor = Color(hex: diContentColorHex)
+
         // Load recent and favorite symbols from UserDefaults
         if let recents = UserDefaults.standard.stringArray(forKey: "statusBar.recentSymbols") {
             recentSymbols = recents
@@ -356,7 +413,7 @@ class StatusBarViewModel: ObservableObject {
     }
     
     func hasCustomChanges() -> Bool {
-        return showCustomText || showSFSymbol || showBackground || showTime || showBattery
+        return showCustomText || showSFSymbol || showBackground || showTime || showBattery || showCPU || showStorage || showAppVersion || showDeviceName
     }
     
     func clearCustomChanges() {
@@ -365,6 +422,10 @@ class StatusBarViewModel: ObservableObject {
         showBackground = false
         showTime = false
         showBattery = false
+        showCPU = false
+        showStorage = false
+        showAppVersion = false
+        showDeviceName = false
     }
     
     func resetToDefaults() {
@@ -458,12 +519,52 @@ class StatusBarViewModel: ObservableObject {
         iconSize = 16
         iconWeight = "regular"
         
+        // Fine-grained Positioning
+        textXOffset = 0
+        textYOffset = 0
+        textScale = 1.0
+        textRotation = 0
+        sfSymbolXOffset = 0
+        sfSymbolYOffset = 0
+        sfSymbolScale = 1.0
+        sfSymbolRotation = 0
+        timeXOffset = 0
+        timeYOffset = 0
+        timeScale = 1.0
+        timeRotation = 0
+        batteryXOffset = 0
+        batteryYOffset = 0
+        batteryScale = 1.0
+        batteryRotation = 0
+
+        // Dynamic Island
+        diEnableGlow = false
+        diGlowColorHex = "#007AFF"
+        diGlowRadius = 10
+        diGlowIntensity = 0.6
+        diEnableBorder = false
+        diBorderColorHex = "#007AFF"
+        diBorderWidth = 2.0
+        diShowCustomContent = false
+        diCustomContent = ""
+        diContentColorHex = "#FFFFFF"
+
+        // New system info
+        showCPU = false
+        showStorage = false
+        showAppVersion = false
+        showDeviceName = false
+
         selectedColor = .blue
         selectedBackgroundColor = .black
         selectedShadowColor = .black
         selectedBorderColor = .blue
         selectedTimeColor = .white
         selectedBatteryColor = .white
+
+        selectedDIGlowColor = .blue
+        selectedDIBorderColor = .blue
+        selectedDIContentColor = .white
     }
     
     // MARK: - Positioning Logic
