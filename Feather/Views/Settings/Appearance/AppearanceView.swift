@@ -146,6 +146,13 @@ struct AppearanceView: View {
                         .foregroundStyle(themeManager.accentColor)
                 }
 
+                if UIDevice.current.hasDynamicIsland {
+                    NavigationLink(destination: DynamicIslandView(viewModel: StatusBarViewModel())) {
+                        Label("Dynamic Island", systemImage: "capsule.fill")
+                            .foregroundStyle(themeManager.accentColor)
+                    }
+                }
+
                 NavigationLink(destination: TabBarCustomizationView()) {
                     Label("Tab Bar", systemImage: "dock.rectangle")
                         .foregroundStyle(themeManager.accentColor)

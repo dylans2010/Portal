@@ -248,6 +248,9 @@ struct StatusBarPreviewView: View {
                 }
                 if viewModel.showBattery && viewModel.batteryAlignment == "left" {
                     batteryWidget
+                        .offset(x: viewModel.batteryXOffset, y: viewModel.batteryYOffset)
+                        .scaleEffect(viewModel.batteryScale)
+                        .rotationEffect(.degrees(viewModel.batteryRotation))
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -265,6 +268,9 @@ struct StatusBarPreviewView: View {
                 }
                 if viewModel.showBattery && viewModel.batteryAlignment == "center" {
                     batteryWidget
+                        .offset(x: viewModel.batteryXOffset, y: viewModel.batteryYOffset)
+                        .scaleEffect(viewModel.batteryScale)
+                        .rotationEffect(.degrees(viewModel.batteryRotation))
                 }
             }
             .frame(maxWidth: .infinity, alignment: .center)
@@ -282,6 +288,9 @@ struct StatusBarPreviewView: View {
                 }
                 if viewModel.showBattery && viewModel.batteryAlignment == "right" {
                     batteryWidget
+                        .offset(x: viewModel.batteryXOffset, y: viewModel.batteryYOffset)
+                        .scaleEffect(viewModel.batteryScale)
+                        .rotationEffect(.degrees(viewModel.batteryRotation))
                 }
                 if viewModel.showDate {
                     dateWidget
@@ -291,6 +300,18 @@ struct StatusBarPreviewView: View {
                 }
                 if viewModel.showMemoryUsage {
                     memoryWidget
+                }
+                if viewModel.showCPU {
+                    cpuWidget
+                }
+                if viewModel.showStorage {
+                    storageWidget
+                }
+                if viewModel.showAppVersion {
+                    versionWidget
+                }
+                if viewModel.showDeviceName {
+                    deviceNameWidget
                 }
             }
             .frame(maxWidth: .infinity, alignment: .trailing)
@@ -302,6 +323,9 @@ struct StatusBarPreviewView: View {
             .font(.system(size: viewModel.fontSize * 0.8, weight: viewModel.isBold ? .bold : .regular, design: selectedFontDesign))
             .foregroundStyle(viewModel.timeAccentColored ? Color.accentColor : Color(hex: viewModel.timeColorHex))
             .lineLimit(1)
+            .offset(x: viewModel.timeXOffset, y: viewModel.timeYOffset)
+            .scaleEffect(viewModel.timeScale)
+            .rotationEffect(.degrees(viewModel.timeRotation))
     }
     
     private var customTextWidget: some View {
@@ -309,12 +333,18 @@ struct StatusBarPreviewView: View {
             .font(.system(size: viewModel.fontSize, weight: viewModel.isBold ? .bold : .regular, design: selectedFontDesign))
             .foregroundStyle(Color(hex: viewModel.colorHex))
             .lineLimit(1)
+            .offset(x: viewModel.textXOffset, y: viewModel.textYOffset)
+            .scaleEffect(viewModel.textScale)
+            .rotationEffect(.degrees(viewModel.textRotation))
     }
     
     private var sfSymbolWidget: some View {
         Image(systemName: viewModel.sfSymbol)
             .font(.system(size: viewModel.fontSize, weight: viewModel.isBold ? .bold : .regular, design: selectedFontDesign))
             .foregroundStyle(Color(hex: viewModel.colorHex))
+            .offset(x: viewModel.sfSymbolXOffset, y: viewModel.sfSymbolYOffset)
+            .scaleEffect(viewModel.sfSymbolScale)
+            .rotationEffect(.degrees(viewModel.sfSymbolRotation))
     }
     
     private var batteryWidget: some View {
@@ -376,6 +406,34 @@ struct StatusBarPreviewView: View {
     private var dateWidget: some View {
         Text(dateString)
             .font(.system(size: viewModel.fontSize * 0.75, weight: viewModel.isBold ? .bold : .regular, design: selectedFontDesign))
+            .foregroundStyle(Color(hex: viewModel.colorHex))
+            .lineLimit(1)
+    }
+
+    private var cpuWidget: some View {
+        Text("25% CPU")
+            .font(.system(size: viewModel.fontSize * 0.72, weight: viewModel.isBold ? .bold : .regular, design: selectedFontDesign))
+            .foregroundStyle(Color(hex: viewModel.colorHex))
+            .lineLimit(1)
+    }
+
+    private var storageWidget: some View {
+        Text("128GB Free")
+            .font(.system(size: viewModel.fontSize * 0.72, weight: viewModel.isBold ? .bold : .regular, design: selectedFontDesign))
+            .foregroundStyle(Color(hex: viewModel.colorHex))
+            .lineLimit(1)
+    }
+
+    private var versionWidget: some View {
+        Text("v1.0.0")
+            .font(.system(size: viewModel.fontSize * 0.72, weight: viewModel.isBold ? .bold : .regular, design: selectedFontDesign))
+            .foregroundStyle(Color(hex: viewModel.colorHex))
+            .lineLimit(1)
+    }
+
+    private var deviceNameWidget: some View {
+        Text(UIDevice.current.humanReadableModelName)
+            .font(.system(size: viewModel.fontSize * 0.72, weight: viewModel.isBold ? .bold : .regular, design: selectedFontDesign))
             .foregroundStyle(Color(hex: viewModel.colorHex))
             .lineLimit(1)
     }

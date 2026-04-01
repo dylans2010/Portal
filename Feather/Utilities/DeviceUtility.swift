@@ -5,15 +5,42 @@ import UIKit
 import Darwin
 
 extension UIDevice {
-    /// Returns the model name instead of identifier
-    var humanReadableModelName: String {
+    /// Returns the raw device identifier (e.g., "iPhone15,2")
+    var deviceIdentifier: String {
         var systemInfo = utsname()
         uname(&systemInfo)
         let machineMirror = Mirror(reflecting: systemInfo.machine)
-        let identifier = machineMirror.children.reduce("") { identifier, element in
+        return machineMirror.children.reduce("") { identifier, element in
             guard let value = element.value as? Int8, value != 0 else { return identifier }
             return identifier + String(UnicodeScalar(UInt8(value)))
         }
+    }
+
+    /// Returns true if the device has a Dynamic Island
+    var hasDynamicIsland: Bool {
+        #if targetEnvironment(simulator)
+        // Check for common simulator identifiers or just return true for testing
+        return true
+        #else
+        let identifier = deviceIdentifier
+        switch identifier {
+        case "iPhone15,2", "iPhone15,3": // 14 Pro, 14 Pro Max
+            return true
+        case "iPhone15,4", "iPhone15,5", "iPhone16,1", "iPhone16,2": // 15 Series
+            return true
+        case "iPhone17,1", "iPhone17,2", "iPhone17,3", "iPhone17,4", "iPhone17,5": // 16 Series
+            return true
+        case "iPhone18,1", "iPhone18,2", "iPhone18,3", "iPhone18,4": // 17 Series
+            return true
+        default:
+            return false
+        }
+        #endif
+    }
+
+    /// Returns the model name instead of identifier
+    var humanReadableModelName: String {
+        let identifier = deviceIdentifier
 
         switch identifier {
         // iPhone 17
