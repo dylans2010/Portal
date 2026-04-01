@@ -128,10 +128,18 @@ struct ThemedSheetModifier: ViewModifier {
     @EnvironmentObject var themeManager: ThemeManager
 
     func body(content: Content) -> some View {
-        content
-            .background(themeManager.background)
-            .presentationBackground(themeManager.background)
-            .tint(themeManager.accent)
+        Group {
+            if #available(iOS 16.4, *) {
+                content
+                    .background(themeManager.background)
+                    .presentationBackground(themeManager.background)
+                    .tint(themeManager.accent)
+            } else {
+                content
+                    .background(themeManager.background)
+                    .tint(themeManager.accent)
+            }
+        }
     }
 }
 
