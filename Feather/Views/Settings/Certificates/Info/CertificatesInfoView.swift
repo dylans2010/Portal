@@ -49,9 +49,39 @@ struct EntitlementMapping {
             "com.apple.developer.carplay-parking": "CarPlay Parking",
             "com.apple.developer.carplay-playback": "CarPlay Playback",
             "com.apple.developer.coremedia.hls.low-latency": "Low Latency HLS",
-            "com.apple.developer.weatherkit": "WeatherKit"
+            "com.apple.developer.weatherkit": "WeatherKit",
+            "com.apple.developer.wallet.passes": "Wallet Passes",
+            "com.apple.developer.payment-pass-provisioning": "Payment Pass Provisioning",
+            "com.apple.developer.on-demand-install-capable": "On-Demand Install",
+            "com.apple.developer.associated-domains.applinks": "App Links",
+            "com.apple.developer.networking.HotspotConfiguration": "Hotspot Configuration",
+            "com.apple.developer.exposure-notification": "Exposure Notification",
+            "com.apple.developer.widgetkit-extension": "WidgetKit Extension",
+            "com.apple.developer.widgets-extension": "Widgets Extension",
+            "com.apple.developer.appclip": "App Clip",
+            "com.apple.developer.usernotifications.communication": "Communication Notifications",
+            "beta-reports-active": "Beta Reports Active",
+            "get-task-allow": "Development Mode"
         ]
         return mappings[entitlement] ?? entitlement
+    }
+
+    static func entitlementDescription(for entitlement: String) -> String? {
+        let descriptions: [String: String] = [
+            "com.apple.developer.applesignin": "Allows users to sign in with their Apple ID",
+            "com.apple.developer.associated-domains": "Links your app to your website domain",
+            "aps-environment": "Enables receiving push notifications from APNs",
+            "com.apple.developer.game-center": "Integrates Game Center features for leaderboards and achievements",
+            "com.apple.security.application-groups": "Enables data sharing between apps or extensions",
+            "com.apple.developer.healthkit": "Accesses health and fitness data from the Health app",
+            "com.apple.developer.homekit": "Controls and communicates with HomeKit accessories",
+            "com.apple.developer.icloud-services": "Enables iCloud storage and synchronization",
+            "com.apple.developer.siri": "Allows users to invoke app features through Siri",
+            "com.apple.developer.nfc.readersession.formats": "Reads NFC tags for various purposes",
+            "get-task-allow": "Allows debugging and development testing",
+            "beta-reports-active": "Enables beta testing and crash reports"
+        ]
+        return descriptions[entitlement]
     }
 }
 
@@ -242,10 +272,20 @@ struct CertificatesInfoView: View {
             infoRow(icon: "number", title: "Team ID", value: data.TeamIdentifier.first ?? "-", color: .purple)
             Divider().padding(.leading, 52)
             infoRow(icon: "barcode", title: "UUID", value: String(data.UUID.prefix(12)) + "...", color: .indigo)
-            
+
+            if let appIdPrefix = data.ApplicationIdentifierPrefix?.first {
+                Divider().padding(.leading, 52)
+                infoRow(icon: "app.badge", title: "App ID Prefix", value: appIdPrefix, color: .cyan)
+            }
+
             if !data.Platform.isEmpty {
                 Divider().padding(.leading, 52)
                 infoRow(icon: "iphone", title: "Platforms", value: data.Platform.joined(separator: ", "), color: .cyan)
+            }
+
+            if let timeToLive = data.TimeToLive {
+                Divider().padding(.leading, 52)
+                infoRow(icon: "clock.badge.checkmark", title: "Time To Live", value: "\(timeToLive) days", color: .green)
             }
         }
         .background(cardBackground)
@@ -478,20 +518,31 @@ struct CertificatesInfoView: View {
                 Divider().padding(.leading, 62)
                 VStack(spacing: 0) {
                     ForEach(Array(entitlements.keys.sorted()), id: \.self) { key in
-                        HStack(spacing: 12) {
-                            Image(systemName: "checkmark.seal.fill")
-                                .font(.system(size: 14))
-                                .foregroundStyle(Color.accentColor)
+                        VStack(alignment: .leading, spacing: 8) {
+                            HStack(spacing: 12) {
+                                Image(systemName: "checkmark.seal.fill")
+                                    .font(.system(size: 14))
+                                    .foregroundStyle(Color.accentColor)
 
-                            Text(EntitlementMapping.humanReadableName(for: key))
-                                .font(.system(size: 13, weight: .medium))
-                                .foregroundStyle(.primary)
-                                .lineLimit(1)
+                                VStack(alignment: .leading, spacing: 3) {
+                                    Text(EntitlementMapping.humanReadableName(for: key))
+                                        .font(.system(size: 13, weight: .medium))
+                                        .foregroundStyle(.primary)
+                                        .lineLimit(2)
 
-                            Spacer()
+                                    if let description = EntitlementMapping.entitlementDescription(for: key) {
+                                        Text(description)
+                                            .font(.system(size: 11, weight: .regular))
+                                            .foregroundStyle(.secondary)
+                                            .lineLimit(2)
+                                    }
+                                }
+
+                                Spacer()
+                            }
+                            .padding(.horizontal, 16)
+                            .padding(.vertical, 12)
                         }
-                        .padding(.horizontal, 16)
-                        .padding(.vertical, 12)
 
                         if key != entitlements.keys.sorted().last {
                             Divider().padding(.leading, 44)

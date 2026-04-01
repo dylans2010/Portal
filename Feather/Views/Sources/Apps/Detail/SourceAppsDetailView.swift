@@ -92,40 +92,73 @@ struct SourceAppsDetailView: View {
         }
     }
     
-    // MARK: - Header View (Stretchy & Modern)
-    
+    // MARK: - Header View (Stretchy & Modern - Native SwiftUI)
+
     private var headerView: some View {
         GeometryReader { geometry in
             let minY = geometry.frame(in: .global).minY
             let height = geometry.size.height + (minY > 0 ? minY : 0)
 
             ZStack(alignment: .bottom) {
-                // Background
-                Rectangle()
-                    .fill(dominantColor.gradient)
-                    .opacity(colorScheme == .dark ? 0.3 : 0.15)
-                    .overlay(.ultraThinMaterial)
-                
+                // Native SwiftUI Background (not using theme manager)
+                LinearGradient(
+                    colors: [
+                        dominantColor.opacity(colorScheme == .dark ? 0.4 : 0.2),
+                        dominantColor.opacity(colorScheme == .dark ? 0.2 : 0.1)
+                    ],
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                )
+                .overlay(.ultraThinMaterial)
+
                 // Content
-                VStack(spacing: 20) {
+                VStack(spacing: 24) {
+                    // App Icon with Enhanced Shadow
                     appIcon
                         .scaleEffect(minY > 0 ? 1 + (minY / 400.0) : 1)
-                        .shadow(color: dominantColor.opacity(0.2), radius: 20, x: 0, y: 10)
-                    
-                    VStack(spacing: 6) {
+                        .shadow(color: dominantColor.opacity(0.3), radius: 25, x: 0, y: 12)
+                        .shadow(color: .black.opacity(0.1), radius: 10, x: 0, y: 5)
+
+                    // App Info with SF Symbols
+                    VStack(spacing: 8) {
                         Text(app.currentName)
-                            .font(.system(size: 28, weight: .bold, design: .rounded))
+                            .font(.system(size: 30, weight: .bold, design: .rounded))
                             .foregroundStyle(.primary)
                             .multilineTextAlignment(.center)
-                        
+                            .lineLimit(2)
+
                         if let developer = app.developer {
-                            Text(developer)
-                                .font(.system(size: 16, weight: .medium))
-                                .foregroundStyle(.secondary)
+                            HStack(spacing: 6) {
+                                Image(systemName: "person.fill")
+                                    .font(.system(size: 12, weight: .semibold))
+                                    .foregroundStyle(dominantColor)
+                                Text(developer)
+                                    .font(.system(size: 16, weight: .medium))
+                                    .foregroundStyle(.secondary)
+                            }
+                        }
+
+                        // Category Badge with SF Symbol
+                        if let category = app.category {
+                            HStack(spacing: 6) {
+                                Image(systemName: "square.grid.2x2.fill")
+                                    .font(.system(size: 10, weight: .bold))
+                                Text(category.capitalized)
+                                    .font(.system(size: 12, weight: .bold, design: .rounded))
+                            }
+                            .foregroundStyle(.white)
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 6)
+                            .background(
+                                Capsule()
+                                    .fill(dominantColor.gradient)
+                                    .shadow(color: dominantColor.opacity(0.3), radius: 6, x: 0, y: 3)
+                            )
                         }
                     }
                     .opacity(minY < -60 ? max(0, 1 + (minY + 60) / 40.0) : 1)
-                    
+
+                    // Download Button
                     DownloadButtonView(app: app)
                         .padding(.top, 4)
                         .opacity(minY < -100 ? max(0, 1 + (minY + 100) / 40.0) : 1)
@@ -136,7 +169,7 @@ struct SourceAppsDetailView: View {
             .frame(width: geometry.size.width, height: height)
             .offset(y: minY > 0 ? -minY : 0)
         }
-        .frame(height: 380)
+        .frame(height: 400)
     }
 
     // MARK: - Minimal Info Content
@@ -184,41 +217,46 @@ struct SourceAppsDetailView: View {
     }
     
     // MARK: - Minimal Information Section (Left-aligned)
-    
+
     private var minimalInformationSection: some View {
         VStack(alignment: .leading, spacing: 16) {
-            Text("Information")
-                .font(.system(size: 20, weight: .bold, design: .rounded))
-                .foregroundStyle(.primary)
-            
+            HStack(spacing: 8) {
+                Image(systemName: "info.circle.fill")
+                    .font(.system(size: 18, weight: .bold))
+                    .foregroundStyle(dominantColor)
+                Text("Information")
+                    .font(.system(size: 22, weight: .bold, design: .rounded))
+                    .foregroundStyle(.primary)
+            }
+
             VStack(alignment: .leading, spacing: 0) {
                 if let sourceName = source.name {
                     minimalInfoRow(icon: "globe", label: "Source", value: sourceName)
-                    Divider().padding(.leading, 16)
+                    Divider().padding(.leading, 48)
                 }
-                
+
                 if let developer = app.developer {
                     minimalInfoRow(icon: "person.fill", label: "Developer", value: developer)
-                    Divider().padding(.leading, 16)
+                    Divider().padding(.leading, 48)
                 }
-                
+
                 if let size = app.size {
-                    minimalInfoRow(icon: "arrow.down.circle", label: "Size", value: size.formattedByteCount)
-                    Divider().padding(.leading, 16)
+                    minimalInfoRow(icon: "arrow.down.circle.fill", label: "Size", value: size.formattedByteCount)
+                    Divider().padding(.leading, 48)
                 }
-                
+
                 if let category = app.category {
-                    minimalInfoRow(icon: "square.grid.2x2", label: "Category", value: category.capitalized)
-                    Divider().padding(.leading, 16)
+                    minimalInfoRow(icon: "square.grid.2x2.fill", label: "Category", value: category.capitalized)
+                    Divider().padding(.leading, 48)
                 }
-                
+
                 if let version = app.currentVersion {
-                    minimalInfoRow(icon: "number", label: "Version", value: version)
-                    Divider().padding(.leading, 16)
+                    minimalInfoRow(icon: "number.square.fill", label: "Version", value: version)
+                    Divider().padding(.leading, 48)
                 }
-                
+
                 if let bundleId = app.id {
-                    minimalInfoRow(icon: "doc.on.doc", label: "Bundle ID", value: bundleId, isCopyable: true)
+                    minimalInfoRow(icon: "doc.on.doc.fill", label: "Bundle ID", value: bundleId, isCopyable: true)
                 }
             }
             .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 20, style: .continuous))
@@ -404,10 +442,11 @@ struct SourceAppsDetailView: View {
     }
     
     // MARK: - Statistics Row
-    
+
     private var statisticsRow: some View {
         HStack(spacing: 0) {
             statisticColumn(
+                icon: "number.square.fill",
                 topLabel: "Version",
                 mainValue: app.currentVersion ?? "1.0",
                 bottomContent: AnyView(
@@ -416,11 +455,12 @@ struct SourceAppsDetailView: View {
                         .foregroundStyle(dominantColor)
                 )
             )
-            
+
             statisticDivider
-            
+
             if let size = app.size {
                 statisticColumn(
+                    icon: "arrow.down.circle.fill",
                     topLabel: "Size",
                     mainValue: size.formattedByteCount,
                     bottomContent: AnyView(
@@ -429,12 +469,13 @@ struct SourceAppsDetailView: View {
                             .foregroundStyle(.secondary)
                     )
                 )
-                
+
                 statisticDivider
             }
-            
+
             if let category = app.category {
                 statisticColumn(
+                    icon: "square.grid.2x2.fill",
                     topLabel: "Category",
                     mainValue: category.capitalized,
                     bottomContent: AnyView(
@@ -443,11 +484,12 @@ struct SourceAppsDetailView: View {
                             .foregroundStyle(.secondary)
                     )
                 )
-                
+
                 statisticDivider
             }
-            
+
             statisticColumn(
+                icon: "person.crop.circle.fill",
                 topLabel: "Developer",
                 mainValue: app.developer?.prefix(1).uppercased() ?? "D",
                 bottomContent: AnyView(
@@ -462,20 +504,24 @@ struct SourceAppsDetailView: View {
         .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 20, style: .continuous))
         .overlay(RoundedRectangle(cornerRadius: 20, style: .continuous).stroke(Color.primary.opacity(0.05), lineWidth: 0.5))
     }
-    
-    private func statisticColumn(topLabel: String, mainValue: String, bottomContent: AnyView, hideMainValue: Bool = false) -> some View {
-        VStack(spacing: 4) {
+
+    private func statisticColumn(icon: String, topLabel: String, mainValue: String, bottomContent: AnyView, hideMainValue: Bool = false) -> some View {
+        VStack(spacing: 6) {
+            Image(systemName: icon)
+                .font(.system(size: 16, weight: .semibold))
+                .foregroundStyle(dominantColor)
+
             Text(topLabel)
                 .font(.system(size: 10, weight: .medium))
                 .foregroundStyle(.tertiary)
                 .textCase(.uppercase)
-            
+
             if !hideMainValue {
                 Text(mainValue)
                     .font(.system(size: 20, weight: .bold, design: .rounded))
                     .foregroundStyle(.primary)
             }
-            
+
             bottomContent
         }
         .frame(maxWidth: .infinity)

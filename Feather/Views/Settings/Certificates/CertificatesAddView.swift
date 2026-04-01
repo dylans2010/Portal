@@ -47,8 +47,8 @@ struct CertificatesAddView: View {
             ZStack {
                 VStack(spacing: 0) {
                     ScrollView {
-                        VStack(spacing: 24) {
-                            // Method Picker
+                        VStack(spacing: 28) {
+                            // Modern Method Picker with Enhanced Design
                             HStack(spacing: 0) {
                                 methodButton(title: "Manual", icon: "hand.tap.fill", tag: 0)
                                 methodButton(title: "Portal Cert", icon: "shippingbox.fill", tag: 1, disabled: !usePortalCert)
@@ -57,9 +57,12 @@ struct CertificatesAddView: View {
                                     enterpriseMethodButton
                                 }
                             }
-                            .padding(4)
-                            .background(Color(UIColor.secondarySystemGroupedBackground))
-                            .clipShape(Capsule())
+                            .padding(6)
+                            .background(
+                                Capsule()
+                                    .fill(Color(UIColor.secondarySystemGroupedBackground))
+                                    .shadow(color: .black.opacity(0.05), radius: 8, x: 0, y: 4)
+                            )
                             .padding(.horizontal)
 
                             if _selectedMethod == 0 {
@@ -74,20 +77,28 @@ struct CertificatesAddView: View {
                             }
 
                             VStack(alignment: .leading, spacing: 16) {
-                                Text("Configuration")
-                                    .font(.subheadline.bold())
-                                    .foregroundStyle(.secondary)
-                                    .padding(.leading, 8)
+                                HStack {
+                                    Image(systemName: "gearshape.fill")
+                                        .font(.system(size: 14, weight: .semibold))
+                                        .foregroundStyle(themeManager.accentColor)
+                                    Text("Configuration")
+                                        .font(.system(size: 16, weight: .bold, design: .rounded))
+                                        .foregroundStyle(.primary)
+                                }
+                                .padding(.leading, 8)
 
                                 VStack(spacing: 0) {
                                     passwordFieldSection
-                                    Divider().padding(.leading, 40)
+                                    Divider().padding(.leading, 44)
                                     nicknameFieldSection
-                                    Divider().padding(.leading, 40)
+                                    Divider().padding(.leading, 44)
                                     defaultSection
                                 }
-                                .background(Color(UIColor.secondarySystemGroupedBackground))
-                                .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+                                .background(
+                                    RoundedRectangle(cornerRadius: 22, style: .continuous)
+                                        .fill(Color(UIColor.secondarySystemGroupedBackground))
+                                        .shadow(color: .black.opacity(0.03), radius: 6, x: 0, y: 3)
+                                )
                             }
                             .padding(.horizontal)
 
@@ -308,29 +319,38 @@ struct CertificatesAddView: View {
     
     private var saveButton: some View {
         Button {
-            withAnimation { _isSaving = true }
+            withAnimation(.spring(response: 0.4, dampingFraction: 0.7)) { _isSaving = true }
             _saveCertificate()
         } label: {
-            HStack(spacing: 12) {
+            HStack(spacing: 14) {
                 if _isSaving {
                     ProgressView()
                         .tint(.white)
+                        .scaleEffect(1.1)
                 } else {
                     Image(systemName: "checkmark.circle.fill")
-                        .font(.title3.bold())
+                        .font(.system(size: 20, weight: .bold))
+                        .symbolEffect(.bounce, value: _isSaving)
                 }
-                Text(_isSaving ? "Validating..." : "Add Certificate")
-                    .font(.headline)
+                Text(_isSaving ? "Validating Certificate..." : "Add Certificate")
+                    .font(.system(size: 17, weight: .semibold, design: .rounded))
             }
             .frame(maxWidth: .infinity)
-            .padding(.vertical, 16)
-            .background(saveButtonDisabled || _isSaving ? Color.gray : themeManager.accentColor)
+            .padding(.vertical, 18)
+            .background(
+                RoundedRectangle(cornerRadius: 18, style: .continuous)
+                    .fill(saveButtonDisabled || _isSaving ? Color.gray.gradient : themeManager.accentColor.gradient)
+                    .shadow(color: (saveButtonDisabled || _isSaving ? Color.gray : themeManager.accentColor).opacity(0.4), radius: 12, y: 6)
+            )
             .foregroundStyle(Color(hex: themeManager.resolvedColors.buttonText))
-            .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
-            .shadow(color: themeManager.accentColor.opacity(0.3), radius: 10, y: 5)
+            .overlay(
+                RoundedRectangle(cornerRadius: 18, style: .continuous)
+                    .stroke(Color.white.opacity(0.2), lineWidth: 1)
+            )
         }
         .disabled(saveButtonDisabled || _isSaving)
-        .animation(.spring(), value: _isSaving)
+        .animation(.spring(response: 0.4, dampingFraction: 0.7), value: _isSaving)
+        .animation(.spring(response: 0.4, dampingFraction: 0.7), value: saveButtonDisabled)
     }
 
     // MARK: - Helper Views
