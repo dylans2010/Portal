@@ -132,7 +132,7 @@ struct ColorCustomizationView: View {
     var body: some View {
         List {
             if showHeaderViews {
-                Section {
+                Section(header: Text(String.localized("Built-In Themes"))) {
                     ColorHeaderView()
                         .listRowInsets(EdgeInsets())
                         .listRowBackground(Color.clear)
@@ -186,7 +186,7 @@ struct ColorCustomizationView: View {
     // MARK: - Sections
 
     private var builtInThemesSection: some View {
-        Section {
+        Section(header: Text(String.localized("Built-In Themes"))) {
             ForEach(AppTheme.allCases) { theme in
                 let colors = AppWideColors.default(for: theme)
                 Button {
@@ -214,13 +214,11 @@ struct ColorCustomizationView: View {
                 }
                 .buttonStyle(.plain)
             }
-        } header: {
-            Text(String.localized("Built-In Themes"))
         }
     }
 
     private var appWideColorsSection: some View {
-        Section {
+        Section(header: Text(String.localized("App Colors")), footer: Text(String.localized("Override every color in the app to create a fully custom look."))) {
             Button {
                 showingAppWideColorPicker = true
             } label: {
@@ -246,15 +244,11 @@ struct ColorCustomizationView: View {
                     Label(String.localized("Reset App Colors"), systemImage: "arrow.counterclockwise")
                 }
             }
-        } header: {
-            Text(String.localized("App Colors"))
-        } footer: {
-            Text(String.localized("Override every color in the app to create a fully custom look."))
         }
     }
 
     private var sectionStyleSection: some View {
-        Section {
+        Section(header: Text(String.localized("Section Style")), footer: Text(styleManager.currentStyle.description)) {
             Picker(String.localized("Section Style"), selection: Binding(
                 get: { styleManager.currentStyle },
                 set: { styleManager.setStyle(bash) }
@@ -264,28 +258,22 @@ struct ColorCustomizationView: View {
                 }
             }
             .pickerStyle(.menu)
-        } header: {
-            Text(String.localized("Section Style"))
-        } footer: {
-            Text(styleManager.currentStyle.description)
         }
     }
 
     private var typographySection: some View {
-        Section {
+        Section(header: Text(String.localized("Typography"))) {
             Picker(String.localized("Font Design"), selection: ) {
                 Text(String.localized("Default")).tag("default")
                 Text(String.localized("Rounded")).tag("rounded")
                 Text(String.localized("Serif")).tag("serif")
                 Text(String.localized("Monospaced")).tag("monospaced")
             }
-        } header: {
-            Text(String.localized("Typography"))
         }
     }
 
     private var shapeStylingSection: some View {
-        Section {
+        Section(header: Text(String.localized("Shape & Styling"))) {
             sliderRow(title: String.localized("Card Corner Radius"),   value: ,   range: 0...40,  step: 2,    unit: "pt", icon: "square.dashed")
             sliderRow(title: String.localized("Button Corner Radius"), value: , range: 0...24,  step: 1,    unit: "pt", icon: "button.programmable")
             sliderRow(title: String.localized("Card Opacity"),         value: ,        range: 0.1...1, step: 0.05, isPercent: true, icon: "square.stack.3d.down.right")
@@ -296,26 +284,20 @@ struct ColorCustomizationView: View {
             Toggle(isOn: ) {
                 Label(String.localized("Animate Background"), systemImage: "sparkles")
             }
-        } header: {
-            Text(String.localized("Shape & Styling"))
         }
     }
 
     private var semanticColorsSection: some View {
-        Section {
+        Section(header: Text(String.localized("Semantic Colors")), footer: Text(String.localized("Colors used for status indicators and presented sheets."))) {
             supplementalColorRow(title: String.localized("Success"),          hex: , icon: "checkmark.circle")
             supplementalColorRow(title: String.localized("Warning"),          hex: , icon: "exclamationmark.triangle")
             supplementalColorRow(title: String.localized("Error"),            hex: ,   icon: "xmark.circle")
             supplementalColorRow(title: String.localized("Sheet Background"), hex: ,      icon: "square.stack")
-        } header: {
-            Text(String.localized("Semantic Colors"))
-        } footer: {
-            Text(String.localized("Colors used for status indicators and presented sheets."))
         }
     }
 
     private var sectionHeaderSection: some View {
-        Section {
+        Section(header: Text(String.localized("Section Headers"))) {
             Button {
                 showingSectionHeaderPicker = true
             } label: {
@@ -338,13 +320,11 @@ struct ColorCustomizationView: View {
                         .foregroundStyle(themeManager.secondaryText)
                 }
             }
-        } header: {
-            Text(String.localized("Section Headers"))
         }
     }
 
     private var accessibilitySection: some View {
-        Section {
+        Section(header: Text(String.localized("Accessibility"))) {
             Toggle(String.localized("High Contrast Mode"), isOn: )
             Toggle(String.localized("Auto Contrast Correction"), isOn: )
             Picker(String.localized("Color Blindness Filter"), selection: ) {
@@ -353,22 +333,18 @@ struct ColorCustomizationView: View {
                 Text(String.localized("Deuteranopia")).tag(2)
                 Text(String.localized("Tritanopia")).tag(3)
             }
-        } header: {
-            Text(String.localized("Accessibility"))
         }
     }
 
     private var feedbackSection: some View {
-        Section {
+        Section(header: Text(String.localized("Haptic & Visual Feedback"))) {
             sliderRow(title: String.localized("Haptic Intensity"), value: ,        range: 0...1, step: 0.1, isPercent: true, icon: "waveform")
             sliderRow(title: String.localized("Visual Feedback"),  value: , range: 0...1, step: 0.1, isPercent: true, icon: "sparkles")
-        } header: {
-            Text(String.localized("Haptic & Visual Feedback"))
         }
     }
 
     private var experimentalSection: some View {
-        Section {
+        Section(header: Text(String.localized("Experimental Effects")), footer: Text(String.localized("Performance mode reduces heavy blurs and shadows to save battery."))) {
             Picker(String.localized("Layer Blending"), selection: ) {
                 Text(String.localized("Normal")).tag(0)
                 Text(String.localized("Overlay")).tag(1)
@@ -378,15 +354,11 @@ struct ColorCustomizationView: View {
             Toggle(String.localized("Parallax Depth Effect"), isOn: )
             Toggle(String.localized("Motion Gradients"), isOn: )
             Toggle(String.localized("Performance Mode"), isOn: )
-        } header: {
-            Text(String.localized("Experimental Effects"))
-        } footer: {
-            Text(String.localized("Performance mode reduces heavy blurs and shadows to save battery."))
         }
     }
 
     private var intelligentThemingSection: some View {
-        Section {
+        Section(header: Text(String.localized("Intelligent Theming")), footer: Text(String.localized("Auto-switch themes based on Low Power Mode, Focus filters, or time of day."))) {
             Toggle(isOn: ) {
                 Label(String.localized("Context-Aware Theming"), systemImage: "bolt.badge.automatic.fill")
             }
@@ -424,15 +396,11 @@ struct ColorCustomizationView: View {
             } label: {
                 Label(String.localized("Per-Screen Overrides"), systemImage: "rectangle.3.group")
             }
-        } header: {
-            Text(String.localized("Intelligent Theming"))
-        } footer: {
-            Text(String.localized("Auto-switch themes based on Low Power Mode, Focus filters, or time of day."))
         }
     }
 
     private var actionsSection: some View {
-        Section {
+        Section(header: Text(String.localized("Actions"))) {
             Button {
                 exportTheme()
             } label: {
@@ -457,8 +425,6 @@ struct ColorCustomizationView: View {
                 Label(String.localized("Reset to Defaults"), systemImage: "arrow.counterclockwise")
             }
             .disabled(appState.isSigning)
-        } header: {
-            Text(String.localized("Actions"))
         }
     }
 
@@ -900,7 +866,7 @@ struct PerScreenThemeView: View {
 
     var body: some View {
         List {
-            Section {
+            Section(header: Text(String.localized("Select Theme Per Screen")), footer: Text(String.localized("Override the global theme for specific areas of the app."))) {
                 ForEach(screens, id: \.1) { name, key in
                     Picker(name, selection: Binding(
                         get: { screenOverride[key] ?? "" },
@@ -912,10 +878,6 @@ struct PerScreenThemeView: View {
                         }
                     }
                 }
-            } header: {
-                Text(String.localized("Select Theme Per Screen"))
-            } footer: {
-                Text(String.localized("Override the global theme for specific areas of the app."))
             }
         }
         .navigationTitle(String.localized("Per-Screen Themes"))
