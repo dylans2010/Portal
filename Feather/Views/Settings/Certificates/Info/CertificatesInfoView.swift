@@ -93,6 +93,16 @@ struct CertificatesInfoView: View {
                         validityCard(data: data)
                             .opacity(appearAnimation ? 1 : 0)
                             .offset(y: appearAnimation ? 0 : 10)
+
+                        // Profile Details Card
+                        profileDetailsCard(data: data)
+                            .opacity(appearAnimation ? 1 : 0)
+                            .offset(y: appearAnimation ? 0 : 10)
+
+                        // Certificate Chain Card
+                        certificateChainCard(data: data)
+                            .opacity(appearAnimation ? 1 : 0)
+                            .offset(y: appearAnimation ? 0 : 10)
                         
                         // Devices (if available)
                         if let devices = data.ProvisionedDevices, !devices.isEmpty {
@@ -279,6 +289,164 @@ struct CertificatesInfoView: View {
         .padding(.vertical, 14)
     }
     
+    // MARK: - Profile Details Card
+    private func profileDetailsCard(data: Certificate) -> some View {
+        VStack(spacing: 0) {
+            HStack(spacing: 8) {
+                Image(systemName: "list.bullet.clipboard.fill")
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundStyle(Color.accentColor)
+                Text("Profile Details")
+                    .font(.system(size: 14, weight: .bold, design: .rounded))
+                    .foregroundStyle(.primary)
+                Spacer()
+            }
+            .padding(.horizontal, 16)
+            .padding(.top, 16)
+            .padding(.bottom, 10)
+
+            Divider().padding(.leading, 16)
+
+            VStack(spacing: 0) {
+                infoRow(icon: "number.circle.fill", title: "Version", value: "\(data.Version)", color: .gray)
+                Divider().padding(.leading, 52)
+                infoRow(icon: "clock.fill", title: "Time to Live", value: "\(data.TimeToLive) days", color: .orange)
+                Divider().padding(.leading, 52)
+                infoRow(icon: "doc.fill", title: "Full UUID", value: data.UUID, color: .indigo)
+                Divider().padding(.leading, 52)
+                infoRow(icon: "rectangle.and.pencil.and.ellipsis", title: "App ID Name", value: data.AppIDName, color: .teal)
+
+                if let prefixes = data.ApplicationIdentifierPrefix, !prefixes.isEmpty {
+                    Divider().padding(.leading, 52)
+                    infoRow(icon: "key.horizontal.fill", title: "App ID Prefix", value: prefixes.joined(separator: ", "), color: .purple)
+                }
+
+                let profileType = detectProfileType(data: data)
+                Divider().padding(.leading, 52)
+                infoRow(icon: profileType.icon, title: "Profile Type", value: profileType.name, color: profileType.color)
+
+                if let xcodeManaged = data.IsXcodeManaged {
+                    Divider().padding(.leading, 52)
+                    infoRow(icon: "hammer.circle.fill", title: "Xcode Managed", value: xcodeManaged ? "Yes" : "No", color: xcodeManaged ? .blue : .secondary)
+                }
+
+                if data.ProvisionsAllDevices == true {
+                    Divider().padding(.leading, 52)
+                    infoRow(icon: "iphone.badge.play", title: "Provisions All Devices", value: "Yes (Enterprise)", color: .red)
+                }
+            }
+            .padding(.bottom, 8)
+        }
+        .background(cardBackground)
+    }
+
+    // MARK: - Certificate Chain Card
+    private func certificateChainCard(data: Certificate) -> some View {
+        VStack(spacing: 0) {
+            HStack(spacing: 8) {
+                Image(systemName: "link.badge.plus")
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundStyle(.green)
+                Text("Developer Certificates")
+                    .font(.system(size: 14, weight: .bold, design: .rounded))
+                    .foregroundStyle(.primary)
+                Spacer()
+                let count = data.DeveloperCertificates?.count ?? 0
+                Text("\(count)")
+                    .font(.system(size: 11, weight: .bold))
+                    .foregroundStyle(.white)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
+                    .background(Capsule().fill(count > 0 ? Color.green : Color.gray))
+            }
+            .padding(16)
+
+            if let certs = data.DeveloperCertificates, !certs.isEmpty {
+                Divider().padding(.leading, 16)
+                VStack(spacing: 0) {
+                    ForEach(certs.indices, id: \.self) { i in
+                        let certData = certs[i]
+                        let sha1 = certData.sha1Fingerprint
+                        HStack(spacing: 12) {
+                            ZStack {
+                                Circle()
+                                    .fill(Color.green.opacity(0.1))
+                                    .frame(width: 32, height: 32)
+                                Image(systemName: "person.badge.shield.checkmark.fill")
+                                    .font(.system(size: 13))
+                                    .foregroundStyle(.green)
+                            }
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("Certificate \(i + 1)")
+                                    .font(.system(size: 13, weight: .semibold))
+                                    .foregroundStyle(.primary)
+                                Text(sha1)
+                                    .font(.system(size: 10, weight: .medium, design: .monospaced))
+                                    .foregroundStyle(.secondary)
+                                    .lineLimit(2)
+                            }
+                            Spacer()
+                            Button {
+                                UIPasteboard.general.string = sha1
+                                HapticsManager.shared.success()
+                            } label: {
+                                Image(systemName: "doc.on.doc")
+                                    .font(.system(size: 11))
+                                    .foregroundStyle(.tertiary)
+                            }
+                            .buttonStyle(.plain)
+                        }
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 10)
+
+                        if i < certs.count - 1 {
+                            Divider().padding(.leading, 60)
+                        }
+                    }
+                }
+                .padding(.bottom, 8)
+            } else {
+                HStack {
+                    Image(systemName: "exclamationmark.triangle")
+                        .foregroundStyle(.orange)
+                    Text("No developer certificates embedded")
+                        .font(.system(size: 13))
+                        .foregroundStyle(.secondary)
+                }
+                .padding(16)
+            }
+        }
+        .background(cardBackground)
+    }
+
+    // MARK: - Profile Type Detection
+    private struct ProfileTypeInfo {
+        let name: String
+        let icon: String
+        let color: Color
+    }
+
+    private func detectProfileType(data: Certificate) -> ProfileTypeInfo {
+        if data.ProvisionsAllDevices == true {
+            return ProfileTypeInfo(name: "Enterprise / In-House", icon: "building.2.fill", color: .red)
+        }
+        let hasDevices = !(data.ProvisionedDevices?.isEmpty ?? true)
+        let hasXcodeManaged = data.IsXcodeManaged == true
+        if hasXcodeManaged {
+            return ProfileTypeInfo(name: "Xcode Managed", icon: "hammer.fill", color: .blue)
+        }
+        if hasDevices {
+            // Check if it looks like Ad Hoc (has UDIDs and no Xcode management)
+            return ProfileTypeInfo(name: "Ad Hoc", icon: "iphone.badge.play", color: .orange)
+        }
+        // Likely Development or App Store
+        let teamCount = data.TeamIdentifier.count
+        if teamCount > 0 {
+            return ProfileTypeInfo(name: "App Store / Distribution", icon: "bag.fill", color: .green)
+        }
+        return ProfileTypeInfo(name: "Development", icon: "wrench.and.screwdriver.fill", color: .blue)
+    }
+
     // MARK: - Validity Card
     private func validityCard(data: Certificate) -> some View {
         VStack(spacing: 20) {

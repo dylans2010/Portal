@@ -112,19 +112,33 @@ final class AppleIntelligenceService {
         customInstruction: String? = nil
     ) async throws -> String {
         AppLogManager.shared.info("Starting AppleIntelligenceService processing for action: \(action.rawValue)", category: "AppleIntelligence")
-        
+
         if let instruction = customInstruction {
             AppLogManager.shared.debug("Custom instruction provided: \(instruction)", category: "AppleIntelligence")
         }
-        
+
+        // Prefer Foundation Models (on-device AI) when available
+#if canImport(FoundationModels)
+        if #available(iOS 26.0, *) {
+            let model = SystemLanguageModel.default
+            if case .available = model.availability {
+                AppLogManager.shared.info("Using Foundation Models (on-device AI) for processing", category: "AppleIntelligence")
+                return try await _processWithFoundationModels(text, action: action, customInstruction: customInstruction, model: model)
+            } else {
+                AppLogManager.shared.warning("Foundation Models unavailable: \(model.availability), falling back to Writing Tools", category: "AppleIntelligence")
+            }
+        }
+#endif
+
+        // Fallback to Writing Tools UI if device supports Apple Intelligence
         guard isAvailable else {
             let error = AppleIntelligenceError.deviceNotSupported(deviceIdentifier)
             AppLogManager.shared.error("Apple Intelligence not available: \(error.localizedDescription)", category: "AppleIntelligence", errorCode: .DEVICE_NOT_SUPPORTED)
             throw error
         }
-        
-        AppLogManager.shared.info("Presenting Writing Tools interface...", category: "AppleIntelligence")
-        
+
+        AppLogManager.shared.info("Falling back to Writing Tools interface...", category: "AppleIntelligence")
+
         return try await withCheckedThrowingContinuation { continuation in
             Task { @MainActor in
                 presentWritingToolsInterface(
@@ -136,50 +150,113 @@ final class AppleIntelligenceService {
             }
         }
     }
-    
-    @available(iOS 18.0, *)
+
+    // MARK: - Foundation Models Processing
+
+    @available(iOS 26.0, *)
+    private func _processWithFoundationModels(
+        _ text: String,
+        action: AIAction,
+        customInstruction: String?,
+        model: SystemLanguageModel
+    ) async throws -> String {
+#if canImport(FoundationModels)
+        let systemPrompt = """
+        You are an expert text processing assistant for iOS app guides. \
+        Process the provided text according to the specified action and return \
+        only the processed result—no preamble, meta-commentary, or explanation.
+        """
+
+        let session = LanguageModelSession(model: model, instructions: systemPrompt)
+        let prompt = _buildFoundationModelsPrompt(for: action, text: text, customInstruction: customInstruction)
+
+        AppLogManager.shared.debug("Sending prompt to Foundation Models (action: \(action.rawValue))", category: "AppleIntelligence")
+
+        let response = try await session.respond(to: prompt)
+        let result = response.content
+
+        if result.isEmpty {
+            AppLogManager.shared.error("Foundation Models returned empty result", category: "AppleIntelligence", errorCode: .APPLE_INTEL_ERR)
+            throw AppleIntelligenceError.noResult
+        }
+
+        AppLogManager.shared.success("Foundation Models processing completed (\(result.count) characters)", category: "AppleIntelligence")
+        return result
+#else
+        throw AppleIntelligenceError.notAvailable
+#endif
+    }
+
+    private func _buildFoundationModelsPrompt(for action: AIAction, text: String, customInstruction: String?) -> String {
+        switch action {
+        case .simplify:
+            return "Simplify the following text to be clear and easy to understand:\n\n\(text)"
+        case .translate:
+            if let language = customInstruction {
+                return "Translate the following text to \(language):\n\n\(text)"
+            }
+            return "Translate the following text to English:\n\n\(text)"
+        case .explain:
+            return "Provide a clear, detailed explanation of the following text:\n\n\(text)"
+        case .summarize:
+            return "Write a concise summary of the following text:\n\n\(text)"
+        case .keyPoints:
+            return "Extract and list the key points from the following text as a bullet-pointed list:\n\n\(text)"
+        case .stepByStep:
+            return "Convert the following text into a clear, numbered step-by-step guide:\n\n\(text)"
+        case .proofread:
+            return "Proofread and correct any grammar, spelling, or clarity issues in the following text. Return only the corrected text:\n\n\(text)"
+        case .describeGuide:
+            if let instruction = customInstruction {
+                return "\(instruction)\n\nText:\n\(text)"
+            }
+            return "Process the following text appropriately:\n\n\(text)"
+        }
+    }
+
+    // MARK: - Guide Content Generation
+
+    @available(iOS 26.0, *)
     func generateGuideContent(title: String, context: String) async throws -> String {
 #if canImport(FoundationModels)
-        if #available(iOS 18.0, *) {
-            AppLogManager.shared.info("Starting Foundation Models guide generation for: \(title)", category: "AppleIntelligence")
+        AppLogManager.shared.info("Starting Foundation Models guide generation for: \(title)", category: "AppleIntelligence")
 
-            let model = SystemLanguageModel.default
+        let model = SystemLanguageModel.default
 
-            guard case .available = model.availability else {
-                AppLogManager.shared.warning("Foundation Models not available, using fallback content generation", category: "AppleIntelligence")
-                return await generateFallbackGuideContent(title: title, context: context)
-            }
-
-            let session = LanguageModelSession(
-                model: model,
-                instructions: """
-                You are a knowledgeable technical guide writer for iOS app users. \
-                Generate clear, step-by-step, actionable guides with proper Markdown formatting. \
-                Use ## for major section headings, ### for sub-headings, \
-                bullet points for feature lists, and numbered lists for sequential steps. \
-                Be concise, accurate, and helpful. Do not include preamble or meta-commentary.
-                """
-            )
-
-            let prompt: String
-            if context.isEmpty {
-                prompt = "Write a comprehensive, step-by-step guide titled: \"\(title)\""
-            } else {
-                prompt = "Write a comprehensive, step-by-step guide titled: \"\(title)\"\n\nContext: \(context)"
-            }
-
-            AppLogManager.shared.debug("Sending prompt to Foundation Models", category: "AppleIntelligence")
-
-            let response = try await session.respond(to: prompt)
-            let result = response.content
-
-            AppLogManager.shared.success("Foundation Models guide generation completed (\(result.count) characters)", category: "AppleIntelligence")
-
-            return result
+        guard case .available = model.availability else {
+            AppLogManager.shared.warning("Foundation Models not available, using fallback content generation", category: "AppleIntelligence")
+            return await generateFallbackGuideContent(title: title, context: context)
         }
-#endif
-        // Fallback for when FoundationModels cannot be imported or iOS version is lower
+
+        let session = LanguageModelSession(
+            model: model,
+            instructions: """
+            You are a knowledgeable technical guide writer for iOS app users. \
+            Generate clear, step-by-step, actionable guides with proper Markdown formatting. \
+            Use ## for major section headings, ### for sub-headings, \
+            bullet points for feature lists, and numbered lists for sequential steps. \
+            Be concise, accurate, and helpful. Do not include preamble or meta-commentary.
+            """
+        )
+
+        let prompt: String
+        if context.isEmpty {
+            prompt = "Write a comprehensive, step-by-step guide titled: \"\(title)\""
+        } else {
+            prompt = "Write a comprehensive, step-by-step guide titled: \"\(title)\"\n\nContext: \(context)"
+        }
+
+        AppLogManager.shared.debug("Sending prompt to Foundation Models", category: "AppleIntelligence")
+
+        let response = try await session.respond(to: prompt)
+        let result = response.content
+
+        AppLogManager.shared.success("Foundation Models guide generation completed (\(result.count) characters)", category: "AppleIntelligence")
+
+        return result
+#else
         return await generateFallbackGuideContent(title: title, context: context)
+#endif
     }
 
     private func generateFallbackGuideContent(title: String, context: String) async -> String {

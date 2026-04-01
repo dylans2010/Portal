@@ -91,6 +91,11 @@ struct SourcesView: View {
                     VStack(spacing: 0) {
                         // Custom top navigation area
                         customNavigationBar
+
+                        // Inline search bar
+                        inlineSearchBar
+                            .padding(.horizontal, 16)
+                            .padding(.bottom, 12)
                         
                         // Main content
                         VStack(spacing: 0) {
@@ -110,7 +115,6 @@ struct SourcesView: View {
                     await viewModel.fetchSources(Array(_sources), refresh: true)
                 }
             }
-            .searchable(text: $_searchText, prompt: String.localized("Search Sources"))
             .globalTheme()
             .navigationBarHidden(true)
             .fullScreenCover(isPresented: $_isAddingPresenting) {
@@ -209,6 +213,41 @@ struct SourcesView: View {
         .padding(.bottom, 24)
     }
     
+    // MARK: - Inline Search Bar
+    private var inlineSearchBar: some View {
+        HStack(spacing: 10) {
+            Image(systemName: "magnifyingglass")
+                .font(.system(size: 14, weight: .medium))
+                .foregroundStyle(.secondary)
+
+            TextField(String.localized("Search Sources"), text: $_searchText)
+                .font(.system(size: 16))
+                .submitLabel(.search)
+
+            if !_searchText.isEmpty {
+                Button {
+                    withAnimation(.easeInOut(duration: 0.2)) {
+                        _searchText = ""
+                    }
+                    HapticsManager.shared.softImpact()
+                } label: {
+                    Image(systemName: "xmark.circle.fill")
+                        .font(.system(size: 16))
+                        .foregroundStyle(.secondary)
+                }
+                .buttonStyle(.plain)
+                .transition(.scale.combined(with: .opacity))
+            }
+        }
+        .padding(.horizontal, 14)
+        .padding(.vertical, 10)
+        .background(
+            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                .fill(Color(UIColor.secondarySystemGroupedBackground))
+        )
+        .animation(.easeInOut(duration: 0.2), value: _searchText.isEmpty)
+    }
+
     private func navBarButton(systemImage: String, color: Color) -> some View {
         ZStack {
             Circle()
