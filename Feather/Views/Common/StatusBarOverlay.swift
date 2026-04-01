@@ -74,11 +74,31 @@ struct StatusBarOverlay: View {
     @AppStorage("statusBar.dateFormat") private var dateFormat: String = "short"
     @AppStorage("statusBar.customDateFormat") private var customDateFormat: String = "MMM d"
     @AppStorage("statusBar.showWeekday") private var showWeekday: Bool = false
+    @AppStorage("statusBar.showCPUUsage") private var showCPUUsage: Bool = false
+    @AppStorage("statusBar.showBrightness") private var showBrightness: Bool = false
+    @AppStorage("statusBar.showVolume") private var showVolume: Bool = false
+    @AppStorage("statusBar.showChargingStatus") private var showChargingStatus: Bool = false
+    @AppStorage("statusBar.showStepCount") private var showStepCount: Bool = false
+    @AppStorage("statusBar.horizontalOffset") private var horizontalOffset: Double = 0
+    @AppStorage("statusBar.verticalOffset") private var verticalOffset: Double = 0
+    @AppStorage("statusBar.itemSpacing") private var itemSpacing: Double = 8
+    @AppStorage("statusBar.letterSpacing") private var letterSpacing: Double = 0
+    @AppStorage("statusBar.textShadowEnabled") private var textShadowEnabled: Bool = false
+    @AppStorage("statusBar.textShadowColor") private var textShadowColorHex: String = "#000000"
+    @AppStorage("statusBar.textShadowRadius") private var textShadowRadius: Double = 2
+    @AppStorage("statusBar.networkAlignment") private var networkAlignment: String = "right"
+    @AppStorage("statusBar.memoryAlignment") private var memoryAlignment: String = "right"
+    @AppStorage("statusBar.dateAlignment") private var dateAlignment: String = "right"
+    @AppStorage("statusBar.cpuAlignment") private var cpuAlignment: String = "right"
+    @AppStorage("statusBar.brightnessAlignment") private var brightnessAlignment: String = "right"
+    @AppStorage("statusBar.volumeAlignment") private var volumeAlignment: String = "right"
+    @AppStorage("statusBar.chargingAlignment") private var chargingAlignment: String = "right"
     
     // MARK: - State Properties
     @State private var isVisible = false
     @State private var isConnected = true
     @State private var memoryUsage: Double = 0
+    @State private var cpuUsage: Double = 0
     @State private var currentTime = Date()
     @State private var batteryLevel: Float = 0.0
     @State private var batteryState: UIDevice.BatteryState = .unknown
@@ -142,7 +162,7 @@ struct StatusBarOverlay: View {
     }
     
     private var hasContent: Bool {
-        showCustomText || showSFSymbol || showTime || showBattery || showNetworkStatus || showMemoryUsage || showDate || widgetType != .none
+        showCustomText || showSFSymbol || showTime || showBattery || showNetworkStatus || showMemoryUsage || showDate || widgetType != .none || showCPUUsage || showBrightness || showVolume || showChargingStatus || showStepCount
     }
 
     private var dateString: String {
@@ -204,28 +224,25 @@ struct StatusBarOverlay: View {
     // MARK: - Body
     var body: some View {
         if hasContent {
-            GeometryReader { geometry in
-                statusBarContent(geometry: geometry)
-            }
-            .frame(height: max(50, safeAreaTopInset + 10))
-            .zIndex(10000)
-            .onAppear(perform: setupOnAppear)
-            .onDisappear(perform: cleanupOnDisappear)
-            .onReceive(timer, perform: updateOnTimer)
+            statusBarContent
+                .frame(maxWidth: .infinity)
+                .frame(height: max(50, safeAreaTopInset + 10))
+                .zIndex(10000)
+                .onAppear(perform: setupOnAppear)
+                .onDisappear(perform: cleanupOnDisappear)
+                .onReceive(timer, perform: updateOnTimer)
         }
     }
     
     // MARK: - Status Bar Content
     @ViewBuilder
-    private func statusBarContent(geometry: GeometryProxy) -> some View {
+    private var statusBarContent: some View {
         ZStack(alignment: .top) {
-            // Invisible overlay for status bar area
             Color.clear
-                .frame(height: max(50, safeAreaTopInset + 10))
                 .allowsHitTesting(false)
             
             // Content container
-            HStack(spacing: 12) {
+            HStack(spacing: CGFloat(itemSpacing)) {
                 // Leading items
                 leadingContent
                 
@@ -240,7 +257,8 @@ struct StatusBarOverlay: View {
                 trailingContent
             }
             .padding(.horizontal, 16)
-            .padding(.top, max(8, safeAreaTopInset - 35))
+            .padding(.top, max(8, safeAreaTopInset - 32))
+            .offset(x: CGFloat(horizontalOffset), y: CGFloat(verticalOffset))
             .opacity(isVisible ? 1 : 0)
             .scaleEffect(isVisible ? 1 : (animationType == "scale" ? 0.8 : 1))
             .offset(y: isVisible ? 0 : (animationType == "slide" ? -20 : 0))
@@ -252,7 +270,7 @@ struct StatusBarOverlay: View {
     // MARK: - Content Sections
     @ViewBuilder
     private var leadingContent: some View {
-        HStack(spacing: 8) {
+        HStack(spacing: CGFloat(itemSpacing)) {
             if showTime && getAlignment(for: timeAlignment) == .leading {
                 timeView
             }
@@ -265,12 +283,33 @@ struct StatusBarOverlay: View {
             if showBattery && getAlignment(for: batteryAlignment) == .leading {
                 batteryView
             }
+            if showDate && getAlignment(for: dateAlignment) == .leading {
+                dateView
+            }
+            if showNetworkStatus && getAlignment(for: networkAlignment) == .leading {
+                networkStatusView
+            }
+            if showMemoryUsage && getAlignment(for: memoryAlignment) == .leading {
+                memoryUsageView
+            }
+            if showCPUUsage && getAlignment(for: cpuAlignment) == .leading {
+                cpuUsageView
+            }
+            if showBrightness && getAlignment(for: brightnessAlignment) == .leading {
+                brightnessView
+            }
+            if showVolume && getAlignment(for: volumeAlignment) == .leading {
+                volumeView
+            }
+            if showChargingStatus && getAlignment(for: chargingAlignment) == .leading {
+                chargingStatusView
+            }
         }
     }
     
     @ViewBuilder
     private var centerContent: some View {
-        HStack(spacing: 8) {
+        HStack(spacing: CGFloat(itemSpacing)) {
             if showTime && getAlignment(for: timeAlignment) == .center {
                 timeView
             }
@@ -283,6 +322,27 @@ struct StatusBarOverlay: View {
             if showBattery && getAlignment(for: batteryAlignment) == .center {
                 batteryView
             }
+            if showDate && getAlignment(for: dateAlignment) == .center {
+                dateView
+            }
+            if showNetworkStatus && getAlignment(for: networkAlignment) == .center {
+                networkStatusView
+            }
+            if showMemoryUsage && getAlignment(for: memoryAlignment) == .center {
+                memoryUsageView
+            }
+            if showCPUUsage && getAlignment(for: cpuAlignment) == .center {
+                cpuUsageView
+            }
+            if showBrightness && getAlignment(for: brightnessAlignment) == .center {
+                brightnessView
+            }
+            if showVolume && getAlignment(for: volumeAlignment) == .center {
+                volumeView
+            }
+            if showChargingStatus && getAlignment(for: chargingAlignment) == .center {
+                chargingStatusView
+            }
             if widgetType != .none {
                 buildWidget()
             }
@@ -291,7 +351,7 @@ struct StatusBarOverlay: View {
     
     @ViewBuilder
     private var trailingContent: some View {
-        HStack(spacing: 8) {
+        HStack(spacing: CGFloat(itemSpacing)) {
             if showTime && getAlignment(for: timeAlignment) == .trailing {
                 timeView
             }
@@ -304,14 +364,26 @@ struct StatusBarOverlay: View {
             if showBattery && getAlignment(for: batteryAlignment) == .trailing {
                 batteryView
             }
-            if showDate {
+            if showDate && getAlignment(for: dateAlignment) == .trailing {
                 dateView
             }
-            if showNetworkStatus {
+            if showNetworkStatus && getAlignment(for: networkAlignment) == .trailing {
                 networkStatusView
             }
-            if showMemoryUsage {
+            if showMemoryUsage && getAlignment(for: memoryAlignment) == .trailing {
                 memoryUsageView
+            }
+            if showCPUUsage && getAlignment(for: cpuAlignment) == .trailing {
+                cpuUsageView
+            }
+            if showBrightness && getAlignment(for: brightnessAlignment) == .trailing {
+                brightnessView
+            }
+            if showVolume && getAlignment(for: volumeAlignment) == .trailing {
+                volumeView
+            }
+            if showChargingStatus && getAlignment(for: chargingAlignment) == .trailing {
+                chargingStatusView
             }
         }
     }
@@ -407,17 +479,73 @@ struct StatusBarOverlay: View {
             }
         }
     }
+
+    // MARK: - CPU Usage View
+    @ViewBuilder
+    private var cpuUsageView: some View {
+        styledText("CPU \(Int(cpuUsage))%")
+    }
+
+    // MARK: - Brightness View
+    @ViewBuilder
+    private var brightnessView: some View {
+        let level = Int(UIScreen.main.brightness * 100)
+        HStack(spacing: 3) {
+            Image(systemName: "sun.max.fill")
+                .font(.system(size: fontSize * 0.85, weight: .medium))
+                .foregroundStyle(Color(hex: colorHex))
+            Text("\(level)%")
+                .font(.system(size: fontSize * 0.85, weight: isBold ? .semibold : .medium, design: selectedFontDesign))
+                .foregroundStyle(Color(hex: colorHex))
+        }
+        .modifier(GlowModifier(enabled: enableGlow, color: Color(hex: glowColorHex), intensity: glowIntensity, radius: glowRadius))
+    }
+
+    // MARK: - Volume View
+    @ViewBuilder
+    private var volumeView: some View {
+        HStack(spacing: 3) {
+            Image(systemName: "speaker.wave.2.fill")
+                .font(.system(size: fontSize * 0.85, weight: .medium))
+                .foregroundStyle(Color(hex: colorHex))
+        }
+        .modifier(GlowModifier(enabled: enableGlow, color: Color(hex: glowColorHex), intensity: glowIntensity, radius: glowRadius))
+    }
+
+    // MARK: - Charging Status View
+    @ViewBuilder
+    private var chargingStatusView: some View {
+        if batteryState == .charging || batteryState == .full {
+            HStack(spacing: 3) {
+                Image(systemName: "bolt.fill")
+                    .font(.system(size: fontSize * 0.85, weight: .medium))
+                    .foregroundStyle(Color.green)
+                Text("Charging")
+                    .font(.system(size: fontSize * 0.85, weight: isBold ? .semibold : .medium, design: selectedFontDesign))
+                    .foregroundStyle(Color.green)
+            }
+            .modifier(GlowModifier(enabled: enableGlow, color: Color(hex: glowColorHex), intensity: glowIntensity, radius: glowRadius))
+        } else {
+            Image(systemName: "bolt.slash.fill")
+                .font(.system(size: fontSize * 0.85, weight: .medium))
+                .foregroundStyle(Color(hex: colorHex))
+                .modifier(GlowModifier(enabled: enableGlow, color: Color(hex: glowColorHex), intensity: glowIntensity, radius: glowRadius))
+        }
+    }
     
     // MARK: - Lifecycle Methods
     private func setupOnAppear() {
         currentTime = Date()
-        if showBattery {
+        if showBattery || showChargingStatus {
             UIDevice.current.isBatteryMonitoringEnabled = true
             batteryLevel = UIDevice.current.batteryLevel
             batteryState = UIDevice.current.batteryState
         }
         if showMemoryUsage {
             updateMemoryUsage()
+        }
+        if showCPUUsage {
+            updateCPUUsage()
         }
         if enableAnimation {
             withAnimation(contentAnimation) {
@@ -429,19 +557,22 @@ struct StatusBarOverlay: View {
     }
     
     private func cleanupOnDisappear() {
-        if showBattery {
+        if showBattery || showChargingStatus {
             UIDevice.current.isBatteryMonitoringEnabled = false
         }
     }
     
     private func updateOnTimer(_ time: Date) {
         currentTime = time
-        if showBattery {
+        if showBattery || showChargingStatus {
             batteryLevel = UIDevice.current.batteryLevel
             batteryState = UIDevice.current.batteryState
         }
         if showMemoryUsage {
             updateMemoryUsage()
+        }
+        if showCPUUsage {
+            updateCPUUsage()
         }
     }
     
@@ -476,6 +607,31 @@ struct StatusBarOverlay: View {
         }
         return 0
     }
+
+    private func updateCPUUsage() {
+        var threadList: thread_act_array_t?
+        var threadCount: mach_msg_type_number_t = 0
+        guard task_threads(mach_task_self_, &threadList, &threadCount) == KERN_SUCCESS,
+              let threads = threadList else { return }
+        var totalCPU: Double = 0
+        for i in 0..<Int(threadCount) {
+            var threadInfo = thread_basic_info()
+            var count = mach_msg_type_number_t(MemoryLayout<thread_basic_info>.size) / 4
+            let kr = withUnsafeMutablePointer(to: &threadInfo) {
+                $0.withMemoryRebound(to: integer_t.self, capacity: 1) {
+                    thread_info(threads[i], thread_flavor_t(THREAD_BASIC_INFO), $0, &count)
+                }
+            }
+            if kr == KERN_SUCCESS {
+                let info = threadInfo
+                if info.flags & TH_FLAGS_IDLE == 0 {
+                    totalCPU += Double(info.cpu_usage) / Double(TH_USAGE_SCALE) * 100.0
+                }
+            }
+        }
+        vm_deallocate(mach_task_self_, vm_address_t(bitPattern: threads), vm_size_t(Int(threadCount) * MemoryLayout<thread_t>.stride))
+        cpuUsage = min(totalCPU, 100.0)
+    }
     
     // MARK: - Widget Builder
     @ViewBuilder
@@ -506,15 +662,18 @@ struct StatusBarOverlay: View {
         let baseText = Text(text)
             .font(.system(size: fontSize, weight: isBold ? .semibold : .medium, design: selectedFontDesign))
             .lineLimit(1)
+            .kerning(letterSpacing)
         
         if useGradientText {
             baseText
                 .foregroundStyle(textGradient)
                 .modifier(GlowModifier(enabled: enableGlow, color: Color(hex: glowColorHex), intensity: glowIntensity, radius: glowRadius))
+                .modifier(TextShadowModifier(enabled: textShadowEnabled, color: Color(hex: textShadowColorHex), radius: textShadowRadius))
         } else {
             baseText
                 .foregroundStyle(SwiftUI.Color(hex: colorHex))
                 .modifier(GlowModifier(enabled: enableGlow, color: Color(hex: glowColorHex), intensity: glowIntensity, radius: glowRadius))
+                .modifier(TextShadowModifier(enabled: textShadowEnabled, color: Color(hex: textShadowColorHex), radius: textShadowRadius))
         }
     }
     
@@ -528,10 +687,12 @@ struct StatusBarOverlay: View {
             baseSymbol
                 .foregroundStyle(textGradient)
                 .modifier(GlowModifier(enabled: enableGlow, color: Color(hex: glowColorHex), intensity: glowIntensity, radius: glowRadius))
+                .modifier(TextShadowModifier(enabled: textShadowEnabled, color: Color(hex: textShadowColorHex), radius: textShadowRadius))
         } else {
             baseSymbol
                 .foregroundStyle(SwiftUI.Color(hex: colorHex))
                 .modifier(GlowModifier(enabled: enableGlow, color: Color(hex: glowColorHex), intensity: glowIntensity, radius: glowRadius))
+                .modifier(TextShadowModifier(enabled: textShadowEnabled, color: Color(hex: textShadowColorHex), radius: textShadowRadius))
         }
     }
 }
@@ -548,6 +709,22 @@ private struct GlowModifier: ViewModifier {
             content
                 .shadow(color: color.opacity(intensity), radius: radius, x: 0, y: 0)
                 .shadow(color: color.opacity(intensity * 0.5), radius: radius * 1.5, x: 0, y: 0)
+        } else {
+            content
+        }
+    }
+}
+
+// MARK: - Text Shadow Modifier
+private struct TextShadowModifier: ViewModifier {
+    let enabled: Bool
+    let color: Color
+    let radius: Double
+
+    func body(content: Content) -> some View {
+        if enabled {
+            content
+                .shadow(color: color.opacity(0.7), radius: radius, x: 1, y: 1)
         } else {
             content
         }

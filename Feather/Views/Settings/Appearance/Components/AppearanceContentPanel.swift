@@ -14,6 +14,7 @@ struct AppearanceContentPanel: View {
     @State private var showGradientStartColorPicker = false
     @State private var showGradientEndColorPicker = false
     @State private var showGlowColorPicker = false
+    @State private var showTextShadowColorPicker = false
     @State private var showResetConfirmation = false
     
     var body: some View {
@@ -67,6 +68,9 @@ struct AppearanceContentPanel: View {
         }
         .sheet(isPresented: $showGlowColorPicker) {
             GradientColorPickerSheet(colorHex: $viewModel.glowColorHex, title: "Glow Color")
+        }
+        .sheet(isPresented: $showTextShadowColorPicker) {
+            GradientColorPickerSheet(colorHex: $viewModel.textShadowColorHex, title: "Shadow Color")
         }
         .sheet(isPresented: $showSymbolPicker) {
             SFSymbolsPickerView(viewModel: viewModel)
@@ -166,6 +170,17 @@ struct AppearanceContentPanel: View {
                         .monospacedDigit()
                 }
                 Slider(value: $viewModel.fontSize, in: 8...24, step: 1)
+            }
+            
+            VStack(alignment: .leading, spacing: 8) {
+                HStack {
+                    Label("Letter Spacing", systemImage: "arrow.left.and.right.text.vertical")
+                    Spacer()
+                    Text(String(format: "%.1f", viewModel.letterSpacing))
+                        .foregroundStyle(.secondary)
+                        .monospacedDigit()
+                }
+                Slider(value: $viewModel.letterSpacing, in: -5...15, step: 0.5)
             }
             
             Button {

@@ -9,6 +9,8 @@ struct StructureVisibilityPanel: View {
     @State private var showLimitReachedAlert = false
     @State private var attemptedWidget: String = ""
     
+    private let widgetLimit = 4
+    
     // Count enabled widgets
     private var enabledWidgetCount: Int {
         var count = 0
@@ -19,137 +21,54 @@ struct StructureVisibilityPanel: View {
         if viewModel.showDate { count += 1 }
         if viewModel.showNetworkStatus { count += 1 }
         if viewModel.showMemoryUsage { count += 1 }
+        if viewModel.showCPUUsage { count += 1 }
+        if viewModel.showBrightness { count += 1 }
+        if viewModel.showVolume { count += 1 }
+        if viewModel.showChargingStatus { count += 1 }
         return count
+    }
+    
+    private func widgetToggle(isOn: Binding<Bool>, name: String, icon: String) -> some View {
+        Toggle(isOn: Binding(
+            get: { isOn.wrappedValue },
+            set: { newValue in
+                if newValue && enabledWidgetCount >= widgetLimit {
+                    attemptedWidget = name
+                    showLimitReachedAlert = true
+                    HapticsManager.shared.error()
+                } else {
+                    isOn.wrappedValue = newValue
+                    HapticsManager.shared.softImpact()
+                }
+            }
+        )) {
+            Label(name, systemImage: icon)
+        }
+        .themedAccent()
     }
     
     var body: some View {
         List {
             Section {
-                Toggle(isOn: Binding(
-                    get: { viewModel.showCustomText },
-                    set: { newValue in
-                        if newValue && enabledWidgetCount >= 2 {
-                            attemptedWidget = "Custom Text"
-                            showLimitReachedAlert = true
-                            HapticsManager.shared.error()
-                        } else {
-                            viewModel.showCustomText = newValue
-                            HapticsManager.shared.softImpact()
-                        }
-                    }
-                )) {
-                    Label("Custom Text", systemImage: "textformat")
-                }
-                .themedAccent()
-                
-                Toggle(isOn: Binding(
-                    get: { viewModel.showSFSymbol },
-                    set: { newValue in
-                        if newValue && enabledWidgetCount >= 2 {
-                            attemptedWidget = "SF Symbol"
-                            showLimitReachedAlert = true
-                            HapticsManager.shared.error()
-                        } else {
-                            viewModel.showSFSymbol = newValue
-                            HapticsManager.shared.softImpact()
-                        }
-                    }
-                )) {
-                    Label("SF Symbol", systemImage: "star.fill")
-                }
-                .themedAccent()
-                
-                Toggle(isOn: Binding(
-                    get: { viewModel.showTime },
-                    set: { newValue in
-                        if newValue && enabledWidgetCount >= 2 {
-                            attemptedWidget = "Time"
-                            showLimitReachedAlert = true
-                            HapticsManager.shared.error()
-                        } else {
-                            viewModel.showTime = newValue
-                            HapticsManager.shared.softImpact()
-                        }
-                    }
-                )) {
-                    Label("Time", systemImage: "clock.fill")
-                }
-                .themedAccent()
-                
-                Toggle(isOn: Binding(
-                    get: { viewModel.showDate },
-                    set: { newValue in
-                        if newValue && enabledWidgetCount >= 2 {
-                            attemptedWidget = "Date"
-                            showLimitReachedAlert = true
-                            HapticsManager.shared.error()
-                        } else {
-                            viewModel.showDate = newValue
-                            HapticsManager.shared.softImpact()
-                        }
-                    }
-                )) {
-                    Label("Date", systemImage: "calendar")
-                }
-                .themedAccent()
-                
-                Toggle(isOn: Binding(
-                    get: { viewModel.showBattery },
-                    set: { newValue in
-                        if newValue && enabledWidgetCount >= 2 {
-                            attemptedWidget = "Battery"
-                            showLimitReachedAlert = true
-                            HapticsManager.shared.error()
-                        } else {
-                            viewModel.showBattery = newValue
-                            HapticsManager.shared.softImpact()
-                        }
-                    }
-                )) {
-                    Label("Battery", systemImage: "battery.100")
-                }
-                .themedAccent()
+                widgetToggle(isOn: $viewModel.showTime, name: "Time", icon: "clock.fill")
+                widgetToggle(isOn: $viewModel.showDate, name: "Date", icon: "calendar")
+                widgetToggle(isOn: $viewModel.showBattery, name: "Battery", icon: "battery.100")
+                widgetToggle(isOn: $viewModel.showCustomText, name: "Custom Text", icon: "textformat")
+                widgetToggle(isOn: $viewModel.showSFSymbol, name: "SF Symbol", icon: "star.fill")
             } header: {
-                Label("Widgets", systemImage: "square.grid.2x2")
+                Label("Common Widgets", systemImage: "square.grid.2x2")
             } footer: {
-                Text("Enable up to 2 widgets. Currently \(enabledWidgetCount) of 2.")
-                    .foregroundStyle(enabledWidgetCount >= 2 ? .orange : .secondary)
+                Text("Enable up to \(widgetLimit) widgets. Currently \(enabledWidgetCount) of \(widgetLimit).")
+                    .foregroundStyle(enabledWidgetCount >= widgetLimit ? .orange : .secondary)
             }
             
             Section {
-                Toggle(isOn: Binding(
-                    get: { viewModel.showNetworkStatus },
-                    set: { newValue in
-                        if newValue && enabledWidgetCount >= 2 {
-                            attemptedWidget = "Network Status"
-                            showLimitReachedAlert = true
-                            HapticsManager.shared.error()
-                        } else {
-                            viewModel.showNetworkStatus = newValue
-                            HapticsManager.shared.softImpact()
-                        }
-                    }
-                )) {
-                    Label("Network Status", systemImage: "wifi")
-                }
-                .themedAccent()
-                
-                Toggle(isOn: Binding(
-                    get: { viewModel.showMemoryUsage },
-                    set: { newValue in
-                        if newValue && enabledWidgetCount >= 2 {
-                            attemptedWidget = "Memory Usage"
-                            showLimitReachedAlert = true
-                            HapticsManager.shared.error()
-                        } else {
-                            viewModel.showMemoryUsage = newValue
-                            HapticsManager.shared.softImpact()
-                        }
-                    }
-                )) {
-                    Label("Memory Usage", systemImage: "memorychip")
-                }
-                .themedAccent()
+                widgetToggle(isOn: $viewModel.showNetworkStatus, name: "Network Status", icon: "wifi")
+                widgetToggle(isOn: $viewModel.showMemoryUsage, name: "Memory Usage", icon: "memorychip")
+                widgetToggle(isOn: $viewModel.showCPUUsage, name: "CPU Usage", icon: "cpu")
+                widgetToggle(isOn: $viewModel.showBrightness, name: "Brightness", icon: "sun.max.fill")
+                widgetToggle(isOn: $viewModel.showVolume, name: "Volume", icon: "speaker.wave.2.fill")
+                widgetToggle(isOn: $viewModel.showChargingStatus, name: "Charging Status", icon: "bolt.fill")
             } header: {
                 Label("System Info", systemImage: "info.circle")
             }
@@ -207,7 +126,7 @@ struct StructureVisibilityPanel: View {
         .alert("Widget Limit Reached", isPresented: $showLimitReachedAlert) {
             Button("OK", role: .cancel) {}
         } message: {
-            Text("You can only enable 2 status bar options at a time. Please disable one of the currently enabled options before enabling \(attemptedWidget).")
+            Text("You can only enable \(widgetLimit) status bar widgets at a time. Please disable one before enabling \(attemptedWidget).")
         }
     }
 }
