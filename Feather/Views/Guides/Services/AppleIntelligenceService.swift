@@ -53,7 +53,7 @@ final class AppleIntelligenceService {
     
     var isFoundationModelsAvailable: Bool {
 #if canImport(FoundationModels)
-        if #available(iOS 26.0, *) {
+        if #available(iOS 18.0, *) {
             if case .available = SystemLanguageModel.default.availability {
                 AppLogManager.shared.success("Foundation Models available on this device", category: "AppleIntelligence")
                 return true
@@ -150,32 +150,37 @@ final class AppleIntelligenceService {
                 return await generateFallbackGuideContent(title: title, context: context)
             }
 
-            let session = LanguageModelSession(
-                model: model,
-                instructions: """
-                You are a knowledgeable technical guide writer for iOS app users. \
-                Generate clear, step-by-step, actionable guides with proper Markdown formatting. \
-                Use ## for major section headings, ### for sub-headings, \
-                bullet points for feature lists, and numbered lists for sequential steps. \
-                Be concise, accurate, and helpful. Do not include preamble or meta-commentary.
-                """
-            )
+            do {
+                let session = LanguageModelSession(
+                    model: model,
+                    instructions: """
+                    You are a knowledgeable technical guide writer for iOS app users. \
+                    Generate clear, step-by-step, actionable guides with proper Markdown formatting. \
+                    Use ## for major section headings, ### for sub-headings, \
+                    bullet points for feature lists, and numbered lists for sequential steps. \
+                    Be concise, accurate, and helpful. Do not include preamble or meta-commentary.
+                    """
+                )
 
-            let prompt: String
-            if context.isEmpty {
-                prompt = "Write a comprehensive, step-by-step guide titled: \"\(title)\""
-            } else {
-                prompt = "Write a comprehensive, step-by-step guide titled: \"\(title)\"\n\nContext: \(context)"
+                let prompt: String
+                if context.isEmpty {
+                    prompt = "Write a comprehensive, step-by-step guide titled: \"\(title)\""
+                } else {
+                    prompt = "Write a comprehensive, step-by-step guide titled: \"\(title)\"\n\nContext: \(context)"
+                }
+
+                AppLogManager.shared.debug("Sending prompt to Foundation Models", category: "AppleIntelligence")
+
+                let response = try await session.respond(to: prompt)
+                let result = response.content
+
+                AppLogManager.shared.success("Foundation Models guide generation completed (\(result.count) characters)", category: "AppleIntelligence")
+
+                return result
+            } catch {
+                AppLogManager.shared.error("Foundation Models error: \(error.localizedDescription), falling back", category: "AppleIntelligence", errorCode: .APPLE_INTEL_ERR)
+                return await generateFallbackGuideContent(title: title, context: context)
             }
-
-            AppLogManager.shared.debug("Sending prompt to Foundation Models", category: "AppleIntelligence")
-
-            let response = try await session.respond(to: prompt)
-            let result = response.content
-
-            AppLogManager.shared.success("Foundation Models guide generation completed (\(result.count) characters)", category: "AppleIntelligence")
-
-            return result
         }
 #endif
         // Fallback for when FoundationModels cannot be imported or iOS version is lower

@@ -86,12 +86,49 @@ struct SourcesView: View {
                 // Simple background
                 Color.clear
                     .ignoresSafeArea()
-                
-                ScrollView {
-                    VStack(spacing: 0) {
-                        // Custom top navigation area
-                        customNavigationBar
-                        
+
+                VStack(spacing: 0) {
+                    // Custom top navigation area with search
+                    customNavigationBar
+
+                    // Search Bar (now visible)
+                    HStack(spacing: 12) {
+                        HStack(spacing: 10) {
+                            Image(systemName: "magnifyingglass")
+                                .font(.system(size: 15, weight: .medium))
+                                .foregroundStyle(.secondary)
+
+                            TextField(String.localized("Search Sources"), text: $_searchText)
+                                .font(.system(size: 16))
+                                .foregroundStyle(.primary)
+                                .autocorrectionDisabled()
+                                .textInputAutocapitalization(.never)
+
+                            if !_searchText.isEmpty {
+                                Button {
+                                    withAnimation {
+                                        _searchText = ""
+                                    }
+                                } label: {
+                                    Image(systemName: "xmark.circle.fill")
+                                        .font(.system(size: 15, weight: .medium))
+                                        .foregroundStyle(.secondary)
+                                }
+                                .buttonStyle(.plain)
+                                .transition(.scale.combined(with: .opacity))
+                            }
+                        }
+                        .padding(.horizontal, 14)
+                        .padding(.vertical, 10)
+                        .background(
+                            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                                .fill(Color(UIColor.secondarySystemGroupedBackground))
+                        )
+                    }
+                    .padding(.horizontal, 20)
+                    .padding(.bottom, 12)
+
+                    ScrollView {
                         // Main content
                         VStack(spacing: 0) {
                             if !_filteredSources.isEmpty {
@@ -105,12 +142,11 @@ struct SourcesView: View {
                         .padding(.horizontal, _filteredSources.isEmpty ? 0 : 16)
                         .padding(.bottom, 100)
                     }
-                }
-                .refreshable {
-                    await viewModel.fetchSources(Array(_sources), refresh: true)
+                    .refreshable {
+                        await viewModel.fetchSources(Array(_sources), refresh: true)
+                    }
                 }
             }
-            .searchable(text: $_searchText, prompt: String.localized("Search Sources"))
             .globalTheme()
             .navigationBarHidden(true)
             .fullScreenCover(isPresented: $_isAddingPresenting) {
