@@ -10,7 +10,7 @@ struct FeatherApp: App {
 
         let heartbeat = HeartbeatManager.shared
 
-        @StateObject var themeManager = AppWideThemeManager()
+        @State var themeManager = AppWideThemeManager.shared
         @StateObject private var styleManager = SectionStyleManager.shared
         @StateObject var downloadManager = DownloadManager.shared
         @StateObject var networkMonitor = NetworkMonitor.shared
@@ -89,29 +89,29 @@ struct FeatherApp: App {
                                                                 .transition(AnyTransition.move(edge: .top).combined(with: .opacity))
                             .sheet(isPresented: $_showCertAdd) {
                                 CertificatesAddView()
-                                    .environmentObject(themeManager)
+                                    .environment(themeManager)
                                     .environmentObject(styleManager)
                             }
                             .sheet(isPresented: $_showCertificates) {
                                 NBNavigationView(.localized("Certificates")) {
                                     CertificatesView()
                                 }
-                                .environmentObject(themeManager)
+                                .environment(themeManager)
                                 .environmentObject(styleManager)
                             }
                             .sheet(isPresented: $_showQuickActions) {
                                 QuickActionsSheetView()
-                                    .environmentObject(themeManager)
+                                    .environment(themeManager)
                                     .environmentObject(styleManager)
                             }
                             .sheet(isPresented: $_showNearbyRestore) {
                                 RestoreOptionsView()
-                                    .environmentObject(themeManager)
+                                    .environment(themeManager)
                                     .environmentObject(styleManager)
                             }
                             .sheet(isPresented: $_showBulkSourceImport) {
                                 SourcesAddBulkView(sourceURLs: _bulkSourceURLs)
-                                    .environmentObject(themeManager)
+                                    .environment(themeManager)
                                     .environmentObject(styleManager)
                             }
                                                         .confirmationDialog(
@@ -188,7 +188,7 @@ struct FeatherApp: App {
                         }
                         .globalTheme()
                         .tint(themeManager.accentColor)
-                        .environmentObject(themeManager)
+                        .environment(themeManager)
                         .environmentObject(styleManager)
                         .environmentObject(ColorBackgroundManager.shared)
                         .handleStatusBarHiding()

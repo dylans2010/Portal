@@ -1,5 +1,7 @@
 import SwiftUI
 
+// MARK: - Text Role
+
 enum TextRole {
     case primary
     case secondary
@@ -7,8 +9,10 @@ enum TextRole {
     case badge
 }
 
+// MARK: - View Modifiers
+
 struct ThemedCardModifier: ViewModifier {
-    @EnvironmentObject var themeManager: ThemeManager
+    @Environment(ThemeManager.self) private var themeManager
 
     func body(content: Content) -> some View {
         content
@@ -16,14 +20,14 @@ struct ThemedCardModifier: ViewModifier {
             .cornerRadius(10)
             .overlay(
                 RoundedRectangle(cornerRadius: 10)
-                    .stroke(themeManager.separatorColor.opacity(0.5), lineWidth: 0.5)
+                    .stroke(themeManager.separator.opacity(0.5), lineWidth: 0.5)
             )
             .clipped()
     }
 }
 
 struct ThemedAccentModifier: ViewModifier {
-    @EnvironmentObject var themeManager: ThemeManager
+    @Environment(ThemeManager.self) private var themeManager
 
     func body(content: Content) -> some View {
         content
@@ -33,7 +37,7 @@ struct ThemedAccentModifier: ViewModifier {
 }
 
 struct ThemedTextModifier: ViewModifier {
-    @EnvironmentObject var themeManager: ThemeManager
+    @Environment(ThemeManager.self) private var themeManager
     let role: TextRole
 
     func body(content: Content) -> some View {
@@ -43,16 +47,16 @@ struct ThemedTextModifier: ViewModifier {
 
     private var textColor: Color {
         switch role {
-        case .primary: return themeManager.primaryTextColor
-        case .secondary: return themeManager.secondaryTextColor
-        case .header: return themeManager.headerTextColor
-        case .badge: return themeManager.badgeTextColor
+        case .primary: themeManager.primaryText
+        case .secondary: themeManager.secondaryText
+        case .header: themeManager.headerText
+        case .badge: themeManager.badgeText
         }
     }
 }
 
 struct GlobalThemeModifier: ViewModifier {
-    @EnvironmentObject var themeManager: ThemeManager
+    @Environment(ThemeManager.self) private var themeManager
 
     func body(content: Content) -> some View {
         ZStack {
@@ -62,93 +66,82 @@ struct GlobalThemeModifier: ViewModifier {
             content
                 .scrollContentBackground(.hidden)
         }
-        .animation(.easeInOut, value: themeManager.currentThemeID)
         .background(themeManager.background)
-        .toolbarBackground(themeManager.navigationBarColor, for: .navigationBar)
+        .toolbarBackground(themeManager.navigationBar, for: .navigationBar)
         .toolbarBackground(.visible, for: .navigationBar)
-        .toolbarBackground(themeManager.tabBarColor, for: .tabBar)
+        .toolbarBackground(themeManager.tabBar, for: .tabBar)
         .tint(themeManager.accent)
         .accentColor(themeManager.accent)
         .foregroundStyle(themeManager.primaryText)
         .buttonStyle(.plain)
         .preferredColorScheme(nil)
-        .id(themeManager.currentThemeID)
-        .onReceive(NotificationCenter.default.publisher(for: Notification.Name("AppWideThemeDidChange"))) { _ in
-            // SwiftUI will re-render automatically via @EnvironmentObject publish
-            // This onReceive ensures UIKit-backed views also refresh
-        }
+        .animation(.easeInOut(duration: 0.25), value: themeManager.currentThemeID)
     }
 }
 
 struct ThemedBackgroundModifier: ViewModifier {
-    @EnvironmentObject var themeManager: ThemeManager
+    @Environment(ThemeManager.self) private var themeManager
 
     func body(content: Content) -> some View {
         content
             .background(themeManager.background.ignoresSafeArea())
             .scrollContentBackground(.hidden)
-            .toolbarBackground(themeManager.navigationBarColor, for: .navigationBar)
+            .toolbarBackground(themeManager.navigationBar, for: .navigationBar)
             .toolbarBackground(.visible, for: .navigationBar)
-            .onReceive(NotificationCenter.default.publisher(for: Notification.Name("AppWideThemeDidChange"))) { _ in
-                // SwiftUI will re-render automatically via @EnvironmentObject publish
-                // This onReceive ensures UIKit-backed views also refresh
-            }
     }
 }
 
 struct ThemedListRowModifier: ViewModifier {
-    @EnvironmentObject var themeManager: ThemeManager
+    @Environment(ThemeManager.self) private var themeManager
 
     func body(content: Content) -> some View {
         content
             .background(themeManager.surface)
             .foregroundStyle(themeManager.primaryText)
-            .onReceive(NotificationCenter.default.publisher(for: Notification.Name("AppWideThemeDidChange"))) { _ in
-                // SwiftUI will re-render automatically via @EnvironmentObject publish
-                // This onReceive ensures UIKit-backed views also refresh
-            }
     }
 }
 
 struct ThemedSectionHeaderModifier: ViewModifier {
-    @EnvironmentObject var themeManager: ThemeManager
+    @Environment(ThemeManager.self) private var themeManager
 
     func body(content: Content) -> some View {
         content
             .font(.caption)
             .fontWeight(.semibold)
-            .foregroundStyle(themeManager.headerTextColor)
+            .foregroundStyle(themeManager.headerText)
             .textCase(.uppercase)
             .tracking(0.5)
     }
 }
 
+// MARK: - View Extensions
+
 extension View {
     func globalTheme() -> some View {
-        self.modifier(GlobalThemeModifier())
+        modifier(GlobalThemeModifier())
     }
 
     func themedCard() -> some View {
-        self.modifier(ThemedCardModifier())
+        modifier(ThemedCardModifier())
     }
 
     func themedAccent() -> some View {
-        self.modifier(ThemedAccentModifier())
+        modifier(ThemedAccentModifier())
     }
 
     func themedText(_ role: TextRole) -> some View {
-        self.modifier(ThemedTextModifier(role: role))
+        modifier(ThemedTextModifier(role: role))
     }
 
     func themedBackground() -> some View {
-        self.modifier(ThemedBackgroundModifier())
+        modifier(ThemedBackgroundModifier())
     }
 
     func themedListRow() -> some View {
-        self.modifier(ThemedListRowModifier())
+        modifier(ThemedListRowModifier())
     }
 
     func themedSectionHeader() -> some View {
-        self.modifier(ThemedSectionHeaderModifier())
+        modifier(ThemedSectionHeaderModifier())
     }
 }

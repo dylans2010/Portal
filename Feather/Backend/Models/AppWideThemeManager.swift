@@ -1,50 +1,28 @@
 import SwiftUI
 import UIKit
+import Observation
 
-enum AppTheme: String, CaseIterable, Identifiable {
-    case light = "light"
-    case dark = "dark"
-    case amoled = "amoled"
-    case highContrast = "highContrast"
-    case pastel = "pastel"
-    case neon = "neon"
-    case darkNavy = "darkNavy"
-    case midnight = "midnight"
-    case graphite = "graphite"
-    case oceanDeep = "oceanDeep"
-    case warmBlack = "warmBlack"
+// MARK: - Theme Definition
+
+enum AppTheme: String, CaseIterable, Identifiable, Codable {
+    case light, dark, amoled, highContrast, pastel, neon
+    case darkNavy, midnight, graphite, oceanDeep, warmBlack
 
     var id: String { rawValue }
 
     var displayName: String {
         switch self {
-        case .light: return "Light"
-        case .dark: return "Dark"
-        case .amoled: return "AMOLED"
-        case .highContrast: return "High Contrast"
-        case .pastel: return "Pastel"
-        case .neon: return "Neon"
-        case .darkNavy: return "Dark Navy"
-        case .midnight: return "Midnight"
-        case .graphite: return "Graphite"
-        case .oceanDeep: return "Ocean Deep"
-        case .warmBlack: return "Warm Black"
-        }
-    }
-
-    var previewHex: String {
-        switch self {
-        case .light: return "#F5F7FB"
-        case .dark: return "#111318"
-        case .amoled: return "#000000"
-        case .highContrast: return "#000000"
-        case .pastel: return "#FFF4FA"
-        case .neon: return "#0A0014"
-        case .darkNavy: return "#0D0F1A"
-        case .midnight: return "#000000"
-        case .graphite: return "#1C1C1E"
-        case .oceanDeep: return "#0A1628"
-        case .warmBlack: return "#12100E"
+        case .light: "Light"
+        case .dark: "Dark"
+        case .amoled: "AMOLED"
+        case .highContrast: "High Contrast"
+        case .pastel: "Pastel"
+        case .neon: "Neon"
+        case .darkNavy: "Dark Navy"
+        case .midnight: "Midnight"
+        case .graphite: "Graphite"
+        case .oceanDeep: "Ocean Deep"
+        case .warmBlack: "Warm Black"
         }
     }
 
@@ -55,9 +33,27 @@ enum AppTheme: String, CaseIterable, Identifiable {
     var uiBackgroundColor: UIColor {
         UIColor(hex: previewHex)
     }
+
+    private var previewHex: String {
+        switch self {
+        case .light: "#F5F7FB"
+        case .dark: "#111318"
+        case .amoled: "#000000"
+        case .highContrast: "#000000"
+        case .pastel: "#FFF4FA"
+        case .neon: "#0A0014"
+        case .darkNavy: "#0D0F1A"
+        case .midnight: "#000000"
+        case .graphite: "#1C1C1E"
+        case .oceanDeep: "#0A1628"
+        case .warmBlack: "#12100E"
+        }
+    }
 }
 
-struct AppWideColors: Codable, Equatable {
+// MARK: - Color Palette
+
+struct AppWideColors: Codable, Equatable, Hashable {
     var appBackground: String
     var navigationBar: String
     var tabBar: String
@@ -326,6 +322,8 @@ struct AppWideColors: Codable, Equatable {
     }
 }
 
+// MARK: - Typography Configuration
+
 struct AppWideTypography {
     let titleFont: UIFont
     let largeTitleFont: UIFont
@@ -342,123 +340,171 @@ struct AppWideTypography {
     )
 }
 
-@MainActor
-final class ThemeManager: ObservableObject {
-    static let shared = ThemeManager()
-    private let sectionHeaderThemeKey = "app.sectionHeaderTheme"
+// MARK: - Theme Manager
 
-    @Published var currentTheme: AppTheme {
+@MainActor
+@Observable
+final class ThemeManager {
+    static let shared = ThemeManager()
+
+    private let userDefaults = UserDefaults.standard
+    private let themeKey = "app.selectedTheme"
+    private let colorsKey = "app.appWideColors"
+    private let sectionHeaderKey = "app.sectionHeaderTheme"
+
+    var currentTheme: AppTheme {
         didSet {
-            UserDefaults.standard.set(currentTheme.rawValue, forKey: "app.selectedTheme")
+            userDefaults.set(currentTheme.rawValue, forKey: themeKey)
+            applyUIKitAppearance()
         }
     }
 
-    @Published var appWideColors: AppWideColors? {
+    var customColors: AppWideColors? {
         didSet {
-            if let colors = appWideColors {
-                if let encoded = try? JSONEncoder().encode(colors) {
-                    UserDefaults.standard.set(encoded, forKey: "app.appWideColors")
+            if let colors = customColors {
+                if let data = try? JSONEncoder().encode(colors) {
+                    userDefaults.set(data, forKey: colorsKey)
                 }
             } else {
-                UserDefaults.standard.removeObject(forKey: "app.appWideColors")
+                userDefaults.removeObject(forKey: colorsKey)
             }
+            applyUIKitAppearance()
         }
     }
 
-    @Published var sectionHeaderTheme: SectionHeaderTheme {
+    var sectionHeaderTheme: SectionHeaderTheme {
         didSet {
-            if let encoded = try? JSONEncoder().encode(sectionHeaderTheme.persistedValue) {
-                UserDefaults.standard.set(encoded, forKey: sectionHeaderThemeKey)
+            if let data = try? JSONEncoder().encode(sectionHeaderTheme.persisted) {
+                userDefaults.set(data, forKey: sectionHeaderKey)
             }
         }
     }
 
-    var isCustomTheme: Bool { appWideColors != nil }
+    // MARK: - Computed Properties
+
+    var isCustomTheme: Bool {
+        customColors != nil
+    }
+
+    var colors: AppWideColors {
+        customColors ?? .default(for: currentTheme)
+    }
+
+    var typography: AppWideTypography {
+        .default
+    }
+
+    // MARK: - SwiftUI Color Accessors
+
+    var accent: Color { Color(hex: colors.accent) }
+    var primaryText: Color { Color(hex: colors.primaryText) }
+    var secondaryText: Color { Color(hex: colors.secondaryText) }
+    var background: Color { Color(hex: colors.appBackground) }
+    var surface: Color { Color(hex: colors.cardBackground) }
+    var navigationBar: Color { Color(hex: colors.navigationBar) }
+    var tabBar: Color { Color(hex: colors.tabBar) }
+    var separator: Color { Color(hex: colors.separator) }
+    var cellHighlight: Color { Color(hex: colors.cellHighlight) }
+    var destructive: Color { Color(hex: colors.destructive) }
+    var buttonBackground: Color { Color(hex: colors.buttonBackground) }
+    var buttonText: Color { Color(hex: colors.buttonText) }
+    var iconTint: Color { Color(hex: colors.iconTint) }
+    var groupedBackground: Color { Color(hex: colors.groupedBackground) }
+    var headerText: Color { Color(hex: colors.headerText) }
+    var badgeBackground: Color { Color(hex: colors.badgeBackground) }
+    var badgeText: Color { Color(hex: colors.badgeText) }
+    var switchTint: Color { Color(hex: colors.switchTint) }
+    var selection: Color { Color(hex: colors.selectionIndicator) }
+    var warning: Color { .orange }
+
+    // Legacy aliases for compatibility
+    var accentColor: Color { accent }
+    var primaryTextColor: Color { primaryText }
+    var secondaryTextColor: Color { secondaryText }
+    var appBackgroundColor: Color { background }
+    var cardBackgroundColor: Color { surface }
+    var navigationBarColor: Color { navigationBar }
+    var tabBarColor: Color { tabBar }
+    var separatorColor: Color { separator }
+    var cellHighlightColor: Color { cellHighlight }
+    var destructiveColor: Color { destructive }
+    var buttonBackgroundColor: Color { buttonBackground }
+    var buttonTextColor: Color { buttonText }
+    var iconTintColor: Color { iconTint }
+    var groupedBackgroundColor: Color { groupedBackground }
+    var headerTextColor: Color { headerText }
+    var badgeBackgroundColor: Color { badgeBackground }
+    var badgeTextColor: Color { badgeText }
+    var switchTintColor: Color { switchTint }
+    var selectionColor: Color { selection }
+    var warningColor: Color { warning }
+    var borderColor: Color { separator }
+    var segmentedSelectedColor: Color { selection }
+    var segmentedBackgroundColor: Color { surface }
+    var sliderTintColor: Color { accent }
+    var progressTintColor: Color { accent }
+
+    // MARK: - UIKit Color Accessors
+
+    var accentUIColor: UIColor { UIColor(hex: colors.accent) }
+    var primaryTextUIColor: UIColor { UIColor(hex: colors.primaryText) }
+    var secondaryTextUIColor: UIColor { UIColor(hex: colors.secondaryText) }
+    var appBackgroundUIColor: UIColor { UIColor(hex: colors.appBackground) }
+    var cardBackgroundUIColor: UIColor { UIColor(hex: colors.cardBackground) }
+    var separatorUIColor: UIColor { UIColor(hex: colors.separator) }
+    var switchTintUIColor: UIColor { UIColor(hex: colors.switchTint) }
+    var cellHighlightUIColor: UIColor { UIColor(hex: colors.cellHighlight) }
+    var headerTextUIColor: UIColor { UIColor(headerText) }
+    var borderUIColor: UIColor { UIColor(separator) }
+    var segmentedSelectedUIColor: UIColor { UIColor(selection) }
+    var segmentedBackgroundUIColor: UIColor { UIColor(surface) }
+    var sliderTintUIColor: UIColor { UIColor(accent) }
+    var progressTintUIColor: UIColor { UIColor(accent) }
+
+    // Theme ID for view invalidation (used sparingly)
+    var currentThemeID: String {
+        "\(currentTheme.rawValue)-\(colors.hashValue)-\(sectionHeaderTheme.hashValue)"
+    }
+
+    // Legacy compatibility
+    var appWideColors: AppWideColors? {
+        get { customColors }
+        set { customColors = newValue }
+    }
 
     var resolvedColors: AppWideColors {
-        appWideColors ?? AppWideColors.default(for: currentTheme)
+        colors
     }
 
-    // MARK: - SwiftUI Color Helpers
-    var accentColor: Color { Color(hex: resolvedColors.accent) }
-    var primaryTextColor: Color { Color(hex: resolvedColors.primaryText) }
-    var secondaryTextColor: Color { Color(hex: resolvedColors.secondaryText) }
-    var cardBackgroundColor: Color { Color(hex: resolvedColors.cardBackground) }
-    var appBackgroundColor: Color { Color(hex: resolvedColors.appBackground) }
-    var iconTintColor: Color { Color(hex: resolvedColors.iconTint) }
-    var headerTextColor: Color { Color(hex: resolvedColors.headerText) }
-    var buttonBackgroundColor: Color { Color(hex: resolvedColors.buttonBackground) }
-    var buttonTextColor: Color { Color(hex: resolvedColors.buttonText) }
-    var badgeBackgroundColor: Color { Color(hex: resolvedColors.badgeBackground) }
-    var badgeTextColor: Color { Color(hex: resolvedColors.badgeText) }
-    var separatorColor: Color { Color(hex: resolvedColors.separator) }
-    var switchTintColor: Color { Color(hex: resolvedColors.switchTint) }
-    var selectionColor: Color { Color(hex: resolvedColors.selectionIndicator) }
-    var cellHighlightColor: Color { Color(hex: resolvedColors.cellHighlight) }
-    var destructiveColor: Color { Color(hex: resolvedColors.destructive) }
-    var navigationBarColor: Color { Color(hex: resolvedColors.navigationBar) }
-    var tabBarColor: Color { Color(hex: resolvedColors.tabBar) }
-    var groupedBackgroundColor: Color { Color(hex: resolvedColors.groupedBackground) }
-    var borderColor: Color { separatorColor }
-    var segmentedSelectedColor: Color { selectionColor }
-    var segmentedBackgroundColor: Color { cardBackgroundColor }
-    var sliderTintColor: Color { accentColor }
-    var progressTintColor: Color { accentColor }
-    var warningColor: Color { .orange }
-    var typography: AppWideTypography { .default }
-
-    // Strict theme aliases used across themed views
-    var accent: Color { accentColor }
-    var primaryText: Color { primaryTextColor }
-    var secondaryText: Color { secondaryTextColor }
-    var background: Color { appBackgroundColor }
-    var surface: Color { cardBackgroundColor }
-    var currentThemeID: String {
-        "\(currentTheme.rawValue)-\(resolvedColors.appBackground)-\(resolvedColors.cardBackground)-\(resolvedColors.accent)-\(sectionHeaderTheme.background.toHex() ?? "")-\(sectionHeaderTheme.textColor.toHex() ?? "")-\(sectionHeaderTheme.iconColor.toHex() ?? "")-\(sectionHeaderTheme.dividerColor.toHex() ?? "")"
-    }
-
-    // MARK: - UIKit Color Helpers
-    var accentUIColor: UIColor { UIColor(hex: resolvedColors.accent) }
-    var separatorUIColor: UIColor { UIColor(hex: resolvedColors.separator) }
-    var primaryTextUIColor: UIColor { UIColor(hex: resolvedColors.primaryText) }
-    var cardBackgroundUIColor: UIColor { UIColor(hex: resolvedColors.cardBackground) }
-    var appBackgroundUIColor: UIColor { UIColor(hex: resolvedColors.appBackground) }
-    var headerTextUIColor: UIColor { UIColor(headerTextColor) }
-    var segmentedSelectedUIColor: UIColor { UIColor(selectionColor) }
-    var segmentedBackgroundUIColor: UIColor { UIColor(cardBackgroundColor) }
-    var sliderTintUIColor: UIColor { UIColor(accentColor) }
-    var progressTintUIColor: UIColor { UIColor(accentColor) }
-    var switchTintUIColor: UIColor { UIColor(switchTintColor) }
-    var cellHighlightUIColor: UIColor { UIColor(cellHighlightColor) }
-    var borderUIColor: UIColor { UIColor(borderColor) }
-    var secondaryTextUIColor: UIColor { UIColor(secondaryTextColor) }
+    // MARK: - Initialization
 
     init() {
-        let themeRaw = UserDefaults.standard.string(forKey: "app.selectedTheme") ?? AppTheme.darkNavy.rawValue
-        let theme = AppTheme(rawValue: themeRaw) ?? .darkNavy
-        self.currentTheme = theme
+        let themeRaw = userDefaults.string(forKey: themeKey) ?? AppTheme.darkNavy.rawValue
+        self.currentTheme = AppTheme(rawValue: themeRaw) ?? .darkNavy
 
-        var loadedAppWideColors: AppWideColors?
-        if let data = UserDefaults.standard.data(forKey: "app.appWideColors") {
-            loadedAppWideColors = try? JSONDecoder().decode(AppWideColors.self, from: data)
-        }
-        self.appWideColors = loadedAppWideColors
-
-        if let data = UserDefaults.standard.data(forKey: sectionHeaderThemeKey),
-           let persisted = try? JSONDecoder().decode(PersistedSectionHeaderTheme.self, from: data) {
-            self.sectionHeaderTheme = SectionHeaderTheme(persisted: persisted)
+        if let data = userDefaults.data(forKey: colorsKey),
+           let decoded = try? JSONDecoder().decode(AppWideColors.self, from: data) {
+            self.customColors = decoded
         } else {
-            self.sectionHeaderTheme = SectionHeaderTheme.default(for: loadedAppWideColors ?? AppWideColors.default(for: theme))
+            self.customColors = nil
+        }
+
+        if let data = userDefaults.data(forKey: sectionHeaderKey),
+           let decoded = try? JSONDecoder().decode(PersistedSectionHeaderTheme.self, from: data) {
+            self.sectionHeaderTheme = SectionHeaderTheme(persisted: decoded)
+        } else {
+            self.sectionHeaderTheme = .default(for: colors)
         }
 
         applyUIKitAppearance()
     }
+
+    // MARK: - Public Methods
 
     func setTheme(_ theme: AppTheme) {
         currentTheme = theme
-        appWideColors = nil
-        sectionHeaderTheme = SectionHeaderTheme.default(for: AppWideColors.default(for: theme))
-        applyUIKitAppearance()
+        customColors = nil
+        sectionHeaderTheme = .default(for: colors)
     }
 
     func applyTheme(_ theme: AppTheme) {
@@ -466,88 +512,100 @@ final class ThemeManager: ObservableObject {
     }
 
     func updateColor(keyPath: WritableKeyPath<AppWideColors, String>, hex: String) {
-        var newColors = resolvedColors
-        newColors[keyPath: keyPath] = hex
-        appWideColors = newColors
-        applyUIKitAppearance()
+        var updatedColors = colors
+        updatedColors[keyPath: keyPath] = hex
+        customColors = updatedColors
     }
 
     func resetToThemeDefaults() {
-        appWideColors = nil
-        sectionHeaderTheme = SectionHeaderTheme.default(for: AppWideColors.default(for: currentTheme))
-        applyUIKitAppearance()
+        customColors = nil
+        sectionHeaderTheme = .default(for: colors)
     }
 
-    func applyUIKitAppearance() {
-        let appBackgroundColor = UIColor(hex: resolvedColors.appBackground)
-        let navigationBarColor = UIColor(hex: resolvedColors.navigationBar)
-        let tabBarColor = UIColor(hex: resolvedColors.tabBar)
-        let accentUIColor = UIColor(hex: resolvedColors.accent)
-        let primaryTextColor = UIColor(hex: resolvedColors.primaryText)
-        let secondaryTextColor = UIColor(hex: resolvedColors.secondaryText)
-        let separatorColor = UIColor(hex: resolvedColors.separator)
-        let switchTintColor = UIColor(hex: resolvedColors.switchTint)
-        let cardBackgroundColor = UIColor(hex: resolvedColors.cardBackground)
+    // MARK: - UIKit Appearance Application
 
+    func applyUIKitAppearance() {
+        let appBg = UIColor(hex: colors.appBackground)
+        let navBar = UIColor(hex: colors.navigationBar)
+        let tabBarBg = UIColor(hex: colors.tabBar)
+        let accentUI = UIColor(hex: colors.accent)
+        let primaryTxt = UIColor(hex: colors.primaryText)
+        let secondaryTxt = UIColor(hex: colors.secondaryText)
+        let sep = UIColor(hex: colors.separator)
+        let switchUI = UIColor(hex: colors.switchTint)
+        let cardBg = UIColor(hex: colors.cardBackground)
+
+        // Apply window appearance
         if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene {
             for window in windowScene.windows {
-                window.backgroundColor = appBackgroundColor
-                window.tintColor = accentUIColor
+                window.backgroundColor = appBg
+                window.tintColor = accentUI
             }
         }
 
-        let nav = UINavigationBarAppearance()
-        nav.configureWithOpaqueBackground()
-        nav.backgroundColor = navigationBarColor
-        nav.titleTextAttributes = [
-            .foregroundColor: primaryTextColor,
+        // Navigation bar appearance
+        let navAppearance = UINavigationBarAppearance()
+        navAppearance.configureWithOpaqueBackground()
+        navAppearance.backgroundColor = navBar
+        navAppearance.titleTextAttributes = [
+            .foregroundColor: primaryTxt,
             .font: typography.titleFont
         ]
-        nav.largeTitleTextAttributes = [
-            .foregroundColor: primaryTextColor,
+        navAppearance.largeTitleTextAttributes = [
+            .foregroundColor: primaryTxt,
             .font: typography.largeTitleFont
         ]
-        nav.shadowColor = .clear
+        navAppearance.shadowColor = .clear
 
-        UINavigationBar.appearance().standardAppearance = nav
-        UINavigationBar.appearance().scrollEdgeAppearance = nav
-        UINavigationBar.appearance().compactAppearance = nav
-        UINavigationBar.appearance().tintColor = accentUIColor
+        UINavigationBar.appearance().standardAppearance = navAppearance
+        UINavigationBar.appearance().scrollEdgeAppearance = navAppearance
+        UINavigationBar.appearance().compactAppearance = navAppearance
+        UINavigationBar.appearance().tintColor = accentUI
 
-        UISearchBar.appearance().tintColor = accentUIColor
+        // Search bar appearance
+        UISearchBar.appearance().tintColor = accentUI
 
-        let tab = UITabBarAppearance()
-        tab.configureWithOpaqueBackground()
-        tab.backgroundColor = tabBarColor
+        // Tab bar appearance
+        let tabAppearance = UITabBarAppearance()
+        tabAppearance.configureWithOpaqueBackground()
+        tabAppearance.backgroundColor = tabBarBg
 
-        UITabBar.appearance().standardAppearance = tab
-        UITabBar.appearance().scrollEdgeAppearance = tab
-        UITabBar.appearance().tintColor = accentUIColor
-        UITabBar.appearance().unselectedItemTintColor = secondaryTextColor
+        UITabBar.appearance().standardAppearance = tabAppearance
+        UITabBar.appearance().scrollEdgeAppearance = tabAppearance
+        UITabBar.appearance().tintColor = accentUI
+        UITabBar.appearance().unselectedItemTintColor = secondaryTxt
 
-        UITableView.appearance().backgroundColor = appBackgroundColor
-        UITableViewCell.appearance().backgroundColor = cardBackgroundColor
-        UITableView.appearance().separatorColor = separatorColor
-        UICollectionView.appearance().backgroundColor = appBackgroundColor
+        // Table and collection views
+        UITableView.appearance().backgroundColor = appBg
+        UITableViewCell.appearance().backgroundColor = cardBg
+        UITableView.appearance().separatorColor = sep
+        UICollectionView.appearance().backgroundColor = appBg
 
-        UISwitch.appearance().onTintColor = switchTintColor
+        // Controls
+        UISwitch.appearance().onTintColor = switchUI
 
-        // Avoid recursively touching ThemeManager.shared while this singleton is initializing.
+        // Apply section styling via manager
         SectionStyleManager.shared.applyGlobalUIKitStyle(themeManager: self)
-        NotificationCenter.default.post(name: Notification.Name("AppWideThemeDidChange"), object: nil)
+
+        // Post notification for UIKit views to refresh
+        NotificationCenter.default.post(name: .init("AppWideThemeDidChange"), object: nil)
     }
 }
 
+// MARK: - Type Alias for Compatibility
+
 typealias AppWideThemeManager = ThemeManager
 
+// MARK: - Navigation Title Modifier
+
 struct AppWideHeaderTitleModifier: ViewModifier {
-    @ObservedObject private var themeManager = ThemeManager.shared
+    @Environment(ThemeManager.self) private var themeManager
     let displayMode: NavigationBarItem.TitleDisplayMode
 
     func body(content: Content) -> some View {
         content
             .navigationBarTitleDisplayMode(displayMode)
-            .toolbarBackground(themeManager.navigationBarColor, for: .navigationBar)
+            .toolbarBackground(themeManager.navigationBar, for: .navigationBar)
             .toolbarColorScheme(.dark, for: .navigationBar)
     }
 }
@@ -557,6 +615,8 @@ extension View {
         modifier(AppWideHeaderTitleModifier(displayMode: displayMode))
     }
 }
+
+// MARK: - UIColor Hex Extension
 
 extension UIColor {
     convenience init(hex: String) {
@@ -574,6 +634,11 @@ extension UIColor {
         default:
             (a, r, g, b) = (1, 1, 1, 0)
         }
-        self.init(red: CGFloat(r) / 255, green: CGFloat(g) / 255, blue: CGFloat(b) / 255, alpha: CGFloat(a) / 255)
+        self.init(
+            red: CGFloat(r) / 255,
+            green: CGFloat(g) / 255,
+            blue: CGFloat(b) / 255,
+            alpha: CGFloat(a) / 255
+        )
     }
 }
