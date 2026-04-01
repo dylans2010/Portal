@@ -48,6 +48,9 @@ struct CertificatesAddView: View {
                 VStack(spacing: 0) {
                     ScrollView {
                         VStack(spacing: 24) {
+                            // Header Card
+                            headerCard
+
                             // Method Picker
                             HStack(spacing: 0) {
                                 methodButton(title: "Manual", icon: "hand.tap.fill", tag: 0)
