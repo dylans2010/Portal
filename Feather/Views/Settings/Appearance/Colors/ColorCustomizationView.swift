@@ -156,9 +156,9 @@ struct ColorCustomizationView: View {
         .navigationTitle(String.localized("Visual Design"))
         .appWideHeaderTitle(displayMode: .inline)
         .id(themeManager.currentThemeID)
-        .sheet(isPresented: ) { AppWideColorPickerSheet() }
-        .sheet(isPresented: ) { SectionHeaderColorPickerSheet() }
-        .sheet(isPresented: ) { ImagePicker(image: ) }
+        .sheet(isPresented: $showingAppWideColorPicker) { AppWideColorPickerSheet() }
+        .sheet(isPresented: $showingSectionHeaderPicker) { SectionHeaderColorPickerSheet() }
+        .sheet(isPresented: $showImagePicker) { ImagePicker(image: $selectedImage) }
         .onChange(of: selectedImage) { image in
             guard let image else { return }
             let palette = WallpaperColorExtractor.shared.extractDominantColors(from: image)
@@ -168,14 +168,14 @@ struct ColorCustomizationView: View {
             themeManager.applyColors(colors)
             HapticsManager.shared.success()
         }
-        .alert(String.localized("Save Theme"), isPresented: ) {
-            TextField(String.localized("Theme Name"), text: )
+        .alert(String.localized("Save Theme"), isPresented: $showSaveAlert) {
+            TextField(String.localized("Theme Name"), text: $themeName)
             Button(String.localized("Save")) { saveCurrentTheme(); themeName = "" }
             Button(String.localized("Cancel"), role: .cancel) { themeName = "" }
         } message: {
             Text(String.localized("Enter a name for your custom theme."))
         }
-        .alert(String.localized("Reset Appearance"), isPresented: ) {
+        .alert(String.localized("Reset Appearance"), isPresented: $showResetAlert) {
             Button(String.localized("Reset Everything"), role: .destructive) { resetToDefaults() }
             Button(String.localized("Cancel"), role: .cancel) {}
         } message: {
@@ -251,7 +251,7 @@ struct ColorCustomizationView: View {
         Section(header: Text(String.localized("Section Style")), footer: Text(styleManager.currentStyle.description)) {
             Picker(String.localized("Section Style"), selection: Binding(
                 get: { styleManager.currentStyle },
-                set: { styleManager.setStyle(bash) }
+                set: { styleManager.setStyle($0) }
             )) {
                 ForEach(SectionStyle.allCases) { style in
                     Label(style.displayName, systemImage: style.sfSymbol).tag(style)
@@ -263,7 +263,7 @@ struct ColorCustomizationView: View {
 
     private var typographySection: some View {
         Section(header: Text(String.localized("Typography"))) {
-            Picker(String.localized("Font Design"), selection: ) {
+            Picker(String.localized("Font Design"), selection: $fontDesign) {
                 Text(String.localized("Default")).tag("default")
                 Text(String.localized("Rounded")).tag("rounded")
                 Text(String.localized("Serif")).tag("serif")
@@ -274,14 +274,14 @@ struct ColorCustomizationView: View {
 
     private var shapeStylingSection: some View {
         Section(header: Text(String.localized("Shape & Styling"))) {
-            sliderRow(title: String.localized("Card Corner Radius"),   value: ,   range: 0...40,  step: 2,    unit: "pt", icon: "square.dashed")
-            sliderRow(title: String.localized("Button Corner Radius"), value: , range: 0...24,  step: 1,    unit: "pt", icon: "button.programmable")
-            sliderRow(title: String.localized("Card Opacity"),         value: ,        range: 0.1...1, step: 0.05, isPercent: true, icon: "square.stack.3d.down.right")
-            sliderRow(title: String.localized("Border Width"),         value: ,        range: 0...5,   step: 0.5,  unit: "pt", icon: "square.and.line.vertical.and.square")
-            sliderRow(title: String.localized("Shadow Intensity"),     value: ,    range: 0...20,  step: 1,    icon: "shadow")
-            sliderRow(title: String.localized("Blur Opacity"),         value: ,        range: 0...1,   step: 0.05, isPercent: true, icon: "drop.halffull")
-            sliderRow(title: String.localized("Glow Intensity"),       value: ,      range: 0...30,  step: 1,    icon: "sun.max.fill")
-            Toggle(isOn: ) {
+            sliderRow(title: String.localized("Card Corner Radius"),   value: $cardCornerRadius,   range: 0...40,  step: 2,    unit: "pt", icon: "square.dashed")
+            sliderRow(title: String.localized("Button Corner Radius"), value: $buttonCornerRadius, range: 0...24,  step: 1,    unit: "pt", icon: "button.programmable")
+            sliderRow(title: String.localized("Card Opacity"),         value: $cardOpacity,        range: 0.1...1, step: 0.05, isPercent: true, icon: "square.stack.3d.down.right")
+            sliderRow(title: String.localized("Border Width"),         value: $borderWidth,        range: 0...5,   step: 0.5,  unit: "pt", icon: "square.and.line.vertical.and.square")
+            sliderRow(title: String.localized("Shadow Intensity"),     value: $shadowIntensity,    range: 0...20,  step: 1,    icon: "shadow")
+            sliderRow(title: String.localized("Blur Opacity"),         value: $blurOpacity,        range: 0...1,   step: 0.05, isPercent: true, icon: "drop.halffull")
+            sliderRow(title: String.localized("Glow Intensity"),       value: $glowIntensity,      range: 0...30,  step: 1,    icon: "sun.max.fill")
+            Toggle(isOn: $animateBackground) {
                 Label(String.localized("Animate Background"), systemImage: "sparkles")
             }
         }
@@ -289,10 +289,10 @@ struct ColorCustomizationView: View {
 
     private var semanticColorsSection: some View {
         Section(header: Text(String.localized("Semantic Colors")), footer: Text(String.localized("Colors used for status indicators and presented sheets."))) {
-            supplementalColorRow(title: String.localized("Success"),          hex: , icon: "checkmark.circle")
-            supplementalColorRow(title: String.localized("Warning"),          hex: , icon: "exclamationmark.triangle")
-            supplementalColorRow(title: String.localized("Error"),            hex: ,   icon: "xmark.circle")
-            supplementalColorRow(title: String.localized("Sheet Background"), hex: ,      icon: "square.stack")
+            supplementalColorRow(title: String.localized("Success"),          hex: $successColorHex, icon: "checkmark.circle")
+            supplementalColorRow(title: String.localized("Warning"),          hex: $warningColorHex, icon: "exclamationmark.triangle")
+            supplementalColorRow(title: String.localized("Error"),            hex: $errorColorHex,   icon: "xmark.circle")
+            supplementalColorRow(title: String.localized("Sheet Background"), hex: $sheetBGHex,      icon: "square.stack")
         }
     }
 
@@ -325,9 +325,9 @@ struct ColorCustomizationView: View {
 
     private var accessibilitySection: some View {
         Section(header: Text(String.localized("Accessibility"))) {
-            Toggle(String.localized("High Contrast Mode"), isOn: )
-            Toggle(String.localized("Auto Contrast Correction"), isOn: )
-            Picker(String.localized("Color Blindness Filter"), selection: ) {
+            Toggle(String.localized("High Contrast Mode"), isOn: $highContrast)
+            Toggle(String.localized("Auto Contrast Correction"), isOn: $autoContrastCorrection)
+            Picker(String.localized("Color Blindness Filter"), selection: $colorBlindnessFilter) {
                 Text(String.localized("None")).tag(0)
                 Text(String.localized("Protanopia")).tag(1)
                 Text(String.localized("Deuteranopia")).tag(2)
@@ -338,51 +338,51 @@ struct ColorCustomizationView: View {
 
     private var feedbackSection: some View {
         Section(header: Text(String.localized("Haptic & Visual Feedback"))) {
-            sliderRow(title: String.localized("Haptic Intensity"), value: ,        range: 0...1, step: 0.1, isPercent: true, icon: "waveform")
-            sliderRow(title: String.localized("Visual Feedback"),  value: , range: 0...1, step: 0.1, isPercent: true, icon: "sparkles")
+            sliderRow(title: String.localized("Haptic Intensity"), value: $hapticIntensity,        range: 0...1, step: 0.1, isPercent: true, icon: "waveform")
+            sliderRow(title: String.localized("Visual Feedback"),  value: $visualFeedbackStrength, range: 0...1, step: 0.1, isPercent: true, icon: "sparkles")
         }
     }
 
     private var experimentalSection: some View {
         Section(header: Text(String.localized("Experimental Effects")), footer: Text(String.localized("Performance mode reduces heavy blurs and shadows to save battery."))) {
-            Picker(String.localized("Layer Blending"), selection: ) {
+            Picker(String.localized("Layer Blending"), selection: $layerBlendMode) {
                 Text(String.localized("Normal")).tag(0)
                 Text(String.localized("Overlay")).tag(1)
                 Text(String.localized("Multiply")).tag(2)
                 Text(String.localized("Screen")).tag(3)
             }
-            Toggle(String.localized("Parallax Depth Effect"), isOn: )
-            Toggle(String.localized("Motion Gradients"), isOn: )
-            Toggle(String.localized("Performance Mode"), isOn: )
+            Toggle(String.localized("Parallax Depth Effect"), isOn: $parallaxEnabled)
+            Toggle(String.localized("Motion Gradients"), isOn: $motionGradients)
+            Toggle(String.localized("Performance Mode"), isOn: $performanceMode)
         }
     }
 
     private var intelligentThemingSection: some View {
         Section(header: Text(String.localized("Intelligent Theming")), footer: Text(String.localized("Auto-switch themes based on Low Power Mode, Focus filters, or time of day."))) {
-            Toggle(isOn: ) {
+            Toggle(isOn: $contextTheming) {
                 Label(String.localized("Context-Aware Theming"), systemImage: "bolt.badge.automatic.fill")
             }
             if contextTheming {
-                Picker(String.localized("Low Power Theme"), selection: ) {
+                Picker(String.localized("Low Power Theme"), selection: $lowPowerThemeId) {
                     Text(String.localized("None")).tag("")
                     ForEach(allThemes) { t in Text(t.name).tag(t.id.uuidString) }
                 }
-                Picker(String.localized("Focus Theme"), selection: ) {
+                Picker(String.localized("Focus Theme"), selection: $focusThemeId) {
                     Text(String.localized("None")).tag("")
                     ForEach(allThemes) { t in Text(t.name).tag(t.id.uuidString) }
                 }
             }
-            Toggle(isOn: ) {
+            Toggle(isOn: $timeBasedTheming) {
                 Label(String.localized("Schedule Themes"), systemImage: "clock.fill")
             }
             if timeBasedTheming {
-                Picker(String.localized("Morning Theme"), selection: ) {
+                Picker(String.localized("Morning Theme"), selection: $morningThemeId) {
                     ForEach(allThemes) { t in Text(t.name).tag(t.id.uuidString) }
                 }
-                Picker(String.localized("Sunset Theme"), selection: ) {
+                Picker(String.localized("Sunset Theme"), selection: $sunsetThemeId) {
                     ForEach(allThemes) { t in Text(t.name).tag(t.id.uuidString) }
                 }
-                Picker(String.localized("Night Theme"), selection: ) {
+                Picker(String.localized("Night Theme"), selection: $nightThemeId) {
                     ForEach(allThemes) { t in Text(t.name).tag(t.id.uuidString) }
                 }
             }
@@ -459,7 +459,7 @@ struct ColorCustomizationView: View {
     private func supplementalColorRow(title: String, hex: Binding<String>, icon: String) -> some View {
         ColorPicker(selection: Binding(
             get: { Color(hex: hex.wrappedValue) },
-            set: { hex.wrappedValue = bash.hexString }
+            set: { hex.wrappedValue = $0.hexString }
         ), supportsOpacity: false) {
             Label(title, systemImage: icon)
         }
@@ -671,7 +671,7 @@ private struct AppWideColorPickerSheet: View {
             Spacer()
             ColorPicker(label, selection: Binding(
                 get: { Color(hex: color.wrappedValue) },
-                set: { color.wrappedValue = bash.hexString }
+                set: { color.wrappedValue = $0.hexString }
             ), supportsOpacity: false)
             .labelsHidden()
         }
@@ -718,10 +718,10 @@ private struct SectionHeaderColorPickerSheet: View {
                 }
 
                 Section("Colors") {
-                    ColorPicker("Background", selection: ,   supportsOpacity: false)
-                    ColorPicker("Text",       selection: ,    supportsOpacity: false)
-                    ColorPicker("Icon",       selection: ,    supportsOpacity: false)
-                    ColorPicker("Divider",    selection: , supportsOpacity: false)
+                    ColorPicker("Background", selection: $background,   supportsOpacity: false)
+                    ColorPicker("Text",       selection: $textColor,    supportsOpacity: false)
+                    ColorPicker("Icon",       selection: $iconColor,    supportsOpacity: false)
+                    ColorPicker("Divider",    selection: $dividerColor, supportsOpacity: false)
                 }
 
                 Section {
@@ -870,7 +870,7 @@ struct PerScreenThemeView: View {
                 ForEach(screens, id: \.1) { name, key in
                     Picker(name, selection: Binding(
                         get: { screenOverride[key] ?? "" },
-                        set: { screenOverride[key] = bash.isEmpty ? nil : bash }
+                        set: { screenOverride[key] = $0.isEmpty ? nil : $0 }
                     )) {
                         Text(String.localized("Default")).tag("")
                         ForEach(allThemes) { theme in
