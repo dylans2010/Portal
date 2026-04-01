@@ -345,22 +345,27 @@ struct AppWideTypography {
 @MainActor
 final class ThemeManager: ObservableObject {
     static let shared = ThemeManager()
-    private let sectionHeaderThemeKey = "app.sectionHeaderTheme"
+
+    // MARK: - Persistence Keys
+    private enum Keys {
+        static let selectedTheme    = "app.selectedTheme"
+        static let appWideColors    = "app.appWideColors"
+        static let sectionHeader    = "app.sectionHeaderTheme"
+    }
+
+    // MARK: - Published State
 
     @Published var currentTheme: AppTheme {
-        didSet {
-            UserDefaults.standard.set(currentTheme.rawValue, forKey: "app.selectedTheme")
-        }
+        didSet { UserDefaults.standard.set(currentTheme.rawValue, forKey: Keys.selectedTheme) }
     }
 
     @Published var appWideColors: AppWideColors? {
         didSet {
-            if let colors = appWideColors {
-                if let encoded = try? JSONEncoder().encode(colors) {
-                    UserDefaults.standard.set(encoded, forKey: "app.appWideColors")
-                }
+            if let colors = appWideColors,
+               let encoded = try? JSONEncoder().encode(colors) {
+                UserDefaults.standard.set(encoded, forKey: Keys.appWideColors)
             } else {
-                UserDefaults.standard.removeObject(forKey: "app.appWideColors")
+                UserDefaults.standard.removeObject(forKey: Keys.appWideColors)
             }
         }
     }
@@ -368,10 +373,12 @@ final class ThemeManager: ObservableObject {
     @Published var sectionHeaderTheme: SectionHeaderTheme {
         didSet {
             if let encoded = try? JSONEncoder().encode(sectionHeaderTheme.persistedValue) {
-                UserDefaults.standard.set(encoded, forKey: sectionHeaderThemeKey)
+                UserDefaults.standard.set(encoded, forKey: Keys.sectionHeader)
             }
         }
     }
+
+    // MARK: - Resolved Colors
 
     var isCustomTheme: Bool { appWideColors != nil }
 
@@ -379,81 +386,101 @@ final class ThemeManager: ObservableObject {
         appWideColors ?? AppWideColors.default(for: currentTheme)
     }
 
-    // MARK: - SwiftUI Color Helpers
-    var accentColor: Color { Color(hex: resolvedColors.accent) }
-    var primaryTextColor: Color { Color(hex: resolvedColors.primaryText) }
-    var secondaryTextColor: Color { Color(hex: resolvedColors.secondaryText) }
-    var cardBackgroundColor: Color { Color(hex: resolvedColors.cardBackground) }
-    var appBackgroundColor: Color { Color(hex: resolvedColors.appBackground) }
-    var iconTintColor: Color { Color(hex: resolvedColors.iconTint) }
-    var headerTextColor: Color { Color(hex: resolvedColors.headerText) }
-    var buttonBackgroundColor: Color { Color(hex: resolvedColors.buttonBackground) }
-    var buttonTextColor: Color { Color(hex: resolvedColors.buttonText) }
-    var badgeBackgroundColor: Color { Color(hex: resolvedColors.badgeBackground) }
-    var badgeTextColor: Color { Color(hex: resolvedColors.badgeText) }
-    var separatorColor: Color { Color(hex: resolvedColors.separator) }
-    var switchTintColor: Color { Color(hex: resolvedColors.switchTint) }
-    var selectionColor: Color { Color(hex: resolvedColors.selectionIndicator) }
-    var cellHighlightColor: Color { Color(hex: resolvedColors.cellHighlight) }
-    var destructiveColor: Color { Color(hex: resolvedColors.destructive) }
-    var navigationBarColor: Color { Color(hex: resolvedColors.navigationBar) }
-    var tabBarColor: Color { Color(hex: resolvedColors.tabBar) }
-    var groupedBackgroundColor: Color { Color(hex: resolvedColors.groupedBackground) }
-    var borderColor: Color { separatorColor }
-    var segmentedSelectedColor: Color { selectionColor }
-    var segmentedBackgroundColor: Color { cardBackgroundColor }
-    var sliderTintColor: Color { accentColor }
-    var progressTintColor: Color { accentColor }
-    var warningColor: Color { .orange }
-    var typography: AppWideTypography { .default }
-
-    // Strict theme aliases used across themed views
-    var accent: Color { accentColor }
-    var primaryText: Color { primaryTextColor }
-    var secondaryText: Color { secondaryTextColor }
-    var background: Color { appBackgroundColor }
-    var surface: Color { cardBackgroundColor }
+    /// A stable string that changes whenever any theme property changes.
+    /// Used as a SwiftUI `.id()` to force re-render when the theme changes.
     var currentThemeID: String {
-        "\(currentTheme.rawValue)-\(resolvedColors.appBackground)-\(resolvedColors.cardBackground)-\(resolvedColors.accent)-\(sectionHeaderTheme.background.toHex() ?? "")-\(sectionHeaderTheme.textColor.toHex() ?? "")-\(sectionHeaderTheme.iconColor.toHex() ?? "")-\(sectionHeaderTheme.dividerColor.toHex() ?? "")"
+        let c = resolvedColors
+        let sh = sectionHeaderTheme
+        return [
+            currentTheme.rawValue,
+            c.appBackground, c.cardBackground, c.accent,
+            sh.background.toHex() ?? "", sh.textColor.toHex() ?? "",
+            sh.iconColor.toHex() ?? "", sh.dividerColor.toHex() ?? ""
+        ].joined(separator: "-")
     }
 
+    // MARK: - SwiftUI Color Helpers
+
+    var accent: Color           { Color(hex: resolvedColors.accent) }
+    var primaryText: Color      { Color(hex: resolvedColors.primaryText) }
+    var secondaryText: Color    { Color(hex: resolvedColors.secondaryText) }
+    var background: Color       { Color(hex: resolvedColors.appBackground) }
+    var surface: Color          { Color(hex: resolvedColors.cardBackground) }
+    var navigationBarColor: Color { Color(hex: resolvedColors.navigationBar) }
+    var tabBarColor: Color      { Color(hex: resolvedColors.tabBar) }
+    var separatorColor: Color   { Color(hex: resolvedColors.separator) }
+    var destructiveColor: Color { Color(hex: resolvedColors.destructive) }
+    var cellHighlightColor: Color { Color(hex: resolvedColors.cellHighlight) }
+    var selectionColor: Color   { Color(hex: resolvedColors.selectionIndicator) }
+    var switchTintColor: Color  { Color(hex: resolvedColors.switchTint) }
+    var iconTintColor: Color    { Color(hex: resolvedColors.iconTint) }
+    var headerTextColor: Color  { Color(hex: resolvedColors.headerText) }
+    var buttonBackgroundColor: Color { Color(hex: resolvedColors.buttonBackground) }
+    var buttonTextColor: Color  { Color(hex: resolvedColors.buttonText) }
+    var badgeBackgroundColor: Color { Color(hex: resolvedColors.badgeBackground) }
+    var badgeTextColor: Color   { Color(hex: resolvedColors.badgeText) }
+    var groupedBackgroundColor: Color { Color(hex: resolvedColors.groupedBackground) }
+
+    // Derived helpers
+    var borderColor: Color          { separatorColor }
+    var segmentedSelectedColor: Color { selectionColor }
+    var segmentedBackgroundColor: Color { surface }
+    var sliderTintColor: Color      { accent }
+    var progressTintColor: Color    { accent }
+
+    // Aliases kept for backward compatibility with existing call sites
+    var accentColor: Color          { accent }
+    var primaryTextColor: Color     { primaryText }
+    var secondaryTextColor: Color   { secondaryText }
+    var appBackgroundColor: Color   { background }
+    var cardBackgroundColor: Color  { surface }
+    var warningColor: Color         { .orange }
+    var typography: AppWideTypography { .default }
+
     // MARK: - UIKit Color Helpers
-    var accentUIColor: UIColor { UIColor(hex: resolvedColors.accent) }
-    var separatorUIColor: UIColor { UIColor(hex: resolvedColors.separator) }
+
+    var accentUIColor: UIColor      { UIColor(hex: resolvedColors.accent) }
+    var separatorUIColor: UIColor   { UIColor(hex: resolvedColors.separator) }
     var primaryTextUIColor: UIColor { UIColor(hex: resolvedColors.primaryText) }
+    var secondaryTextUIColor: UIColor { UIColor(hex: resolvedColors.secondaryText) }
     var cardBackgroundUIColor: UIColor { UIColor(hex: resolvedColors.cardBackground) }
-    var appBackgroundUIColor: UIColor { UIColor(hex: resolvedColors.appBackground) }
-    var headerTextUIColor: UIColor { UIColor(headerTextColor) }
+    var appBackgroundUIColor: UIColor  { UIColor(hex: resolvedColors.appBackground) }
+    var headerTextUIColor: UIColor  { UIColor(headerTextColor) }
     var segmentedSelectedUIColor: UIColor { UIColor(selectionColor) }
-    var segmentedBackgroundUIColor: UIColor { UIColor(cardBackgroundColor) }
-    var sliderTintUIColor: UIColor { UIColor(accentColor) }
-    var progressTintUIColor: UIColor { UIColor(accentColor) }
-    var switchTintUIColor: UIColor { UIColor(switchTintColor) }
+    var segmentedBackgroundUIColor: UIColor { UIColor(surface) }
+    var sliderTintUIColor: UIColor  { UIColor(accent) }
+    var progressTintUIColor: UIColor { UIColor(accent) }
+    var switchTintUIColor: UIColor  { UIColor(switchTintColor) }
     var cellHighlightUIColor: UIColor { UIColor(cellHighlightColor) }
-    var borderUIColor: UIColor { UIColor(borderColor) }
-    var secondaryTextUIColor: UIColor { UIColor(secondaryTextColor) }
+    var borderUIColor: UIColor      { UIColor(borderColor) }
+
+    // MARK: - Initializer
 
     init() {
-        let themeRaw = UserDefaults.standard.string(forKey: "app.selectedTheme") ?? AppTheme.darkNavy.rawValue
+        let themeRaw = UserDefaults.standard.string(forKey: Keys.selectedTheme) ?? AppTheme.darkNavy.rawValue
         let theme = AppTheme(rawValue: themeRaw) ?? .darkNavy
         self.currentTheme = theme
 
-        var loadedAppWideColors: AppWideColors?
-        if let data = UserDefaults.standard.data(forKey: "app.appWideColors") {
-            loadedAppWideColors = try? JSONDecoder().decode(AppWideColors.self, from: data)
+        var loadedColors: AppWideColors?
+        if let data = UserDefaults.standard.data(forKey: Keys.appWideColors) {
+            loadedColors = try? JSONDecoder().decode(AppWideColors.self, from: data)
         }
-        self.appWideColors = loadedAppWideColors
+        self.appWideColors = loadedColors
 
-        if let data = UserDefaults.standard.data(forKey: sectionHeaderThemeKey),
+        let fallbackColors = loadedColors ?? AppWideColors.default(for: theme)
+        if let data = UserDefaults.standard.data(forKey: Keys.sectionHeader),
            let persisted = try? JSONDecoder().decode(PersistedSectionHeaderTheme.self, from: data) {
             self.sectionHeaderTheme = SectionHeaderTheme(persisted: persisted)
         } else {
-            self.sectionHeaderTheme = SectionHeaderTheme.default(for: loadedAppWideColors ?? AppWideColors.default(for: theme))
+            self.sectionHeaderTheme = SectionHeaderTheme.default(for: fallbackColors)
         }
 
         applyUIKitAppearance()
     }
 
+    // MARK: - Theme Management
+
+    /// Switch to a built-in theme, clearing any custom color overrides.
     func setTheme(_ theme: AppTheme) {
         currentTheme = theme
         appWideColors = nil
@@ -461,78 +488,85 @@ final class ThemeManager: ObservableObject {
         applyUIKitAppearance()
     }
 
-    func applyTheme(_ theme: AppTheme) {
-        setTheme(theme)
-    }
+    func applyTheme(_ theme: AppTheme) { setTheme(theme) }
 
+    /// Mutate a single color slot and immediately propagate to UIKit.
     func updateColor(keyPath: WritableKeyPath<AppWideColors, String>, hex: String) {
-        var newColors = resolvedColors
-        newColors[keyPath: keyPath] = hex
-        appWideColors = newColors
+        var updated = resolvedColors
+        updated[keyPath: keyPath] = hex
+        appWideColors = updated
         applyUIKitAppearance()
     }
 
+    /// Apply a full set of custom colors at once.
+    func applyColors(_ colors: AppWideColors) {
+        appWideColors = colors
+        sectionHeaderTheme = SectionHeaderTheme.default(for: colors)
+        applyUIKitAppearance()
+    }
+
+    /// Revert all custom overrides to the currently selected built-in theme.
     func resetToThemeDefaults() {
         appWideColors = nil
         sectionHeaderTheme = SectionHeaderTheme.default(for: AppWideColors.default(for: currentTheme))
         applyUIKitAppearance()
     }
 
-    func applyUIKitAppearance() {
-        let appBackgroundColor = UIColor(hex: resolvedColors.appBackground)
-        let navigationBarColor = UIColor(hex: resolvedColors.navigationBar)
-        let tabBarColor = UIColor(hex: resolvedColors.tabBar)
-        let accentUIColor = UIColor(hex: resolvedColors.accent)
-        let primaryTextColor = UIColor(hex: resolvedColors.primaryText)
-        let secondaryTextColor = UIColor(hex: resolvedColors.secondaryText)
-        let separatorColor = UIColor(hex: resolvedColors.separator)
-        let switchTintColor = UIColor(hex: resolvedColors.switchTint)
-        let cardBackgroundColor = UIColor(hex: resolvedColors.cardBackground)
+    // MARK: - UIKit Appearance
 
+    func applyUIKitAppearance() {
+        let c = resolvedColors
+
+        let appBG   = UIColor(hex: c.appBackground)
+        let navBG   = UIColor(hex: c.navigationBar)
+        let tabBG   = UIColor(hex: c.tabBar)
+        let accent  = UIColor(hex: c.accent)
+        let primary = UIColor(hex: c.primaryText)
+        let secondary = UIColor(hex: c.secondaryText)
+        let separator = UIColor(hex: c.separator)
+        let switchTint = UIColor(hex: c.switchTint)
+        let cardBG  = UIColor(hex: c.cardBackground)
+
+        // Window tint
         if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene {
             for window in windowScene.windows {
-                window.backgroundColor = appBackgroundColor
-                window.tintColor = accentUIColor
+                window.backgroundColor = appBG
+                window.tintColor = accent
             }
         }
 
+        // Navigation bar
         let nav = UINavigationBarAppearance()
         nav.configureWithOpaqueBackground()
-        nav.backgroundColor = navigationBarColor
-        nav.titleTextAttributes = [
-            .foregroundColor: primaryTextColor,
-            .font: typography.titleFont
-        ]
-        nav.largeTitleTextAttributes = [
-            .foregroundColor: primaryTextColor,
-            .font: typography.largeTitleFont
-        ]
+        nav.backgroundColor = navBG
+        nav.titleTextAttributes      = [.foregroundColor: primary, .font: typography.titleFont]
+        nav.largeTitleTextAttributes = [.foregroundColor: primary, .font: typography.largeTitleFont]
         nav.shadowColor = .clear
-
-        UINavigationBar.appearance().standardAppearance = nav
+        UINavigationBar.appearance().standardAppearance   = nav
         UINavigationBar.appearance().scrollEdgeAppearance = nav
-        UINavigationBar.appearance().compactAppearance = nav
-        UINavigationBar.appearance().tintColor = accentUIColor
+        UINavigationBar.appearance().compactAppearance    = nav
+        UINavigationBar.appearance().tintColor = accent
 
-        UISearchBar.appearance().tintColor = accentUIColor
+        UISearchBar.appearance().tintColor = accent
 
+        // Tab bar
         let tab = UITabBarAppearance()
         tab.configureWithOpaqueBackground()
-        tab.backgroundColor = tabBarColor
-
-        UITabBar.appearance().standardAppearance = tab
+        tab.backgroundColor = tabBG
+        UITabBar.appearance().standardAppearance   = tab
         UITabBar.appearance().scrollEdgeAppearance = tab
-        UITabBar.appearance().tintColor = accentUIColor
-        UITabBar.appearance().unselectedItemTintColor = secondaryTextColor
+        UITabBar.appearance().tintColor = accent
+        UITabBar.appearance().unselectedItemTintColor = secondary
 
-        UITableView.appearance().backgroundColor = appBackgroundColor
-        UITableViewCell.appearance().backgroundColor = cardBackgroundColor
-        UITableView.appearance().separatorColor = separatorColor
-        UICollectionView.appearance().backgroundColor = appBackgroundColor
+        // Table & collection views
+        UITableView.appearance().backgroundColor = appBG
+        UITableView.appearance().separatorColor  = separator
+        UITableViewCell.appearance().backgroundColor = cardBG
+        UICollectionView.appearance().backgroundColor = appBG
 
-        UISwitch.appearance().onTintColor = switchTintColor
+        UISwitch.appearance().onTintColor = switchTint
 
-        // Avoid recursively touching ThemeManager.shared while this singleton is initializing.
+        // Avoid re-entering ThemeManager.shared while this singleton is initializing.
         SectionStyleManager.shared.applyGlobalUIKitStyle(themeManager: self)
         NotificationCenter.default.post(name: Notification.Name("AppWideThemeDidChange"), object: nil)
     }
@@ -548,7 +582,7 @@ struct AppWideHeaderTitleModifier: ViewModifier {
         content
             .navigationBarTitleDisplayMode(displayMode)
             .toolbarBackground(themeManager.navigationBarColor, for: .navigationBar)
-            .toolbarColorScheme(.dark, for: .navigationBar)
+            .toolbarBackground(.visible, for: .navigationBar)
     }
 }
 
