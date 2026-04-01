@@ -183,10 +183,24 @@ class StatusBarViewModel: ObservableObject {
     // Network Status
     @AppStorage("statusBar.showNetworkStatus") var showNetworkStatus: Bool = false
     @AppStorage("statusBar.networkIconStyle") var networkIconStyle: String = "bars" // bars, dot, text
+    @AppStorage("statusBar.networkAlignment") var networkAlignment: String = "right"
     
     // Memory/Performance
     @AppStorage("statusBar.showMemoryUsage") var showMemoryUsage: Bool = false
     @AppStorage("statusBar.memoryDisplayStyle") var memoryDisplayStyle: String = "percentage" // percentage, mb, both
+    @AppStorage("statusBar.memoryAlignment") var memoryAlignment: String = "right"
+    @AppStorage("statusBar.dateAlignment") var dateAlignment: String = "right"
+    
+    // New Widgets
+    @AppStorage("statusBar.showCPUUsage") var showCPUUsage: Bool = false
+    @AppStorage("statusBar.cpuAlignment") var cpuAlignment: String = "right"
+    @AppStorage("statusBar.showBrightness") var showBrightness: Bool = false
+    @AppStorage("statusBar.brightnessAlignment") var brightnessAlignment: String = "right"
+    @AppStorage("statusBar.showVolume") var showVolume: Bool = false
+    @AppStorage("statusBar.volumeAlignment") var volumeAlignment: String = "right"
+    @AppStorage("statusBar.showChargingStatus") var showChargingStatus: Bool = false
+    @AppStorage("statusBar.chargingAlignment") var chargingAlignment: String = "right"
+    @AppStorage("statusBar.showStepCount") var showStepCount: Bool = false
     
     // Gradient Text
     @AppStorage("statusBar.useGradientText") var useGradientText: Bool = false
@@ -200,6 +214,14 @@ class StatusBarViewModel: ObservableObject {
     @AppStorage("statusBar.glowRadius") var glowRadius: Double = 4
     @AppStorage("statusBar.glowIntensity") var glowIntensity: Double = 0.5
     
+    // Text Shadow
+    @AppStorage("statusBar.textShadowEnabled") var textShadowEnabled: Bool = false
+    @AppStorage("statusBar.textShadowColor") var textShadowColorHex: String = "#000000"
+    @AppStorage("statusBar.textShadowRadius") var textShadowRadius: Double = 2
+    
+    // Letter Spacing
+    @AppStorage("statusBar.letterSpacing") var letterSpacing: Double = 0
+    
     // Blur Style
     @AppStorage("statusBar.blurStyle") var blurStyle: String = "regular" // regular, thin, thick, chrome, material
     
@@ -211,6 +233,7 @@ class StatusBarViewModel: ObservableObject {
     // Spacing
     @AppStorage("statusBar.itemSpacing") var itemSpacing: Double = 8
     @AppStorage("statusBar.verticalOffset") var verticalOffset: Double = 0
+    @AppStorage("statusBar.horizontalOffset") var horizontalOffset: Double = 0
     
     // Icon Customization
     @AppStorage("statusBar.iconSize") var iconSize: Double = 16
@@ -439,8 +462,20 @@ class StatusBarViewModel: ObservableObject {
         showWeekday = false
         showNetworkStatus = false
         networkIconStyle = "bars"
+        networkAlignment = "right"
         showMemoryUsage = false
         memoryDisplayStyle = "percentage"
+        memoryAlignment = "right"
+        dateAlignment = "right"
+        showCPUUsage = false
+        cpuAlignment = "right"
+        showBrightness = false
+        brightnessAlignment = "right"
+        showVolume = false
+        volumeAlignment = "right"
+        showChargingStatus = false
+        chargingAlignment = "right"
+        showStepCount = false
         useGradientText = false
         gradientStartColorHex = "#007AFF"
         gradientEndColorHex = "#5856D6"
@@ -449,12 +484,17 @@ class StatusBarViewModel: ObservableObject {
         glowColorHex = "#007AFF"
         glowRadius = 4
         glowIntensity = 0.5
+        textShadowEnabled = false
+        textShadowColorHex = "#000000"
+        textShadowRadius = 2
+        letterSpacing = 0
         blurStyle = "regular"
         autoHide = false
         autoHideDelay = 3.0
         showOnTap = true
         itemSpacing = 8
         verticalOffset = 0
+        horizontalOffset = 0
         iconSize = 16
         iconWeight = "regular"
         
