@@ -59,12 +59,12 @@ class LiveActivityManager: ObservableObject {
     @discardableResult
     func startActivity(appName: String, bundleId: String, appVersion: String? = nil, iconData: Data? = nil) -> Activity<InstallationActivityAttributes>? {
         guard isEnabled() else {
-            print("⚠️ Live Activity disabled in settings")
+            AppLogManager.shared.info("Live Activity start skipped: disabled in settings", category: "LiveActivity")
             return nil
         }
         
         guard ActivityAuthorizationInfo().areActivitiesEnabled else {
-            print("⚠️ Live Activities are disabled at the system level")
+            AppLogManager.shared.warning("Live Activity start skipped: disabled at system level", category: "LiveActivity")
             return nil
         }
         

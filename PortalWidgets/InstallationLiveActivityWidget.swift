@@ -299,6 +299,7 @@ struct InstallationLiveActivityMinimal: View {
                 .font(.system(size: 11, weight: .semibold))
                 .foregroundColor(context.state.status.color)
         }
+        .frame(width: 22, height: 22)
     }
 }
 
