@@ -49,6 +49,8 @@ struct InstallationLiveActivityLockScreenView: View {
 
     private var progressGreen: Color { Color(red: 0.18, green: 0.8, blue: 0.44) }
     private var trackColor: Color { Color.gray.opacity(0.22) }
+    private let progressFontSize: CGFloat = 15
+    private let badgeBackgroundOpacity: Double = 0.15
 
     private var primaryTextColor: Color {
         settings.textColor?.color ?? .primary
@@ -93,11 +95,11 @@ struct InstallationLiveActivityLockScreenView: View {
                 Spacer()
 
                 Text(context.state.progressPercentage)
-                    .font(.system(size: 15, weight: .bold, design: widgetFontDesign(for: settings.fontFamily)))
+                    .font(.system(size: progressFontSize, weight: .bold, design: widgetFontDesign(for: settings.fontFamily)))
                     .foregroundColor(primaryTextColor)
                     .padding(.horizontal, 8)
                     .padding(.vertical, 4)
-                    .background(Capsule().fill(settings.accentColor.color.opacity(0.15)))
+                    .background(Capsule().fill(settings.accentColor.color.opacity(badgeBackgroundOpacity)))
             }
 
             HStack(spacing: 8) {
@@ -187,6 +189,7 @@ struct InstallationLiveActivityExpandedLeading: View {
 @available(iOS 16.2, *)
 struct InstallationLiveActivityExpandedTrailing: View {
     let context: ActivityViewContext<InstallationActivityAttributes>
+    private let badgeBackgroundOpacity: Double = 0.15
 
     var body: some View {
         VStack(alignment: .trailing, spacing: 4) {
@@ -195,7 +198,7 @@ struct InstallationLiveActivityExpandedTrailing: View {
                 .foregroundColor(context.attributes.settings.accentColor.color)
                 .padding(.horizontal, 8)
                 .padding(.vertical, 3)
-                .background(Capsule().fill(context.attributes.settings.accentColor.color.opacity(0.15)))
+                .background(Capsule().fill(context.attributes.settings.accentColor.color.opacity(badgeBackgroundOpacity)))
 
             if let timeRemaining = context.state.formattedTimeRemaining {
                 Text(timeRemaining)

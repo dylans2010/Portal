@@ -28,10 +28,7 @@ class LiveActivityManager: ObservableObject {
     
     /// Returns whether Live Activities are enabled in app settings.
     func isEnabled() -> Bool {
-        guard let value = UserDefaults.standard.object(forKey: Self.enabledKey) as? Bool else {
-            return true
-        }
-        return value
+        UserDefaults.standard.bool(forKey: Self.enabledKey)
     }
     
     // MARK: - Settings Management
