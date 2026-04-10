@@ -718,11 +718,6 @@ struct ColorCustomizationView: View {
                         .foregroundStyle(themeManager.sectionHeaderTheme.iconColor)
                 }
             }
-            Divider().background(themeManager.sectionHeaderTheme.dividerColor)
-            NavigationLink(destination: TopViewAppearance()) {
-                Label("Top View", systemImage: "uiwindow.split.2x1")
-                    .foregroundStyle(themeManager.sectionHeaderTheme.iconColor)
-            }
         }
         .padding(12)
         .background(themeManager.sectionHeaderTheme.background)
