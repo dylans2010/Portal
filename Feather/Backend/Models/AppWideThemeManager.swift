@@ -488,6 +488,7 @@ final class ThemeManager: ObservableObject {
         let separatorColor = UIColor(hex: resolvedColors.separator)
         let switchTintColor = UIColor(hex: resolvedColors.switchTint)
         let cardBackgroundColor = UIColor(hex: resolvedColors.cardBackground)
+        let cellHighlightColor = UIColor(hex: resolvedColors.cellHighlight)
 
         if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene {
             for window in windowScene.windows {
@@ -496,6 +497,7 @@ final class ThemeManager: ObservableObject {
             }
         }
 
+        // Navigation Bar
         let nav = UINavigationBarAppearance()
         nav.configureWithOpaqueBackground()
         nav.backgroundColor = navigationBarColor
@@ -514,8 +516,11 @@ final class ThemeManager: ObservableObject {
         UINavigationBar.appearance().compactAppearance = nav
         UINavigationBar.appearance().tintColor = accentUIColor
 
+        // Search Bar
         UISearchBar.appearance().tintColor = accentUIColor
+        UITextField.appearance(whenContainedInInstancesOf: [UISearchBar.self]).tintColor = accentUIColor
 
+        // Tab Bar
         let tab = UITabBarAppearance()
         tab.configureWithOpaqueBackground()
         tab.backgroundColor = tabBarColor
@@ -525,12 +530,25 @@ final class ThemeManager: ObservableObject {
         UITabBar.appearance().tintColor = accentUIColor
         UITabBar.appearance().unselectedItemTintColor = secondaryTextColor
 
+        // Tables & Lists
         UITableView.appearance().backgroundColor = appBackgroundColor
-        UITableViewCell.appearance().backgroundColor = cardBackgroundColor
         UITableView.appearance().separatorColor = separatorColor
+        UITableViewCell.appearance().backgroundColor = cardBackgroundColor
+
+        let selectedBackgroundView = UIView()
+        selectedBackgroundView.backgroundColor = cellHighlightColor
+        UITableViewCell.appearance().selectedBackgroundView = selectedBackgroundView
+
+        // Collection Views
         UICollectionView.appearance().backgroundColor = appBackgroundColor
 
+        // Controls
         UISwitch.appearance().onTintColor = switchTintColor
+        UISlider.appearance().minimumTrackTintColor = accentUIColor
+        UIProgressView.appearance().progressTintColor = accentUIColor
+
+        // Buttons
+        UIButton.appearance().tintColor = accentUIColor
 
         // Avoid recursively touching ThemeManager.shared while this singleton is initializing.
         SectionStyleManager.shared.applyGlobalUIKitStyle(themeManager: self)

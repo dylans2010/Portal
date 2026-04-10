@@ -35,7 +35,7 @@ extension SectionHeaderTheme {
         SectionHeaderTheme(
             background: Color.clear,
             textColor: Color(hex: colors.headerText),
-            iconColor: Color(hex: colors.iconTint),
+            iconColor: Color(hex: colors.accent),
             dividerColor: Color(hex: colors.separator)
         )
     }

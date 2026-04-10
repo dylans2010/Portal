@@ -146,13 +146,6 @@ struct AppearanceView: View {
                         .foregroundStyle(themeManager.accentColor)
                 }
 
-                if UIDevice.current.hasDynamicIsland {
-                    NavigationLink(destination: DynamicIslandView(viewModel: StatusBarViewModel())) {
-                        Label("Dynamic Island", systemImage: "capsule.fill")
-                            .foregroundStyle(themeManager.accentColor)
-                    }
-                }
-
                 NavigationLink(destination: TabBarCustomizationView()) {
                     Label("Tab Bar", systemImage: "dock.rectangle")
                         .foregroundStyle(themeManager.accentColor)
@@ -163,11 +156,6 @@ struct AppearanceView: View {
                         Label("Keyboard Backdrop", systemImage: "keyboard")
                             .foregroundStyle(themeManager.accentColor)
                     }
-                }
-
-                NavigationLink(destination: TopViewAppearance()) {
-                    Label("Top View", systemImage: "uiwindow.split.2x1")
-                        .foregroundStyle(themeManager.accentColor)
                 }
             } header: {
                 Label("Customization", systemImage: "slider.horizontal.3")

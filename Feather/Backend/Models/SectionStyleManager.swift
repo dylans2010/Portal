@@ -125,44 +125,39 @@ struct ThemedSection<Content: View>: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
+        Section {
+            content
+        } header: {
             HStack(spacing: 6) {
                 if let sym = symbol {
                     Image(systemName: sym)
-                        .font(.caption)
-                        .foregroundStyle(
-                            styleManager.currentStyle == .colorMatch
-                                ? themeManager.headerTextColor
-                                : Color(.secondaryLabel)
-                        )
+                        .font(.system(.caption, design: .rounded))
+                        .fontWeight(.bold)
                 }
                 Text(header)
-                    .font(.caption)
-                    .fontWeight(.semibold)
+                    .font(.system(.caption, design: .rounded))
+                    .fontWeight(.bold)
                     .textCase(.uppercase)
-                    .tracking(0.8)
-                    .foregroundStyle(
-                        styleManager.currentStyle == .colorMatch
-                            ? themeManager.headerTextColor
-                            : Color(.secondaryLabel)
-                    )
+                    .tracking(1.0)
             }
-            .padding(.horizontal, 4)
-
-            if styleManager.currentStyle == .colorMatch {
-                VStack(spacing: 0) {
-                    content
-                }
-                .background(themeManager.cardBackgroundColor)
-                .cornerRadius(16)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 16)
-                        .stroke(themeManager.borderColor, lineWidth: 0.5)
-                )
-            } else {
-                content
-            }
+            .foregroundStyle(
+                styleManager.currentStyle == .colorMatch
+                    ? themeManager.headerTextColor
+                    : Color(.secondaryLabel)
+            )
+            .padding(.leading, 8)
+            .padding(.bottom, 4)
         }
+        .listRowBackground(
+            styleManager.currentStyle == .colorMatch
+                ? themeManager.surface
+                : Color(.secondarySystemGroupedBackground)
+        )
+        .listRowSeparatorTint(
+            styleManager.currentStyle == .colorMatch
+                ? themeManager.separatorColor
+                : Color(.separator)
+        )
     }
 }
 
@@ -185,67 +180,58 @@ struct ThemedRow: View {
                     .foregroundStyle(
                         styleManager.currentStyle == .colorMatch
                             ? themeManager.iconTintColor
-                            : Color.accentColor
+                            : themeManager.accentColor
                     )
-                    .frame(width: 28, height: 28)
+                    .frame(width: 30, height: 30)
                     .background(
                         styleManager.currentStyle == .colorMatch
                             ? themeManager.iconTintColor.opacity(0.12)
-                            : Color.clear
+                            : themeManager.accentColor.opacity(0.1)
                     )
-                    .cornerRadius(7)
+                    .cornerRadius(8)
 
                 Text(label)
+                    .font(.system(.body, design: .rounded))
                     .foregroundStyle(
                         styleManager.currentStyle == .colorMatch
                             ? themeManager.primaryTextColor
                             : Color(.label)
                     )
-                    .font(.body)
 
                 Spacer()
 
                 if let val = value {
                     Text(val)
+                        .font(.system(.subheadline, design: .rounded))
                         .foregroundStyle(
                             styleManager.currentStyle == .colorMatch
                                 ? themeManager.secondaryTextColor
                                 : Color(.secondaryLabel)
                         )
-                        .font(.subheadline)
                 }
 
                 if showChevron {
                     Image(systemName: "chevron.right")
-                        .font(.caption.weight(.semibold))
+                        .font(.system(.caption, design: .rounded).weight(.bold))
                         .foregroundStyle(
                             styleManager.currentStyle == .colorMatch
-                                ? themeManager.secondaryTextColor
+                                ? themeManager.secondaryTextColor.opacity(0.5)
                                 : Color(.tertiaryLabel)
                         )
                 }
             }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 14)
-            .background(
-                styleManager.currentStyle == .colorMatch
-                    ? themeManager.cardBackgroundColor
-                    : Color(.secondarySystemGroupedBackground)
-            )
-            .overlay(alignment: .bottom) {
-                if !isLast {
-                    Rectangle()
-                        .fill(
-                            styleManager.currentStyle == .colorMatch
-                                ? themeManager.separatorColor
-                                : Color(.separator)
-                        )
-                        .frame(height: 0.5)
-                        .padding(.leading, 58)
-                }
-            }
+            .padding(.vertical, 10)
         }
-        .buttonStyle(.plain)
+        .listRowBackground(
+            styleManager.currentStyle == .colorMatch
+                ? themeManager.surface
+                : Color(.secondarySystemGroupedBackground)
+        )
+        .listRowSeparatorTint(
+            styleManager.currentStyle == .colorMatch
+                ? themeManager.separatorColor
+                : Color(.separator)
+        )
     }
 }
 
@@ -264,21 +250,24 @@ struct ThemedToggleRow: View {
                 .font(.system(size: 16, weight: .medium))
                 .foregroundStyle(
                     styleManager.currentStyle == .colorMatch
-                        ? themeManager.iconTintColor : Color.accentColor
+                        ? themeManager.iconTintColor
+                        : themeManager.accentColor
                 )
-                .frame(width: 28, height: 28)
+                .frame(width: 30, height: 30)
                 .background(
                     styleManager.currentStyle == .colorMatch
-                        ? themeManager.iconTintColor.opacity(0.12) : Color.clear
+                        ? themeManager.iconTintColor.opacity(0.12)
+                        : themeManager.accentColor.opacity(0.1)
                 )
-                .cornerRadius(7)
+                .cornerRadius(8)
 
             Text(label)
+                .font(.system(.body, design: .rounded))
                 .foregroundStyle(
                     styleManager.currentStyle == .colorMatch
-                        ? themeManager.primaryTextColor : Color(.label)
+                        ? themeManager.primaryTextColor
+                        : Color(.label)
                 )
-                .font(.body)
 
             Spacer()
 
@@ -286,27 +275,21 @@ struct ThemedToggleRow: View {
                 .labelsHidden()
                 .tint(
                     styleManager.currentStyle == .colorMatch
-                        ? themeManager.switchTintColor : Color.accentColor
+                        ? themeManager.switchTintColor
+                        : themeManager.accentColor
                 )
         }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 13)
-        .background(
+        .padding(.vertical, 8)
+        .listRowBackground(
             styleManager.currentStyle == .colorMatch
-                ? themeManager.cardBackgroundColor
+                ? themeManager.surface
                 : Color(.secondarySystemGroupedBackground)
         )
-        .overlay(alignment: .bottom) {
-            if !isLast {
-                Rectangle()
-                    .fill(
-                        styleManager.currentStyle == .colorMatch
-                            ? themeManager.separatorColor : Color(.separator)
-                    )
-                    .frame(height: 0.5)
-                    .padding(.leading, 58)
-            }
-        }
+        .listRowSeparatorTint(
+            styleManager.currentStyle == .colorMatch
+                ? themeManager.separatorColor
+                : Color(.separator)
+        )
     }
 }
 
@@ -326,43 +309,49 @@ struct ThemedPickerRow<SelectionValue: Hashable>: View {
                 .font(.system(size: 16, weight: .medium))
                 .foregroundStyle(
                     styleManager.currentStyle == .colorMatch
-                        ? themeManager.iconTintColor : Color.accentColor
+                        ? themeManager.iconTintColor
+                        : themeManager.accentColor
                 )
-                .frame(width: 28, height: 28)
+                .frame(width: 30, height: 30)
                 .background(
                     styleManager.currentStyle == .colorMatch
-                        ? themeManager.iconTintColor.opacity(0.12) : Color.clear
+                        ? themeManager.iconTintColor.opacity(0.12)
+                        : themeManager.accentColor.opacity(0.1)
                 )
-                .cornerRadius(7)
+                .cornerRadius(8)
+
+            Text(label)
+                .font(.system(.body, design: .rounded))
+                .foregroundStyle(
+                    styleManager.currentStyle == .colorMatch
+                        ? themeManager.primaryTextColor
+                        : Color(.label)
+                )
+
+            Spacer()
 
             Picker(label, selection: $selection) {
                 ForEach(options, id: \.value) { opt in
                     Text(opt.label).tag(opt.value)
                 }
             }
-            .pickerStyle(.segmented)
+            .pickerStyle(.menu)
             .tint(
                 styleManager.currentStyle == .colorMatch
-                    ? themeManager.accentColor : Color.accentColor
+                    ? themeManager.accentColor
+                    : themeManager.accentColor
             )
         }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 13)
-        .background(
+        .padding(.vertical, 8)
+        .listRowBackground(
             styleManager.currentStyle == .colorMatch
-                ? themeManager.cardBackgroundColor
+                ? themeManager.surface
                 : Color(.secondarySystemGroupedBackground)
         )
-        .overlay(alignment: .bottom) {
-            if !isLast {
-                Rectangle()
-                    .fill(
-                        styleManager.currentStyle == .colorMatch
-                            ? themeManager.separatorColor : Color(.separator)
-                    )
-                    .frame(height: 0.5)
-                    .padding(.leading, 58)
-            }
-        }
+        .listRowSeparatorTint(
+            styleManager.currentStyle == .colorMatch
+                ? themeManager.separatorColor
+                : Color(.separator)
+        )
     }
 }

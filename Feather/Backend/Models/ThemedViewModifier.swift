@@ -61,6 +61,7 @@ struct GlobalThemeModifier: ViewModifier {
 
             content
                 .scrollContentBackground(.hidden)
+                .listStyle(.insetGrouped)
         }
         .animation(.easeInOut, value: themeManager.currentThemeID)
         .background(themeManager.background)
@@ -70,8 +71,7 @@ struct GlobalThemeModifier: ViewModifier {
         .tint(themeManager.accent)
         .accentColor(themeManager.accent)
         .foregroundStyle(themeManager.primaryText)
-        .buttonStyle(.plain)
-        .preferredColorScheme(nil)
+        .preferredColorScheme(themeManager.currentTheme == .light ? .light : .dark)
         .id(themeManager.currentThemeID)
         .onReceive(NotificationCenter.default.publisher(for: Notification.Name("AppWideThemeDidChange"))) { _ in
             // SwiftUI will re-render automatically via @EnvironmentObject publish
@@ -96,30 +96,40 @@ struct ThemedBackgroundModifier: ViewModifier {
     }
 }
 
-struct ThemedListRowModifier: ViewModifier {
-    @EnvironmentObject var themeManager: ThemeManager
-
-    func body(content: Content) -> some View {
-        content
-            .background(themeManager.surface)
-            .foregroundStyle(themeManager.primaryText)
-            .onReceive(NotificationCenter.default.publisher(for: Notification.Name("AppWideThemeDidChange"))) { _ in
-                // SwiftUI will re-render automatically via @EnvironmentObject publish
-                // This onReceive ensures UIKit-backed views also refresh
-            }
-    }
-}
 
 struct ThemedSectionHeaderModifier: ViewModifier {
     @EnvironmentObject var themeManager: ThemeManager
 
     func body(content: Content) -> some View {
         content
-            .font(.caption)
-            .fontWeight(.semibold)
+            .font(.system(.caption, design: .rounded))
+            .fontWeight(.bold)
             .foregroundStyle(themeManager.headerTextColor)
             .textCase(.uppercase)
-            .tracking(0.5)
+            .tracking(1.0)
+            .padding(.leading, 8)
+            .padding(.bottom, 4)
+    }
+}
+
+struct ThemedListModifier: ViewModifier {
+    @EnvironmentObject var themeManager: ThemeManager
+
+    func body(content: Content) -> some View {
+        content
+            .listStyle(.insetGrouped)
+            .scrollContentBackground(.hidden)
+            .background(themeManager.background)
+    }
+}
+
+struct ThemedListRowBackgroundModifier: ViewModifier {
+    @EnvironmentObject var themeManager: ThemeManager
+
+    func body(content: Content) -> some View {
+        content
+            .listRowBackground(themeManager.surface)
+            .listRowSeparatorTint(themeManager.separatorColor)
     }
 }
 
@@ -144,11 +154,15 @@ extension View {
         self.modifier(ThemedBackgroundModifier())
     }
 
-    func themedListRow() -> some View {
-        self.modifier(ThemedListRowModifier())
-    }
-
     func themedSectionHeader() -> some View {
         self.modifier(ThemedSectionHeaderModifier())
+    }
+
+    func themedList() -> some View {
+        self.modifier(ThemedListModifier())
+    }
+
+    func themedListRow() -> some View {
+        self.modifier(ThemedListRowBackgroundModifier())
     }
 }
