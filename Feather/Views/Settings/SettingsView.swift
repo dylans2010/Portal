@@ -313,7 +313,6 @@ struct SettingsView: View {
 
             // Appearance sub-options
             SettingsItem(title: .localized("Color Customization"), icon: "paintpalette.fill", color: .purple, destination: AnyView(ColorCustomizationView())),
-            SettingsItem(title: .localized("Top View Appearance"), icon: "rectangle.inset.topthird.filled", color: .blue, destination: AnyView(TopViewAppearance())),
             SettingsItem(title: .localized("All Apps"), icon: "square.grid.2x2.fill", color: .accentColor, destination: AnyView(AllAppsCustomizationView())),
             SettingsItem(title: .localized("Hide UI Elements"), icon: "eye.slash.fill", color: .accentColor, destination: AnyView(AppHideElementsView())),
             SettingsItem(title: .localized("Status Bar"), icon: "rectangle.topthird.inset.filled", color: .accentColor, destination: AnyView(StatusBarCustomizationView())),
