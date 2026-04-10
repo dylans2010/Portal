@@ -99,16 +99,18 @@ struct ThemedBackgroundModifier: ViewModifier {
 
 struct ThemedSectionHeaderModifier: ViewModifier {
     @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var styleManager: SectionStyleManager
 
     func body(content: Content) -> some View {
         content
             .font(.system(.caption, design: .rounded))
             .fontWeight(.bold)
-            .foregroundStyle(themeManager.headerTextColor)
+            .foregroundStyle(themeManager.sectionHeaderTheme.resolvedTextColor(style: styleManager.currentStyle, defaultColor: themeManager.headerTextColor))
             .textCase(.uppercase)
             .tracking(1.0)
             .padding(.leading, 8)
             .padding(.bottom, 4)
+            .background(themeManager.sectionHeaderTheme.resolvedBackgroundColor(style: styleManager.currentStyle))
     }
 }
 

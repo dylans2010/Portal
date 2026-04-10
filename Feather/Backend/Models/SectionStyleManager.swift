@@ -54,6 +54,14 @@ final class SectionStyleManager: ObservableObject {
         currentStyle = style
     }
 
+    var isReplacingSectionStyles: Bool {
+        currentStyle == .colorMatch
+    }
+
+    func setReplaceSectionStyles(_ enabled: Bool) {
+        setStyle(enabled ? .colorMatch : .native)
+    }
+
     func applyGlobalUIKitStyle(themeManager: ThemeManager? = nil) {
         let tm = themeManager ?? ThemeManager.shared
         switch currentStyle {
@@ -63,6 +71,8 @@ final class SectionStyleManager: ObservableObject {
             UITableViewCell.appearance().backgroundColor = nil
             UITableView.appearance().separatorStyle = .singleLine
             UILabel.appearance(whenContainedInInstancesOf: [UITableViewHeaderFooterView.self]).textColor = nil
+            UITableViewHeaderFooterView.appearance().tintColor = nil
+            UITableViewHeaderFooterView.appearance().contentView.backgroundColor = nil
             UISwitch.appearance().onTintColor = nil
             UISegmentedControl.appearance().selectedSegmentTintColor = nil
             UISegmentedControl.appearance().backgroundColor = nil
@@ -73,7 +83,9 @@ final class SectionStyleManager: ObservableObject {
             UITableView.appearance().separatorStyle = .singleLine
             UITableViewCell.appearance().backgroundColor = tm.cardBackgroundUIColor
 
-            UILabel.appearance(whenContainedInInstancesOf: [UITableViewHeaderFooterView.self]).textColor = tm.headerTextUIColor
+            UILabel.appearance(whenContainedInInstancesOf: [UITableViewHeaderFooterView.self]).textColor = UIColor(tm.sectionHeaderTheme.textColor)
+            UITableViewHeaderFooterView.appearance().tintColor = UIColor(tm.sectionHeaderTheme.background)
+            UITableViewHeaderFooterView.appearance().contentView.backgroundColor = UIColor(tm.sectionHeaderTheme.background)
 
             let selView = UIView()
             selView.backgroundColor = tm.cellHighlightUIColor
@@ -142,7 +154,7 @@ struct ThemedSection<Content: View>: View {
             }
             .foregroundStyle(
                 styleManager.currentStyle == .colorMatch
-                    ? themeManager.headerTextColor
+                    ? themeManager.sectionHeaderTheme.resolvedTextColor(style: styleManager.currentStyle, defaultColor: themeManager.headerTextColor)
                     : Color(.secondaryLabel)
             )
             .padding(.leading, 8)
