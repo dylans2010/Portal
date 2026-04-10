@@ -1498,11 +1498,13 @@ private struct AppWideColorPickerSheet: View {
                     ColorPickerRow(label: "Cell Highlight",     color: $draft.cellHighlight)
                 }
 
-                Section(header: Text("Sections")) {
+                Section {
                     Toggle("Replace Section Styles", isOn: Binding(
                         get: { styleManager.isReplacingSectionStyles },
                         set: { styleManager.setReplaceSectionStyles($0) }
                     ))
+                } header: {
+                    Text("Sections")
                 } footer: {
                     Text("Fully replaces default SwiftUI section visuals with app-wide themed section styling.")
                 }
