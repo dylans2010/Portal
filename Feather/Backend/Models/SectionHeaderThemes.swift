@@ -40,19 +40,19 @@ extension SectionHeaderTheme {
         )
     }
 
-    func resolvedTextColor(themeManager: ThemeManager, style: SectionStyle) -> Color {
-        style == .colorMatch ? textColor : themeManager.headerTextColor
+    func resolvedTextColor(style: SectionStyle, defaultColor: Color) -> Color {
+        style == .colorMatch ? textColor : defaultColor
     }
 
-    func resolvedIconColor(themeManager: ThemeManager, style: SectionStyle) -> Color {
-        style == .colorMatch ? iconColor : themeManager.accentColor
+    func resolvedIconColor(style: SectionStyle, defaultColor: Color) -> Color {
+        style == .colorMatch ? iconColor : defaultColor
     }
 
     func resolvedBackgroundColor(style: SectionStyle) -> Color {
         style == .colorMatch ? background : .clear
     }
 
-    func resolvedDividerColor(themeManager: ThemeManager, style: SectionStyle) -> Color {
-        style == .colorMatch ? dividerColor : themeManager.separatorColor
+    func resolvedDividerColor(style: SectionStyle, defaultColor: Color) -> Color {
+        style == .colorMatch ? dividerColor : defaultColor
     }
 }

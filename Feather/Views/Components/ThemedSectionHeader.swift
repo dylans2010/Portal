@@ -12,12 +12,12 @@ struct ThemedSectionHeader: View {
             if let icon {
                 Image(systemName: icon)
                     .font(.system(size: 14, weight: .semibold))
-                    .foregroundStyle(themeManager.sectionHeaderTheme.resolvedIconColor(themeManager: themeManager, style: styleManager.currentStyle))
+                    .foregroundStyle(themeManager.sectionHeaderTheme.resolvedIconColor(style: styleManager.currentStyle, defaultColor: themeManager.accentColor))
             }
 
             Text(title.uppercased())
                 .font(.system(size: 13, weight: .semibold))
-                .foregroundStyle(themeManager.sectionHeaderTheme.resolvedTextColor(themeManager: themeManager, style: styleManager.currentStyle))
+                .foregroundStyle(themeManager.sectionHeaderTheme.resolvedTextColor(style: styleManager.currentStyle, defaultColor: themeManager.headerTextColor))
         }
         .padding(.horizontal, 4)
         .padding(.top, 12)

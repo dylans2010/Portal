@@ -69,10 +69,10 @@ struct SettingsSectionHeader: View {
         HStack(spacing: 5) {
             Image(systemName: icon)
                 .font(.system(size: 10, weight: .semibold))
-                .foregroundStyle(themeManager.sectionHeaderTheme.resolvedIconColor(themeManager: themeManager, style: styleManager.currentStyle))
+                .foregroundStyle(themeManager.sectionHeaderTheme.resolvedIconColor(style: styleManager.currentStyle, defaultColor: themeManager.headerTextColor))
             Text(title)
                 .font(.system(size: 11, weight: .semibold, design: .rounded))
-                .foregroundStyle(themeManager.sectionHeaderTheme.resolvedTextColor(themeManager: themeManager, style: styleManager.currentStyle))
+                .foregroundStyle(themeManager.sectionHeaderTheme.resolvedTextColor(style: styleManager.currentStyle, defaultColor: themeManager.headerTextColor))
         }
     }
 }

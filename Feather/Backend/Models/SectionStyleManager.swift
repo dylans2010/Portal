@@ -154,7 +154,7 @@ struct ThemedSection<Content: View>: View {
             }
             .foregroundStyle(
                 styleManager.currentStyle == .colorMatch
-                    ? themeManager.sectionHeaderTheme.resolvedTextColor(themeManager: themeManager, style: styleManager.currentStyle)
+                    ? themeManager.sectionHeaderTheme.resolvedTextColor(style: styleManager.currentStyle, defaultColor: themeManager.headerTextColor)
                     : Color(.secondaryLabel)
             )
             .padding(.leading, 8)

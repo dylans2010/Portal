@@ -105,7 +105,7 @@ struct ThemedSectionHeaderModifier: ViewModifier {
         content
             .font(.system(.caption, design: .rounded))
             .fontWeight(.bold)
-            .foregroundStyle(themeManager.sectionHeaderTheme.resolvedTextColor(themeManager: themeManager, style: styleManager.currentStyle))
+            .foregroundStyle(themeManager.sectionHeaderTheme.resolvedTextColor(style: styleManager.currentStyle, defaultColor: themeManager.headerTextColor))
             .textCase(.uppercase)
             .tracking(1.0)
             .padding(.leading, 8)
