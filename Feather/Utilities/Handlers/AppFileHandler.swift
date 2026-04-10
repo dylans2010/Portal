@@ -32,9 +32,9 @@ final class AppFileHandler: NSObject, @unchecked Sendable {
 	
 	func copy() async throws {
 		// Start Live Activity if enabled
-		if #available(iOS 16.2, *), UserDefaults.standard.bool(forKey: "Feather.liveActivityEnabled") {
+		if #available(iOS 16.2, *), LiveActivityManager.shared.isEnabled() {
 			LiveActivityManager.shared.startActivity(
-				appName: _ipa.lastPathComponent,
+				appName: _ipa.deletingPathExtension().lastPathComponent,
 				bundleId: "com.feather.import",
 				appVersion: "1.0"
 			)

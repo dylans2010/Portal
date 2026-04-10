@@ -40,7 +40,7 @@ final class RemoteSigningHandler: NSObject {
     
     func sign() async throws -> String {
 		// Start Live Activity if enabled
-		if #available(iOS 16.2, *), UserDefaults.standard.bool(forKey: "Feather.liveActivityEnabled") {
+		if #available(iOS 16.2, *), LiveActivityManager.shared.isEnabled() {
 			LiveActivityManager.shared.startActivity(
 				appName: _options.appName ?? _app.name ?? "App",
 				bundleId: _options.appIdentifier ?? _app.identifier ?? "unknown",
