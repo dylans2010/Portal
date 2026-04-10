@@ -39,4 +39,20 @@ extension SectionHeaderTheme {
             dividerColor: Color(hex: colors.separator)
         )
     }
+
+    func resolvedTextColor(themeManager: ThemeManager, style: SectionStyle) -> Color {
+        style == .colorMatch ? textColor : themeManager.headerTextColor
+    }
+
+    func resolvedIconColor(themeManager: ThemeManager, style: SectionStyle) -> Color {
+        style == .colorMatch ? iconColor : themeManager.accentColor
+    }
+
+    func resolvedBackgroundColor(style: SectionStyle) -> Color {
+        style == .colorMatch ? background : .clear
+    }
+
+    func resolvedDividerColor(themeManager: ThemeManager, style: SectionStyle) -> Color {
+        style == .colorMatch ? dividerColor : themeManager.separatorColor
+    }
 }

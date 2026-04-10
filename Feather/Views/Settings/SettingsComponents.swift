@@ -61,6 +61,7 @@ struct SettingsRowContent: View {
 
 struct SettingsSectionHeader: View {
     @EnvironmentObject var themeManager: AppWideThemeManager
+    @EnvironmentObject var styleManager: SectionStyleManager
     let title: String
     let icon: String
 
@@ -68,9 +69,10 @@ struct SettingsSectionHeader: View {
         HStack(spacing: 5) {
             Image(systemName: icon)
                 .font(.system(size: 10, weight: .semibold))
+                .foregroundStyle(themeManager.sectionHeaderTheme.resolvedIconColor(themeManager: themeManager, style: styleManager.currentStyle))
             Text(title)
                 .font(.system(size: 11, weight: .semibold, design: .rounded))
+                .foregroundStyle(themeManager.sectionHeaderTheme.resolvedTextColor(themeManager: themeManager, style: styleManager.currentStyle))
         }
-        .themedText(.header)
     }
 }
