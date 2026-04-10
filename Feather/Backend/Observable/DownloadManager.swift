@@ -110,7 +110,7 @@ class DownloadManager: NSObject, ObservableObject {
 		// Start Live Activity if enabled
 		if #available(iOS 16.2, *), LiveActivityManager.shared.isEnabled() {
 			let appName = url.deletingPathExtension().lastPathComponent
-			let activity = LiveActivityManager.shared.startActivity(appName: appName, bundleId: "unknown", appVersion: nil)
+			let activity = LiveActivityManager.shared.startActivity(appName: appName, bundleId: id, appVersion: nil)
 			download.liveActivityStarted = activity != nil
 		}
 		

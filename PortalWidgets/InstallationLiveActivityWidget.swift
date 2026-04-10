@@ -47,7 +47,7 @@ struct InstallationLiveActivityLockScreenView: View {
         context.attributes.settings
     }
 
-    private var progressGreen: Color { Color(red: 0.18, green: 0.8, blue: 0.44) }
+    private var progressGreen: Color { InstallationWidgetUI.progressTint }
     private var trackColor: Color { Color.gray.opacity(InstallationWidgetUI.trackBackgroundOpacity) }
 
     private var primaryTextColor: Color {
@@ -238,10 +238,7 @@ struct InstallationLiveActivityExpandedCenter: View {
 @available(iOS 16.2, *)
 struct InstallationLiveActivityExpandedBottom: View {
     let context: ActivityViewContext<InstallationActivityAttributes>
-
-    private var progressGreen: Color {
-        Color(red: 0.18, green: 0.8, blue: 0.44)
-    }
+    private var progressGreen: Color { InstallationWidgetUI.progressTint }
 
     var body: some View {
         VStack(spacing: 6) {
@@ -367,6 +364,7 @@ extension View {
 private enum InstallationWidgetUI {
     static let badgeBackgroundOpacity: Double = 0.15
     static let trackBackgroundOpacity: Double = 0.22
+    static let progressTint = Color(red: 0.18, green: 0.8, blue: 0.44)
     static let lockProgressFontSize: CGFloat = 15
     static let expandedProgressFontSize: CGFloat = 16
     static let compactProgressFontSize: CGFloat = 12
