@@ -48,7 +48,7 @@ struct InstallationLiveActivityLockScreenView: View {
     }
 
     private var progressGreen: Color { Color(red: 0.18, green: 0.8, blue: 0.44) }
-    private var trackColor: Color { Color.gray.opacity(0.22) }
+    private var trackColor: Color { Color.gray.opacity(InstallationWidgetUI.trackBackgroundOpacity) }
 
     private var primaryTextColor: Color {
         settings.textColor?.color ?? .primary
@@ -246,7 +246,7 @@ struct InstallationLiveActivityExpandedBottom: View {
     var body: some View {
         VStack(spacing: 6) {
             HStack(spacing: 8) {
-                progressBar(context: context, progressColor: progressGreen, trackColor: Color.gray.opacity(0.25))
+                progressBar(context: context, progressColor: progressGreen, trackColor: Color.gray.opacity(InstallationWidgetUI.trackBackgroundOpacity))
 
                 if let speed = context.state.formattedSpeed {
                     Text(speed)
@@ -365,6 +365,7 @@ extension View {
 
 private enum InstallationWidgetUI {
     static let badgeBackgroundOpacity: Double = 0.15
+    static let trackBackgroundOpacity: Double = 0.22
     static let lockProgressFontSize: CGFloat = 15
     static let expandedProgressFontSize: CGFloat = 16
     static let compactProgressFontSize: CGFloat = 12

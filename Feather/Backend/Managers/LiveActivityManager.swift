@@ -22,9 +22,7 @@ class LiveActivityManager: ObservableObject {
     static let enabledKey = "Feather.liveActivityEnabled"
     
     // MARK: - Initialization
-    private init() {
-        UserDefaults.standard.register(defaults: [Self.enabledKey: true])
-    }
+    private init() {}
     
     /// Returns whether Live Activities are enabled in app settings.
     func isEnabled() -> Bool {
