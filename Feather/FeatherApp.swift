@@ -44,7 +44,9 @@ struct FeatherApp: App {
     @State private var _showImportError = false
     
     init() {
-        UserDefaults.standard.register(defaults: [LiveActivityManager.enabledKey: true])
+        if #available(iOS 16.2, *) {
+            UserDefaults.standard.register(defaults: [LiveActivityManager.enabledKey: true])
+        }
     }
 
         var body: some Scene {
