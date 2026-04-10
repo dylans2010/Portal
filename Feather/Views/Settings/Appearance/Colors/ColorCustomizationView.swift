@@ -1498,7 +1498,7 @@ private struct AppWideColorPickerSheet: View {
                     ColorPickerRow(label: "Cell Highlight",     color: $draft.cellHighlight)
                 }
 
-                Section("SECTIONS") {
+                Section(header: Text("Sections")) {
                     Toggle("Replace Section Styles", isOn: Binding(
                         get: { styleManager.isReplacingSectionStyles },
                         set: { styleManager.setReplaceSectionStyles($0) }
