@@ -108,10 +108,10 @@ class DownloadManager: NSObject, ObservableObject {
         _updateBackgroundAudioState()
 		
 		// Start Live Activity if enabled
-		if #available(iOS 16.2, *), UserDefaults.standard.bool(forKey: "Feather.liveActivityEnabled") {
+		if #available(iOS 16.2, *), LiveActivityManager.shared.isEnabled() {
 			let appName = url.deletingPathExtension().lastPathComponent
-			LiveActivityManager.shared.startActivity(appName: appName, bundleId: "unknown", appVersion: nil)
-			download.liveActivityStarted = true
+			let activity = LiveActivityManager.shared.startActivity(appName: appName, bundleId: id, appVersion: nil)
+			download.liveActivityStarted = activity != nil
 		}
 		
         return download

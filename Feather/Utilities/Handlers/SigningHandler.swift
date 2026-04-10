@@ -131,7 +131,7 @@ final class SigningHandler: NSObject {
 		AppLogManager.shared.info("Starting modification phase", category: "Signing")
 		
 		// Start Live Activity if enabled
-		if #available(iOS 16.2, *), UserDefaults.standard.bool(forKey: "Feather.liveActivityEnabled") {
+		if #available(iOS 16.2, *), LiveActivityManager.shared.isEnabled() {
 			let iconData = appIcon?.pngData()
 			LiveActivityManager.shared.startActivity(
 				appName: _options.appName ?? _app.name ?? "App",

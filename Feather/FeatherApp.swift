@@ -42,6 +42,10 @@ struct FeatherApp: App {
     @State private var _isImportingIPA = false
     @State private var _importErrorMessage: String?
     @State private var _showImportError = false
+    
+    init() {
+        UserDefaults.standard.register(defaults: [LiveActivityManager.enabledKey: true])
+    }
 
         var body: some Scene {
                 WindowGroup(content: {

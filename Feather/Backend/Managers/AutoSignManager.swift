@@ -52,7 +52,7 @@ class AutoSignManager {
         options.post_installAppAfterSigned = true // Force install after signing
 
         // Start Live Activity if enabled
-        if #available(iOS 16.2, *), UserDefaults.standard.bool(forKey: "Feather.liveActivityEnabled") {
+        if #available(iOS 16.2, *), LiveActivityManager.shared.isEnabled() {
             LiveActivityManager.shared.startActivity(appName: app.name ?? "App", bundleId: app.identifier ?? "unknown")
             await LiveActivityManager.shared.updateActivity(
                 progress: 0.1,

@@ -41,33 +41,14 @@ struct InstallationLiveActivityWidget: Widget {
 
 @available(iOS 16.2, *)
 struct InstallationLiveActivityLockScreenView: View {
-    @EnvironmentObject var themeManager: ThemeManager
     let context: ActivityViewContext<InstallationActivityAttributes>
 
     private var settings: LiveActivitySettings {
         context.attributes.settings
     }
 
-    private var currentStep: Int {
-        switch context.state.status {
-        case .preparing, .downloading, .unzipping:
-            return 1
-        case .signing, .rezipping:
-            return 2
-        case .installing, .verifying, .completed, .failed, .paused, .cancelled:
-            return 3
-        }
-    }
-
-    private var totalSteps: Int { 3 }
-
-    private var progressGreen: Color {
-        Color(red: 0.18, green: 0.8, blue: 0.44)
-    }
-
-    private var trackColor: Color {
-        Color.gray.opacity(0.25)
-    }
+    private var progressGreen: Color { InstallationWidgetUI.progressTint }
+    private var trackColor: Color { Color.gray.opacity(InstallationWidgetUI.trackBackgroundOpacity) }
 
     private var primaryTextColor: Color {
         settings.textColor?.color ?? .primary
@@ -78,8 +59,8 @@ struct InstallationLiveActivityLockScreenView: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack(spacing: 12) {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack(spacing: 10) {
                 if let iconData = context.attributes.appIcon,
                    let uiImage = UIImage(data: iconData) {
                     Image(uiImage: uiImage)
@@ -94,46 +75,40 @@ struct InstallationLiveActivityLockScreenView: View {
 
                 VStack(alignment: .leading, spacing: 4) {
                     Text(context.attributes.appName)
-                        .font(fontFor(.body, settings: settings))
+                        .font(fontFor(.subheadline, settings: settings))
                         .foregroundColor(primaryTextColor)
                         .lineLimit(1)
 
-                    HStack(spacing: 4) {
+                    HStack(spacing: 6) {
                         Image(systemName: context.state.status.icon)
-                            .font(.system(size: 11))
+                            .font(.system(size: 10, weight: .semibold))
                             .foregroundColor(context.state.status.color)
 
                         Text(context.state.status.rawValue)
-                            .font(fontFor(.caption, settings: settings))
+                            .font(fontFor(.caption2, settings: settings))
                             .foregroundColor(secondaryTextColor)
                     }
                 }
 
                 Spacer()
-            }
-
-            HStack(spacing: 10) {
-                progressBar(context: context, progressColor: progressGreen, trackColor: trackColor)
 
                 Text(context.state.progressPercentage)
-                    .font(.system(size: 16, weight: .black, design: widgetFontDesign(for: settings.fontFamily)))
+                    .font(.system(size: InstallationWidgetUI.lockProgressFontSize, weight: .bold, design: widgetFontDesign(for: settings.fontFamily)))
                     .foregroundColor(primaryTextColor)
-                    .frame(minWidth: 44, alignment: .trailing)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
+                    .background(Capsule().fill(settings.accentColor.color.opacity(InstallationWidgetUI.badgeBackgroundOpacity)))
             }
 
-            HStack {
-                Spacer()
-                Text("Step \(currentStep)/\(totalSteps)")
-                    .font(.system(size: 11, weight: .medium, design: widgetFontDesign(for: settings.fontFamily)))
-                    .foregroundColor(secondaryTextColor.opacity(0.7))
-                Spacer()
+            HStack(spacing: 8) {
+                progressBar(context: context, progressColor: progressGreen, trackColor: trackColor)
             }
 
             if settings.detailDensity != .minimal {
                 detailsView(context: context)
             }
         }
-        .padding(16)
+        .padding(14)
         .liveActivityBackground(settings: settings)
     }
 
@@ -157,62 +132,21 @@ struct InstallationLiveActivityLockScreenView: View {
     }
 
     private func detailsView(context: ActivityViewContext<InstallationActivityAttributes>) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack {
-                if settings.detailDensity == .detailed {
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("\(context.state.formattedBytesDownloaded) / \(context.state.formattedTotalBytes)")
-                            .font(fontFor(.caption2, settings: settings))
-                            .foregroundColor(.secondary)
-
-                        if let speed = context.state.formattedSpeed {
-                            Text(speed)
-                                .font(fontFor(.caption2, settings: settings))
-                                .foregroundColor(.secondary)
-                        }
-                    }
-                } else {
-                    Text("\(context.state.formattedBytesDownloaded) / \(context.state.formattedTotalBytes)")
-                        .font(fontFor(.caption2, settings: settings))
-                        .foregroundColor(.secondary)
-                }
-
-                Spacer()
-
-                if let eta = context.state.eta {
-                    Text("ETA: \(eta)")
-                        .font(fontFor(.caption2, settings: settings))
-                        .foregroundColor(.secondary)
-                }
-            }
-
-            if settings.detailDensity == .detailed {
-                Divider()
-                    .opacity(0.3)
-
-                HStack(spacing: 12) {
-                    detailItem(label: "Bundle", value: context.attributes.appBundleId, settings: settings)
-
-                    if let version = context.attributes.appVersion {
-                        detailItem(label: "Version", value: version, settings: settings)
-                    }
-
-                    detailItem(label: "Started", value: context.attributes.startTime.formatted(date: .omitted, time: .shortened), settings: settings)
-                }
-            }
-        }
-    }
-
-    private func detailItem(label: String, value: String, settings: LiveActivitySettings) -> some View {
-        VStack(alignment: .leading, spacing: 1) {
-            Text(label.uppercased())
-                .font(.system(size: 8, weight: .bold))
-                .foregroundColor(.secondary.opacity(0.7))
-            Text(value)
-                .font(fontFor(.caption2, settings: settings))
-                .foregroundColor(.primary.opacity(0.8))
+        HStack(spacing: 6) {
+            Text("\(context.state.formattedBytesDownloaded) / \(context.state.formattedTotalBytes)")
                 .lineLimit(1)
+            if let speed = context.state.formattedSpeed {
+                Text("• \(speed)")
+                    .lineLimit(1)
+            }
+            if settings.showEstimatedTime, let eta = context.state.formattedTimeRemaining {
+                Text("• \(eta)")
+                    .lineLimit(1)
+            }
+            Spacer(minLength: 0)
         }
+        .font(fontFor(.caption2, settings: settings))
+        .foregroundColor(secondaryTextColor)
     }
 }
 
@@ -220,7 +154,6 @@ struct InstallationLiveActivityLockScreenView: View {
 
 @available(iOS 16.2, *)
 struct InstallationLiveActivityExpandedLeading: View {
-    @EnvironmentObject var themeManager: ThemeManager
     let context: ActivityViewContext<InstallationActivityAttributes>
 
     var body: some View {
@@ -229,7 +162,7 @@ struct InstallationLiveActivityExpandedLeading: View {
             Image(uiImage: uiImage)
                 .resizable()
                 .aspectRatio(contentMode: .fit)
-                .frame(width: 40, height: 40)
+                .frame(width: 34, height: 34)
                 .clipShape(RoundedRectangle(cornerRadius: 8))
         } else {
             ZStack {
@@ -246,21 +179,23 @@ struct InstallationLiveActivityExpandedLeading: View {
                     .font(.system(size: 16))
                     .foregroundColor(.white)
             }
-            .frame(width: 40, height: 40)
+            .frame(width: 34, height: 34)
         }
     }
 }
 
 @available(iOS 16.2, *)
 struct InstallationLiveActivityExpandedTrailing: View {
-    @EnvironmentObject var themeManager: ThemeManager
     let context: ActivityViewContext<InstallationActivityAttributes>
 
     var body: some View {
-        VStack(alignment: .trailing, spacing: 2) {
+        VStack(alignment: .trailing, spacing: 4) {
             Text(context.state.progressPercentage)
-                .font(.system(size: 18, weight: .black, design: widgetFontDesign(for: context.attributes.settings.fontFamily)))
+                .font(.system(size: InstallationWidgetUI.expandedProgressFontSize, weight: .bold, design: widgetFontDesign(for: context.attributes.settings.fontFamily)))
                 .foregroundColor(context.attributes.settings.accentColor.color)
+                .padding(.horizontal, 8)
+                .padding(.vertical, 3)
+                .background(Capsule().fill(context.attributes.settings.accentColor.color.opacity(InstallationWidgetUI.badgeBackgroundOpacity)))
 
             if let timeRemaining = context.state.formattedTimeRemaining {
                 Text(timeRemaining)
@@ -273,14 +208,13 @@ struct InstallationLiveActivityExpandedTrailing: View {
 
 @available(iOS 16.2, *)
 struct InstallationLiveActivityExpandedCenter: View {
-    @EnvironmentObject var themeManager: ThemeManager
     let context: ActivityViewContext<InstallationActivityAttributes>
 
     var body: some View {
-        VStack(spacing: 8) {
+        VStack(spacing: 4) {
             HStack {
                 Text(context.attributes.appName)
-                    .font(fontFor(.headline, settings: context.attributes.settings))
+                    .font(fontFor(.subheadline, settings: context.attributes.settings))
                     .lineLimit(1)
 
                 Spacer()
@@ -288,7 +222,7 @@ struct InstallationLiveActivityExpandedCenter: View {
 
             HStack(spacing: 4) {
                 Image(systemName: context.state.status.icon)
-                    .font(.system(size: 11))
+                    .font(.system(size: 10, weight: .semibold))
                     .foregroundColor(context.state.status.color)
 
                 Text(context.state.status.rawValue)
@@ -303,37 +237,19 @@ struct InstallationLiveActivityExpandedCenter: View {
 
 @available(iOS 16.2, *)
 struct InstallationLiveActivityExpandedBottom: View {
-    @EnvironmentObject var themeManager: ThemeManager
     let context: ActivityViewContext<InstallationActivityAttributes>
-
-    private var progressGreen: Color {
-        Color(red: 0.18, green: 0.8, blue: 0.44)
-    }
+    private var progressGreen: Color { InstallationWidgetUI.progressTint }
 
     var body: some View {
-        VStack(spacing: 8) {
-            HStack(spacing: 10) {
-                progressBar(context: context, progressColor: progressGreen, trackColor: Color.gray.opacity(0.25))
+        VStack(spacing: 6) {
+            HStack(spacing: 8) {
+                progressBar(context: context, progressColor: progressGreen, trackColor: Color.gray.opacity(InstallationWidgetUI.trackBackgroundOpacity))
 
-                Text(context.state.progressPercentage)
-                    .font(.system(size: 14, weight: .black, design: widgetFontDesign(for: context.attributes.settings.fontFamily)))
-                    .foregroundColor(.primary)
-                    .frame(minWidth: 36, alignment: .trailing)
-            }
-
-            if context.attributes.settings.detailDensity != .minimal {
-                HStack {
-                    Text("\(context.state.formattedBytesDownloaded) / \(context.state.formattedTotalBytes)")
+                if let speed = context.state.formattedSpeed {
+                    Text(speed)
                         .font(fontFor(.caption2, settings: context.attributes.settings))
                         .foregroundColor(.secondary)
-
-                    Spacer()
-
-                    if let speed = context.state.formattedSpeed {
-                        Text(speed)
-                            .font(fontFor(.caption2, settings: context.attributes.settings))
-                            .foregroundColor(.secondary)
-                    }
+                        .lineLimit(1)
                 }
             }
         }
@@ -342,35 +258,45 @@ struct InstallationLiveActivityExpandedBottom: View {
 
 @available(iOS 16.2, *)
 struct InstallationLiveActivityCompactLeading: View {
-    @EnvironmentObject var themeManager: ThemeManager
     let context: ActivityViewContext<InstallationActivityAttributes>
 
     var body: some View {
-        Image(systemName: context.state.status.icon)
-            .foregroundColor(context.state.status.color)
+        ZStack {
+            Circle()
+                .fill(context.state.status.color.opacity(0.2))
+            Image(systemName: context.state.status.icon)
+                .font(.system(size: 10, weight: .semibold))
+                .foregroundColor(context.state.status.color)
+        }
+        .frame(width: 22, height: 22)
     }
 }
 
 @available(iOS 16.2, *)
 struct InstallationLiveActivityCompactTrailing: View {
-    @EnvironmentObject var themeManager: ThemeManager
     let context: ActivityViewContext<InstallationActivityAttributes>
 
     var body: some View {
         Text(context.state.progressPercentage)
-            .font(fontFor(.caption, settings: context.attributes.settings))
+            .font(.system(size: InstallationWidgetUI.compactProgressFontSize, weight: .semibold, design: widgetFontDesign(for: context.attributes.settings.fontFamily)))
+            .monospacedDigit()
             .foregroundColor(context.attributes.settings.accentColor.color)
     }
 }
 
 @available(iOS 16.2, *)
 struct InstallationLiveActivityMinimal: View {
-    @EnvironmentObject var themeManager: ThemeManager
     let context: ActivityViewContext<InstallationActivityAttributes>
 
     var body: some View {
-        Image(systemName: context.state.status.icon)
-            .foregroundColor(context.state.status.color)
+        ZStack {
+            Circle()
+                .fill(context.state.status.color.opacity(0.2))
+            Image(systemName: context.state.status.icon)
+                .font(.system(size: 11, weight: .semibold))
+                .foregroundColor(context.state.status.color)
+        }
+        .frame(width: 22, height: 22)
     }
 }
 
@@ -434,6 +360,15 @@ extension View {
 }
 
 // MARK: - Helper Functions
+
+private enum InstallationWidgetUI {
+    static let badgeBackgroundOpacity: Double = 0.15
+    static let trackBackgroundOpacity: Double = 0.22
+    static let progressTint = Color(red: 0.18, green: 0.8, blue: 0.44)
+    static let lockProgressFontSize: CGFloat = 15
+    static let expandedProgressFontSize: CGFloat = 16
+    static let compactProgressFontSize: CGFloat = 12
+}
 
 @available(iOS 16.2, *)
 private func progressBar(context: ActivityViewContext<InstallationActivityAttributes>, progressColor: Color, trackColor: Color) -> some View {

@@ -19,9 +19,15 @@ class LiveActivityManager: ObservableObject {
     
     // Settings storage key
     private let settingsKey = "Feather.liveActivitySettings"
+    static let enabledKey = "Feather.liveActivityEnabled"
     
     // MARK: - Initialization
     private init() {}
+    
+    /// Returns whether Live Activities are enabled in app settings.
+    func isEnabled() -> Bool {
+        UserDefaults.standard.bool(forKey: Self.enabledKey)
+    }
     
     // MARK: - Settings Management
     
@@ -52,6 +58,16 @@ class LiveActivityManager: ObservableObject {
     /// - Returns: The created activity, or nil if creation failed
     @discardableResult
     func startActivity(appName: String, bundleId: String, appVersion: String? = nil, iconData: Data? = nil) -> Activity<InstallationActivityAttributes>? {
+        guard isEnabled() else {
+            AppLogManager.shared.info("Live Activity start skipped: disabled in settings", category: "LiveActivity")
+            return nil
+        }
+        
+        guard ActivityAuthorizationInfo().areActivitiesEnabled else {
+            AppLogManager.shared.warning("Live Activity start skipped: disabled at system level", category: "LiveActivity")
+            return nil
+        }
+        
         // End any existing activity first
         endActivity(dismissalPolicy: .immediate)
         
