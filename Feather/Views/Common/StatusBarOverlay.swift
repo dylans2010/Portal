@@ -181,7 +181,7 @@ struct StatusBarOverlay: View {
     }
     
     private var hasContent: Bool {
-        showCustomText || showSFSymbol || showTime || showBattery || showNetworkStatus || showMemoryUsage || showDate || widgetType != .none || showCPU || showStorage || showAppVersion || showDeviceName || (UIDevice.current.hasDynamicIsland && (diEnableGlow || diEnableBorder || diShowCustomContent))
+        showCustomText || showSFSymbol || showTime || showBattery || showNetworkStatus || showMemoryUsage || showDate || widgetType != .none || showCPU || showStorage || showAppVersion || showDeviceName
     }
 
     private var dateString: String {
@@ -244,11 +244,6 @@ struct StatusBarOverlay: View {
     var body: some View {
         if hasContent {
             ZStack(alignment: .top) {
-                // Background Personalization for Dynamic Island
-                if UIDevice.current.hasDynamicIsland {
-                    dynamicIslandPersonalization
-                }
-
                 GeometryReader { geometry in
                     statusBarContent(geometry: geometry)
                 }
@@ -502,39 +497,6 @@ struct StatusBarOverlay: View {
         }
     }
     
-    // MARK: - Dynamic Island Personalization
-    @ViewBuilder
-    private var dynamicIslandPersonalization: some View {
-        ZStack {
-            // Glow effect
-            if diEnableGlow {
-                Capsule()
-                    .fill(Color(hex: diGlowColorHex))
-                    .frame(width: 125, height: 38)
-                    .blur(radius: CGFloat(diGlowRadius))
-                    .opacity(diGlowIntensity)
-                    .padding(.top, safeAreaTopInset - 37)
-            }
-
-            // Border effect
-            if diEnableBorder {
-                Capsule()
-                    .stroke(Color(hex: diBorderColorHex), lineWidth: CGFloat(diBorderWidth))
-                    .frame(width: 125, height: 38)
-                    .padding(.top, safeAreaTopInset - 37)
-            }
-
-            // Custom Content
-            if diShowCustomContent && !diCustomContent.isEmpty {
-                Text(diCustomContent)
-                    .font(.system(size: 10, weight: .bold, design: .rounded))
-                    .foregroundStyle(Color(hex: diContentColorHex))
-                    .padding(.top, safeAreaTopInset - 37)
-            }
-        }
-        .allowsHitTesting(false)
-    }
-
     // MARK: - New Widget Views
     @ViewBuilder
     private var cpuView: some View {
