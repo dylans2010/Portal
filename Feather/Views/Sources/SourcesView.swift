@@ -122,7 +122,7 @@ struct SourcesView: View {
                         .padding(.vertical, 10)
                         .background(
                             RoundedRectangle(cornerRadius: 14, style: .continuous)
-                                .fill(Color(UIColor.secondarySystemGroupedBackground))
+                                .fill(themeManager.cardBackgroundColor)
                         )
                     }
                     .padding(.horizontal, 20)
@@ -165,8 +165,6 @@ struct SourcesView: View {
             await viewModel.fetchSources(Array(_sources))
         }
         .onAppear {
-            // Ensure default required source exists
-            viewModel.ensureDefaultSourceExists()
             #if !NIGHTLY && !DEBUG
             showStarPromptIfNeeded()
             #endif
