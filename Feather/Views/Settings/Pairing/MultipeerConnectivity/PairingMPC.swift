@@ -30,7 +30,6 @@ enum PairingMPCState: Equatable {
 final class PairingMPCService: NSObject, ObservableObject {
 
     static let serviceType = "portal-pair"
-    private static let transferPassword = "PortalPairTransferKey2026"
 
     // MARK: - Bonjour Retry Constants
 
@@ -48,6 +47,10 @@ final class PairingMPCService: NSObject, ObservableObject {
     @Published var transferPhase: TransferPhase = .idle
     @Published var transferStartTime: Date?
 
+    // Performance Tracking
+    @Published var transferSpeed: Double = 0 // Bytes per second
+    @Published var currentItemName: String = ""
+
     // MARK: Callbacks
 
     var onTransferComplete: ((URL) -> Void)?
@@ -59,11 +62,11 @@ final class PairingMPCService: NSObject, ObservableObject {
     private var session: MCSession?
     private var advertiser: MCNearbyServiceAdvertiser?
     private var browser: MCNearbyServiceBrowser?
-    private var receivedDataBuffer = Data()
-    private var expectedTransferSize: Int64 = 0
-    private var isReceivingSize = true
+
     private var advertisingRetryCount = 0
     private var browsingRetryCount = 0
+
+    private var progressObservation: NSKeyValueObservation?
 
     override init() {
         self.peerID = MCPeerID(displayName: UIDevice.current.name)
@@ -101,7 +104,7 @@ final class PairingMPCService: NSObject, ObservableObject {
         state = .connecting
     }
 
-    func sendBackupData(from backupDirectory: URL) async throws {
+    func sendMirrorData() async throws {
         guard let session = session, let peer = session.connectedPeers.first else {
             throw NSError(
                 domain: "PairingMPC",
@@ -110,25 +113,133 @@ final class PairingMPCService: NSObject, ObservableObject {
             )
         }
 
+        currentItemName = String.localized("Preparing Mirror Data...")
         transferPhase = .preparingData
-        let payload = try BackupPayload(backupDirectory: backupDirectory)
-        let encryptedData = try payload.encrypted(with: Self.transferPassword)
 
-        // Send 8-byte size header first.
-        let sizeData = withUnsafeBytes(of: Int64(encryptedData.count)) { Data($0) }
-        try session.send(sizeData, toPeers: [peer], with: .reliable)
+        let mirrorURL = FileManager.default.temporaryDirectory.appendingPathComponent(BackupPayload.mirrorFilename)
+        try await BackupPayload.createFullMirror(at: mirrorURL)
 
-        let chunkSize = 512 * 1024
-        var offset = 0
-        while offset < encryptedData.count {
-            if Task.isCancelled { break }
-            let end = min(offset + chunkSize, encryptedData.count)
-            let chunk = encryptedData.subdata(in: offset..<end)
-            try session.send(chunk, toPeers: [peer], with: .reliable)
-            offset = end
-            let progress = Double(offset) / Double(encryptedData.count)
-            transferPhase = .sending(progress: progress)
-            try? await Task.sleep(nanoseconds: 5_000_000)
+        currentItemName = String.localized("Initiating Full Mirror Transfer...")
+
+        let progress = session.sendResource(at: mirrorURL, withName: BackupPayload.mirrorFilename, toPeer: peer) { error in
+            Task { @MainActor in
+                if let error = error {
+                    self.transferPhase = .failed(error.localizedDescription)
+                    self.onTransferError?(error)
+                } else {
+                    self.transferPhase = .complete(receivedURL: nil)
+                    try? FileManager.default.removeItem(at: mirrorURL)
+                }
+            }
+        }
+
+        if let progress = progress {
+            setupProgressObservation(progress, isSending: true)
+        }
+    }
+
+    private func saveHistoryRecord(receivedURL: URL?, deviceName: String) async {
+        let fm = FileManager.default
+        var sourcesCount = 0
+        var certsCount = 0
+        var signedCount = 0
+        var importedCount = 0
+        var fwCount = 0
+        var archivesCount = 0
+        var settingsIncluded = false
+
+        if let url = receivedURL {
+            if let data = try? Data(contentsOf: url.appendingPathComponent("sources.json")),
+               let arr = try? JSONDecoder().decode([[String: String]].self, from: data) {
+                sourcesCount = arr.count
+            }
+            if let items = try? fm.contentsOfDirectory(atPath: url.appendingPathComponent("certificates").path) {
+                certsCount = items.filter { !$0.hasPrefix(".") }.count
+            }
+            if let items = try? fm.contentsOfDirectory(atPath: url.appendingPathComponent("signed_apps").path) {
+                signedCount = items.filter { !$0.hasPrefix(".") }.count
+            }
+            if let items = try? fm.contentsOfDirectory(atPath: url.appendingPathComponent("imported_apps").path) {
+                importedCount = items.filter { !$0.hasPrefix(".") }.count
+            }
+            if let items = try? fm.contentsOfDirectory(atPath: url.appendingPathComponent("default_frameworks").path) {
+                fwCount = items.filter { !$0.hasPrefix(".") }.count
+            }
+            if let items = try? fm.contentsOfDirectory(atPath: url.appendingPathComponent("archives").path) {
+                archivesCount = items.filter { !$0.hasPrefix(".") }.count
+            }
+            settingsIncluded = fm.fileExists(atPath: url.appendingPathComponent("settings/settings.plist").path)
+        } else {
+            // Host side
+            sourcesCount = Storage.shared.getSources().count
+            certsCount = Storage.shared.getAllCertificates().count
+            signedCount = (try? Storage.shared.context.count(for: Signed.fetchRequest())) ?? 0
+            importedCount = (try? Storage.shared.context.count(for: Imported.fetchRequest())) ?? 0
+            fwCount = (try? fm.contentsOfDirectory(atPath: Storage.shared.documentsURL.appendingPathComponent("DefaultFrameworks").path).count) ?? 0
+            archivesCount = (try? fm.contentsOfDirectory(atPath: fm.archives.path).count) ?? 0
+            settingsIncluded = true
+        }
+
+        let record = PairRecord(
+            id: UUID(),
+            date: Date(),
+            deviceName: deviceName,
+            deviceModel: UIDevice.current.model,
+            osVersion: UIDevice.current.systemVersion,
+            sourcesCount: sourcesCount,
+            certificatesCount: certsCount,
+            signedAppsCount: signedCount,
+            importedAppsCount: importedCount,
+            frameworksCount: fwCount,
+            archivesCount: archivesCount,
+            settingsIncluded: settingsIncluded,
+            wasHost: isHost
+        )
+        PairHistoryStore.shared.append(record)
+    }
+
+    private func setupProgressObservation(_ progress: Progress, isSending: Bool) {
+        progressObservation?.invalidate()
+
+        let startTime = Date()
+        var lastBytes: Int64 = 0
+        var lastUpdate = Date()
+
+        progressObservation = progress.observe(\.fractionCompleted, options: [.new]) { [weak self] progress, _ in
+            let fraction = progress.fractionCompleted
+            let totalBytes = progress.totalUnitCount
+            let completedBytes = progress.completedUnitCount
+
+            Task { @MainActor in
+                if isSending {
+                    self?.transferPhase = .sending(progress: fraction)
+                } else {
+                    self?.transferPhase = .receiving(progress: fraction)
+                }
+
+                let now = Date()
+                let elapsed = now.timeIntervalSince(lastUpdate)
+                if elapsed >= 0.5 {
+                    let bytesSinceLast = completedBytes - lastBytes
+                    self?.transferSpeed = Double(bytesSinceLast) / elapsed
+                    lastBytes = completedBytes
+                    lastUpdate = now
+                }
+
+                self?.updateOperationName(progress: fraction)
+            }
+        }
+    }
+
+    private func updateOperationName(progress: Double) {
+        if progress < 0.2 {
+            currentItemName = String.localized("Transferring Certificates...")
+        } else if progress < 0.5 {
+            currentItemName = String.localized("Transferring App Data...")
+        } else if progress < 0.8 {
+            currentItemName = String.localized("Transferring Repository Sources...")
+        } else {
+            currentItemName = String.localized("Finalizing Mirror...")
         }
     }
 
@@ -143,6 +254,10 @@ final class PairingMPCService: NSObject, ObservableObject {
         transferStartTime = nil
         advertisingRetryCount = 0
         browsingRetryCount = 0
+        transferSpeed = 0
+        currentItemName = ""
+        progressObservation?.invalidate()
+        progressObservation = nil
     }
 
     // MARK: - Private helpers
@@ -224,29 +339,6 @@ final class PairingMPCService: NSObject, ObservableObject {
             beginBrowsing()
         }
     }
-
-    // MARK: - Receive-side data processing
-
-    private func processReceivedBackup() {
-        let bufferCopy = receivedDataBuffer
-        Task { @MainActor in
-            do {
-                let payload = try BackupPayload.decrypted(
-                    from: bufferCopy,
-                    password: Self.transferPassword
-                )
-                let tempDir = FileManager.default.temporaryDirectory
-                    .appendingPathComponent("MPCPairingReceived_\(UUID().uuidString)")
-                try payload.extract(to: tempDir)
-                UserDefaults.standard.set(tempDir.path, forKey: "pendingNearbyBackupRestore")
-                self.transferPhase = .complete(receivedURL: tempDir)
-                self.onTransferComplete?(tempDir)
-            } catch {
-                self.transferPhase = .failed(error.localizedDescription)
-                self.onTransferError?(error)
-            }
-        }
-    }
 }
 
 // MARK: - MCSessionDelegate
@@ -262,12 +354,10 @@ extension PairingMPCService: MCSessionDelegate {
                 // If this device is the host, kick off the transfer automatically.
                 if self.isHost {
                     Task {
-                        let backupDir = URL(fileURLWithPath: NSSearchPathForDirectoriesInDomains(
-                            .applicationSupportDirectory, .userDomainMask, true
-                        ).first ?? "").appendingPathComponent("Backup")
                         do {
-                            try await self.sendBackupData(from: backupDir)
-                            self.transferPhase = .complete(receivedURL: nil)
+                            try await self.sendMirrorData()
+                            // Save history record
+                            await self.saveHistoryRecord(receivedURL: nil, deviceName: self.connectedPeerName ?? "")
                         } catch {
                             self.transferPhase = .failed(error.localizedDescription)
                             self.onTransferError?(error)
@@ -287,27 +377,62 @@ extension PairingMPCService: MCSessionDelegate {
     }
 
     nonisolated func session(_ session: MCSession, didReceive data: Data, fromPeer peerID: MCPeerID) {
+        // We use sendResource now for large data
+    }
+
+    nonisolated func session(_ session: MCSession, didStartReceivingResourceWithName resourceName: String, fromPeer peerID: MCPeerID, with progress: Progress) {
         Task { @MainActor in
-            if self.isReceivingSize {
-                guard data.count >= 8 else { return }
-                self.expectedTransferSize = data.withUnsafeBytes { $0.load(as: Int64.self) }
-                guard self.expectedTransferSize > 0 else { return }
-                self.isReceivingSize = false
-                self.receivedDataBuffer = Data()
-            } else {
-                self.receivedDataBuffer.append(data)
-                let progress = Double(self.receivedDataBuffer.count) / Double(self.expectedTransferSize)
-                self.transferPhase = .receiving(progress: min(progress, 1.0))
-                if self.receivedDataBuffer.count >= self.expectedTransferSize {
-                    self.processReceivedBackup()
+            self.currentItemName = String.localized("Receiving Full Mirror...")
+            self.setupProgressObservation(progress, isSending: false)
+        }
+    }
+
+    nonisolated func session(_ session: MCSession, didFinishReceivingResourceWithName resourceName: String, fromPeer peerID: MCPeerID, at localURL: URL?, withError error: Error?) {
+        Task { @MainActor in
+            if let error = error {
+                self.transferPhase = .failed(error.localizedDescription)
+                self.onTransferError?(error)
+                return
+            }
+
+            guard let localURL = localURL else {
+                let err = NSError(domain: "PairingMPC", code: -1, userInfo: [NSLocalizedDescriptionKey: "Resource URL is nil"])
+                self.transferPhase = .failed(err.localizedDescription)
+                self.onTransferError?(err)
+                return
+            }
+
+            do {
+                self.currentItemName = String.localized("Verifying Data Integrity...")
+
+                let tempDir = FileManager.default.temporaryDirectory
+                    .appendingPathComponent("MPCMirrorReceived_\(UUID().uuidString)")
+                try FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
+
+                // Extract the received ZIP
+                try FileManager.default.unzipItem(at: localURL, to: tempDir)
+
+                // Manifest check
+                let markerPath = tempDir.appendingPathComponent(BackupPayload.markerFilename)
+                guard FileManager.default.fileExists(atPath: markerPath.path) else {
+                    throw NSError(domain: "PairingMPC", code: -1, userInfo: [NSLocalizedDescriptionKey: String.localized("Mirror validation failed: Marker file missing.")])
                 }
+
+                UserDefaults.standard.set(tempDir.path, forKey: "pendingNearbyBackupRestore")
+                self.transferPhase = .complete(receivedURL: tempDir)
+                self.onTransferComplete?(tempDir)
+                self.currentItemName = String.localized("Mirror Complete!")
+
+                // Save history record
+                await self.saveHistoryRecord(receivedURL: tempDir, deviceName: self.connectedPeerName ?? "")
+            } catch {
+                self.transferPhase = .failed(error.localizedDescription)
+                self.onTransferError?(error)
             }
         }
     }
 
     nonisolated func session(_ session: MCSession, didReceive stream: InputStream, withName streamName: String, fromPeer peerID: MCPeerID) {}
-    nonisolated func session(_ session: MCSession, didStartReceivingResourceWithName resourceName: String, fromPeer peerID: MCPeerID, with progress: Progress) {}
-    nonisolated func session(_ session: MCSession, didFinishReceivingResourceWithName resourceName: String, fromPeer peerID: MCPeerID, at localURL: URL?, withError error: Error?) {}
 }
 
 // MARK: - MCNearbyServiceAdvertiserDelegate

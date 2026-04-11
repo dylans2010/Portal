@@ -20,13 +20,7 @@ struct PairingMPCView: View {
     @State private var cardAppear = false
 
     var body: some View {
-        if isEmbedded {
-            mainContent
-        } else {
-            NavigationStack {
-                mainContent
-            }
-        }
+        mainContent
     }
 
     // MARK: - Main Content
@@ -37,6 +31,7 @@ struct PairingMPCView: View {
 
             ScrollView {
                 VStack(spacing: 32) {
+                    thisDeviceSection
                     iconSection
                     headingSection
                     roleCardsSection
@@ -48,11 +43,6 @@ struct PairingMPCView: View {
         .navigationTitle(.localized("Pair Devices"))
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
-            ToolbarItem(placement: .cancellationAction) {
-                Button(.localized("Cancel")) {
-                    dismiss()
-                }
-            }
             ToolbarItem(placement: .topBarTrailing) {
                 HStack(spacing: 4) {
                     Button {
@@ -119,6 +109,51 @@ struct PairingMPCView: View {
         )
     }
 
+    // MARK: - This Device Section
+
+    private var thisDeviceSection: some View {
+        VStack(spacing: 12) {
+            HStack(spacing: 16) {
+                ZStack {
+                    Circle()
+                        .fill(themeManager.accentColor.opacity(0.15))
+                        .frame(width: 54, height: 54)
+
+                    Image(systemName: "iphone.smartbatterycase.gen2")
+                        .font(.title2)
+                        .foregroundStyle(themeManager.accentColor)
+                }
+
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(.localized("This Device"))
+                        .font(.caption.weight(.bold))
+                        .foregroundStyle(themeManager.accentColor)
+                        .textCase(.uppercase)
+
+                    Text(UIDevice.current.name)
+                        .font(.title3.weight(.bold))
+                        .foregroundStyle(.white)
+                }
+
+                Spacer()
+
+                Image(systemName: "antenna.radiowaves.left.and.right")
+                    .font(.title2)
+                    .foregroundStyle(themeManager.accentColor)
+                    .pulseEffect()
+            }
+            .padding(18)
+            .background(.white.opacity(0.05))
+            .clipShape(RoundedRectangle(cornerRadius: 20))
+            .overlay(
+                RoundedRectangle(cornerRadius: 20)
+                    .stroke(themeManager.accentColor.opacity(0.2), lineWidth: 1)
+            )
+        }
+        .opacity(cardAppear ? 1 : 0)
+        .offset(y: cardAppear ? 0 : -20)
+    }
+
     // MARK: - Icon Section
 
     private var iconSection: some View {
@@ -127,7 +162,7 @@ struct PairingMPCView: View {
                 .fill(
                     RadialGradient(
                         colors: [
-                            Color(hue: 0.58, saturation: 0.5, brightness: 0.4).opacity(0.25),
+                            themeManager.accentColor.opacity(0.25),
                             .clear
                         ],
                         center: .center,
@@ -137,38 +172,46 @@ struct PairingMPCView: View {
                 )
                 .frame(width: 160, height: 160)
 
-            Image(systemName: "iphone.and.arrow.right..outward")
+            Image(systemName: "personalhotspot")
                 .font(.system(size: 64))
                 .foregroundStyle(
                     LinearGradient(
                         colors: [
-                            Color(hue: 0.55, saturation: 0.7, brightness: 0.95),
-                            Color(hue: 0.42, saturation: 0.6, brightness: 0.9)
+                            themeManager.accentColor,
+                            themeManager.accentColor.opacity(0.7)
                         ],
                         startPoint: .top,
                         endPoint: .bottom
                     )
                 )
                 .shadow(
-                    color: Color(hue: 0.55, saturation: 0.7, brightness: 0.9).opacity(0.5),
+                    color: themeManager.accentColor.opacity(0.5),
                     radius: 16
                 )
+                .pulseEffect()
         }
     }
 
     // MARK: - Heading Section
 
     private var headingSection: some View {
-        VStack(spacing: 8) {
-            Text(.localized("Choose Your Action"))
-                .font(.system(.title3, design: .rounded, weight: .semibold))
+        VStack(spacing: 12) {
+            Text(.localized("Ready to Pair"))
+                .font(.system(.title2, design: .rounded, weight: .bold))
                 .foregroundStyle(.white)
 
-            Text(.localized("Both devices must be on the same WiFi network. Choose whether this device will send its data or receive data from another device."))
-                .font(.footnote)
-                .foregroundStyle(.white.opacity(0.6))
-                .multilineTextAlignment(.center)
-                .padding(.horizontal, 12)
+            VStack(spacing: 8) {
+                Text(.localized("To pair with another device, make sure both devices are on this screen and connected to the same WiFi network."))
+                    .font(.subheadline)
+                    .foregroundStyle(.white.opacity(0.8))
+                    .multilineTextAlignment(.center)
+
+                Text(.localized("Choose whether this device will act as the sender or receiver."))
+                    .font(.footnote)
+                    .foregroundStyle(.white.opacity(0.5))
+                    .multilineTextAlignment(.center)
+            }
+            .padding(.horizontal, 12)
         }
         .opacity(cardAppear ? 1 : 0)
         .offset(y: cardAppear ? 0 : 12)
@@ -182,10 +225,10 @@ struct PairingMPCView: View {
             roleCard(
                 icon: "arrow.up.circle.fill",
                 title: .localized("Send Data"),
-                detail: .localized("Send your certificates, sources, and settings to another device."),
+                detail: .localized("Transmit all apps, certificates, sources, and settings to another device."),
                 gradientColors: [
-                    Color(hue: 0.70, saturation: 0.75, brightness: 0.88),
-                    Color(hue: 0.82, saturation: 0.65, brightness: 0.83)
+                    themeManager.accentColor,
+                    themeManager.accentColor.opacity(0.8)
                 ],
                 delay: 0.0
             ) {
@@ -196,10 +239,10 @@ struct PairingMPCView: View {
             roleCard(
                 icon: "arrow.down.circle.fill",
                 title: .localized("Receive Data"),
-                detail: .localized("Accept a full data transfer from a nearby sender."),
+                detail: .localized("Accept a complete data transfer and mirror this device."),
                 gradientColors: [
-                    Color(hue: 0.55, saturation: 0.70, brightness: 0.83),
-                    Color(hue: 0.42, saturation: 0.65, brightness: 0.78)
+                    Color.blue,
+                    Color.blue.opacity(0.8)
                 ],
                 delay: 0.08
             ) {

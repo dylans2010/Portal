@@ -347,6 +347,8 @@ class PairingViewModel: ObservableObject {
             id: UUID(),
             date: Date(),
             deviceName: pairedDeviceName ?? "",
+            deviceModel: UIDevice.current.model,
+            osVersion: UIDevice.current.systemVersion,
             sourcesCount: sourcesCount,
             certificatesCount: certsCount,
             signedAppsCount: signedCount,

@@ -61,7 +61,8 @@ struct ReceiverView: View {
                     transferPhase: service.transferPhase,
                     isHost: false,
                     pairedDeviceName: service.connectedPeerName,
-                    transferStartTime: service.transferStartTime
+                    transferStartTime: service.transferStartTime,
+                    transferSpeed: service.transferSpeed
                 )
                 .preferredColorScheme(.dark)
             }
@@ -156,7 +157,7 @@ struct ReceiverView: View {
         case .failed:
             return "exclamationmark.triangle.fill"
         default:
-            return "dot.radiowaves.up.forward"
+            return "personalhotspot"
         }
     }
 
@@ -180,11 +181,12 @@ struct ReceiverView: View {
 
             if service.state == .browsing && service.nearbyPeers.isEmpty {
                 HStack(spacing: 6) {
-                    ProgressView()
-                        .progressViewStyle(.circular)
-                        .tint(.white.opacity(0.7))
-                        .scaleEffect(0.75)
-                    Text(.localized("Scanning…"))
+                    Image(systemName: "antenna.radiowaves.left.and.right")
+                        .font(.caption)
+                        .foregroundStyle(themeManager.accentColor)
+                        .pulseEffect()
+
+                    Text(.localized("Searching for nearby devices…"))
                         .font(.caption)
                         .foregroundStyle(.white.opacity(0.5))
                 }
