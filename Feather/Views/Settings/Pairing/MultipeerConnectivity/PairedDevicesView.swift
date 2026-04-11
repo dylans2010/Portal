@@ -12,7 +12,7 @@ struct PairedDevicesView: View {
 
     var body: some View {
         ZStack {
-            themeManager.backgroundColor.ignoresSafeArea()
+            themeManager.appBackgroundColor.ignoresSafeArea()
 
             Group {
                 if records.isEmpty {

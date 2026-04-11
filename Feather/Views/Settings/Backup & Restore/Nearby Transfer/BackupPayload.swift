@@ -7,7 +7,63 @@ import CryptoKit
 struct BackupPayload {
     static let mirrorFilename = "PortalMirror.zip"
     static let markerFilename = "PORTAL_MIRROR_MARKER.txt"
-    
+
+    // MARK: - Instance Storage
+
+    private let zipData: Data
+
+    /// Zips the contents of `backupDirectory` into an in-memory payload.
+    init(backupDirectory: URL) throws {
+        let fileManager = FileManager.default
+        let tempZip = fileManager.temporaryDirectory
+            .appendingPathComponent("BackupPayload_\(UUID().uuidString).zip")
+        defer { try? fileManager.removeItem(at: tempZip) }
+        try fileManager.zipItem(at: backupDirectory, to: tempZip, shouldKeepParent: false)
+        self.zipData = try Data(contentsOf: tempZip)
+    }
+
+    private init(zipData: Data) {
+        self.zipData = zipData
+    }
+
+    // MARK: - Encryption / Decryption
+
+    /// Encrypts the payload using AES-GCM with a SHA-256-derived key.
+    func encrypted(with password: String) throws -> Data {
+        let keyData = SHA256.hash(data: Data(password.utf8))
+        let key = SymmetricKey(data: keyData)
+        let sealed = try AES.GCM.seal(zipData, using: key)
+        guard let combined = sealed.combined else {
+            throw NSError(domain: "BackupPayload", code: -1,
+                          userInfo: [NSLocalizedDescriptionKey: "Failed to produce sealed box data."])
+        }
+        return combined
+    }
+
+    /// Decrypts data previously produced by `encrypted(with:)`.
+    static func decrypted(from data: Data, password: String) throws -> BackupPayload {
+        let keyData = SHA256.hash(data: Data(password.utf8))
+        let key = SymmetricKey(data: keyData)
+        let box = try AES.GCM.SealedBox(combined: data)
+        let decryptedData = try AES.GCM.open(box, using: key)
+        return BackupPayload(zipData: decryptedData)
+    }
+
+    // MARK: - Extraction
+
+    /// Unzips the payload into `directory`, creating it if necessary.
+    func extract(to directory: URL) throws {
+        let fileManager = FileManager.default
+        try fileManager.createDirectory(at: directory, withIntermediateDirectories: true)
+        let tempZip = fileManager.temporaryDirectory
+            .appendingPathComponent("BackupPayloadExtract_\(UUID().uuidString).zip")
+        defer { try? fileManager.removeItem(at: tempZip) }
+        try zipData.write(to: tempZip)
+        try fileManager.unzipItem(at: tempZip, to: directory)
+    }
+
+    // MARK: - Static Factory
+
     /// Collects ALL relevant data from the device and packages it into a ZIP archive at the given URL.
     static func createFullMirror(at destinationURL: URL) async throws {
         let fileManager = FileManager.default
