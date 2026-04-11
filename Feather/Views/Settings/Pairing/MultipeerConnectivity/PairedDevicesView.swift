@@ -325,4 +325,3 @@ struct PairedDevicesView: View {
         }
         return items
     }
-}
