@@ -91,7 +91,8 @@ struct PairingView: View {
                 transferPhase: viewModel.transferPhase,
                 isHost: viewModel.isHost,
                 pairedDeviceName: viewModel.pairedDeviceName,
-                transferStartTime: viewModel.transferStartTime
+                transferStartTime: viewModel.transferStartTime,
+                transferSpeed: 0 // Animation pairing uses a different service
             )
             .preferredColorScheme(.dark)
         }

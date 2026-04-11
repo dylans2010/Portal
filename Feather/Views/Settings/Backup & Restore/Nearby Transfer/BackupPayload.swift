@@ -1,73 +1,111 @@
 import Foundation
+import ZIPFoundation
 import CryptoKit
 
 // MARK: - Backup Payload
-struct BackupPayload: Codable {
-    let version: String
-    let timestamp: TimeInterval
-    let data: Data
+/// Manages the collection and packaging of device data into a ZIP archive.
+struct BackupPayload {
+    static let mirrorFilename = "PortalMirror.zip"
+    static let markerFilename = "PORTAL_MIRROR_MARKER.txt"
     
-    init(backupDirectory: URL) throws {
-        self.version = "1.0"
-        self.timestamp = Date().timeIntervalSince1970
-        
-        // Create an archive of the backup directory contents
+    /// Collects ALL relevant data from the device and packages it into a ZIP archive at the given URL.
+    static func createFullMirror(at destinationURL: URL) async throws {
         let fileManager = FileManager.default
+        let tempMirrorDir = fileManager.temporaryDirectory.appendingPathComponent("MirrorCollection_\(UUID().uuidString)")
+        try fileManager.createDirectory(at: tempMirrorDir, withIntermediateDirectories: true)
+
+        // 1. Certificates
+        let certsDir = fileManager.certificates
+        if fileManager.fileExists(atPath: certsDir.path) {
+            try? fileManager.copyItem(at: certsDir, to: tempMirrorDir.appendingPathComponent("certificates"))
+        }
+
+        // 2. Signed Apps
+        let signedDir = fileManager.signed
+        if fileManager.fileExists(atPath: signedDir.path) {
+            try? fileManager.copyItem(at: signedDir, to: tempMirrorDir.appendingPathComponent("signed_apps"))
+        }
+
+        // 3. Imported Apps
+        let unsignedDir = fileManager.unsigned
+        if fileManager.fileExists(atPath: unsignedDir.path) {
+            try? fileManager.copyItem(at: unsignedDir, to: tempMirrorDir.appendingPathComponent("imported_apps"))
+        }
         
-        // Collect all files in the backup directory
-        let enumerator = fileManager.enumerator(at: backupDirectory, includingPropertiesForKeys: [.isRegularFileKey])
-        var files: [(path: String, data: Data)] = []
+        // 4. Default Frameworks
+        let frameworksDir = Storage.shared.documentsURL.appendingPathComponent("DefaultFrameworks")
+        if fileManager.fileExists(atPath: frameworksDir.path) {
+            try? fileManager.copyItem(at: frameworksDir, to: tempMirrorDir.appendingPathComponent("default_frameworks"))
+        }
+
+        // 5. Archives
+        let archivesDir = fileManager.archives
+        if fileManager.fileExists(atPath: archivesDir.path) {
+            try? fileManager.copyItem(at: archivesDir, to: tempMirrorDir.appendingPathComponent("archives"))
+        }
         
-        while let fileURL = enumerator?.nextObject() as? URL {
-            let resourceValues = try fileURL.resourceValues(forKeys: [.isRegularFileKey])
-            if resourceValues.isRegularFile == true {
-                let relativePath = fileURL.path.replacingOccurrences(of: backupDirectory.path + "/", with: "")
-                if let fileData = try? Data(contentsOf: fileURL) {
-                    files.append((path: relativePath, data: fileData))
+        // 6. Database (Core Data)
+        if let storeURL = Storage.shared.container.persistentStoreDescriptions.first?.url {
+            let dbSourceDir = storeURL.deletingLastPathComponent()
+            let dbDestDir = tempMirrorDir.appendingPathComponent("database")
+            try fileManager.createDirectory(at: dbDestDir, withIntermediateDirectories: true)
+
+            let baseName = storeURL.lastPathComponent
+            for suffix in ["", "-shm", "-wal"] {
+                let fileURL = dbSourceDir.appendingPathComponent(baseName + suffix)
+                if fileManager.fileExists(atPath: fileURL.path) {
+                    try? fileManager.copyItem(at: fileURL, to: dbDestDir.appendingPathComponent(baseName + suffix))
                 }
             }
         }
         
-        // Serialize files into a single data structure
-        let encoder = JSONEncoder()
-        let filesDict = files.reduce(into: [String: Data]()) { dict, file in
-            dict[file.path] = file.data
+        // 7. Settings (Standard & App Group)
+        let settingsDir = tempMirrorDir.appendingPathComponent("settings")
+        try fileManager.createDirectory(at: settingsDir, withIntermediateDirectories: true)
+        
+        // Standard
+        let standardDefaults = UserDefaults.standard.dictionaryRepresentation()
+        let filteredStandard = standardDefaults.filter { key, _ in
+            !key.hasPrefix("NS") && !key.hasPrefix("Apple") && !key.hasPrefix("AK") && !key.hasPrefix("WebKit")
         }
-        self.data = try encoder.encode(filesDict)
-    }
-    
-    func extract(to destinationDirectory: URL) throws {
-        let fileManager = FileManager.default
-        try fileManager.createDirectory(at: destinationDirectory, withIntermediateDirectories: true)
-        
-        // Deserialize the files
-        let decoder = JSONDecoder()
-        let filesDict = try decoder.decode([String: Data].self, from: data)
-        
-        for (relativePath, fileData) in filesDict {
-            let fileURL = destinationDirectory.appendingPathComponent(relativePath)
-            let fileDirectory = fileURL.deletingLastPathComponent()
-            try fileManager.createDirectory(at: fileDirectory, withIntermediateDirectories: true)
-            try fileData.write(to: fileURL)
+        if let standardData = try? PropertyListSerialization.data(fromPropertyList: filteredStandard, format: .xml, options: 0) {
+            try? standardData.write(to: settingsDir.appendingPathComponent("standard_settings.plist"))
         }
-    }
-    
-    func encrypted(with password: String) throws -> Data {
-        let encoder = JSONEncoder()
-        let payloadData = try encoder.encode(self)
         
-        // Use AES-GCM encryption
-        let key = SymmetricKey(data: SHA256.hash(data: password.data(using: .utf8)!))
-        let sealedBox = try AES.GCM.seal(payloadData, using: key)
-        return sealedBox.combined!
-    }
-    
-    static func decrypted(from encryptedData: Data, password: String) throws -> BackupPayload {
-        let key = SymmetricKey(data: SHA256.hash(data: password.data(using: .utf8)!))
-        let sealedBox = try AES.GCM.SealedBox(combined: encryptedData)
-        let decryptedData = try AES.GCM.open(sealedBox, using: key)
+        // App Group
+        if let userDefaults = UserDefaults(suiteName: Storage.appGroupID) {
+            let groupDefaults = userDefaults.dictionaryRepresentation()
+            let filteredGroup = groupDefaults.filter { key, _ in
+                !key.hasPrefix("NS") && !key.hasPrefix("Apple") && !key.hasPrefix("AK") && !key.hasPrefix("WebKit")
+            }
+            if let groupData = try? PropertyListSerialization.data(fromPropertyList: filteredGroup, format: .xml, options: 0) {
+                try? groupData.write(to: settingsDir.appendingPathComponent("settings.plist"))
+            }
+        }
+
+        // 8. Sources
+        let sources = Storage.shared.getSources()
+        let sourcesData = sources.compactMap { source -> [String: String]? in
+            guard let urlString = source.sourceURL?.absoluteString,
+                  let name = source.name,
+                  let identifier = source.identifier else { return nil }
+            return ["url": urlString, "name": name, "identifier": identifier]
+        }
+        if let jsonData = try? JSONSerialization.data(withJSONObject: sourcesData) {
+            try? jsonData.write(to: tempMirrorDir.appendingPathComponent("sources.json"))
+        }
         
-        let decoder = JSONDecoder()
-        return try decoder.decode(BackupPayload.self, from: decryptedData)
+        // 9. Marker file
+        let markerContent = "PORTAL_MIRROR_v2.0_\(Date().timeIntervalSince1970)"
+        try? markerContent.write(to: tempMirrorDir.appendingPathComponent(markerFilename), atomically: true, encoding: .utf8)
+
+        // 10. ZIP it up
+        if fileManager.fileExists(atPath: destinationURL.path) {
+            try fileManager.removeItem(at: destinationURL)
+        }
+        try fileManager.zipItem(at: tempMirrorDir, to: destinationURL, shouldKeepParent: false)
+        
+        // Cleanup
+        try? fileManager.removeItem(at: tempMirrorDir)
     }
 }

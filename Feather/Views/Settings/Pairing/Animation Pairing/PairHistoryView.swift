@@ -8,6 +8,8 @@ struct PairRecord: Codable, Identifiable {
     let id: UUID
     let date: Date
     let deviceName: String
+    let deviceModel: String?
+    let osVersion: String?
     let sourcesCount: Int
     let certificatesCount: Int
     let signedAppsCount: Int

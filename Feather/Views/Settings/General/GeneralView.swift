@@ -45,7 +45,7 @@ struct GeneralView: View {
         .listStyle(.insetGrouped)
         .navigationTitle(.localized("General"))
         .navigationBarTitleDisplayMode(.inline)
-        .sheet(isPresented: $showPairingView) {
+        .navigationDestination(isPresented: $showPairingView) {
             if useAnimationPairing {
                 PairingView()
             } else {

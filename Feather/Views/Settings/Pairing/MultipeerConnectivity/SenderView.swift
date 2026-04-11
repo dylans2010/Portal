@@ -65,7 +65,8 @@ struct SenderView: View {
                     transferPhase: service.transferPhase,
                     isHost: true,
                     pairedDeviceName: service.connectedPeerName,
-                    transferStartTime: service.transferStartTime
+                    transferStartTime: service.transferStartTime,
+                    transferSpeed: service.transferSpeed
                 )
                 .preferredColorScheme(.dark)
             }
@@ -192,7 +193,7 @@ struct SenderView: View {
         case .failed:
             return "exclamationmark.triangle.fill"
         default:
-            return "antenna.radiowaves.left.and.right"
+            return "personalhotspot"
         }
     }
 
@@ -216,11 +217,12 @@ struct SenderView: View {
 
             if service.state == .advertising {
                 HStack(spacing: 6) {
-                    ProgressView()
-                        .progressViewStyle(.circular)
-                        .tint(.white.opacity(0.7))
-                        .scaleEffect(0.75)
-                    Text(.localized("Broadcasting…"))
+                    Image(systemName: "antenna.radiowaves.left.and.right")
+                        .font(.caption)
+                        .foregroundStyle(themeManager.accentColor)
+                        .pulseEffect()
+
+                    Text(.localized("Searching for nearby devices…"))
                         .font(.caption)
                         .foregroundStyle(.white.opacity(0.5))
                 }
