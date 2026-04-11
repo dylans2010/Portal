@@ -45,7 +45,6 @@ struct PairedDevicesView: View {
                             .foregroundStyle(.secondary)
                     }
                 }
-                    }
                     .listStyle(.insetGrouped)
                     .scrollContentBackground(.hidden)
                 }
