@@ -126,6 +126,7 @@ struct LoadingPairView: View {
 
             // Center icon
             Image(systemName: isHost ? "arrow.up.circle.fill" : "arrow.down.circle.fill")
+                .pulseEffect()
                 .font(.system(size: 48))
                 .foregroundStyle(
                     LinearGradient(
@@ -220,6 +221,7 @@ struct LoadingPairView: View {
     private func infoRow(icon: String, label: String, value: String) -> some View {
         HStack(spacing: 12) {
             Image(systemName: icon)
+                .pulseEffect()
                 .font(.footnote)
                 .themedText(.secondary)
                 .frame(width: 20)

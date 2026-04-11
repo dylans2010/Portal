@@ -155,6 +155,7 @@ struct SuccessfulPairView: View {
 
             // Bouncing checkmark
             Image(systemName: "checkmark.circle.fill")
+                .bounceEffect()
                 .font(.system(size: 72))
                 .foregroundStyle(
                     LinearGradient(
@@ -186,6 +187,7 @@ struct SuccessfulPairView: View {
                     ForEach(Array(items.enumerated()), id: \.offset) { _, item in
                         HStack(spacing: 14) {
                             Image(systemName: item.icon)
+                                .pulseEffect()
                                 .font(.body)
                                 .foregroundStyle(item.color)
                                 .frame(width: 28)
