@@ -44,12 +44,12 @@ struct PairedDevicesView: View {
                             .font(.footnote)
                             .foregroundStyle(.secondary)
                     }
-                }
                     }
                     .listStyle(.insetGrouped)
                     .scrollContentBackground(.hidden)
                 }
             }
+        }
         .navigationTitle(.localized("Paired Devices"))
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
