@@ -50,7 +50,6 @@ struct PairedDevicesView: View {
                     .scrollContentBackground(.hidden)
                 }
             }
-        }
         .navigationTitle(.localized("Paired Devices"))
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
