@@ -326,13 +326,3 @@ struct PairedDevicesView: View {
         return items
     }
 }
-
-// MARK: - Preview
-
-#if DEBUG
-#Preview {
-    NavigationStack {
-        PairedDevicesView()
-    }
-}
-#endif
